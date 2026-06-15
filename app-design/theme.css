@@ -1,0 +1,297 @@
+/* ============================================================
+   PIXEL ONBOARDING PORTAL — design tokens & pixel-art utilities
+   Fonts: Pixelify Sans (display/body), Silkscreen (labels/badges)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Silkscreen:wght@400;700&display=swap');
+
+:root {
+  --font-pixel: 'Pixelify Sans', 'Trebuchet MS', sans-serif;
+  --font-label: 'Silkscreen', 'Courier New', monospace;
+  --px: 4px; /* base pixel unit */
+  --r0: 0px; /* pixel art = no rounding */
+}
+
+/* ---------------- DARK (primary) ---------------- */
+[data-theme="dark"] {
+  --bg:           oklch(0.165 0.012 250);
+  --bg-grid:      oklch(0.205 0.014 250);
+  --panel:        oklch(0.215 0.014 250);
+  --panel-2:      oklch(0.255 0.016 250);
+  --raised:       oklch(0.295 0.018 250);
+  --border:       oklch(0.36 0.020 250);
+  --border-2:     oklch(0.48 0.022 250);
+  --text:         oklch(0.955 0.010 240);
+  --muted:        oklch(0.70 0.016 245);
+  --faint:        oklch(0.55 0.016 248);
+  --shadow:       oklch(0.09 0.012 255);
+
+  --accent:       oklch(0.78 0.165 162);
+  --accent-2:     oklch(0.70 0.150 162);
+  --accent-ink:   oklch(0.18 0.045 162);
+  --accent-soft:  oklch(0.30 0.055 162);
+  --accent-glow:  oklch(0.78 0.165 162 / 0.30);
+
+  --warn:         oklch(0.83 0.150 85);
+  --warn-soft:    oklch(0.33 0.060 85);
+  --danger:       oklch(0.70 0.175 25);
+  --danger-soft:  oklch(0.33 0.070 25);
+  --info:         oklch(0.74 0.120 232);
+  --info-soft:    oklch(0.33 0.055 232);
+
+  --scan: oklch(1 0 0 / 0.014);
+}
+
+/* ---------------- LIGHT ---------------- */
+[data-theme="light"] {
+  --bg:           oklch(0.945 0.012 155);
+  --bg-grid:      oklch(0.905 0.016 155);
+  --panel:        oklch(0.995 0.004 155);
+  --panel-2:      oklch(0.965 0.010 155);
+  --raised:       oklch(0.985 0.006 155);
+  --border:       oklch(0.55 0.022 250);
+  --border-2:     oklch(0.32 0.024 250);
+  --text:         oklch(0.235 0.020 250);
+  --muted:        oklch(0.45 0.020 250);
+  --faint:        oklch(0.58 0.018 250);
+  --shadow:       oklch(0.45 0.040 250);
+
+  --accent:       oklch(0.62 0.150 162);
+  --accent-2:     oklch(0.56 0.140 162);
+  --accent-ink:   oklch(0.98 0.020 162);
+  --accent-soft:  oklch(0.88 0.060 162);
+  --accent-glow:  oklch(0.62 0.150 162 / 0.22);
+
+  --warn:         oklch(0.62 0.130 75);
+  --warn-soft:    oklch(0.90 0.070 85);
+  --danger:       oklch(0.56 0.180 25);
+  --danger-soft:  oklch(0.90 0.060 25);
+  --info:         oklch(0.55 0.130 245);
+  --info-soft:    oklch(0.90 0.050 232);
+
+  --scan: oklch(0 0 0 / 0.018);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-pixel);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  image-rendering: pixelated;
+}
+
+body { font-size: 16px; line-height: 1.5; }
+
+iconify-icon { display: inline-block; vertical-align: -0.18em; }
+
+::selection { background: var(--accent); color: var(--accent-ink); }
+
+/* pixel scrollbar */
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: var(--bg); }
+*::-webkit-scrollbar-thumb { background: var(--border-2); border: 2px solid var(--bg); }
+*::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ============================================================
+   PIXEL UTILITIES
+   ============================================================ */
+
+.label {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* hard-edged panel with offset pixel shadow */
+.pixel {
+  background: var(--panel);
+  border: 2px solid var(--border-2);
+  border-radius: var(--r0);
+  box-shadow: 4px 4px 0 0 var(--shadow);
+}
+.pixel-sm { box-shadow: 3px 3px 0 0 var(--shadow); }
+.pixel-flat { box-shadow: none; }
+.pixel-inset {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  box-shadow: inset 2px 2px 0 0 var(--shadow);
+}
+
+/* stepped/notched pixel corners */
+.notch {
+  clip-path: polygon(
+    0 4px, 4px 4px, 4px 0,
+    calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px,
+    100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%,
+    4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px)
+  );
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 16px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 2px solid var(--border-2);
+  box-shadow: 3px 3px 0 0 var(--shadow);
+  cursor: pointer;
+  user-select: none;
+  transition: transform .06s steps(2), box-shadow .06s steps(2), background .1s;
+}
+.btn iconify-icon { font-size: 15px; }
+.btn:hover { background: var(--raised); }
+.btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 0 var(--shadow); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
+.btn-primary:hover { background: var(--accent-2); }
+
+.btn-ghost { background: transparent; box-shadow: none; border-color: var(--border); }
+.btn-ghost:hover { background: var(--panel-2); }
+.btn-ghost:active { transform: none; }
+
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--shadow); }
+.btn-sm { padding: 7px 11px; font-size: 10px; }
+.btn-block { width: 100%; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- inputs ---------- */
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field > .label { color: var(--muted); }
+.input {
+  font-family: var(--font-pixel);
+  font-size: 15px;
+  width: 100%;
+  padding: 11px 13px;
+  background: var(--bg);
+  color: var(--text);
+  border: 2px solid var(--border);
+  box-shadow: inset 2px 2px 0 0 var(--shadow);
+  transition: border-color .1s;
+}
+.input::placeholder { color: var(--faint); }
+.input:focus { outline: none; border-color: var(--accent); }
+
+/* ---------- badges ---------- */
+.badge {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 2px solid;
+  white-space: nowrap;
+  line-height: 1;
+}
+.badge iconify-icon { font-size: 12px; }
+.badge-accent  { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.badge-warn    { background: var(--warn-soft);   border-color: var(--warn);   color: var(--warn); }
+.badge-danger  { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+.badge-info    { background: var(--info-soft);   border-color: var(--info);   color: var(--info); }
+.badge-muted   { background: var(--panel-2);     border-color: var(--border); color: var(--muted); }
+
+/* ---------- chips (filter) ---------- */
+.chip {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  font-size: 10px;
+  padding: 7px 11px;
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 2px solid var(--border);
+  cursor: pointer;
+  box-shadow: 2px 2px 0 0 var(--shadow);
+  transition: transform .06s steps(2), box-shadow .06s steps(2);
+}
+.chip:active { transform: translate(2px,2px); box-shadow: none; }
+.chip[data-on="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent-ink); }
+
+/* ---------- segmented HP-style progress bar ---------- */
+.hpbar {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  box-shadow: inset 2px 2px 0 0 var(--shadow);
+}
+.hpbar > i { flex: 1; height: 10px; background: var(--accent); }
+.hpbar > i.off { background: var(--panel-2); }
+.hpbar.warn > i:not(.off) { background: var(--warn); }
+
+/* ---------- pixel divider ---------- */
+.pxdiv {
+  height: 2px;
+  background-image: repeating-linear-gradient(90deg, var(--border) 0 6px, transparent 6px 10px);
+  border: none;
+}
+
+/* ---------- headings ---------- */
+.h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.1; }
+.h2 { font-size: 22px; font-weight: 700; line-height: 1.15; }
+.h3 { font-size: 17px; font-weight: 600; }
+.kicker { font-family: var(--font-label); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
+
+/* ---------- scanline + CRT overlay ---------- */
+.crt::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: repeating-linear-gradient(
+    0deg, var(--scan) 0 2px, transparent 2px 4px
+  );
+}
+
+/* ---------- screen transition ----------
+   NOTE: keep resting/0% state VISIBLE (no opacity:0 held) so content never
+   disappears in frozen-compositor contexts (screenshots, PDF export, bg tabs).
+   We animate transform only; real browsers still get the motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .screen-enter { animation: screenIn .28s steps(7) both; }
+  @keyframes screenIn {
+    from { transform: translateY(14px); }
+    to   { transform: translateY(0); }
+  }
+  .pop { animation: pop .22s steps(5) both; }
+  @keyframes pop {
+    from { transform: scale(0.94); }
+    to   { transform: scale(1); }
+  }
+  .blink { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0.25; } }
+}
+
+/* ---------- dotted grid background (canvas / login) ---------- */
+.dotgrid {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--bg-grid) 2px, transparent 2px),
+    linear-gradient(90deg, var(--bg-grid) 2px, transparent 2px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}

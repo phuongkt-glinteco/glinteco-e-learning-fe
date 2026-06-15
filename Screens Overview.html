@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAMPUP · Screens Overview</title>
+  <link rel="stylesheet" href="app-design/theme.css" />
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style> html, body, #root { height: 100%; } </style>
+</head>
+<body data-theme="dark">
+  <div id="root"></div>
+
+  <script type="text/babel" src="app-design/data.jsx"></script>
+  <script type="text/babel" src="app-design/ui.jsx"></script>
+  <script type="text/babel" src="app-design/Login.jsx"></script>
+  <script type="text/babel" src="app-design/Dashboard.jsx"></script>
+  <script type="text/babel" src="app-design/Tracks.jsx"></script>
+  <script type="text/babel" src="app-design/Docs.jsx"></script>
+  <script type="text/babel" src="app-design/Exercises.jsx"></script>
+  <script type="text/babel" src="app-design/Shell.jsx"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" data-presets="react">
+    const W = 1240;
+    function Frame({ role, screen, theme }) {
+      return (
+        <div data-theme={theme} style={{ width: '100%', height: '100%', overflow: 'hidden', background: 'var(--bg)', color: 'var(--text)' }}>
+          {screen === 'login'
+            ? <Login onAuth={() => {}} />
+            : <Portal embedded forceRole={role} forceScreen={screen} forceTheme={theme} />}
+        </div>
+      );
+    }
+    function boot() {
+      if (!window.Portal || !window.DesignCanvas) return setTimeout(boot, 40);
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        <DesignCanvas>
+          <DCSection id="auth" title="Authentication" subtitle="Entry point · email + Google OAuth · sign-in / create-account toggle">
+            <DCArtboard id="login" label="Login · Dark" width={W} height={720}><Frame screen="login" theme="dark" /></DCArtboard>
+          </DCSection>
+
+          <DCSection id="learner" title="Learner Experience" subtitle="What an engineer sees while ramping up">
+            <DCArtboard id="l-dash"  label="Dashboard · Learner"  width={W} height={980}><Frame role="learner" screen="dashboard" theme="dark" /></DCArtboard>
+            <DCArtboard id="l-track" label="Learning Tracks · Learner" width={W} height={1325}><Frame role="learner" screen="tracks" theme="dark" /></DCArtboard>
+            <DCArtboard id="l-docs"  label="Documentation · Learner" width={W} height={920}><Frame role="learner" screen="docs" theme="dark" /></DCArtboard>
+            <DCArtboard id="l-ex"    label="Exercises · Learner"   width={W} height={1090}><Frame role="learner" screen="exercises" theme="dark" /></DCArtboard>
+          </DCSection>
+
+          <DCSection id="admin" title="Admin Experience" subtitle="Same interface, role-toggled — curriculum editing + review queue">
+            <DCArtboard id="a-dash"  label="Dashboard · Admin"  width={W} height={735}><Frame role="admin" screen="dashboard" theme="dark" /></DCArtboard>
+            <DCArtboard id="a-track" label="Learning Tracks · Admin" width={W} height={1325}><Frame role="admin" screen="tracks" theme="dark" /></DCArtboard>
+            <DCArtboard id="a-docs"  label="Documentation · Admin" width={W} height={920}><Frame role="admin" screen="docs" theme="dark" /></DCArtboard>
+            <DCArtboard id="a-ex"    label="Exercises · Admin"   width={W} height={955}><Frame role="admin" screen="exercises" theme="dark" /></DCArtboard>
+          </DCSection>
+
+          <DCSection id="theme" title="Light Theme" subtitle="Every screen also ships a light palette via the header toggle">
+            <DCArtboard id="lt-dash" label="Dashboard · Light" width={W} height={980}><Frame role="learner" screen="dashboard" theme="light" /></DCArtboard>
+            <DCArtboard id="lt-docs" label="Documentation · Light" width={W} height={920}><Frame role="admin" screen="docs" theme="light" /></DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+    boot();
+  </script>
+</body>
+</html>

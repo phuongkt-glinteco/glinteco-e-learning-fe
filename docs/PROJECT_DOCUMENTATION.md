@@ -10,7 +10,7 @@
 
 ## 1. Overview
 
-**RAMP UP** is an internal **engineering onboarding portal**. New engineers ("learners")
+**Glinteco e-Learning** is an internal **engineering onboarding portal**. New engineers ("learners")
 progress through a structured curriculum of **learning tracks**, read curated **documentation**,
 and complete practical **exercises** by submitting GitHub PR links. **Admins** (engineering
 managers / leads) author the curriculum, manage the documentation library, and review submissions.
@@ -108,7 +108,6 @@ Entities and key fields inferred from the mock data (`app-design/data.jsx`).
 |---|---|---|
 | `id` | uuid | |
 | `name` | string | |
-| `handle` | string | `@mina` |
 | `email` | string | unique |
 | `role` | enum | `learner` \| `admin` |
 | `title` | string | e.g. "Frontend Engineer" |
@@ -282,3 +281,65 @@ the project's documented standard (see exercise *e2*).
 4. Documents + tags + search/filter.
 5. Exercises + submissions + admin review.
 6. Cohort analytics + notifications + global search.
+
+---
+
+## 8. Glossary of terms
+
+Plain-language definitions for the vocabulary used across this project, the design
+prototype, and the API.
+
+### People & roles
+| Term | Meaning |
+|---|---|
+| **Learner** | A new engineer going through onboarding. Consumes tracks/docs, completes exercises, earns XP. |
+| **Admin** | Engineering manager / lead. Authors curriculum, manages docs, reviews submissions. The only role with write access to shared content. |
+| **Cohort** | A group of learners onboarding together in the same intake (e.g. *Spring 2026*). Powers the admin's aggregate analytics. |
+
+### Curriculum
+| Term | Meaning |
+|---|---|
+| **Track** (a.k.a. **Milestone**) | A self-contained topic area in the curriculum (e.g. *NestJS Service Layer*). Tracks are ordered and unlock sequentially. |
+| **Lesson** | A single unit of learning inside a track. Completing all lessons completes the track. |
+| **Track status** | A track's state **for a given learner**: `locked` (prerequisite not met), `in_progress` (started, not finished), `completed` (all lessons done). |
+| **TrackProgress** | The per-learner × per-track record holding status + lessons completed. Status lives here, not on the track itself. |
+| **Unlock** | The event of making the next track available once the prior one is completed. |
+| **Completion %** | How much of the curriculum a learner (or cohort) has finished. |
+
+### Exercises & review
+| Term | Meaning |
+|---|---|
+| **Exercise** | A hands-on, practical task tied to a track (e.g. *Add a Paginated Users Endpoint*). The learner does real work and submits a link. |
+| **Difficulty** | Exercise level: `Beginner`, `Intermediate`, or `Advanced`. |
+| **Objectives** (a.k.a. **Acceptance Criteria**) | The checklist that defines "done" for an exercise. All must be met to be approved. |
+| **Steps** | A suggested, non-binding approach to completing an exercise. |
+| **PR (Pull Request)** | A GitHub change link. Learners submit a PR/branch URL as their exercise deliverable. |
+| **Submission** | A learner's PR link submitted against an exercise, plus its review state. |
+| **Submission status** | `pending` (not started), `submitted` (awaiting review), `approved` (accepted, XP awarded), `changes` (admin requested changes). |
+| **Review Queue** | The admin's list of submissions with status `submitted`, waiting for a decision. |
+
+### Gamification
+| Term | Meaning |
+|---|---|
+| **XP (Experience Points)** | Points earned by completing lessons and getting submissions approved. |
+| **Level** | A tier derived from total XP — a visible measure of progress. |
+| **Day Streak** | Count of consecutive days the learner has been active. |
+| **Ramp time** | Days a learner takes to finish onboarding. The cohort's **avg ramp time** is tracked against a target (e.g. 11d vs 14d). |
+
+### Documentation
+| Term | Meaning |
+|---|---|
+| **Document (Doc)** | A curated link to an internal resource (wiki page, Storybook, runbook, etc.). |
+| **Kind** | A document's type: `Guide`, `Reference`, `Runbook`, `Tutorial`, or `Link`. |
+| **Tag** | A topic label (e.g. *Frontend*, *NestJS*) used to filter docs and categorize exercises. Each tag has a display color. |
+| **Bookmark / Saved doc** | A doc a learner has saved for quick access; drives the "Saved Docs" dashboard stat. |
+
+### Technical / API
+| Term | Meaning |
+|---|---|
+| **JWT** | JSON Web Token used for auth. A short-lived **access token** authorizes requests; a **refresh token** obtains a new access token without re-login. |
+| **Cursor / keyset pagination** | The project's list standard: results are paged with an opaque `cursor` ordered by `(createdAt, id)`, instead of `OFFSET`. Stable when rows are inserted. |
+| **`nextCursor` / `hasMore`** | List-response fields: the cursor to fetch the next page, and whether more results exist. |
+| **DTO (Data Transfer Object)** | The validated shape of a request body/query. Invalid input fails validation and returns `400`. |
+| **Role guard** | Server-side check that blocks a route unless the caller has the required role (e.g. admin-only). |
+| **CRT toggle / Role toggle** | UI-only controls in the prototype header — a cosmetic scanline effect and a preview switch between learner/admin views. Not part of the production data model. |

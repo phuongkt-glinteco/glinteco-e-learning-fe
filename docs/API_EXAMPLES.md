@@ -28,7 +28,6 @@
   "user": {
     "id": "u_8f3a1c20",
     "name": "Ada Lovelace",
-    "handle": "@ada",
     "email": "ada@acme.dev",
     "role": "learner",
     "level": 1,
@@ -52,7 +51,6 @@
   "user": {
     "id": "u_mina01",
     "name": "Mina Okonkwo",
-    "handle": "@mina",
     "role": "learner",
     "title": "Frontend Engineer",
     "level": 3,
@@ -115,7 +113,6 @@
 {
   "id": "u_mina01",
   "name": "Mina Okonkwo",
-  "handle": "@mina",
   "email": "mina@acme.dev",
   "role": "learner",
   "title": "Frontend Engineer",
@@ -137,9 +134,9 @@
 ```json
 {
   "data": [
-    { "id": "u_mina01", "name": "Mina Okonkwo", "handle": "@mina", "role": "learner",
+    { "id": "u_mina01", "name": "Mina Okonkwo", "role": "learner",
       "level": 3, "xp": 1240, "completion": 46, "avatarHue": 162 },
-    { "id": "u_raj02", "name": "Raj Patel", "handle": "@raj", "role": "learner",
+    { "id": "u_raj02", "name": "Raj Patel", "role": "learner",
       "level": 2, "xp": 720, "completion": 31, "avatarHue": 40 }
   ],
   "nextCursor": "eyJjcmVhdGVkQXQiOiIyMDI2…",
@@ -151,7 +148,7 @@
 **Response** `200 OK`
 ```json
 {
-  "id": "u_mina01", "name": "Mina Okonkwo", "handle": "@mina", "role": "learner",
+  "id": "u_mina01", "name": "Mina Okonkwo", "role": "learner",
   "title": "Frontend Engineer", "level": 3, "xp": 1240, "streakDays": 6,
   "cohortId": "c_spring2026", "joinedAt": "2026-04-02T09:00:00Z"
 }

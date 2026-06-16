@@ -1,10 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { HeaderResolver, I18nModule, AcceptLanguageResolver } from 'nestjs-i18n';
+import {
+  HeaderResolver,
+  I18nModule,
+  AcceptLanguageResolver,
+} from 'nestjs-i18n';
 import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,12 +25,16 @@ import { AppService } from './app.service';
         host: configService.get<string>('DATABASE_HOST', 'localhost'),
         port: configService.get<number>('DATABASE_PORT', 5432),
         username: configService.get<string>('DATABASE_USER', 'rampup_user'),
-        password: configService.get<string>('DATABASE_PASSWORD', 'rampup_password'),
+        password: configService.get<string>(
+          'DATABASE_PASSWORD',
+          'rampup_password',
+        ),
         database: configService.get<string>('DATABASE_NAME', 'rampup_db'),
         autoLoadEntities: true,
         // Schema is managed by migrations (src/database/migrations). Keep
         // synchronize off by default to avoid accidental schema drift.
-        synchronize: configService.get<string>('DATABASE_SYNCHRONIZE', 'false') === 'true',
+        synchronize:
+          configService.get<string>('DATABASE_SYNCHRONIZE', 'false') === 'true',
       }),
     }),
     I18nModule.forRoot({
@@ -39,6 +48,7 @@ import { AppService } from './app.service';
         AcceptLanguageResolver,
       ],
     }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,6 +3,7 @@ import { Client } from 'pg';
 import { DataSource } from 'typeorm';
 import { InitialSchema1781611485949 } from './1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from './1781616508023-AddGoogleIdToUsers';
+import { AddIsActiveToCohorts1781624224625 } from './1781624224625-AddIsActiveToCohorts';
 
 describe('Database Migrations', () => {
   let pgClient: Client;
@@ -54,16 +55,26 @@ describe('Database Migrations', () => {
 
     const migration1 = new InitialSchema1781611485949();
     const migration2 = new AddGoogleIdToUsers1781616508023();
+    const migration3 = new AddIsActiveToCohorts1781624224625();
 
     // Run UP 1
     await migration1.up(queryRunner);
     expect(await queryRunner.hasTable('users')).toBe(true);
     expect(await queryRunner.hasTable('cohorts')).toBe(true);
     expect(await queryRunner.hasColumn('users', 'google_id')).toBe(false);
+    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(false);
 
     // Run UP 2
     await migration2.up(queryRunner);
     expect(await queryRunner.hasColumn('users', 'google_id')).toBe(true);
+
+    // Run UP 3
+    await migration3.up(queryRunner);
+    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(true);
+
+    // Run DOWN 3
+    await migration3.down(queryRunner);
+    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(false);
 
     // Run DOWN 2
     await migration2.down(queryRunner);

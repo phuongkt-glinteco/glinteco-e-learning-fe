@@ -18,6 +18,7 @@ import {
 } from './index';
 import { InitialSchema1781611485949 } from '../migrations/1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from '../migrations/1781616508023-AddGoogleIdToUsers';
+import { AddIsActiveToCohorts1781624224625 } from '../migrations/1781624224625-AddIsActiveToCohorts';
 
 describe('Database Entities', () => {
   let pgClient: Client;
@@ -71,6 +72,8 @@ describe('Database Entities', () => {
     await migration1.up(queryRunner);
     const migration2 = new AddGoogleIdToUsers1781616508023();
     await migration2.up(queryRunner);
+    const migration3 = new AddIsActiveToCohorts1781624224625();
+    await migration3.up(queryRunner);
     await queryRunner.release();
   });
 
@@ -94,12 +97,14 @@ describe('Database Entities', () => {
     expect(savedCohort.id).toBeDefined();
     expect(savedCohort.name).toBe('Test Cohort');
     expect(savedCohort.targetRampDays).toBe(60);
+    expect(savedCohort.isActive).toBe(true);
 
     const foundCohort = await cohortRepo.findOne({
       where: { id: savedCohort.id },
       relations: { users: true },
     });
     expect(foundCohort).toBeDefined();
+    expect(foundCohort?.isActive).toBe(true);
     expect(foundCohort?.users).toEqual([]);
   });
 

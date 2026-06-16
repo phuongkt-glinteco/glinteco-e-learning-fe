@@ -27,6 +27,7 @@ This document provides a detailed overview of the TypeORM entities designed for 
 - **id**: UUID (Primary Key)
 - **name**: VARCHAR
 - **targetRampDays**: INT
+- **isActive**: BOOLEAN - Default: `true`
 - **createdAt**: TIMESTAMP
 - **updatedAt**: TIMESTAMP
 

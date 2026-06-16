@@ -19,6 +19,9 @@ export class Cohort {
   @Column()
   targetRampDays: number;
 
+  @Column({ default: true })
+  isActive: boolean;
+
   @OneToMany(() => User, (user) => user.cohort)
   users: User[];
 

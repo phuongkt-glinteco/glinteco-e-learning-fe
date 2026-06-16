@@ -32,14 +32,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex overflow-hidden w-full" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
       {/* Import Material Symbols Link dynamically if not loaded globally */}
       <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       
       {/* Split Layout Container */}
       <div className="flex w-full h-full min-h-screen">
         {/* Left Panel: Branding & Value Prop */}
-        <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-[#2563EB] to-[#7C3AED] p-12 relative overflow-hidden">
+        <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-primary to-secondary p-12 relative overflow-hidden">
           {/* Decorative Background Element */}
           <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 100% 100%, #ffffff 0%, transparent 50%)' }}></div>
           <div className="relative z-10 flex items-center gap-3">
@@ -56,26 +56,26 @@ export default function LoginPage() {
         </div>
 
         {/* Right Panel: Login Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 bg-[#F8FAFC]">
-          <div className="w-full max-w-md bg-[#FFFFFF] border border-[#E2E8F0] shadow-sm rounded-xl p-8">
+        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 bg-background">
+          <div className="w-full max-w-md bg-surface border border-outline shadow-sm rounded-xl p-8">
             {/* Mobile Logo (hidden on desktop) */}
             <div className="lg:hidden mb-8 flex flex-col items-center">
-              <img src="/logo.png" alt="RAMP UP Logo" className="w-12 h-12 mb-2 rounded-xl shadow-md border border-[#E2E8F0]" />
-              <h1 className="text-[24px] font-bold text-[#0F172A] tracking-tight">RAMP UP</h1>
-              <p className="text-[14px] text-[#64748B] mt-1">Level up your engineering journey.</p>
+              <img src="/logo.png" alt="RAMP UP Logo" className="w-12 h-12 mb-2 rounded-xl shadow-md border border-outline" />
+              <h1 className="text-[24px] font-bold text-on-surface tracking-tight">RAMP UP</h1>
+              <p className="text-[14px] text-on-surface-variant mt-1">Level up your engineering journey.</p>
             </div>
             
             <div className="mb-8">
-              <h3 className="text-[20px] font-semibold text-[#0F172A]">Welcome back</h3>
-              <p className="text-[14px] text-[#64748B] mt-1">Please enter your details to sign in.</p>
+              <h3 className="text-[20px] font-semibold text-on-surface">Welcome back</h3>
+              <p className="text-[14px] text-on-surface-variant mt-1">Please enter your details to sign in.</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Email Input */}
               <div>
-                <label className="block text-[14px] font-medium text-[#64748B] mb-1" htmlFor="email">Email</label>
+                <label className="block text-[14px] font-medium text-on-surface-variant mb-1" htmlFor="email">Email</label>
                 <input 
-                  className={`w-full bg-[#FFFFFF] border ${errors.email ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-[#ba1a1a]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'} rounded-lg px-4 py-2 text-[16px] text-[#0F172A] focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400`} 
+                  className={`w-full bg-surface border ${errors.email ? 'border-error focus:border-error focus:ring-error' : 'border-outline focus:border-primary focus:ring-primary'} rounded-lg px-4 py-2 text-[16px] text-on-surface focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400`} 
                   id="email" 
                   name="email" 
                   type="text" 
@@ -89,7 +89,7 @@ export default function LoginPage() {
                   })}
                 />
                 {errors.email && (
-                  <p className="text-[#ba1a1a] text-[12px] mt-1 flex items-center gap-1">
+                  <p className="text-error text-[12px] mt-1 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">error</span>
                     {errors.email.message}
                   </p>
@@ -98,10 +98,10 @@ export default function LoginPage() {
 
               {/* Password Input */}
               <div>
-                <label className="block text-[14px] font-medium text-[#64748B] mb-1" htmlFor="password">Password</label>
+                <label className="block text-[14px] font-medium text-on-surface-variant mb-1" htmlFor="password">Password</label>
                 <div className="relative">
                   <input 
-                    className={`w-full bg-[#FFFFFF] border ${errors.password ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-[#ba1a1a]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'} rounded-lg px-4 py-2 text-[16px] text-[#0F172A] focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400 pr-10`} 
+                    className={`w-full bg-surface border ${errors.password ? 'border-error focus:border-error focus:ring-error' : 'border-outline focus:border-primary focus:ring-primary'} rounded-lg px-4 py-2 text-[16px] text-on-surface focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400 pr-10`} 
                     id="password" 
                     name="password" 
                     type={showPassword ? "text" : "password"}
@@ -116,7 +116,7 @@ export default function LoginPage() {
                   />
                   {/* Toggle Visibility Icon */}
                   <button 
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#64748B] hover:text-[#0F172A]" 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface" 
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                   >
@@ -126,7 +126,7 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-[#ba1a1a] text-[12px] mt-1 flex items-center gap-1">
+                  <p className="text-error text-[12px] mt-1 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">error</span>
                     {errors.password.message}
                   </p>
@@ -137,21 +137,21 @@ export default function LoginPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <input 
-                    className="h-4 w-4 rounded border-[#E2E8F0] text-[#2563EB] focus:ring-[#2563EB] bg-[#FFFFFF]" 
+                    className="h-4 w-4 rounded border-outline text-primary focus:ring-primary bg-surface" 
                     id="remember" 
                     name="remember" 
                     type="checkbox" 
                     defaultChecked
                   />
-                  <label className="ml-2 block text-[14px] text-[#64748B] select-none" htmlFor="remember">Remember me</label>
+                  <label className="ml-2 block text-[14px] text-on-surface-variant select-none" htmlFor="remember">Remember me</label>
                 </div>
-                <a className="text-[14px] font-medium text-[#2563EB] hover:underline" href="#">Forgot password?</a>
+                <a className="text-[14px] font-medium text-primary hover:underline" href="#">Forgot password?</a>
               </div>
 
               {/* Primary Actions */}
               <div className="pt-2 space-y-2">
                 <button 
-                  className="w-full bg-[#2563EB] text-white text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed" 
+                  className="w-full bg-primary text-white text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed" 
                   type="submit"
                   disabled={loading}
                 >
@@ -163,7 +163,7 @@ export default function LoginPage() {
                 </button>
                 
                 <button 
-                  className="w-full bg-[#FFFFFF] border border-[#E2E8F0] text-[#0F172A] text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-[#F8FAFC] transition-colors flex justify-center items-center gap-2" 
+                  className="w-full bg-surface border border-outline text-on-surface text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-background transition-colors flex justify-center items-center gap-2" 
                   type="button"
                   onClick={handleGoogleLogin}
                   disabled={loading}
@@ -181,8 +181,8 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-8 text-center">
-              <p className="text-[14px] text-[#64748B]">
-                Don't have an account? <a className="text-[14px] font-medium text-[#2563EB] hover:underline" href="#">Request access</a>
+              <p className="text-[14px] text-on-surface-variant">
+                Don't have an account? <a className="text-[14px] font-medium text-primary hover:underline" href="#">Request access</a>
               </p>
             </div>
           </div>

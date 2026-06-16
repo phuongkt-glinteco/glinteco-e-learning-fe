@@ -17,6 +17,7 @@ import {
   Document,
 } from './index';
 import { InitialSchema1781611485949 } from '../migrations/1781611485949-InitialSchema';
+import { AddGoogleIdToUsers1781616508023 } from '../migrations/1781616508023-AddGoogleIdToUsers';
 
 describe('Database Entities', () => {
   let pgClient: Client;
@@ -66,8 +67,10 @@ describe('Database Entities', () => {
     // Run migrations to setup schema
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
-    const migration = new InitialSchema1781611485949();
-    await migration.up(queryRunner);
+    const migration1 = new InitialSchema1781611485949();
+    await migration1.up(queryRunner);
+    const migration2 = new AddGoogleIdToUsers1781616508023();
+    await migration2.up(queryRunner);
     await queryRunner.release();
   });
 

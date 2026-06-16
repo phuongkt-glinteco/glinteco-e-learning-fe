@@ -2,8 +2,9 @@
 import { Client } from 'pg';
 import { DataSource } from 'typeorm';
 import { InitialSchema1781611485949 } from './1781611485949-InitialSchema';
+import { AddGoogleIdToUsers1781616508023 } from './1781616508023-AddGoogleIdToUsers';
 
-describe('InitialSchema1781611485949 Migration', () => {
+describe('Database Migrations', () => {
   let pgClient: Client;
   let dataSource: DataSource;
   const dbName = 'rampup_test_migration';
@@ -47,29 +48,31 @@ describe('InitialSchema1781611485949 Migration', () => {
     }
   });
 
-  it('should run up and down migration successfully', async () => {
+  it('should run up and down migrations successfully', async () => {
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
 
-    const migration = new InitialSchema1781611485949();
+    const migration1 = new InitialSchema1781611485949();
+    const migration2 = new AddGoogleIdToUsers1781616508023();
 
-    // Run UP
-    await migration.up(queryRunner);
+    // Run UP 1
+    await migration1.up(queryRunner);
+    expect(await queryRunner.hasTable('users')).toBe(true);
+    expect(await queryRunner.hasTable('cohorts')).toBe(true);
+    expect(await queryRunner.hasColumn('users', 'google_id')).toBe(false);
 
-    // Verify some tables are created
-    const hasUsersTable = await queryRunner.hasTable('users');
-    const hasCohortsTable = await queryRunner.hasTable('cohorts');
-    expect(hasUsersTable).toBe(true);
-    expect(hasCohortsTable).toBe(true);
+    // Run UP 2
+    await migration2.up(queryRunner);
+    expect(await queryRunner.hasColumn('users', 'google_id')).toBe(true);
 
-    // Run DOWN
-    await migration.down(queryRunner);
+    // Run DOWN 2
+    await migration2.down(queryRunner);
+    expect(await queryRunner.hasColumn('users', 'google_id')).toBe(false);
 
-    // Verify tables are dropped
-    const hasUsersTableAfter = await queryRunner.hasTable('users');
-    const hasCohortsTableAfter = await queryRunner.hasTable('cohorts');
-    expect(hasUsersTableAfter).toBe(false);
-    expect(hasCohortsTableAfter).toBe(false);
+    // Run DOWN 1
+    await migration1.down(queryRunner);
+    expect(await queryRunner.hasTable('users')).toBe(false);
+    expect(await queryRunner.hasTable('cohorts')).toBe(false);
 
     await queryRunner.release();
   });

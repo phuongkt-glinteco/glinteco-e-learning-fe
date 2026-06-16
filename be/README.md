@@ -29,6 +29,39 @@
 
 ```bash
 $ pnpm install
+
+# Copy the example env file and adjust as needed
+$ cp .env.example .env
+```
+
+## Database (PostgreSQL + TypeORM)
+
+Start the local PostgreSQL (port `5435`) and Redis containers:
+
+```bash
+$ docker compose up -d
+```
+
+TypeORM entities live in `src/database/entities`, migrations in
+`src/database/migrations`, and the standalone CLI/seed data source in
+`src/database/data-source.ts`. The runtime schema is managed by migrations
+(`DATABASE_SYNCHRONIZE=false`).
+
+```bash
+# Apply all pending migrations
+$ pnpm run migration:run
+
+# Revert the most recent migration
+$ pnpm run migration:revert
+
+# Show migration status
+$ pnpm run migration:show
+
+# Generate a new migration from entity changes
+$ pnpm run migration:generate src/database/migrations/<Name>
+
+# Seed the database with mock data (idempotent — truncates then inserts)
+$ pnpm run seed
 ```
 
 ## Compile and run the project

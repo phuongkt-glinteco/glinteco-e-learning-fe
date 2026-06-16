@@ -23,7 +23,9 @@ import { AppService } from './app.service';
         password: configService.get<string>('DATABASE_PASSWORD', 'rampup_password'),
         database: configService.get<string>('DATABASE_NAME', 'rampup_db'),
         autoLoadEntities: true,
-        synchronize: configService.get<boolean>('DATABASE_SYNCHRONIZE', true),
+        // Schema is managed by migrations (src/database/migrations). Keep
+        // synchronize off by default to avoid accidental schema drift.
+        synchronize: configService.get<string>('DATABASE_SYNCHRONIZE', 'false') === 'true',
       }),
     }),
     I18nModule.forRoot({

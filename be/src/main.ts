@@ -40,7 +40,11 @@ async function bootstrap() {
 
   const port = process.env.PORT || 5000;
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}/${apiPrefix}`);
-  console.log(`Swagger documentation is available at: http://localhost:${port}/${apiPrefix}/docs`);
+  console.log(
+    `Application is running on: http://localhost:${port}/${apiPrefix}`,
+  );
+  console.log(
+    `Swagger documentation is available at: http://localhost:${port}/${apiPrefix}/docs`,
+  );
 }
 bootstrap();

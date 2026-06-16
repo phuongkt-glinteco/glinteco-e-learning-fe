@@ -35,6 +35,7 @@ Hệ thống hỗ trợ 2 vai trò người dùng chính với ma trận phân q
 
 | Mã chức năng | Capability (Chức năng) | Learner (Học viên) | Admin (Quản trị) | Ghi chú |
 |---|---|:---:|:---:|---|
+| **LAND-01** | Xem trang Landing Page giới thiệu | public | public | Khách vãng lai (Chưa đăng nhập) |
 | **AUTH-01** | Đăng ký/Đăng nhập (Email, Google OAuth) | ✅ | ✅ | Tất cả người dùng |
 | **DASH-01** | Xem Dashboard cá nhân (XP, Level, Streak, Tiến độ) | ✅ | — | Giao diện Learner |
 | **DASH-02** | Xem Cohort Analytics (Báo cáo tiến độ cả lớp) | — | ✅ | Giao diện Admin |
@@ -160,6 +161,15 @@ Hệ thống cung cấp trang bảng xếp hạng vinh danh nhằm tăng tính t
 * **Tiêu chí xếp hạng:** Sắp xếp người dùng theo thứ tự ưu tiên: Cấp độ (Level) giảm dần ➔ Tổng điểm kinh nghiệm (XP) giảm dần ➔ Chuỗi ngày hoạt động liên tục (StreakDays) giảm dần ➔ Ngày tham gia (joinedAt) tăng dần.
 * **Phạm vi hiển thị:** Cho phép lọc xem xếp hạng trong cùng một Cohort (Cohort-wide Leaderboard) hoặc xem xếp hạng toàn bộ người dùng trong hệ thống (Global Leaderboard).
 * **Phân trang:** Áp dụng Cursor Pagination dựa trên cặp giá trị xếp hạng để đảm bảo tốc độ tải trang nhanh và ổn định.
+
+### 3.5 Đặc tả trang Landing Page (Landing Page Specifications)
+
+Trang Landing Page là trang giới thiệu công cộng (public) của hệ thống RAMP UP, cho phép người dùng chưa đăng nhập (khách vãng lai) truy cập để tìm hiểu về chương trình onboarding trước khi đăng nhập. Các phân hệ chính trên Landing Page bao gồm:
+1. **Hero Section (Khối tiêu đề chính):** Hiển thị Slogan chào mừng của cổng đào tạo RAMP UP, nút hành động chính (Call-to-Action - CTA) để chuyển hướng nhanh đến trang Login/Signup.
+2. **Quy trình hoạt động (Onboarding Steps):** Trình bày trực quan 4 bước của kỹ sư khi onboarding (Học lý thuyết -> Thực hành làm bài -> Nộp PR GitHub -> Nhận feedback & tích lũy XP).
+3. **Xem trước lộ trình (Curriculum Preview):** Hiển thị danh sách các Learning Track (Local Dev, NestJS, Architecture...) ở chế độ chỉ đọc giúp người dùng hình dung các chặng học.
+4. **Điểm nhấn thi đua (Gamification Showcase):** Giới thiệu cơ chế tính điểm XP, Streak, Level và Bảng vàng vinh danh (Leaderboard).
+5. **Thống kê thực tế (Cohort Performance Stats):** Hiển thị số liệu tổng hợp (Ví dụ: Tổng số kỹ sư đã hoàn thành onboarding, thời gian ramp-up trung bình) để tăng độ uy tín của chương trình.
 
 ---
 

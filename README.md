@@ -6,6 +6,7 @@
 
 ## 🚀 Tính năng nổi bật
 
+* **Public Landing Page:** Trang giới thiệu công cộng cho khách vãng lai/kỹ sư mới về quy trình hoạt động, xem trước lộ trình học (Curriculum Preview) và thống kê hiệu suất thực tế.
 * **Curriculum Timeline:** Lộ trình học tập trực quan theo dạng timeline (timeline stepper) giúp kỹ sư mới nắm được từng chặng onboarding.
 * **GitHub Integration:** Nộp bài tập thực hành bằng cách dán link GitHub PR, tự động đồng bộ sang hàng đợi chấm bài (Review Queue) của Admin.
 * **Gamification & Leaderboard:** Học viên tích lũy XP khi hoàn thành bài học/bài tập, tăng Level, duy trì Day Streak hoạt động hàng ngày và tham gia Bảng xếp hạng vinh danh thi đua học tập.

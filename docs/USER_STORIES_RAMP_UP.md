@@ -6,6 +6,31 @@
 
 ---
 
+## 0. Phân hệ Landing Page (Giới thiệu công cộng)
+
+### US-00: Tìm hiểu thông tin qua trang Landing Page
+**As a** Người dùng chưa đăng nhập (Khách vãng lai / Kỹ sư mới)  
+**I want to** Truy cập vào trang Landing Page công cộng để xem lộ trình học và cách thức vận hành  
+**So that** Tôi hiểu rõ quy trình onboarding và nhanh chóng bắt đầu khóa học.
+
+#### Kịch bản nghiệm thu (Acceptance Criteria - AC):
+
+```gherkin
+Scenario: Truy cập trang Landing Page công cộng thành công
+  Given Khách vãng lai chưa thực hiện đăng nhập vào hệ thống
+  When Khách vãng lai truy cập vào địa chỉ URL gốc của hệ thống (/)
+  Then hệ thống phải hiển thị giao diện trang Landing Page giới thiệu
+  And hiển thị đầy đủ thông tin: Slogan chào mừng, Lộ trình học (Curriculum Preview), Các bước hoạt động và số liệu thống kê thực tế
+  And hiển thị nút CTA "Bắt đầu ngay" nổi bật ở khối Hero
+
+Scenario: Chuyển hướng sang màn hình Đăng nhập từ nút CTA
+  Given Khách vãng lai đang ở trang Landing Page giới thiệu
+  When Khách vãng lai click vào nút CTA "Bắt đầu ngay" hoặc nút "Đăng nhập" ở Header
+  Then hệ thống tự động điều hướng khách vãng lai sang màn hình Đăng nhập (Login.jsx)
+```
+
+---
+
 ## 1. Phân hệ Xác thực & Session (Authentication)
 
 ### US-01: Đăng nhập vào cổng RAMP UP

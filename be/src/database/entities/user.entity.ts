@@ -28,6 +28,9 @@ export class User {
   @Column()
   name: string;
 
+  @Column({ unique: true, nullable: true, name: 'google_id' })
+  googleId?: string;
+
   @Column({ type: 'enum', enum: UserRole, default: UserRole.LEARNER })
   role: UserRole;
 

@@ -14,7 +14,8 @@ import { SubmissionHistory } from './submission-history.entity';
 
 export enum SubmissionStatus {
   PENDING = 'pending',
-  REVIEWED = 'reviewed',
+  SUBMITTED = 'submitted',
+  CHANGES = 'changes',
   APPROVED = 'approved',
   REJECTED = 'rejected',
 }

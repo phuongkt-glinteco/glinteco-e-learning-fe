@@ -3,6 +3,7 @@ import { Client } from 'pg';
 import { DataSource } from 'typeorm';
 import { InitialSchema1781611485949 } from './1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from './1781616508023-AddGoogleIdToUsers';
+import { UpdateSubmissionStatusEnum1781617000000 } from './1781617000000-UpdateSubmissionStatusEnum';
 
 describe('Database Migrations', () => {
   let pgClient: Client;
@@ -54,6 +55,7 @@ describe('Database Migrations', () => {
 
     const migration1 = new InitialSchema1781611485949();
     const migration2 = new AddGoogleIdToUsers1781616508023();
+    const migration3 = new UpdateSubmissionStatusEnum1781617000000();
 
     // Run UP 1
     await migration1.up(queryRunner);
@@ -64,6 +66,24 @@ describe('Database Migrations', () => {
     // Run UP 2
     await migration2.up(queryRunner);
     expect(await queryRunner.hasColumn('users', 'google_id')).toBe(true);
+
+    // Run UP 3
+    await migration3.up(queryRunner);
+    const enumValues = await queryRunner.query(
+      `SELECT enumlabel FROM pg_enum WHERE enumtypid = 'public.submissions_status_enum'::regtype::oid`
+    );
+    const labels = enumValues.map((row: any) => row.enumlabel);
+    expect(labels).toContain('submitted');
+    expect(labels).toContain('changes');
+
+    // Run DOWN 3
+    await migration3.down(queryRunner);
+    const enumValuesAfterDown = await queryRunner.query(
+      `SELECT enumlabel FROM pg_enum WHERE enumtypid = 'public.submissions_status_enum'::regtype::oid`
+    );
+    const labelsAfterDown = enumValuesAfterDown.map((row: any) => row.enumlabel);
+    expect(labelsAfterDown).not.toContain('submitted');
+    expect(labelsAfterDown).not.toContain('changes');
 
     // Run DOWN 2
     await migration2.down(queryRunner);

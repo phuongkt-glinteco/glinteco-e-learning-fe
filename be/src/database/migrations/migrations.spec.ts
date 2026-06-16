@@ -3,6 +3,7 @@ import { Client } from 'pg';
 import { DataSource } from 'typeorm';
 import { InitialSchema1781611485949 } from './1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from './1781616508023-AddGoogleIdToUsers';
+import { AddKindToDocumentsAndSearchIndexes1781617508000 } from './1781617508000-AddKindToDocumentsAndSearchIndexes';
 
 describe('Database Migrations', () => {
   let pgClient: Client;
@@ -54,6 +55,7 @@ describe('Database Migrations', () => {
 
     const migration1 = new InitialSchema1781611485949();
     const migration2 = new AddGoogleIdToUsers1781616508023();
+    const migration3 = new AddKindToDocumentsAndSearchIndexes1781617508000();
 
     // Run UP 1
     await migration1.up(queryRunner);
@@ -64,6 +66,15 @@ describe('Database Migrations', () => {
     // Run UP 2
     await migration2.up(queryRunner);
     expect(await queryRunner.hasColumn('users', 'google_id')).toBe(true);
+    expect(await queryRunner.hasColumn('documents', 'kind')).toBe(false);
+
+    // Run UP 3
+    await migration3.up(queryRunner);
+    expect(await queryRunner.hasColumn('documents', 'kind')).toBe(true);
+
+    // Run DOWN 3
+    await migration3.down(queryRunner);
+    expect(await queryRunner.hasColumn('documents', 'kind')).toBe(false);
 
     // Run DOWN 2
     await migration2.down(queryRunner);

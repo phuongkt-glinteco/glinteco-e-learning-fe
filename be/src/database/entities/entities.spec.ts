@@ -18,6 +18,7 @@ import {
 } from './index';
 import { InitialSchema1781611485949 } from '../migrations/1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from '../migrations/1781616508023-AddGoogleIdToUsers';
+import { AddKindToDocumentsAndSearchIndexes1781617508000 } from '../migrations/1781617508000-AddKindToDocumentsAndSearchIndexes';
 
 describe('Database Entities', () => {
   let pgClient: Client;
@@ -71,6 +72,8 @@ describe('Database Entities', () => {
     await migration1.up(queryRunner);
     const migration2 = new AddGoogleIdToUsers1781616508023();
     await migration2.up(queryRunner);
+    const migration3 = new AddKindToDocumentsAndSearchIndexes1781617508000();
+    await migration3.up(queryRunner);
     await queryRunner.release();
   });
 

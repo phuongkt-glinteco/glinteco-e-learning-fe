@@ -132,11 +132,23 @@ This document provides a detailed overview of the TypeORM entities designed for 
 - **title**: VARCHAR
 - **content**: TEXT (Nullable)
 - **url**: VARCHAR (Nullable)
+- **kind**: ENUM (`Guide`, `Reference`, `Runbook`, `Tutorial`, `Link`) - Default: `Guide`
 - **createdAt**: TIMESTAMP
 - **updatedAt**: TIMESTAMP
 
 **Relationships:**
 - **Many-to-Many** with `Tag` (Using junction table `document_tags`).
+
+---
+
+## Database Optimizations for Global Search (⌘K)
+
+To support efficient full-text searching (FTS) across tracks, documents, and exercises, GIN (Generalized Inverted Index) indexes are created:
+1. **Tracks**: GIN index using `to_tsvector('simple', "name")`
+2. **Documents**: GIN index using `to_tsvector('simple', "title" || ' ' || coalesce("content", ''))`
+3. **Exercises**: GIN index using `to_tsvector('simple', "title")`
+
+The `simple` dictionary parser is used to correctly handle Vietnamese, English, and technical jargon keywords without stemming, ensuring high-accuracy keyword searching.
 
 ---
 

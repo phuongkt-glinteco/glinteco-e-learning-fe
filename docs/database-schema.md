@@ -21,6 +21,10 @@ This document provides a detailed overview of the TypeORM entities designed for 
 - **One-to-Many** with `TrackProgress` (A user has many track progresses).
 - **One-to-Many** with `Submission` (A user has many exercise submissions).
 
+**Indexes:**
+- **IDX_users_leaderboard_global**: Composite index on (`level DESC`, `xp DESC`, `streakDays DESC`, `createdAt ASC`, `id ASC`) for optimal global leaderboard performance and stable cursor pagination.
+- **IDX_users_leaderboard_cohort**: Composite index on (`cohortId`, `level DESC`, `xp DESC`, `streakDays DESC`, `createdAt ASC`, `id ASC`) for optimal cohort-wide leaderboard performance.
+
 ---
 
 ### 2. Cohort (`cohorts` table)

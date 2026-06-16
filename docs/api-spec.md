@@ -160,3 +160,46 @@ Search for documents.
     ]
   }
   ```
+
+---
+
+## 7. Leaderboard
+
+### `GET /leaderboard`
+Retrieve leaderboard rankings for learners.
+- **Query Params**:
+  - `cohortId`: UUID (Optional) - Filter by a specific cohort.
+  - `scope`: `cohort` | `global` (Optional, default: `global`) - Scope of the leaderboard. If `cohort` and `cohortId` is omitted, the API defaults to the authenticated user's cohort.
+  - `limit`: Integer (Optional, default: 10, max: 100) - Number of entries to return.
+  - `cursor`: Base64 string (Optional) - Cursor for pagination, encoding `(level, xp, streakDays, createdAt, id)`.
+- **Validation Rules**:
+  - `cohortId`: IsUUID(), IsOptional()
+  - `scope`: IsEnum(['cohort', 'global']), IsOptional()
+  - `limit`: IsInt(), Min(1), Max(100), IsOptional()
+  - `cursor`: IsString(), IsOptional()
+- **Response**: `200 OK`
+  ```json
+  {
+    "data": [
+      {
+        "userId": "uuid",
+        "name": "Mina Okonkwo",
+        "level": 3,
+        "xp": 1240,
+        "streakDays": 6,
+        "rank": 1
+      },
+      {
+        "userId": "uuid",
+        "name": "Raj Patel",
+        "level": 2,
+        "xp": 720,
+        "streakDays": 2,
+        "rank": 2
+      }
+    ],
+    "nextCursor": "eyJsaW1pdCI6MTAsImN1cnNvciI6eyJsZXZlbCI6MiwidHAiOjcyMCwic3RyZWFrRGF5cyI6Miwid3JlYXRlZEF0IjoiMjAyNi0wNi0xNlQxMDoxNTowMFoiLCJpZCI6InV1aWQifX0=",
+    "hasMore": false
+  }
+  ```
+

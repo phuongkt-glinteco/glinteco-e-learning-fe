@@ -11,6 +11,7 @@ import {
 import { Cohort } from './cohort.entity';
 import { TrackProgress } from './track-progress.entity';
 import { Submission } from './submission.entity';
+import { LessonProgress } from './lesson-progress.entity';
 
 export enum UserRole {
   LEARNER = 'learner',
@@ -27,6 +28,12 @@ export class User {
 
   @Column()
   name: string;
+
+  @Column({ nullable: true })
+  title: string;
+
+  @Column({ type: 'int', nullable: true })
+  avatarHue: number;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.LEARNER })
   role: UserRole;
@@ -49,6 +56,9 @@ export class User {
 
   @OneToMany(() => TrackProgress, (progress) => progress.user)
   trackProgresses: TrackProgress[];
+
+  @OneToMany(() => LessonProgress, (progress) => progress.user)
+  lessonProgresses: LessonProgress[];
 
   @OneToMany(() => Submission, (submission) => submission.user)
   submissions: Submission[];

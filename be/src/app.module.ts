@@ -5,9 +5,11 @@ import { HeaderResolver, I18nModule, AcceptLanguageResolver } from 'nestjs-i18n'
 import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
+    UsersModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

@@ -8,3 +8,4 @@ export * from './submission.entity';
 export * from './submission-history.entity';
 export * from './document.entity';
 export * from './tag.entity';
+export * from './lesson-progress.entity';

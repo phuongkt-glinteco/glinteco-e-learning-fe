@@ -18,6 +18,7 @@ import {
 } from './index';
 import { InitialSchema1781611485949 } from '../migrations/1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from '../migrations/1781616508023-AddGoogleIdToUsers';
+import { AddLessonsCompletedToTrackProgress1781628751000 } from '../migrations/1781628751000-AddLessonsCompletedToTrackProgress';
 
 describe('Database Entities', () => {
   let pgClient: Client;
@@ -71,6 +72,8 @@ describe('Database Entities', () => {
     await migration1.up(queryRunner);
     const migration2 = new AddGoogleIdToUsers1781616508023();
     await migration2.up(queryRunner);
+    const migration3 = new AddLessonsCompletedToTrackProgress1781628751000();
+    await migration3.up(queryRunner);
     await queryRunner.release();
   });
 
@@ -198,6 +201,7 @@ describe('Database Entities', () => {
     expect(savedProgress.userId).toBe(user.id);
     expect(savedProgress.trackId).toBe(track.id);
     expect(savedProgress.status).toBe(ProgressStatus.IN_PROGRESS);
+    expect(savedProgress.lessonsCompleted).toBe(0);
     expect(savedProgress.startedAt).toBeDefined();
     expect(savedProgress.completedAt).toBeNull();
 

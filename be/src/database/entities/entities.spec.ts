@@ -18,6 +18,7 @@ import {
 } from './index';
 import { InitialSchema1781611485949 } from '../migrations/1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from '../migrations/1781616508023-AddGoogleIdToUsers';
+import { AddUserBookmarks1781623541186 } from '../migrations/1781623541186-AddUserBookmarks';
 
 describe('Database Entities', () => {
   let pgClient: Client;
@@ -71,6 +72,8 @@ describe('Database Entities', () => {
     await migration1.up(queryRunner);
     const migration2 = new AddGoogleIdToUsers1781616508023();
     await migration2.up(queryRunner);
+    const migration3 = new AddUserBookmarks1781623541186();
+    await migration3.up(queryRunner);
     await queryRunner.release();
   });
 
@@ -331,5 +334,52 @@ describe('Database Entities', () => {
     expect(foundTag).toBeDefined();
     expect(foundTag?.documents.length).toBe(1);
     expect(foundTag?.documents[0].title).toBe('Documentation Title');
+  });
+
+  it('should create and verify User bookmarking a Document (ManyToMany)', async () => {
+    const userRepo = dataSource.getRepository(User);
+    const docRepo = dataSource.getRepository(Document);
+
+    const user = await userRepo.save(
+      userRepo.create({
+        email: 'bookmark-test@example.com',
+        name: 'Bookmark Tester',
+      }),
+    );
+
+    const doc1 = await docRepo.save(
+      docRepo.create({
+        title: 'Bookmarked Document',
+        url: 'https://example.com/bookmarked',
+      }),
+    );
+
+    const doc2 = await docRepo.save(
+      docRepo.create({
+        title: 'Another Document',
+        url: 'https://example.com/another',
+      }),
+    );
+
+    // Add bookmark
+    user.bookmarkedDocuments = [doc1];
+    await userRepo.save(user);
+
+    // Verify
+    const foundUser = await userRepo.findOne({
+      where: { id: user.id },
+      relations: { bookmarkedDocuments: true },
+    });
+    expect(foundUser).toBeDefined();
+    expect(foundUser?.bookmarkedDocuments.length).toBe(1);
+    expect(foundUser?.bookmarkedDocuments[0].title).toBe('Bookmarked Document');
+
+    const foundDoc1 = await docRepo.findOne({
+      where: { id: doc1.id },
+      relations: { bookmarkedBy: true },
+    });
+    expect(foundDoc1).toBeDefined();
+    expect(foundDoc1?.bookmarkedBy.length).toBe(1);
+    expect(foundDoc1?.bookmarkedBy[0].email).toBe('bookmark-test@example.com');
   });
 });

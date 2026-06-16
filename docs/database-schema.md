@@ -20,6 +20,7 @@ This document provides a detailed overview of the TypeORM entities designed for 
 - **Many-to-One** with `Cohort` (A user belongs to a cohort).
 - **One-to-Many** with `TrackProgress` (A user has many track progresses).
 - **One-to-Many** with `Submission` (A user has many exercise submissions).
+- **Many-to-Many** with `Document` (Bookmarked documents, using junction table `user_bookmarks`).
 
 ---
 
@@ -137,6 +138,7 @@ This document provides a detailed overview of the TypeORM entities designed for 
 
 **Relationships:**
 - **Many-to-Many** with `Tag` (Using junction table `document_tags`).
+- **Many-to-Many** with `User` (Bookmarked by, using junction table `user_bookmarks`).
 
 ---
 
@@ -148,3 +150,12 @@ This document provides a detailed overview of the TypeORM entities designed for 
 
 **Relationships:**
 - **Many-to-Many** with `Document` (Using junction table `document_tags`).
+
+---
+
+### 11. UserBookmark (`user_bookmarks` junction table)
+- **userId**: UUID (Foreign Key to `users.id`, Primary Key, ON DELETE CASCADE)
+- **documentId**: UUID (Foreign Key to `documents.id`, Primary Key, ON DELETE CASCADE)
+
+**Relationships:**
+- Junction table linking `User` and `Document` for the bookmarking feature.

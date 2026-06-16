@@ -8,6 +8,7 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Tag } from './tag.entity';
+import { User } from './user.entity';
 
 @Entity('documents')
 export class Document {
@@ -30,6 +31,9 @@ export class Document {
     inverseJoinColumn: { name: 'tagId', referencedColumnName: 'id' },
   })
   tags: Tag[];
+
+  @ManyToMany(() => User, (user) => user.bookmarkedDocuments)
+  bookmarkedBy: User[];
 
   @CreateDateColumn()
   createdAt: Date;

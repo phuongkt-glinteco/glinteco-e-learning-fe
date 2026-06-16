@@ -16,7 +16,7 @@ export const dataSourceOptions: DataSourceOptions = {
   password: process.env.DATABASE_PASSWORD || 'rampup_password',
   database: process.env.DATABASE_NAME || 'rampup_db',
   entities: [join(__dirname, 'entities', '*.entity.{ts,js}')],
-  migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
+  migrations: [join(__dirname, 'migrations', '!(*.spec).{ts,js}')],
   synchronize: false,
   logging: ['error', 'migration'],
 };

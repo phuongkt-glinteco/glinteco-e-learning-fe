@@ -42,7 +42,8 @@ export default function LoginPage() {
         <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-[#2563EB] to-[#7C3AED] p-12 relative overflow-hidden">
           {/* Decorative Background Element */}
           <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 100% 100%, #ffffff 0%, transparent 50%)' }}></div>
-          <div className="relative z-10">
+          <div className="relative z-10 flex items-center gap-3">
+            <img src="/logo.png" alt="RAMP UP Logo" className="w-10 h-10 rounded-lg shadow-lg border border-white/10" />
             <h1 className="text-[32px] font-bold text-white tracking-tight">RAMP UP</h1>
           </div>
           <div className="relative z-10 max-w-md">
@@ -58,7 +59,8 @@ export default function LoginPage() {
         <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 bg-[#F8FAFC]">
           <div className="w-full max-w-md bg-[#FFFFFF] border border-[#E2E8F0] shadow-sm rounded-xl p-8">
             {/* Mobile Logo (hidden on desktop) */}
-            <div className="lg:hidden mb-8 text-center">
+            <div className="lg:hidden mb-8 flex flex-col items-center">
+              <img src="/logo.png" alt="RAMP UP Logo" className="w-12 h-12 mb-2 rounded-xl shadow-md border border-[#E2E8F0]" />
               <h1 className="text-[24px] font-bold text-[#0F172A] tracking-tight">RAMP UP</h1>
               <p className="text-[14px] text-[#64748B] mt-1">Level up your engineering journey.</p>
             </div>

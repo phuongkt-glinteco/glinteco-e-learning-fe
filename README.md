@@ -20,24 +20,28 @@
 ## 📂 Cấu trúc Thư mục Dự án
 
 ```text
-├── app-design/               # Mã nguồn giao diện Prototype (React tĩnh)
-│   ├── ui.jsx                # Các component UI cơ bản (Card, Button, Badge...)
-│   ├── Shell.jsx             # App Shell (Sidebar, Header, Tìm kiếm)
-│   ├── Dashboard.jsx         # Trang Dashboard (Học viên & Quản trị)
-│   ├── Tracks.jsx            # Giao diện Lộ trình học & bài học
-│   ├── Docs.jsx              # Thư viện tài liệu kỹ thuật
-│   ├── Exercises.jsx         # Giao diện bài tập thực hành & Review Queue
-│   ├── Login.jsx             # Giao diện xác thực (Email + Google OAuth)
-│   └── data.jsx              # Bộ dữ liệu Mock data cho Prototype
-├── docs/                     # Bộ tài liệu đặc tả nghiệp vụ & API (BA/SRS)
-│   ├── BA_STANDARDS.md       # Quy chuẩn viết tài liệu BA, Story, Gherkin & UAT
-│   ├── SRS_RAMP_UP.md        # Đặc tả yêu cầu phần mềm SRS (Sơ đồ trạng thái, NFR, ER)
+├── fe/                         # Thư mục chứa mã nguồn và tài nguyên Frontend
+│   ├── app-design/             # Mã nguồn giao diện Prototype (React tĩnh)
+│   │   ├── ui.jsx              # Các component UI cơ bản (Card, Button, Badge...)
+│   │   ├── Shell.jsx           # App Shell (Sidebar, Header, Tìm kiếm)
+│   │   ├── Dashboard.jsx       # Trang Dashboard (Học viên & Quản trị)
+│   │   ├── Tracks.jsx          # Giao diện Lộ trình học & bài học
+│   │   ├── Docs.jsx            # Thư viện tài liệu kỹ thuật
+│   │   ├── Exercises.jsx       # Giao diện bài tập thực hành & Review Queue
+│   │   ├── Login.jsx           # Giao diện xác thực (Email + Google OAuth)
+│   │   └── data.jsx            # Bộ dữ liệu Mock data cho Prototype
+│   ├── Onboarding Portal.html  # Trang thử nghiệm cổng thông tin độc lập
+│   ├── Screens Overview.html   # Thiết kế Canvas bao quát toàn bộ màn hình (Figma-style)
+│   └── design-canvas.jsx       # Canvas quản lý hiển thị các màn hình
+├── be/                         # Thư mục chứa mã nguồn và tài nguyên Backend (NestJS)
+├── docs/                       # Bộ tài liệu đặc tả nghiệp vụ & API chung (BA/SRS)
+│   ├── BA_STANDARDS.md         # Hướng dẫn quy trình viết tài liệu BA, Story, Gherkin
+│   ├── SRS_RAMP_UP.md          # Đặc tả yêu cầu phần mềm SRS (Sơ đồ trạng thái, NFR, ER)
 │   ├── USER_STORIES_RAMP_UP.md # Danh sách chi tiết User Stories & Kịch bản nghiệm thu
 │   ├── PROJECT_DOCUMENTATION.md # Đặc tả hệ thống kiến trúc chung & Database model
-│   └── API_EXAMPLES.md       # Ví dụ Request/Response chi tiết của các endpoint API
-├── Screenshots Overview.html # Thiết kế Canvas bao quát toàn bộ màn hình (Figma-style)
-├── Onboarding Portal.html    # Trang thử nghiệm cổng thông tin độc lập
-└── README.md                 # Tài liệu hướng dẫn này
+│   ├── API_EXAMPLES.md         # Ví dụ Request/Response chi tiết của các endpoint API
+│   └── openapi.yaml            # Tài liệu đặc tả API chuẩn OpenAPI/Swagger v3
+├── README.md                   # Tài liệu hướng dẫn này
 ```
 
 ---
@@ -62,16 +66,16 @@ Do bản thiết kế giao diện (Prototype) được thiết kế chạy trự
 
 ### Cách 1: Chạy trực tiếp qua trình duyệt (Đơn giản nhất)
 Bạn có thể nhấp đúp trực tiếp để mở các file sau trong trình duyệt Web:
-1. **[Screens Overview.html](Screens Overview.html):** Giao diện canvas kiểu Figma, cho phép bạn xem toàn bộ các màn hình (Đăng nhập, Dashboard học viên/admin, Lộ trình, Tài liệu, Bài tập) ở cả 2 chế độ Light/Dark mode, zoom/pan tự do và kéo thả sắp xếp thứ tự các artboard.
-2. **[Onboarding Portal.html](Onboarding Portal.html):** Trình mô phỏng giao diện độc lập để tương tác thử nghiệm như một ứng dụng thực tế.
+1. **[Screens Overview.html](fe/Screens Overview.html):** Giao diện canvas kiểu Figma, cho phép bạn xem toàn bộ các màn hình (Đăng nhập, Dashboard học viên/admin, Lộ trình, Tài liệu, Bài tập) ở cả 2 chế độ Light/Dark mode, zoom/pan tự do và kéo thả sắp xếp thứ tự các artboard.
+2. **[Onboarding Portal.html](fe/Onboarding Portal.html):** Trình mô phỏng giao diện độc lập để tương tác thử nghiệm như một ứng dụng thực tế.
 
 ### Cách 2: Chạy qua Web Server cục bộ (Khuyên dùng)
 Để tránh các giới hạn bảo mật CORS của trình duyệt đối với giao thức `file://`, bạn nên chạy qua một Web Server tĩnh:
-1. Sử dụng extension **Live Server** trong VS Code: Chuột phải vào file `Screens Overview.html` ➔ Chọn `Open with Live Server`.
+1. Sử dụng extension **Live Server** trong VS Code: Chuột phải vào file `fe/Screens Overview.html` ➔ Chọn `Open with Live Server`.
 2. Hoặc sử dụng CLI bất kỳ trong thư mục dự án:
    ```bash
-   npx serve .
+   npx serve fe
    # hoặc
    python3 -m http.server 8000
    ```
-   Sau đó truy cập đường dẫn cục bộ (ví dụ: `http://localhost:8000/Screens Overview.html`) để trải nghiệm mượt mà nhất.
+   Sau đó truy cập đường dẫn cục bộ (ví dụ: `http://localhost:8000/fe/Screens Overview.html` hoặc `http://localhost:5000` khi chạy `npx serve fe`) để trải nghiệm mượt mà nhất.

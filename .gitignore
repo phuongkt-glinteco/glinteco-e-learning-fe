@@ -55,3 +55,6 @@ desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+# Test coverage reports
+coverage/

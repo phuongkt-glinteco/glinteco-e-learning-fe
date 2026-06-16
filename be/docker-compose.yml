@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ramp-up-postgres
+    ports:
+      - '5435:5432'
+    environment:
+      POSTGRES_USER: rampup_user
+      POSTGRES_PASSWORD: rampup_password
+      POSTGRES_DB: rampup_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ramp-up-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ramp-up-redis
+    ports:
+      - '6380:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - ramp-up-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ramp-up-network:
+    driver: bridge

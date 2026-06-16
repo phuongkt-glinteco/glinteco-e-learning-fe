@@ -58,11 +58,35 @@
 * 🌐 **[Swagger / OpenAPI Specification](docs/openapi.yaml):** Đặc tả API theo chuẩn OpenAPI v3.0, mô tả chi tiết tất cả các endpoint, schema cấu trúc dữ liệu, query/path parameters, request bodies và mã lỗi lỗi chuẩn.
 * 🏛️ **[Project Architecture Overview](docs/PROJECT_DOCUMENTATION.md):** Tài liệu kỹ thuật chung về kiến trúc hệ thống và luồng tích hợp.
 
-## 🛠️ Hướng dẫn Khởi chạy & Phát triển (Frontend Dev Setup)
+## 🛠️ Hướng dẫn Khởi chạy & Phát triển (Dev Setup)
 
-Dự án frontend được tổ chức dưới dạng ứng dụng Next.js sử dụng App Router và Tailwind CSS bên trong thư mục `fe/`.
+Dự án được cấu trúc dạng monorepo gồm 2 thư mục chính:
+* `fe/`: Ứng dụng Next.js sử dụng App Router và Tailwind CSS.
+* `be/`: Ứng dụng NestJS kết nối cơ sở dữ liệu PostgreSQL và cache Redis.
 
-### Khởi chạy môi trường phát triển (Local Development)
+### 1. Khởi chạy Backend (NestJS, PostgreSQL, Redis)
+Để khởi chạy backend cục bộ, thực hiện các bước sau:
+
+1. Di chuyển vào thư mục backend:
+   ```bash
+   cd be
+   ```
+2. Khởi động PostgreSQL và Redis thông qua Docker Compose (chạy cổng local 5435 và 6380 để tránh xung đột):
+   ```bash
+   docker compose up -d
+   ```
+3. Cài đặt các thư viện phụ thuộc:
+   ```bash
+   pnpm install
+   ```
+4. Chạy ứng dụng backend ở chế độ phát triển:
+   ```bash
+   pnpm run start:dev
+   ```
+   * API Local: [http://localhost:5000/api/v1](http://localhost:5000/api/v1)
+   * Swagger API Docs: [http://localhost:5000/api/v1/docs](http://localhost:5000/api/v1/docs)
+
+### 2. Khởi chạy Frontend (Next.js)
 Để khởi chạy ứng dụng frontend trên máy cục bộ, thực hiện các bước sau:
 
 1. Di chuyển vào thư mục frontend:
@@ -77,6 +101,6 @@ Dự án frontend được tổ chức dưới dạng ứng dụng Next.js sử 
    ```bash
    pnpm dev
    ```
-4. Truy cập ứng dụng tại địa chỉ: [http://localhost:3000](http://localhost:3000)
+4. Truy cập ứng dụng tại địa chỉ: [http://localhost:6336](http://localhost:6336)
 
 Trang đăng nhập (Login) được định tuyến tại đường dẫn `/login` (tương ứng với [page.jsx](file:///home/phamhung/Work/glinteco-e-learning-fe/fe/src/app/login/page.jsx)).

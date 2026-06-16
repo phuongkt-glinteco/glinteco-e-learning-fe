@@ -89,10 +89,18 @@ async function seed(): Promise<void> {
     const exerciseRepo = dataSource.getRepository(Exercise);
 
     const onboardingTrack = await trackRepo.save(
-      trackRepo.create({ name: 'Onboarding & Tooling', order: 1, lessonsCount: 2 }),
+      trackRepo.create({
+        name: 'Onboarding & Tooling',
+        order: 1,
+        lessonsCount: 2,
+      }),
     );
     const backendTrack = await trackRepo.save(
-      trackRepo.create({ name: 'Backend with NestJS', order: 2, lessonsCount: 2 }),
+      trackRepo.create({
+        name: 'Backend with NestJS',
+        order: 2,
+        lessonsCount: 2,
+      }),
     );
 
     await lessonRepo.save([
@@ -106,19 +114,22 @@ async function seed(): Promise<void> {
         trackId: onboardingTrack.id,
         name: 'Git workflow & quy ước commit',
         order: 2,
-        content: 'Tìm hiểu branch strategy, conventional commits và quy trình review.',
+        content:
+          'Tìm hiểu branch strategy, conventional commits và quy trình review.',
       }),
       lessonRepo.create({
         trackId: backendTrack.id,
         name: 'NestJS Modules & Dependency Injection',
         order: 1,
-        content: 'Cấu trúc module, provider và cơ chế tiêm phụ thuộc trong NestJS.',
+        content:
+          'Cấu trúc module, provider và cơ chế tiêm phụ thuộc trong NestJS.',
       }),
       lessonRepo.create({
         trackId: backendTrack.id,
         name: 'TypeORM & PostgreSQL',
         order: 2,
-        content: 'Định nghĩa entity, migration và truy vấn dữ liệu với TypeORM.',
+        content:
+          'Định nghĩa entity, migration và truy vấn dữ liệu với TypeORM.',
       }),
     ]);
 
@@ -170,7 +181,8 @@ async function seed(): Promise<void> {
       submissionRepo.create({
         userId: alice.id,
         exerciseId: exercise.id,
-        prUrl: 'https://github.com/phuongkt-glinteco/glinteco-e-learning-fe/pull/42',
+        prUrl:
+          'https://github.com/phuongkt-glinteco/glinteco-e-learning-fe/pull/42',
         status: SubmissionStatus.APPROVED,
         submittedAt: new Date('2026-06-12T10:30:00Z'),
       }),
@@ -210,13 +222,15 @@ async function seed(): Promise<void> {
       }),
       documentRepo.create({
         title: 'TypeORM Migration Best Practices',
-        content: 'Quy ước viết và chạy migration an toàn trên môi trường production.',
+        content:
+          'Quy ước viết và chạy migration an toàn trên môi trường production.',
         url: 'https://typeorm.io/migrations',
         tags: [nestjsTag, dbTag],
       }),
       documentRepo.create({
         title: 'Git Workflow tại Glinteco',
-        content: 'Branch strategy, conventional commits và quy trình code review.',
+        content:
+          'Branch strategy, conventional commits và quy trình code review.',
         tags: [gitTag],
       }),
     ]);

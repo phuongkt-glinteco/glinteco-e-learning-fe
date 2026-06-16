@@ -90,7 +90,9 @@ describe('UsersService', () => {
         role: 'learner',
       };
       mockUserRepository.findOne.mockResolvedValue(user);
-      mockUserRepository.save.mockImplementation(async (u) => u);
+      mockUserRepository.save.mockImplementation((u: unknown) =>
+        Promise.resolve(u),
+      );
 
       const result = await service.updateProfile('u_123', {
         name: 'Mina',
@@ -117,7 +119,9 @@ describe('UsersService', () => {
         avatarHue: 200,
       };
       mockUserRepository.findOne.mockResolvedValue(user);
-      mockUserRepository.save.mockImplementation(async (u) => u);
+      mockUserRepository.save.mockImplementation((u: unknown) =>
+        Promise.resolve(u),
+      );
 
       const result = await service.updateProfile('u_123', { avatarHue: 42 });
 
@@ -128,12 +132,82 @@ describe('UsersService', () => {
         avatarHue: 42,
       });
     });
+
+    it('should update name only and leave title and avatarHue unchanged', async () => {
+      const user = {
+        id: 'u_123',
+        name: 'Old Name',
+        title: 'Engineer',
+        avatarHue: 200,
+      };
+      mockUserRepository.findOne.mockResolvedValue(user);
+      mockUserRepository.save.mockImplementation((u: unknown) =>
+        Promise.resolve(u),
+      );
+
+      const result = await service.updateProfile('u_123', { name: 'New Name' });
+
+      expect(result).toEqual({
+        id: 'u_123',
+        name: 'New Name',
+        title: 'Engineer',
+        avatarHue: 200,
+      });
+    });
+
+    it('should update title only and leave name and avatarHue unchanged', async () => {
+      const user = {
+        id: 'u_123',
+        name: 'Mina',
+        title: 'Old Title',
+        avatarHue: 200,
+      };
+      mockUserRepository.findOne.mockResolvedValue(user);
+      mockUserRepository.save.mockImplementation((u: unknown) =>
+        Promise.resolve(u),
+      );
+
+      const result = await service.updateProfile('u_123', {
+        title: 'New Title',
+      });
+
+      expect(result).toEqual({
+        id: 'u_123',
+        name: 'Mina',
+        title: 'New Title',
+        avatarHue: 200,
+      });
+    });
+
+    it('should not change any fields if update DTO is empty', async () => {
+      const user = {
+        id: 'u_123',
+        name: 'Mina',
+        title: 'Engineer',
+        avatarHue: 200,
+      };
+      mockUserRepository.findOne.mockResolvedValue(user);
+      mockUserRepository.save.mockImplementation((u: unknown) =>
+        Promise.resolve(u),
+      );
+
+      const result = await service.updateProfile('u_123', {});
+
+      expect(result).toEqual({
+        id: 'u_123',
+        name: 'Mina',
+        title: 'Engineer',
+        avatarHue: 200,
+      });
+    });
   });
 
   describe('getStats', () => {
     it('should throw NotFoundException if user is not found', async () => {
       mockUserRepository.findOne.mockResolvedValue(null);
-      await expect(service.getStats('u_123')).rejects.toThrow(NotFoundException);
+      await expect(service.getStats('u_123')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should calculate stats correctly', async () => {

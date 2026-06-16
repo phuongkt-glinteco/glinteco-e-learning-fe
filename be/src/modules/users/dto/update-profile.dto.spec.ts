@@ -20,10 +20,10 @@ describe('UpdateProfileDto validation', () => {
   };
 
   it('accepts a valid name / title / avatarHue payload', async () => {
-    const result = await pipe.transform(
+    const result = (await pipe.transform(
       { name: 'Mina', title: 'Senior Frontend Engineer', avatarHue: 200 },
       metadata,
-    );
+    )) as UpdateProfileDto;
     expect(result).toEqual({
       name: 'Mina',
       title: 'Senior Frontend Engineer',
@@ -38,14 +38,14 @@ describe('UpdateProfileDto validation', () => {
   });
 
   it('rejects an attempt to change role (privilege escalation)', async () => {
-    await expect(
-      pipe.transform({ role: 'admin' }, metadata),
-    ).rejects.toThrow(BadRequestException);
+    await expect(pipe.transform({ role: 'admin' }, metadata)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('rejects avatarHue outside the 0-360 range', async () => {
-    await expect(
-      pipe.transform({ avatarHue: 999 }, metadata),
-    ).rejects.toThrow(BadRequestException);
+    await expect(pipe.transform({ avatarHue: 999 }, metadata)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 });

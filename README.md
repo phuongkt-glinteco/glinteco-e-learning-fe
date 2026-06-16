@@ -51,6 +51,7 @@
 * 📋 **[Product Backlog & User Stories](docs/USER_STORIES_RAMP_UP.md):** Danh sách đầy đủ các User Stories cốt lõi kèm theo kịch bản nghiệm thu (Given - When - Then) chi tiết cho QC/QA.
 * 📅 **[Backend Development Plan](docs/BE_DEVELOPMENT_PLAN.md):** Kế hoạch phân rã Task phát triển backend NestJS theo Sprint cho Squad Team.
 * ⚙️ **[API Endpoint Examples](docs/API_EXAMPLES.md):** Đặc tả chi tiết các payload Request/Response JSON mẫu cho toàn bộ các API `/api/v1` của dự án.
+* 🌐 **[Swagger / OpenAPI Specification](docs/openapi.yaml):** Đặc tả API theo chuẩn OpenAPI v3.0, mô tả chi tiết tất cả các endpoint, schema cấu trúc dữ liệu, query/path parameters, request bodies và mã lỗi lỗi chuẩn.
 * 🏛️ **[Project Architecture Overview](docs/PROJECT_DOCUMENTATION.md):** Tài liệu kỹ thuật chung về kiến trúc hệ thống và luồng tích hợp.
 
 ---

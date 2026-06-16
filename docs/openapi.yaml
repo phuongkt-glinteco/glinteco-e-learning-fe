@@ -1,0 +1,3284 @@
+openapi: 3.0.3
+info:
+  title: RAMP UP — Engineering Onboarding Portal API
+  description: |
+    Tài liệu đặc tả API (OpenAPI Specification) cho hệ thống **RAMP UP** (Glinteco e-Learning).
+    Hệ thống cung cấp cổng thông tin đào tạo nội bộ gamified dành cho các kỹ sư mới gia nhập Glinteco.
+    
+    ### Quy ước chung:
+    * **Base URL:** `/api/v1` (mặc định môi trường development: `https://api.glinteco-elearning.dev/api/v1`)
+    * **Xác thực:** Ngoại trừ các route Auth public, tất cả các request yêu cầu header `Authorization: Bearer <accessToken>`.
+    * **Định dạng thời gian:** Chuẩn ISO-8601 UTC (ví dụ: `2026-06-16T15:16:56Z`).
+    * **Phân trang danh sách (Pagination):** Sử dụng Keyset/Cursor Pagination với định dạng phản hồi chung:
+      ```json
+      {
+        "data": [...],
+        "nextCursor": "<opaque_string_or_null>",
+        "hasMore": true
+      }
+      ```
+    * **Quản lý lỗi (Error Envelopes):** Các lỗi trả về định dạng chuẩn:
+      ```json
+      {
+        "statusCode": 400,
+        "message": ["email must be a valid email"],
+        "error": "Bad Request"
+      }
+      ```
+  version: 1.0.0
+servers:
+  - url: https://api.glinteco-elearning.dev/api/v1
+    description: Môi trường Development
+paths:
+  # =========================================================================
+  # 1. AUTH & SESSION
+  # =========================================================================
+  /auth/register:
+    post:
+      summary: Đăng ký tài khoản mới (Public)
+      description: Tạo tài khoản learner mới với email, password và họ tên.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: Ada Lovelace
+                email:
+                  type: string
+                  format: email
+                  example: ada@acme.dev
+                password:
+                  type: string
+                  format: password
+                  example: hunter2-very-strong
+      responses:
+        '201':
+          description: Đăng ký thành công và tự động tạo phiên đăng nhập.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1Ni…
+                  refreshToken:
+                    type: string
+                    example: rt_a1b2c3d4e5f6
+                  expiresIn:
+                    type: integer
+                    description: Thời hạn token tính bằng giây (ví dụ 900 = 15 phút).
+                    example: 900
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Email đã được sử dụng.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      summary: Đăng nhập bằng Email & Password (Public)
+      description: Xác thực người dùng bằng email và mật khẩu để lấy access token và refresh token.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: mina@acme.dev
+                password:
+                  type: string
+                  format: password
+                  example: password123
+                rememberMe:
+                  type: boolean
+                  default: false
+                  example: true
+      responses:
+        '200':
+          description: Đăng nhập thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1Ni…
+                  refreshToken:
+                    type: string
+                    example: rt_9z8y7x6w
+                  expiresIn:
+                    type: integer
+                    example: 900
+        '401':
+          description: Sai thông tin đăng nhập.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/google:
+    post:
+      summary: Đăng nhập / Đăng ký qua Google OAuth (Public)
+      description: Sử dụng ID Token gửi từ client sau khi xác thực qua Google. Tài khoản mới sẽ được tự động kích hoạt vai trò `learner`.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idToken
+              properties:
+                idToken:
+                  type: string
+                  example: google-oauth2-id-token-here
+      responses:
+        '200':
+          description: Xác thực Google thành công. Trả về thông tin phiên giống như `/auth/login`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1Ni…
+                  refreshToken:
+                    type: string
+                    example: rt_9z8y7x6w
+                  expiresIn:
+                    type: integer
+                    example: 900
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/refresh:
+    post:
+      summary: Làm mới Access Token (Public)
+      description: Gửi refresh token hiện tại để nhận access token mới cùng refresh token mới.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: rt_9z8y7x6w
+      responses:
+        '200':
+          description: Cấp token mới thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    example: eyJhbGciOiJIUzI1Ni…
+                  refreshToken:
+                    type: string
+                    example: rt_new1234
+                  expiresIn:
+                    type: integer
+                    example: 900
+        '401':
+          description: Refresh token không hợp lệ hoặc đã hết hạn.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      summary: Đăng xuất (Authenticated)
+      description: Thu hồi refresh token hiện tại để hủy phiên làm việc.
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Đăng xuất thành công. Không có dữ liệu trả về.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/forgot-password:
+    post:
+      summary: Yêu cầu đặt lại mật khẩu (Public)
+      description: Gửi email liên kết đặt lại mật khẩu nếu tài khoản tồn tại trong hệ thống.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: mina@acme.dev
+      responses:
+        '202':
+          description: Yêu cầu đã được tiếp nhận.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: If the account exists, a reset link has been sent.
+
+  /auth/reset-password:
+    post:
+      summary: Đặt lại mật khẩu mới (Public)
+      description: Sử dụng token nhận được từ email để thiết lập mật khẩu mới.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - password
+              properties:
+                token:
+                  type: string
+                  example: reset_tok_abc123
+                password:
+                  type: string
+                  format: password
+                  example: new-strong-password
+      responses:
+        '200':
+          description: Đổi mật khẩu thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password updated. Please sign in.
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/me:
+    get:
+      summary: Lấy thông tin tài khoản hiện tại (Authenticated)
+      description: Lấy thông tin chi tiết của người dùng đang đăng nhập dựa trên JWT access token.
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # =========================================================================
+  # 2. USERS & PROFILE
+  # =========================================================================
+  /users:
+    get:
+      summary: Danh sách người dùng (Admin)
+      description: Lấy danh sách người dùng trong hệ thống hỗ trợ tìm kiếm và lọc. Chỉ dành cho vai trò `admin`.
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: cohortId
+          in: query
+          description: Lọc danh sách theo Cohort ID
+          required: false
+          schema:
+            type: string
+            example: c_spring2026
+        - name: role
+          in: query
+          description: Lọc theo vai trò (learner hoặc admin)
+          required: false
+          schema:
+            type: string
+            enum: [learner, admin]
+            example: learner
+        - name: q
+          in: query
+          description: Tìm kiếm theo họ tên hoặc email
+          required: false
+          schema:
+            type: string
+            example: Mina
+        - name: limit
+          in: query
+          description: Giới hạn số lượng bản ghi trả về (tối đa 50)
+          required: false
+          schema:
+            type: integer
+            maximum: 50
+            default: 20
+            example: 20
+        - name: cursor
+          in: query
+          description: Cursor phục vụ phân trang danh sách
+          required: false
+          schema:
+            type: string
+            example: eyJjcmVhdGVkQXQiOiIyMDI2…
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserSummary'
+                  nextCursor:
+                    type: string
+                    nullable: true
+                    example: eyJjcmVhdGVkQXQiOiIyMDI2…
+                  hasMore:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /users/{id}:
+    get:
+      summary: Lấy chi tiết thông tin một người dùng (Authenticated)
+      description: |
+        Lấy thông tin profile chi tiết của một kỹ sư.
+        * Quy tắc phân quyền:* `learner` chỉ được phép lấy chính profile của họ, `admin` được phép lấy bất kỳ ai.
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của người dùng cần xem
+          required: true
+          schema:
+            type: string
+            example: u_mina01
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Không đủ quyền truy cập (Learner xem profile người khác).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Không tìm thấy người dùng.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/me:
+    patch:
+      summary: Cập nhật thông tin profile cá nhân (Authenticated)
+      description: Cho phép người dùng tự chỉnh sửa một số thuộc tính profile cá nhân như chức danh (title) hoặc màu đại diện (avatarHue).
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Senior Frontend Engineer
+                avatarHue:
+                  type: integer
+                  minimum: 0
+                  maximum: 360
+                  example: 200
+      responses:
+        '200':
+          description: Cập nhật thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: u_mina01
+                  title:
+                    type: string
+                    example: Senior Frontend Engineer
+                  avatarHue:
+                    type: integer
+                    example: 200
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /users/me/stats:
+    get:
+      summary: Thống kê tiến độ & Gamification cá nhân (Learner)
+      description: Lấy bộ dữ liệu thống kê tổng hợp dùng để hiển thị trên màn hình dashboard của học viên (Level, XP, Streak, Tỷ lệ hoàn thành, số bài tập, bookmark).
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDashboardStats'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /users/me/notifications/slack:
+    post:
+      summary: Đăng ký nhận thông báo qua Slack (Proposed - Learner)
+      description: Thiết lập liên kết tài khoản hệ thống với Slack Member ID để nhận thông báo thời gian thực về bài nộp và tiến độ.
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - slackMemberId
+              properties:
+                slackMemberId:
+                  type: string
+                  description: ID định danh của user trên workspace Slack
+                  example: U12345678
+      responses:
+        '200':
+          description: Liên kết thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    example: u_mina01
+                  slackMemberId:
+                    type: string
+                    example: U12345678
+                  slackNotificationsEnabled:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # =========================================================================
+  # 3. COHORTS (ADMIN ANALYTICS)
+  # =========================================================================
+  /cohorts:
+    get:
+      summary: Danh sách khóa học (Admin)
+      description: Lấy danh sách các Cohort khóa học hiện có kèm thống kê sơ bộ về số lượng học viên và tỷ lệ hoàn thành trung bình.
+      tags:
+        - Cohorts
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CohortSummary'
+                  nextCursor:
+                    type: string
+                    nullable: true
+                    example: null
+                  hasMore:
+                    type: boolean
+                    example: false
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+    post:
+      summary: Khởi tạo khóa học mới (Proposed - Admin)
+      description: Tạo mới một khóa học (Cohort) để quản lý luồng học viên.
+      tags:
+        - Cohorts
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Tên khóa học
+                  example: Summer 2026
+                targetRampDays:
+                  type: integer
+                  description: Số ngày mục tiêu để hoàn thành lộ trình
+                  default: 14
+                  example: 14
+      responses:
+        '201':
+          description: Tạo thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CohortDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /cohorts/{id}:
+    get:
+      summary: Lấy chi tiết thông tin khóa học (Admin)
+      description: Trả về thông tin cấu hình chi tiết cùng các chỉ số KPI trung bình của khóa học.
+      tags:
+        - Cohorts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Cohort
+          required: true
+          schema:
+            type: string
+            example: c_spring2026
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CohortDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy Cohort.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Chỉnh sửa cấu hình khóa học (Proposed - Admin)
+      description: Cập nhật các thông số của Cohort như tên khóa học hoặc số ngày target ramp-up.
+      tags:
+        - Cohorts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Cohort cần sửa
+          required: true
+          schema:
+            type: string
+            example: c_summer2026
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Summer 2026 (Updated)
+                targetRampDays:
+                  type: integer
+                  example: 12
+      responses:
+        '200':
+          description: Cập nhật thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CohortDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /cohorts/{id}/overview:
+    get:
+      summary: Thống kê Dashboard khóa học (Admin)
+      description: Lấy dữ liệu KPI tổng hợp dạng thẻ số liệu phục vụ màn hình dashboard của Admin đối với một khóa học.
+      tags:
+        - Cohorts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Cohort
+          required: true
+          schema:
+            type: string
+            example: c_spring2026
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CohortDashboardStats'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /cohorts/{id}/track-completion:
+    get:
+      summary: Biểu đồ tỷ lệ hoàn thành theo Milestone (Admin)
+      description: Lấy tỷ lệ học viên đã hoàn thành của từng Track trong chương trình học đối với cohort này.
+      tags:
+        - Cohorts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Cohort
+          required: true
+          schema:
+            type: string
+            example: c_spring2026
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        trackId:
+                          type: string
+                          example: t1
+                        title:
+                          type: string
+                          example: Local Dev Environment
+                        completionPct:
+                          type: integer
+                          minimum: 0
+                          maximum: 100
+                          example: 92
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /cohorts/{id}/export:
+    get:
+      summary: Xuất báo cáo tiến độ học viên dạng CSV (Admin)
+      description: Tải xuống file CSV chứa chi tiết tiến độ học tập, XP, level và trạng thái bài tập của tất cả học viên trong khóa.
+      tags:
+        - Cohorts
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Cohort
+          required: true
+          schema:
+            type: string
+            example: c_spring2026
+      responses:
+        '200':
+          description: File CSV được sinh thành công.
+          headers:
+            Content-Type:
+              schema:
+                type: string
+                example: text/csv
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: |
+                  name,email,completion,xp,level,tracksCompleted,exercisesApproved
+                  Mina Okonkwo,mina@acme.dev,46,1240,3,2,1
+                  Raj Patel,raj@acme.dev,31,720,2,1,0
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  # =========================================================================
+  # 4. TRACKS & LESSONS
+  # =========================================================================
+  /tracks:
+    get:
+      summary: Lấy danh sách lộ trình học (Authenticated)
+      description: |
+        Lấy toàn bộ các Track bài học theo thứ tự sắp xếp.
+        Mỗi track sẽ kèm theo thông tin trạng thái học tập của người gọi API (`completed`, `in_progress`, `locked`).
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TrackSummary'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      summary: Tạo mốc lộ trình mới (Admin)
+      description: Thêm một Track bài học mới vào chương trình giảng dạy.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - estimatedTime
+                - lessonCount
+              properties:
+                title:
+                  type: string
+                  example: GraphQL Gateway
+                description:
+                  type: string
+                  example: Federated schema, resolvers, and the gateway pattern.
+                estimatedTime:
+                  type: string
+                  example: 2h
+                lessonCount:
+                  type: integer
+                  example: 4
+                afterTrackId:
+                  type: string
+                  description: Chèn sau Track có ID này (để tự động tính toán order). Nếu bỏ trống sẽ chèn cuối cùng.
+                  example: t4
+      responses:
+        '201':
+          description: Tạo thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /tracks/reorder:
+    patch:
+      summary: Thay đổi hàng loạt thứ tự các Track (Admin)
+      description: Sắp xếp lại danh sách các Track bài học bằng cách truyền mảng danh sách ID theo đúng thứ tự mới.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order
+              properties:
+                order:
+                  type: array
+                  items:
+                    type: string
+                  description: Danh sách ID của track được sắp xếp lại.
+                  example: ["t1", "t2", "t3", "t6", "t4", "t5"]
+      responses:
+        '200':
+          description: Đã cập nhật thứ tự thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Tracks reordered
+                  count:
+                    type: integer
+                    example: 6
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /tracks/{id}:
+    get:
+      summary: Xem chi tiết lộ trình học (Authenticated)
+      description: Lấy thông tin chi tiết một Track bao gồm danh sách các Lesson cấu thành bên trong và trạng thái hoàn thành của từng lesson.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Track
+          required: true
+          schema:
+            type: string
+            example: t3
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy Track.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Chỉnh sửa thông tin mốc lộ trình (Admin)
+      description: Chỉnh sửa các thông số mô tả, thời gian ước tính, hoặc icon của Track bài học.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Track
+          required: true
+          schema:
+            type: string
+            example: t6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: GraphQL Federation Gateway
+                description:
+                  type: string
+                  example: Federated schema, resolvers, and Apollo Gateway.
+                estimatedTime:
+                  type: string
+                  example: 3h
+                icon:
+                  type: string
+                  example: sitemap
+      responses:
+        '200':
+          description: Cập nhật thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Xóa mốc lộ trình (Admin)
+      description: Xóa hoàn toàn một Track và các bài học bên trong.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Track cần xóa
+          required: true
+          schema:
+            type: string
+            example: t6
+      responses:
+        '204':
+          description: Xóa thành công.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tracks/{id}/lessons:
+    get:
+      summary: Danh sách bài học trong lộ trình (Authenticated)
+      description: Lấy danh sách rút gọn các bài học thuộc một Track bài học cụ thể.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Track
+          required: true
+          schema:
+            type: string
+            example: t3
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LessonSummary'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy Track.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Thêm bài học mới vào lộ trình (Admin)
+      description: Tạo một bài học mới bên trong một Track bài học được chỉ định.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của Track cần thêm bài học
+          required: true
+          schema:
+            type: string
+            example: t3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - order
+                - estimatedTime
+                - body
+              properties:
+                title:
+                  type: string
+                  example: Pagination Patterns
+                order:
+                  type: integer
+                  description: Số thứ tự sắp xếp bài học trong Track
+                  example: 6
+                estimatedTime:
+                  type: string
+                  example: 30m
+                body:
+                  type: string
+                  description: Nội dung bài học (hỗ trợ định dạng Markdown)
+                  example: "# Keyset pagination\nHere is how you do keyset pagination..."
+      responses:
+        '201':
+          description: Tạo thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /lessons/{id}:
+    patch:
+      summary: Chỉnh sửa thông tin bài học (Admin)
+      description: Chỉnh sửa nội dung, tiêu đề, hoặc thời gian học của bài học.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài học
+          required: true
+          schema:
+            type: string
+            example: l36
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Cursor Pagination Patterns
+                body:
+                  type: string
+                  example: "# Cursor pagination\nUpdated content..."
+                estimatedTime:
+                  type: string
+                  example: 45m
+      responses:
+        '200':
+          description: Cập nhật thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LessonDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy bài học.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Xóa bài học (Admin)
+      description: Xóa bài học cụ thể khỏi chương trình.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài học cần xóa
+          required: true
+          schema:
+            type: string
+            example: l36
+      responses:
+        '204':
+          description: Xóa thành công.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /lessons/{id}/complete:
+    post:
+      summary: Đánh dấu hoàn thành bài học (Learner)
+      description: Learner đánh dấu hoàn tất một bài học để ghi nhận tiến độ, nhận XP thưởng và mở khóa bài học/track kế tiếp nếu đủ điều kiện.
+      tags:
+        - Tracks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài học cần hoàn thành
+          required: true
+          schema:
+            type: string
+            example: l34
+      responses:
+        '200':
+          description: Đánh dấu thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lessonId:
+                    type: string
+                    example: l34
+                  trackId:
+                    type: string
+                    example: t3
+                  lessonsCompleted:
+                    type: integer
+                    description: Số lượng bài học đã xong trong track này
+                    example: 4
+                  trackStatus:
+                    type: string
+                    enum: [completed, in_progress, locked]
+                    example: in_progress
+                  xpAwarded:
+                    type: integer
+                    description: XP nhận được từ bài học này
+                    example: 40
+                  totalXp:
+                    type: integer
+                    description: Tổng điểm XP hiện tại của người dùng
+                    example: 1280
+                  unlockedTrackId:
+                    type: string
+                    nullable: true
+                    description: ID của Track tiếp theo vừa được mở khóa (nếu hoàn tất track hiện tại)
+                    example: null
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy bài học.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # =========================================================================
+  # 5. DOCUMENTS & TAGS
+  # =========================================================================
+  /documents:
+    get:
+      summary: Danh sách / Tìm kiếm tài liệu kỹ thuật (Authenticated)
+      description: Lấy danh sách tài liệu trong thư viện Wiki. Hỗ trợ tìm kiếm từ khóa, lọc theo tags và kind.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          description: Từ khóa tìm kiếm trong tiêu đề
+          required: false
+          schema:
+            type: string
+            example: auth
+        - name: tags
+          in: query
+          description: Lọc danh sách tag phân tách bằng dấu phẩy
+          required: false
+          schema:
+            type: string
+            example: NestJS,Architecture
+        - name: kind
+          in: query
+          description: Lọc theo phân loại tài liệu
+          required: false
+          schema:
+            type: string
+            enum: [Guide, Reference, Runbook, Tutorial, Link]
+            example: Guide
+        - name: limit
+          in: query
+          description: Số bản ghi tối đa trả về
+          required: false
+          schema:
+            type: integer
+            maximum: 50
+            default: 20
+            example: 20
+        - name: cursor
+          in: query
+          description: Con trỏ phục vụ phân trang
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Document'
+                  nextCursor:
+                    type: string
+                    nullable: true
+                    example: null
+                  hasMore:
+                    type: boolean
+                    example: false
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      summary: Thêm tài liệu mới vào Wiki (Admin)
+      description: Thêm mới một tài liệu kỹ thuật hoặc liên kết hướng dẫn.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - url
+                - kind
+              properties:
+                title:
+                  type: string
+                  example: Caching Strategy Guide
+                url:
+                  type: string
+                  description: URL đường dẫn tài liệu (đối với wiki nội bộ hoặc external)
+                  example: wiki/backend/caching
+                kind:
+                  type: string
+                  enum: [Guide, Reference, Runbook, Tutorial, Link]
+                  example: Guide
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["NestJS", "DevOps"]
+      responses:
+        '201':
+          description: Tạo thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /documents/recent:
+    get:
+      summary: Lấy tài liệu đọc gần đây (Learner)
+      description: Trả về danh sách rút gọn các tài liệu kỹ thuật học viên vừa xem gần nhất để đưa lên dashboard.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: d5
+                        title:
+                          type: string
+                          example: Service Auth & JWT Flow
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          example: ["NestJS", "Architecture"]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /documents/{id}:
+    get:
+      summary: Xem chi tiết tài liệu (Authenticated)
+      description: Xem thông tin đầy đủ của một tài liệu.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của tài liệu
+          required: true
+          schema:
+            type: string
+            example: d5
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy tài liệu.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Sửa thông tin tài liệu (Admin)
+      description: Cập nhật phân loại, tiêu đề, tags hoặc URL của tài liệu.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của tài liệu
+          required: true
+          schema:
+            type: string
+            example: d9
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: Caching Strategy Guide V2
+                url:
+                  type: string
+                  example: wiki/backend/caching-v2
+                kind:
+                  type: string
+                  enum: [Guide, Reference, Runbook, Tutorial, Link]
+                  example: Runbook
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["DevOps"]
+      responses:
+        '200':
+          description: Cập nhật thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Xóa tài liệu khỏi Wiki (Admin)
+      description: Xóa bỏ tài liệu kỹ thuật.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID tài liệu cần xóa
+          required: true
+          schema:
+            type: string
+            example: d9
+      responses:
+        '204':
+          description: Xóa thành công.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /documents/{id}/bookmark:
+    post:
+      summary: Đánh dấu lưu tài liệu (Learner)
+      description: Học viên lưu tài liệu kỹ thuật này để tiện xem lại sau.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID tài liệu
+          required: true
+          schema:
+            type: string
+            example: d5
+      responses:
+        '200':
+          description: Đã đánh dấu bookmark thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documentId:
+                    type: string
+                    example: d5
+                  bookmarked:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Bỏ đánh dấu lưu tài liệu (Learner)
+      description: Loại bỏ tài liệu khỏi danh mục lưu trữ cá nhân.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID tài liệu
+          required: true
+          schema:
+            type: string
+            example: d5
+      responses:
+        '204':
+          description: Bỏ bookmark thành công. Không có body trả về.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tags:
+    get:
+      summary: Lấy danh sách tag (Authenticated)
+      description: Lấy danh sách tất cả các tag chuyên môn dùng chung cho Tài liệu và Bài tập.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tag'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      summary: Tạo tag mới (Admin)
+      description: Admin tạo thêm một tag phân loại kiến thức mới (ví dụ GraphQL). Màu sắc sẽ được tự động gán.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: GraphQL
+      responses:
+        '201':
+          description: Tạo thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          description: Tag đã tồn tại trong hệ thống.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tags/{id}:
+    delete:
+      summary: Xóa tag (Admin)
+      description: Loại bỏ hoàn toàn một tag khỏi hệ thống.
+      tags:
+        - Documents
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của tag cần xóa
+          required: true
+          schema:
+            type: string
+            example: tag_gql
+      responses:
+        '204':
+          description: Xóa thành công.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy tag.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # =========================================================================
+  # 6. EXERCISES
+  # =========================================================================
+  /exercises:
+    get:
+      summary: Danh sách bài tập thực hành (Authenticated)
+      description: Lấy danh sách các bài tập thực hành theo các bộ lọc trackId, độ khó và tag kiến thức. Mỗi bài tập trả về sẽ kèm theo trạng thái nộp bài của user gọi API.
+      tags:
+        - Exercises
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: trackId
+          in: query
+          description: Lọc bài tập thuộc Track cụ thể
+          required: false
+          schema:
+            type: string
+            example: t3
+        - name: tag
+          in: query
+          description: Lọc theo nhãn chuyên môn (ví dụ NestJS)
+          required: false
+          schema:
+            type: string
+            example: NestJS
+        - name: difficulty
+          in: query
+          description: Lọc theo cấp độ khó
+          required: false
+          schema:
+            type: string
+            enum: [Beginner, Intermediate, Advanced]
+            example: Intermediate
+        - name: status
+          in: query
+          description: Lọc theo trạng thái bài nộp cá nhân
+          required: false
+          schema:
+            type: string
+            enum: [pending, submitted, approved, changes]
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExerciseSummary'
+                  nextCursor:
+                    type: string
+                    nullable: true
+                  hasMore:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      summary: Tạo bài tập thực hành mới (Admin)
+      description: Tạo bài tập thực hành mới cho một lộ trình học cụ thể để kiểm tra năng lực của learner.
+      tags:
+        - Exercises
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - trackId
+                - tag
+                - difficulty
+                - estimatedTime
+                - xp
+                - brief
+                - overview
+                - objectives
+                - steps
+              properties:
+                title:
+                  type: string
+                  example: Service Auth Middleware
+                trackId:
+                  type: string
+                  description: ID của track chứa bài tập này
+                  example: t3
+                tag:
+                  type: string
+                  description: Tag phân loại chuyên môn
+                  example: NestJS
+                difficulty:
+                  type: string
+                  enum: [Beginner, Intermediate, Advanced]
+                  example: Intermediate
+                estimatedTime:
+                  type: string
+                  example: 2h
+                xp:
+                  type: integer
+                  description: Điểm kinh nghiệm nhận được khi hoàn tất bài tập
+                  example: 180
+                brief:
+                  type: string
+                  example: Add a JWT guard that attaches the user to the request.
+                overview:
+                  type: string
+                  example: Every protected route runs through this guard...
+                objectives:
+                  type: array
+                  items:
+                    type: string
+                  description: Tiêu chí nghiệm thu (Acceptance Criteria)
+                  example: ["Verify JWT signature", "Attach user to request", "401 on invalid token"]
+                steps:
+                  type: array
+                  items:
+                    type: string
+                  description: Các bước thực hiện gợi ý
+                  example: ["Create the guard", "Register it globally", "Write the spec"]
+                resourceDocIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Danh sách ID tài liệu tham khảo
+                  example: ["d5"]
+                hint:
+                  type: string
+                  example: Reuse the shared JwtService config.
+      responses:
+        '201':
+          description: Tạo thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: e4
+                  title:
+                    type: string
+                    example: Service Auth Middleware
+                  trackId:
+                    type: string
+                    example: t3
+                  xp:
+                    type: integer
+                    example: 180
+                  status:
+                    type: string
+                    example: pending
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /exercises/{id}:
+    get:
+      summary: Xem chi tiết bài tập (Authenticated)
+      description: Lấy thông tin chi tiết đầy đủ của một bài tập bao gồm mô tả, gợi ý, tài liệu tham khảo và danh sách bước làm chi tiết.
+      tags:
+        - Exercises
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài tập
+          required: true
+          schema:
+            type: string
+            example: e2
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExerciseDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy bài tập.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Chỉnh sửa thông tin bài tập (Admin)
+      description: Chỉnh sửa các thông số XP, cấp độ khó, tiêu chuẩn nghiệm thu của bài tập.
+      tags:
+        - Exercises
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài tập
+          required: true
+          schema:
+            type: string
+            example: e4
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                xp:
+                  type: integer
+                  example: 200
+                difficulty:
+                  type: string
+                  enum: [Beginner, Intermediate, Advanced]
+                  example: Advanced
+      responses:
+        '200':
+          description: Cập nhật thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: e4
+                  xp:
+                    type: integer
+                    example: 200
+                  difficulty:
+                    type: string
+                    example: Advanced
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy bài tập.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Xóa bài tập (Admin)
+      description: Xóa bỏ bài tập khỏi lộ trình học.
+      tags:
+        - Exercises
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài tập
+          required: true
+          schema:
+            type: string
+            example: e4
+      responses:
+        '204':
+          description: Xóa thành công.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # =========================================================================
+  # 7. SUBMISSIONS & REVIEW
+  # =========================================================================
+  /exercises/{id}/submissions:
+    post:
+      summary: Nộp link bài làm PR lần đầu (Learner)
+      description: Học viên nộp bài tập bằng cách gửi link PR GitHub. Bài nộp được khởi tạo ở trạng thái `submitted` để chờ Admin review.
+      tags:
+        - Submissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài tập
+          required: true
+          schema:
+            type: string
+            example: e3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prUrl
+              properties:
+                prUrl:
+                  type: string
+                  description: URL của Pull Request GitHub chứa bài giải
+                  example: github.com/acme/web/pull/468
+      responses:
+        '201':
+          description: Nộp bài thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy bài tập.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Nộp lại / Cập nhật bài giải PR (Learner)
+      description: Học viên cập nhật lại link PR khác hoặc cập nhật lại PR sau khi có yêu cầu sửa đổi từ Admin. Trạng thái sẽ đặt lại thành `submitted`.
+      tags:
+        - Submissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID bài tập
+          required: true
+          schema:
+            type: string
+            example: e3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prUrl
+              properties:
+                prUrl:
+                  type: string
+                  example: github.com/acme/web/pull/470
+      responses:
+        '200':
+          description: Cập nhật bài nộp thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /submissions:
+    get:
+      summary: Hàng đợi chấm bài / Lịch sử bài nộp (Admin)
+      description: Lấy danh sách bài nộp phục vụ cho giao diện review chấm bài của Admin. Mặc định dùng để lấy danh sách bài đang chờ duyệt (`?status=submitted`).
+      tags:
+        - Submissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Lọc theo trạng thái bài nộp
+          required: false
+          schema:
+            type: string
+            enum: [submitted, approved, changes]
+            example: submitted
+        - name: cohortId
+          in: query
+          description: Lọc bài nộp của học viên trong cohort cụ thể
+          required: false
+          schema:
+            type: string
+            example: c_spring2026
+        - name: limit
+          in: query
+          description: Giới hạn bản ghi trả về
+          required: false
+          schema:
+            type: integer
+            maximum: 50
+            default: 20
+        - name: cursor
+          in: query
+          description: Cursor phân trang danh sách
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SubmissionFeedItem'
+                  nextCursor:
+                    type: string
+                    nullable: true
+                    example: eyJzdWJtaXR0ZWRBdCI6…
+                  hasMore:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /submissions/mine:
+    get:
+      summary: Danh sách bài tập đã nộp của tôi (Learner)
+      description: Trả về danh sách tất cả các bài nộp của chính learner đang đăng nhập.
+      tags:
+        - Submissions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: s1
+                        exerciseId:
+                          type: string
+                          example: e2
+                        exercise:
+                          type: string
+                          example: Add a Paginated Users Endpoint
+                        prUrl:
+                          type: string
+                          example: github.com/acme/api/pull/119
+                        status:
+                          type: string
+                          enum: [submitted, approved, changes]
+                          example: submitted
+                        submittedAt:
+                          type: string
+                          format: date-time
+                          example: 2026-06-15T11:11:00Z
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /submissions/{id}:
+    get:
+      summary: Xem chi tiết một bài nộp (Authenticated)
+      description: |
+        Xem chi tiết một bản ghi bài nộp cùng trạng thái và nhận xét.
+        * Phân quyền:* Chủ nhân bài nộp (`learner`) hoặc bất kỳ `admin` nào được quyền truy cập.
+      tags:
+        - Submissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài nộp (Submission ID)
+          required: true
+          schema:
+            type: string
+            example: s1
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionDetail'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy bài nộp.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /submissions/{id}/approve:
+    post:
+      summary: Phê duyệt bài nộp (Admin)
+      description: Admin phê duyệt bài giải PR của học viên. Bài tập sẽ chuyển sang trạng thái `approved`, học viên nhận được XP thưởng của bài tập và tổng XP của họ được cập nhật.
+      tags:
+        - Submissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài nộp
+          required: true
+          schema:
+            type: string
+            example: s1
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  description: Nhận xét phê duyệt từ Admin
+                  example: Clean keyset impl, nice tests.
+      responses:
+        '200':
+          description: Phê duyệt thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: s1
+                  status:
+                    type: string
+                    example: approved
+                  exerciseId:
+                    type: string
+                    example: e2
+                  exerciseStatus:
+                    type: string
+                    example: approved
+                  reviewerId:
+                    type: string
+                    example: u_lead
+                  reviewedAt:
+                    type: string
+                    format: date-time
+                    example: 2026-06-15T11:50:00Z
+                  xpAwarded:
+                    type: integer
+                    example: 200
+                  learnerTotalXp:
+                    type: integer
+                    example: 1440
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          description: Không tìm thấy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /submissions/{id}/request-changes:
+    post:
+      summary: Yêu cầu sửa đổi bài nộp (Admin)
+      description: Admin từ chối phê duyệt và yêu cầu học viên sửa lại bài làm kèm theo ghi chú nhận xét cụ thể. Bài nộp sẽ chuyển sang trạng thái `changes`.
+      tags:
+        - Submissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID bài nộp
+          required: true
+          schema:
+            type: string
+            example: s2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - note
+              properties:
+                note:
+                  type: string
+                  description: Nội dung chi tiết các yêu cầu học viên cần chỉnh sửa
+                  example: Status-dot color should reuse getStatusColor() instead of a new switch.
+      responses:
+        '200':
+          description: Yêu cầu sửa đổi thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: s2
+                  status:
+                    type: string
+                    example: changes
+                  exerciseId:
+                    type: string
+                    example: e1
+                  exerciseStatus:
+                    type: string
+                    example: pending
+                  reviewerId:
+                    type: string
+                    example: u_lead
+                  reviewNote:
+                    type: string
+                    example: Status-dot color should reuse getStatusColor()…
+                  reviewedAt:
+                    type: string
+                    format: date-time
+                    example: 2026-06-15T11:52:00Z
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /submissions/{id}/history:
+    get:
+      summary: Tra cứu lịch sử các lần nộp của bài tập (Proposed - Authenticated)
+      description: Lấy nhật ký tất cả các phiên bản nộp bài (các link PR cũ) và nội dung nhận xét tương ứng qua các vòng review chấm bài của bài tập này.
+      tags:
+        - Submissions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của bài nộp chính
+          required: true
+          schema:
+            type: string
+            example: s1
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionHistoryResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy lịch sử.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # =========================================================================
+  # 8. SEARCH & NOTIFICATIONS
+  # =========================================================================
+  /search:
+    get:
+      summary: Tìm kiếm nhanh toàn hệ thống (Authenticated)
+      description: Hỗ trợ tính năng Quick Search (Ctrl+K / Cmd+K) trên giao diện để tìm kiếm đồng thời trên cả Tracks, Documents, và Exercises.
+      tags:
+        - Search & Notifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          description: Từ khóa tìm kiếm
+          required: true
+          schema:
+            type: string
+            example: auth
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tracks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: t3
+                        title:
+                          type: string
+                          example: NestJS Service Layer
+                  documents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: d5
+                        title:
+                          type: string
+                          example: Service Auth & JWT Flow
+                        kind:
+                          type: string
+                          example: Guide
+                  exercises:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: e4
+                        title:
+                          type: string
+                          example: Service Auth Middleware
+                        tag:
+                          type: string
+                          example: NestJS
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /notifications:
+    get:
+      summary: Lấy danh sách thông báo cá nhân (Authenticated)
+      description: Lấy danh sách các thông báo trong trung tâm thông báo của người dùng đăng nhập hiện tại (ví dụ bài tập được duyệt, track mới mở khóa).
+      tags:
+        - Search & Notifications
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  unreadCount:
+                    type: integer
+                    description: Số lượng thông báo chưa đọc
+                    example: 1
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /notifications/{id}/read:
+    post:
+      summary: Đánh dấu đã đọc thông báo (Authenticated)
+      description: Cập nhật trạng thái một thông báo thành đã đọc (`read = true`).
+      tags:
+        - Search & Notifications
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID của thông báo cần đọc
+          required: true
+          schema:
+            type: string
+            example: n1
+      responses:
+        '200':
+          description: Cập nhật thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: n1
+                  read:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Không tìm thấy thông báo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # =========================================================================
+  # 9. LEADERS & GAMIFICATION
+  # =========================================================================
+  /leaderboard:
+    get:
+      summary: Bảng xếp hạng thi đua học tập (Proposed - Authenticated)
+      description: Lấy bảng xếp hạng học viên sắp xếp theo XP giảm dần trong phạm vi Cohort hoặc toàn công ty để thúc đẩy học tập.
+      tags:
+        - Leaderboard
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: cohortId
+          in: query
+          description: Lọc bảng xếp hạng theo khóa học cụ thể. Nếu bỏ trống sẽ lấy bảng xếp hạng toàn công ty.
+          required: false
+          schema:
+            type: string
+            example: c_spring2026
+        - name: limit
+          in: query
+          description: Số lượng học viên hiển thị tối đa trên bảng xếp hạng
+          required: false
+          schema:
+            type: integer
+            maximum: 100
+            default: 10
+            example: 3
+      responses:
+        '200':
+          description: Thành công.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaderboardEntry'
+                  nextCursor:
+                    type: string
+                    nullable: true
+                    example: null
+                  hasMore:
+                    type: boolean
+                    example: false
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Gửi access token dạng 'Bearer <Token>' trong header Authorization.
+
+  responses:
+    ValidationError:
+      description: Dữ liệu đầu vào không hợp lệ (lỗi validate DTO).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+                example: 400
+              message:
+                type: array
+                items:
+                  type: string
+                example: ["email must be a valid email", "password must be longer than or equal to 6 characters"]
+              error:
+                type: string
+                example: Bad Request
+
+    UnauthorizedError:
+      description: Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+                example: 401
+              message:
+                type: string
+                example: Unauthorized
+              error:
+                type: string
+                example: Unauthorized
+
+    ForbiddenError:
+      description: Người dùng không có quyền truy cập chức năng này (sai role).
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+                example: 403
+              message:
+                type: string
+                example: Forbidden resource
+              error:
+                type: string
+                example: Forbidden
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Yêu cầu không hợp lệ
+        error:
+          type: string
+          example: Bad Request
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: u_8f3a1c20
+        name:
+          type: string
+          example: Ada Lovelace
+        email:
+          type: string
+          example: ada@acme.dev
+        role:
+          type: string
+          enum: [learner, admin]
+          example: learner
+        level:
+          type: integer
+          example: 1
+        xp:
+          type: integer
+          example: 0
+        cohortId:
+          type: string
+          nullable: true
+          example: c_spring2026
+
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          example: u_mina01
+        name:
+          type: string
+          example: Mina Okonkwo
+        role:
+          type: string
+          example: learner
+        level:
+          type: integer
+          example: 3
+        xp:
+          type: integer
+          example: 1240
+        completion:
+          type: integer
+          description: Tỷ lệ hoàn thành toàn bộ lộ trình (%)
+          example: 46
+        avatarHue:
+          type: integer
+          description: Mã màu HSL Hue đại diện đại diện
+          example: 162
+
+    UserDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          example: u_mina01
+        name:
+          type: string
+          example: Mina Okonkwo
+        email:
+          type: string
+          example: mina@acme.dev
+        role:
+          type: string
+          example: learner
+        title:
+          type: string
+          example: Frontend Engineer
+        avatarHue:
+          type: integer
+          example: 162
+        level:
+          type: integer
+          example: 3
+        xp:
+          type: integer
+          example: 1240
+        streakDays:
+          type: integer
+          example: 6
+        cohortId:
+          type: string
+          example: c_spring2026
+        joinedAt:
+          type: string
+          format: date-time
+          example: 2026-04-02T09:00:00Z
+
+    UserDashboardStats:
+      type: object
+      properties:
+        level:
+          type: integer
+          example: 3
+        xp:
+          type: integer
+          example: 1240
+        xpThisWeek:
+          type: integer
+          example: 180
+        streakDays:
+          type: integer
+          example: 6
+        overallCompletion:
+          type: integer
+          example: 46
+        tracks:
+          type: object
+          properties:
+            completed:
+              type: integer
+              example: 2
+            total:
+              type: integer
+              example: 5
+        exercises:
+          type: object
+          properties:
+            approved:
+              type: integer
+              example: 1
+            total:
+              type: integer
+              example: 3
+            awaitingReview:
+              type: integer
+              example: 1
+        savedDocs:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 12
+            unread:
+              type: integer
+              example: 3
+
+    CohortSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          example: c_spring2026
+        name:
+          type: string
+          example: Spring 2026
+        learnerCount:
+          type: integer
+          example: 14
+        avgCompletion:
+          type: integer
+          example: 58
+
+    CohortDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          example: c_spring2026
+        name:
+          type: string
+          example: Spring 2026
+        learnerCount:
+          type: integer
+          example: 14
+        avgCompletion:
+          type: integer
+          example: 58
+        avgRampDays:
+          type: integer
+          description: Số ngày hoàn thành trung bình thực tế
+          example: 11
+        targetRampDays:
+          type: integer
+          description: Số ngày mục tiêu đặt ra
+          example: 14
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-03-01T00:00:00Z
+
+    CohortDashboardStats:
+      type: object
+      properties:
+        activeLearners:
+          type: integer
+          example: 14
+        newThisWeek:
+          type: integer
+          example: 3
+        avgCompletion:
+          type: integer
+          example: 58
+        avgCompletionDelta:
+          type: integer
+          description: Mức tăng trưởng % hoàn thành so với tuần trước
+          example: 12
+        pendingReview:
+          type: integer
+          description: Số bài tập đang chờ chấm trong hàng đợi
+          example: 3
+        oldestPendingAgo:
+          type: string
+          description: Thời gian chờ của bài nộp cũ nhất
+          example: 3h
+        avgRampDays:
+          type: integer
+          example: 11
+        targetRampDays:
+          type: integer
+          example: 14
+
+    TrackSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          example: t3
+        title:
+          type: string
+          example: NestJS Service Layer
+        estimatedTime:
+          type: string
+          example: 2.5h
+        order:
+          type: integer
+          example: 3
+        lessonCount:
+          type: integer
+          example: 5
+        icon:
+          type: string
+          example: server
+        status:
+          type: string
+          enum: [completed, in_progress, locked]
+          example: in_progress
+        lessonsCompleted:
+          type: integer
+          example: 3
+        description:
+          type: string
+          example: Modules, providers, DTO validation, and how we structure controllers.
+
+    TrackDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          example: t3
+        title:
+          type: string
+          example: NestJS Service Layer
+        estimatedTime:
+          type: string
+          example: 2.5h
+        order:
+          type: integer
+          example: 3
+        icon:
+          type: string
+          example: server
+        status:
+          type: string
+          enum: [completed, in_progress, locked]
+          example: in_progress
+        lessonsCompleted:
+          type: integer
+          example: 3
+        description:
+          type: string
+          example: Modules, providers, DTO validation, and how we structure controllers.
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LessonProgressItem'
+
+    LessonSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          example: l31
+        title:
+          type: string
+          example: Modules & Providers
+        order:
+          type: integer
+          example: 1
+        estimatedTime:
+          type: string
+          example: 30m
+
+    LessonDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          example: l36
+        trackId:
+          type: string
+          example: t3
+        title:
+          type: string
+          example: Pagination Patterns
+        order:
+          type: integer
+          example: 6
+        estimatedTime:
+          type: string
+          example: 30m
+        body:
+          type: string
+          example: "# Keyset pagination..."
+
+    LessonProgressItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: l31
+        title:
+          type: string
+          example: Modules & Providers
+        order:
+          type: integer
+          example: 1
+        completed:
+          type: boolean
+          example: true
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          example: d5
+        title:
+          type: string
+          example: Service Auth & JWT Flow
+        url:
+          type: string
+          example: wiki/backend/auth
+        kind:
+          type: string
+          enum: [Guide, Reference, Runbook, Tutorial, Link]
+          example: Guide
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["NestJS", "Architecture"]
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2026-06-15T03:00:00Z
+        bookmarked:
+          type: boolean
+          example: true
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: string
+          example: tag_nest
+        name:
+          type: string
+          example: NestJS
+        color:
+          type: string
+          enum: [accent, info, warn, danger, muted]
+          example: info
+
+    ExerciseSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          example: e2
+        title:
+          type: string
+          example: Add a Paginated Users Endpoint
+        trackId:
+          type: string
+          example: t3
+        track:
+          type: string
+          example: NestJS Service Layer
+        tag:
+          type: string
+          example: NestJS
+        difficulty:
+          type: string
+          enum: [Beginner, Intermediate, Advanced]
+          example: Intermediate
+        estimatedTime:
+          type: string
+          example: 3h
+        xp:
+          type: integer
+          example: 200
+        brief:
+          type: string
+          example: Implement GET /users with cursor pagination, DTO validation, and a unit test.
+        objectiveCount:
+          type: integer
+          example: 4
+        status:
+          type: string
+          enum: [pending, submitted, approved, changes]
+          example: submitted
+        prUrl:
+          type: string
+          nullable: true
+          example: github.com/acme/api/pull/119
+
+    ExerciseDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          example: e2
+        title:
+          type: string
+          example: Add a Paginated Users Endpoint
+        trackId:
+          type: string
+          example: t3
+        track:
+          type: string
+          example: NestJS Service Layer
+        tag:
+          type: string
+          example: NestJS
+        difficulty:
+          type: string
+          enum: [Beginner, Intermediate, Advanced]
+          example: Intermediate
+        estimatedTime:
+          type: string
+          example: 3h
+        xp:
+          type: integer
+          example: 200
+        brief:
+          type: string
+          example: Implement GET /users with cursor pagination, DTO validation, and a unit test for the service.
+        overview:
+          type: string
+          example: Cursor pagination is our standard for every list endpoint. You will build one end-to-end...
+        objectives:
+          type: array
+          items:
+            type: string
+          example: ["GET /users accepts ?cursor and ?limit (max 50)", "Response includes nextCursor and hasMore", "Invalid params return 400 via class-validator DTO", "Service unit test covers empty, partial and full pages"]
+        steps:
+          type: array
+          items:
+            type: string
+          example: ["Add the PaginationQueryDto with validation decorators", "Implement keyset pagination in UsersService.list()", "Write the Jest spec for the service", "Open a PR and paste the link below"]
+        resources:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: d3
+              title:
+                type: string
+                example: NestJS Module Boundaries
+        hint:
+          type: string
+          example: Keyset beats OFFSET here — order by (createdAt, id) and encode both into the cursor.
+        status:
+          type: string
+          example: submitted
+        prUrl:
+          type: string
+          example: github.com/acme/api/pull/119
+
+    Submission:
+      type: object
+      properties:
+        id:
+          type: string
+          example: s_5f2a
+        exerciseId:
+          type: string
+          example: e3
+        userId:
+          type: string
+          example: u_mina01
+        prUrl:
+          type: string
+          example: github.com/acme/web/pull/468
+        status:
+          type: string
+          enum: [submitted, approved, changes]
+          example: submitted
+        submittedAt:
+          type: string
+          format: date-time
+          example: 2026-06-15T11:25:00Z
+
+    SubmissionFeedItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: s1
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              example: u_mina01
+            name:
+              type: string
+              example: Mina Okonkwo
+            avatarHue:
+              type: integer
+              example: 162
+        exercise:
+          type: string
+          example: Add a Paginated Users Endpoint
+        prUrl:
+          type: string
+          example: github.com/acme/api/pull/119
+        status:
+          type: string
+          example: submitted
+        submittedAt:
+          type: string
+          format: date-time
+          example: 2026-06-15T11:11:00Z
+
+    SubmissionDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          example: s1
+        exerciseId:
+          type: string
+          example: e2
+        exercise:
+          type: string
+          example: Add a Paginated Users Endpoint
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              example: u_mina01
+            name:
+              type: string
+              example: Mina Okonkwo
+        prUrl:
+          type: string
+          example: github.com/acme/api/pull/119
+        status:
+          type: string
+          example: submitted
+        reviewerId:
+          type: string
+          nullable: true
+          example: null
+        reviewNote:
+          type: string
+          nullable: true
+          example: null
+        submittedAt:
+          type: string
+          format: date-time
+          example: 2026-06-15T11:11:00Z
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    SubmissionHistoryResponse:
+      type: object
+      properties:
+        submissionId:
+          type: string
+          example: s1
+        exerciseId:
+          type: string
+          example: e2
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubmissionHistoryItem'
+
+    SubmissionHistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: sh_102
+        prUrl:
+          type: string
+          example: github.com/acme/api/pull/125
+        status:
+          type: string
+          enum: [submitted, approved, changes]
+          example: submitted
+        submittedAt:
+          type: string
+          format: date-time
+          example: 2026-06-16T10:15:00Z
+        reviewerId:
+          type: string
+          nullable: true
+          example: null
+        reviewNote:
+          type: string
+          nullable: true
+          example: null
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          example: n1
+        type:
+          type: string
+          enum: [submission_reviewed, track_unlocked]
+          example: submission_reviewed
+        title:
+          type: string
+          example: Your PR was approved
+        body:
+          type: string
+          example: Add a Paginated Users Endpoint — approved (+200 XP)
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-06-15T11:50:00Z
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: u_mina01
+        name:
+          type: string
+          example: Mina Okonkwo
+        level:
+          type: integer
+          example: 3
+        xp:
+          type: integer
+          example: 1240
+        streakDays:
+          type: integer
+          example: 6
+        rank:
+          type: integer
+          example: 1

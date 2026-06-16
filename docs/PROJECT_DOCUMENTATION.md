@@ -4,7 +4,7 @@
 > Project documentation & proposed API surface, reverse-engineered from the
 > interactive design prototype in [`app-design/`](../app-design/).
 >
-> See [`API_EXAMPLES.md`](./API_EXAMPLES.md) for example request/response payloads per endpoint.
+> See [`API_EXAMPLES.md`](./API_EXAMPLES.md) for example request/response payloads per endpoint, and [`openapi.yaml`](./openapi.yaml) for the full Swagger/OpenAPI v3 specification.
 
 ---
 
@@ -167,8 +167,9 @@ Entities and key fields inferred from the mock data (`app-design/data.jsx`).
 ## 5. Proposed API endpoints
 
 Base path: **`/api/v1`**. All authenticated routes expect `Authorization: Bearer <jwt>`.
-List endpoints use **cursor pagination** (`?cursor=&limit=` → `{ data, nextCursor, hasMore }`),
-the project's documented standard (see exercise *e2*).
+List endpoints use **cursor pagination** (`?cursor=&limit=` → `{ data, nextCursor, hasMore }`), the project's documented standard (see exercise *e2*).
+
+*Note: Đặc tả chi tiết các endpoint dưới dạng OpenAPI v3 có thể được tìm thấy tại [openapi.yaml](./openapi.yaml).*
 
 ### 5.1 Auth & session
 | Method | Path | Role | Description |

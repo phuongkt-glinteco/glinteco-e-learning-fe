@@ -48,7 +48,8 @@
 
 * 📚 **[BA Standards & Templates](docs/BA_STANDARDS.md):** Hướng dẫn quy trình viết tài liệu, chuẩn hóa User Story, cú pháp Acceptance Criteria (Gherkin) và template UAT Test Case.
 * 📝 **[Software Requirements Specification (SRS)](docs/SRS_RAMP_UP.md):** Tài liệu đặc tả kỹ thuật chi tiết các tác nhân (RBAC Matrix), sơ đồ chuyển đổi trạng thái của Lộ trình học (Tracks) & Bài nộp (Submissions), mô hình cơ sở dữ liệu và yêu cầu phi chức năng (NFR).
-* 📋 **[Product Backlog & User Stories](docs/USER_STORIES_RAMP_UP.md):** Danh sách đầy đủ 7 User Stories cốt lõi kèm theo kịch bản nghiệm thu (Given - When - Then) chi tiết cho QC/QA.
+* 📋 **[Product Backlog & User Stories](docs/USER_STORIES_RAMP_UP.md):** Danh sách đầy đủ các User Stories cốt lõi kèm theo kịch bản nghiệm thu (Given - When - Then) chi tiết cho QC/QA.
+* 📅 **[Backend Development Plan](docs/BE_DEVELOPMENT_PLAN.md):** Kế hoạch phân rã Task phát triển backend NestJS theo Sprint cho Squad Team.
 * ⚙️ **[API Endpoint Examples](docs/API_EXAMPLES.md):** Đặc tả chi tiết các payload Request/Response JSON mẫu cho toàn bộ các API `/api/v1` của dự án.
 * 🏛️ **[Project Architecture Overview](docs/PROJECT_DOCUMENTATION.md):** Tài liệu kỹ thuật chung về kiến trúc hệ thống và luồng tích hợp.
 

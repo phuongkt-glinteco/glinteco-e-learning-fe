@@ -727,3 +727,101 @@ Raj Patel,raj@acme.dev,31,720,2,1,0
 ```json
 { "id": "n1", "read": true }
 ```
+
+---
+
+## 9. API Bổ sung mới (Proposed API Extensions)
+
+### GET `/leaderboard?cohortId=c_spring2026&limit=3`
+**Response** `200 OK`
+```json
+{
+  "data": [
+    { "userId": "u_mina01", "name": "Mina Okonkwo", "level": 3, "xp": 1240, "streakDays": 6, "rank": 1 },
+    { "userId": "u_raj02", "name": "Raj Patel", "level": 2, "xp": 720, "streakDays": 2, "rank": 2 }
+  ],
+  "nextCursor": null,
+  "hasMore": false
+}
+```
+
+### GET `/submissions/s1/history`
+**Response** `200 OK`
+```json
+{
+  "submissionId": "s1",
+  "exerciseId": "e2",
+  "history": [
+    {
+      "id": "sh_102",
+      "prUrl": "github.com/acme/api/pull/125",
+      "status": "submitted",
+      "submittedAt": "2026-06-16T10:15:00Z",
+      "reviewerId": null,
+      "reviewNote": null,
+      "reviewedAt": null
+    },
+    {
+      "id": "sh_101",
+      "prUrl": "github.com/acme/api/pull/119",
+      "status": "changes",
+      "submittedAt": "2026-06-15T11:11:00Z",
+      "reviewerId": "u_lead",
+      "reviewNote": "Please use cursor pagination helper instead of custom query.",
+      "reviewedAt": "2026-06-15T11:52:00Z"
+    }
+  ]
+}
+```
+
+### POST `/cohorts` *(admin)*
+**Request**
+```json
+{
+  "name": "Summer 2026",
+  "targetRampDays": 14
+}
+```
+**Response** `201 Created`
+```json
+{
+  "id": "c_summer2026",
+  "name": "Summer 2026",
+  "targetRampDays": 14,
+  "createdAt": "2026-06-16T07:49:00Z"
+}
+```
+
+### PATCH `/cohorts/c_summer2026` *(admin)*
+**Request**
+```json
+{
+  "targetRampDays": 12
+}
+```
+**Response** `200 OK`
+```json
+{
+  "id": "c_summer2026",
+  "name": "Summer 2026",
+  "targetRampDays": 12,
+  "createdAt": "2026-06-16T07:49:00Z"
+}
+```
+
+### POST `/users/me/notifications/slack`
+**Request**
+```json
+{
+  "slackMemberId": "U12345678"
+}
+```
+**Response** `200 OK`
+```json
+{
+  "userId": "u_mina01",
+  "slackMemberId": "U12345678",
+  "slackNotificationsEnabled": true
+}
+```
+

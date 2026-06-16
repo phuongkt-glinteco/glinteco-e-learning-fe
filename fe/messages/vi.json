@@ -1,0 +1,25 @@
+{
+  "LoginPage": {
+    "brandSubtitle": "Nâng tầm hành trình kỹ sư của bạn.",
+    "brandTagline": "Học tập, Thực hành, Đánh giá.",
+    "welcomeBack": "Chào mừng quay trở lại",
+    "signInPrompt": "Vui lòng nhập thông tin của bạn để đăng nhập.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Nhập email của bạn",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "••••••••",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "forgotPassword": "Quên mật khẩu?",
+    "signInButton": "Đăng Nhập",
+    "loadingButton": "Đang tải…",
+    "googleButton": "Tiếp tục với Google",
+    "noAccount": "Chưa có tài khoản?",
+    "requestAccess": "Yêu cầu quyền truy cập",
+    "emailRequired": "Yêu cầu nhập email",
+    "emailInvalid": "Địa chỉ email không hợp lệ",
+    "passwordRequired": "Yêu cầu nhập mật khẩu",
+    "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
+    "alertGoogleSuccess": "Đăng nhập qua Google thành công!",
+    "alertEmailSuccess": "Đăng nhập thành công với: {email}"
+  }
+}

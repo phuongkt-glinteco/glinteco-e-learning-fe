@@ -2,8 +2,13 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import Image from 'next/image';
+import { useTranslations, useLocale } from 'next-intl';
 
 export default function LoginPage() {
+  const t = useTranslations('LoginPage');
+  const locale = useLocale();
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       email: 'mina@acme.dev',
@@ -18,8 +23,7 @@ export default function LoginPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      // Giả lập đăng nhập thành công, chuyển hướng trong ứng dụng thực tế
-      alert('Đăng nhập thành công với: ' + data.email);
+      alert(t('alertEmailSuccess', { email: data.email }));
     }, 800);
   };
 
@@ -27,14 +31,35 @@ export default function LoginPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      alert('Đăng nhập qua Google thành công!');
+      alert(t('alertGoogleSuccess'));
     }, 800);
   };
 
+  const changeLanguage = (nextLocale) => {
+    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
+    window.location.reload();
+  };
+
   return (
-    <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans">
+    <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
       {/* Import Material Symbols Link dynamically if not loaded globally */}
       <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+      {/* Floating Language Switcher */}
+      <div className="absolute top-6 right-6 z-20 bg-surface/85 backdrop-blur-md border border-outline p-0.5 rounded-lg flex items-center shadow-sm">
+        <button
+          onClick={() => changeLanguage('vi')}
+          className={`px-3 py-1 text-[13px] font-semibold rounded-md transition-all cursor-pointer ${locale === 'vi' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+        >
+          VI
+        </button>
+        <button
+          onClick={() => changeLanguage('en')}
+          className={`px-3 py-1 text-[13px] font-semibold rounded-md transition-all cursor-pointer ${locale === 'en' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+        >
+          EN
+        </button>
+      </div>
       
       {/* Split Layout Container */}
       <div className="flex w-full h-full min-h-screen">
@@ -43,12 +68,19 @@ export default function LoginPage() {
           {/* Decorative Background Element */}
           <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 100% 100%, #ffffff 0%, transparent 50%)' }}></div>
           <div className="relative z-10 flex items-center gap-3">
-            <img src="/logo.png" alt="RAMP UP Logo" className="w-10 h-10 rounded-lg shadow-lg border border-white/10" />
+            <Image 
+              src="/logo.png" 
+              alt="RAMP UP Logo" 
+              width={40} 
+              height={40} 
+              className="rounded-lg shadow-lg border border-white/10" 
+              priority
+            />
             <h1 className="text-[32px] font-bold text-white tracking-tight">RAMP UP</h1>
           </div>
           <div className="relative z-10 max-w-md">
-            <h2 className="text-[24px] font-semibold text-white mb-2">Level up your engineering journey.</h2>
-            <p className="text-[16px] text-white/80">Learn, Practice, Review.</p>
+            <h2 className="text-[24px] font-semibold text-white mb-2">{t('brandSubtitle')}</h2>
+            <p className="text-[16px] text-white/80">{t('brandTagline')}</p>
           </div>
           {/* Abstract Graphic Placeholder */}
           <div className="absolute top-1/2 right-0 transform -translate-y-1/2 translate-x-1/4 w-96 h-96 rounded-full border border-white/20 opacity-20 pointer-events-none"></div>
@@ -60,31 +92,38 @@ export default function LoginPage() {
           <div className="w-full max-w-md bg-surface border border-outline shadow-sm rounded-xl p-8">
             {/* Mobile Logo (hidden on desktop) */}
             <div className="lg:hidden mb-8 flex flex-col items-center">
-              <img src="/logo.png" alt="RAMP UP Logo" className="w-12 h-12 mb-2 rounded-xl shadow-md border border-outline" />
+              <Image 
+                src="/logo.png" 
+                alt="RAMP UP Logo" 
+                width={48} 
+                height={48} 
+                className="mb-2 rounded-xl shadow-md border border-outline" 
+                priority
+              />
               <h1 className="text-[24px] font-bold text-on-surface tracking-tight">RAMP UP</h1>
-              <p className="text-[14px] text-on-surface-variant mt-1">Level up your engineering journey.</p>
+              <p className="text-[14px] text-on-surface-variant mt-1">{t('brandSubtitle')}</p>
             </div>
             
             <div className="mb-8">
-              <h3 className="text-[20px] font-semibold text-on-surface">Welcome back</h3>
-              <p className="text-[14px] text-on-surface-variant mt-1">Please enter your details to sign in.</p>
+              <h3 className="text-[20px] font-semibold text-on-surface">{t('welcomeBack')}</h3>
+              <p className="text-[14px] text-on-surface-variant mt-1">{t('signInPrompt')}</p>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Email Input */}
               <div>
-                <label className="block text-[14px] font-medium text-on-surface-variant mb-1" htmlFor="email">Email</label>
+                <label className="block text-[14px] font-medium text-on-surface-variant mb-1" htmlFor="email">{t('emailLabel')}</label>
                 <input 
                   className={`w-full bg-surface border ${errors.email ? 'border-error focus:border-error focus:ring-error' : 'border-outline focus:border-primary focus:ring-primary'} rounded-lg px-4 py-2 text-[16px] text-on-surface focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400`} 
                   id="email" 
                   name="email" 
                   type="text" 
-                  placeholder="Enter your email" 
+                  placeholder={t('emailPlaceholder')} 
                   {...register('email', {
-                    required: 'Email is required',
+                    required: t('emailRequired'),
                     pattern: {
                       value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                      message: 'Invalid email address'
+                      message: t('emailInvalid')
                     }
                   })}
                 />
@@ -98,19 +137,19 @@ export default function LoginPage() {
 
               {/* Password Input */}
               <div>
-                <label className="block text-[14px] font-medium text-on-surface-variant mb-1" htmlFor="password">Password</label>
+                <label className="block text-[14px] font-medium text-on-surface-variant mb-1" htmlFor="password">{t('passwordLabel')}</label>
                 <div className="relative">
                   <input 
                     className={`w-full bg-surface border ${errors.password ? 'border-error focus:border-error focus:ring-error' : 'border-outline focus:border-primary focus:ring-primary'} rounded-lg px-4 py-2 text-[16px] text-on-surface focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400 pr-10`} 
                     id="password" 
                     name="password" 
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••" 
+                    placeholder={t('passwordPlaceholder')} 
                     {...register('password', {
-                      required: 'Password is required',
+                      required: t('passwordRequired'),
                       minLength: {
                         value: 6,
-                        message: 'Password must be at least 6 characters'
+                        message: t('passwordMinLength')
                       }
                     })}
                   />
@@ -143,9 +182,9 @@ export default function LoginPage() {
                     type="checkbox" 
                     defaultChecked
                   />
-                  <label className="ml-2 block text-[14px] text-on-surface-variant select-none" htmlFor="remember">Remember me</label>
+                  <label className="ml-2 block text-[14px] text-on-surface-variant select-none" htmlFor="remember">{t('rememberMe')}</label>
                 </div>
-                <a className="text-[14px] font-medium text-primary hover:underline" href="#">Forgot password?</a>
+                <a className="text-[14px] font-medium text-primary hover:underline" href="#">{t('forgotPassword')}</a>
               </div>
 
               {/* Primary Actions */}
@@ -157,9 +196,9 @@ export default function LoginPage() {
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      <span className="material-symbols-outlined animate-spin text-[18px]">sync</span> Loading…
+                      <span className="material-symbols-outlined animate-spin text-[18px]">sync</span> {t('loadingButton')}
                     </span>
-                  ) : "Sign In"}
+                  ) : t('signInButton')}
                 </button>
                 
                 <button 
@@ -175,14 +214,17 @@ export default function LoginPage() {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
                   </svg>
-                  Continue with Google
+                  {t('googleButton')}
                 </button>
               </div>
             </form>
 
             <div className="mt-8 text-center">
               <p className="text-[14px] text-on-surface-variant">
-                Don't have an account? <a className="text-[14px] font-medium text-primary hover:underline" href="#">Request access</a>
+                {t('noAccount')}{' '}
+                <a className="text-[14px] font-medium text-primary hover:underline" href="#">
+                  {t('requestAccess')}
+                </a>
               </p>
             </div>
           </div>

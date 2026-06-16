@@ -1,0 +1,11 @@
+{
+  "auth": {
+    "login_success": "Login successful",
+    "login_failed": "Invalid email or password",
+    "unauthorized": "Unauthorized access"
+  },
+  "validation": {
+    "is_not_empty": "Field {property} should not be empty",
+    "invalid_email": "Field {property} must be a valid email address"
+  }
+}

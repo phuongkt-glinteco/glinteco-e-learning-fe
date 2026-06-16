@@ -1,0 +1,25 @@
+{
+  "LoginPage": {
+    "brandSubtitle": "Level up your engineering journey.",
+    "brandTagline": "Learn, Practice, Review.",
+    "welcomeBack": "Welcome back",
+    "signInPrompt": "Please enter your details to sign in.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signInButton": "Sign In",
+    "loadingButton": "Loading…",
+    "googleButton": "Continue with Google",
+    "noAccount": "Don't have an account?",
+    "requestAccess": "Request access",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email address",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "alertGoogleSuccess": "Google login successful!",
+    "alertEmailSuccess": "Successfully signed in with: {email}"
+  }
+}

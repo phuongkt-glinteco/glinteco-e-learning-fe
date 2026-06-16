@@ -1,0 +1,11 @@
+{
+  "auth": {
+    "login_success": "Đăng nhập thành công",
+    "login_failed": "Email hoặc mật khẩu không chính xác",
+    "unauthorized": "Không có quyền truy cập"
+  },
+  "validation": {
+    "is_not_empty": "Trường {property} không được để trống",
+    "invalid_email": "Trường {property} phải là địa chỉ email hợp lệ"
+  }
+}

@@ -32,7 +32,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full" style={{ fontFamily: 'var(--font-sans), sans-serif' }}>
+    <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans">
       {/* Import Material Symbols Link dynamically if not loaded globally */}
       <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       

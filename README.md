@@ -58,24 +58,25 @@
 * 🌐 **[Swagger / OpenAPI Specification](docs/openapi.yaml):** Đặc tả API theo chuẩn OpenAPI v3.0, mô tả chi tiết tất cả các endpoint, schema cấu trúc dữ liệu, query/path parameters, request bodies và mã lỗi lỗi chuẩn.
 * 🏛️ **[Project Architecture Overview](docs/PROJECT_DOCUMENTATION.md):** Tài liệu kỹ thuật chung về kiến trúc hệ thống và luồng tích hợp.
 
----
+## 🛠️ Hướng dẫn Khởi chạy & Phát triển (Frontend Dev Setup)
 
-## 🛠️ Hướng dẫn Khởi chạy & Xem Thiết kế Giao diện
+Dự án frontend được tổ chức dưới dạng ứng dụng Next.js sử dụng App Router và Tailwind CSS bên trong thư mục `fe/`.
 
-Do bản thiết kế giao diện (Prototype) được thiết kế chạy trực tiếp dưới dạng client-side tĩnh sử dụng CDN React và Babel standalone, bạn không cần cài đặt các package npm phức tạp để xem giao diện:
+### Khởi chạy môi trường phát triển (Local Development)
+Để khởi chạy ứng dụng frontend trên máy cục bộ, thực hiện các bước sau:
 
-### Cách 1: Chạy trực tiếp qua trình duyệt (Đơn giản nhất)
-Bạn có thể nhấp đúp trực tiếp để mở các file sau trong trình duyệt Web:
-1. **[Screens Overview.html](fe/Screens Overview.html):** Giao diện canvas kiểu Figma, cho phép bạn xem toàn bộ các màn hình (Đăng nhập, Dashboard học viên/admin, Lộ trình, Tài liệu, Bài tập) ở cả 2 chế độ Light/Dark mode, zoom/pan tự do và kéo thả sắp xếp thứ tự các artboard.
-2. **[Onboarding Portal.html](fe/Onboarding Portal.html):** Trình mô phỏng giao diện độc lập để tương tác thử nghiệm như một ứng dụng thực tế.
-
-### Cách 2: Chạy qua Web Server cục bộ (Khuyên dùng)
-Để tránh các giới hạn bảo mật CORS của trình duyệt đối với giao thức `file://`, bạn nên chạy qua một Web Server tĩnh:
-1. Sử dụng extension **Live Server** trong VS Code: Chuột phải vào file `fe/Screens Overview.html` ➔ Chọn `Open with Live Server`.
-2. Hoặc sử dụng CLI bất kỳ trong thư mục dự án:
+1. Di chuyển vào thư mục frontend:
    ```bash
-   npx serve fe
-   # hoặc
-   python3 -m http.server 8000
+   cd fe
    ```
-   Sau đó truy cập đường dẫn cục bộ (ví dụ: `http://localhost:8000/fe/Screens Overview.html` hoặc `http://localhost:5000` khi chạy `npx serve fe`) để trải nghiệm mượt mà nhất.
+2. Cài đặt các thư viện phụ thuộc bằng pnpm:
+   ```bash
+   pnpm install
+   ```
+3. Chạy máy chủ phát triển cục bộ:
+   ```bash
+   pnpm dev
+   ```
+4. Truy cập ứng dụng tại địa chỉ: [http://localhost:3000](http://localhost:3000)
+
+Trang đăng nhập (Login) được định tuyến tại đường dẫn `/login` (tương ứng với [page.jsx](file:///home/phamhung/Work/glinteco-e-learning-fe/fe/src/app/login/page.jsx)).

@@ -1,9 +1,9 @@
-/* Login screen - Modern Corporate Minimalism style from Stitch with React Hook Form */
-const { useState: useStateLogin } = React;
+'use client';
 
-function Login({ onAuth }) {
-  const { useForm } = window.ReactHookForm;
-  
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+
+export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       email: 'mina@acme.dev',
@@ -11,40 +11,43 @@ function Login({ onAuth }) {
     }
   });
 
-  const [showPassword, setShowPassword] = useStateLogin(false);
-  const [loading, setLoading] = useStateLogin(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const go = (data) => {
-    // data contains { email, password }
+  const onSubmit = (data) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      if (onAuth) onAuth();
-    }, 520);
+      // Giả lập đăng nhập thành công, chuyển hướng trong ứng dụng thực tế
+      alert('Đăng nhập thành công với: ' + data.email);
+    }, 800);
   };
 
   const handleGoogleLogin = () => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      if (onAuth) onAuth();
-    }, 520);
+      alert('Đăng nhập qua Google thành công!');
+    }, 800);
   };
 
   return (
-    <div className="login-root font-body-md bg-[#F8FAFC] text-[#0F172A] w-full h-full overflow-hidden flex" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex overflow-hidden w-full" style={{ fontFamily: 'Inter, sans-serif' }}>
+      {/* Import Material Symbols Link dynamically if not loaded globally */}
+      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      
       {/* Split Layout Container */}
-      <div className="flex w-full h-full">
+      <div className="flex w-full h-full min-h-screen">
         {/* Left Panel: Branding & Value Prop */}
         <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-[#2563EB] to-[#7C3AED] p-12 relative overflow-hidden">
           {/* Decorative Background Element */}
           <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 100% 100%, #ffffff 0%, transparent 50%)' }}></div>
           <div className="relative z-10">
-            <h1 className="font-headline-lg text-[32px] font-bold text-white tracking-tight">RAMP UP</h1>
+            <h1 className="text-[32px] font-bold text-white tracking-tight">RAMP UP</h1>
           </div>
           <div className="relative z-10 max-w-md">
-            <h2 className="font-headline-md text-[24px] font-semibold text-white mb-2">Level up your engineering journey.</h2>
-            <p className="font-body-md text-[16px] text-white/80">Learn, Practice, Review.</p>
+            <h2 className="text-[24px] font-semibold text-white mb-2">Level up your engineering journey.</h2>
+            <p className="text-[16px] text-white/80">Learn, Practice, Review.</p>
           </div>
           {/* Abstract Graphic Placeholder */}
           <div className="absolute top-1/2 right-0 transform -translate-y-1/2 translate-x-1/4 w-96 h-96 rounded-full border border-white/20 opacity-20 pointer-events-none"></div>
@@ -56,21 +59,21 @@ function Login({ onAuth }) {
           <div className="w-full max-w-md bg-[#FFFFFF] border border-[#E2E8F0] shadow-sm rounded-xl p-8">
             {/* Mobile Logo (hidden on desktop) */}
             <div className="lg:hidden mb-8 text-center">
-              <h1 className="font-headline-lg-mobile text-[24px] font-bold text-[#0F172A] tracking-tight">RAMP UP</h1>
-              <p className="font-body-sm text-[14px] text-[#64748B] mt-1">Level up your engineering journey.</p>
+              <h1 className="text-[24px] font-bold text-[#0F172A] tracking-tight">RAMP UP</h1>
+              <p className="text-[14px] text-[#64748B] mt-1">Level up your engineering journey.</p>
             </div>
             
             <div className="mb-8">
-              <h3 className="font-headline-sm text-[20px] font-semibold text-[#0F172A]">Welcome back</h3>
-              <p className="font-body-sm text-[14px] text-[#64748B] mt-1">Please enter your details to sign in.</p>
+              <h3 className="text-[20px] font-semibold text-[#0F172A]">Welcome back</h3>
+              <p className="text-[14px] text-[#64748B] mt-1">Please enter your details to sign in.</p>
             </div>
 
-            <form onSubmit={handleSubmit(go)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Email Input */}
               <div>
-                <label className="block font-label-md text-[14px] font-medium text-[#64748B] mb-1" htmlFor="email">Email</label>
+                <label className="block text-[14px] font-medium text-[#64748B] mb-1" htmlFor="email">Email</label>
                 <input 
-                  className={`w-full bg-[#FFFFFF] border ${errors.email ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-[#ba1a1a]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'} rounded-lg px-4 py-2 font-body-md text-[16px] text-[#0F172A] focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400`} 
+                  className={`w-full bg-[#FFFFFF] border ${errors.email ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-[#ba1a1a]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'} rounded-lg px-4 py-2 text-[16px] text-[#0F172A] focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400`} 
                   id="email" 
                   name="email" 
                   type="text" 
@@ -93,10 +96,10 @@ function Login({ onAuth }) {
 
               {/* Password Input */}
               <div>
-                <label className="block font-label-md text-[14px] font-medium text-[#64748B] mb-1" htmlFor="password">Password</label>
+                <label className="block text-[14px] font-medium text-[#64748B] mb-1" htmlFor="password">Password</label>
                 <div className="relative">
                   <input 
-                    className={`w-full bg-[#FFFFFF] border ${errors.password ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-[#ba1a1a]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'} rounded-lg px-4 py-2 font-body-md text-[16px] text-[#0F172A] focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400 pr-10`} 
+                    className={`w-full bg-[#FFFFFF] border ${errors.password ? 'border-[#ba1a1a] focus:border-[#ba1a1a] focus:ring-[#ba1a1a]' : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-[#2563EB]'} rounded-lg px-4 py-2 text-[16px] text-[#0F172A] focus:outline-none focus:ring-1 transition-colors placeholder:text-slate-400 pr-10`} 
                     id="password" 
                     name="password" 
                     type={showPassword ? "text" : "password"}
@@ -138,15 +141,15 @@ function Login({ onAuth }) {
                     type="checkbox" 
                     defaultChecked
                   />
-                  <label className="ml-2 block font-body-sm text-[14px] text-[#64748B] select-none" htmlFor="remember">Remember me</label>
+                  <label className="ml-2 block text-[14px] text-[#64748B] select-none" htmlFor="remember">Remember me</label>
                 </div>
-                <a className="font-label-md text-[14px] font-medium text-[#2563EB] hover:underline" href="#">Forgot password?</a>
+                <a className="text-[14px] font-medium text-[#2563EB] hover:underline" href="#">Forgot password?</a>
               </div>
 
               {/* Primary Actions */}
               <div className="pt-2 space-y-2">
                 <button 
-                  className="w-full bg-[#2563EB] text-white font-label-md text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed" 
+                  className="w-full bg-[#2563EB] text-white text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed" 
                   type="submit"
                   disabled={loading}
                 >
@@ -158,7 +161,7 @@ function Login({ onAuth }) {
                 </button>
                 
                 <button 
-                  className="w-full bg-[#FFFFFF] border border-[#E2E8F0] text-[#0F172A] font-label-md text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-[#F8FAFC] transition-colors flex justify-center items-center gap-2" 
+                  className="w-full bg-[#FFFFFF] border border-[#E2E8F0] text-[#0F172A] text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-[#F8FAFC] transition-colors flex justify-center items-center gap-2" 
                   type="button"
                   onClick={handleGoogleLogin}
                   disabled={loading}
@@ -176,8 +179,8 @@ function Login({ onAuth }) {
             </form>
 
             <div className="mt-8 text-center">
-              <p className="font-body-sm text-[14px] text-[#64748B]">
-                Don't have an account? <a className="font-label-md text-[14px] font-medium text-[#2563EB] hover:underline" href="#">Request access</a>
+              <p className="text-[14px] text-[#64748B]">
+                Don't have an account? <a className="text-[14px] font-medium text-[#2563EB] hover:underline" href="#">Request access</a>
               </p>
             </div>
           </div>
@@ -186,5 +189,3 @@ function Login({ onAuth }) {
     </div>
   );
 }
-
-Object.assign(window, { Login });

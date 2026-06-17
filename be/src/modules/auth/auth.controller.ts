@@ -1,0 +1,112 @@
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { User } from '../../database/entities/user.entity';
+import { AuthService, SafeUser } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { AuthTokensDto } from './dto/auth-tokens.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
+import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RegisterDto } from './dto/register.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+
+@ApiTags('auth')
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Đăng nhập / đăng ký bằng Google OAuth 2.0',
+    description:
+      'Xác thực Google ID Token, kiểm tra domain công ty, tạo user nếu chưa tồn tại và trả về cặp JWT token.',
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: AuthResponseDto })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'ID Token không hợp lệ.',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Email ngoài domain công ty.',
+  })
+  async googleLogin(@Body() dto: GoogleLoginDto): Promise<AuthResponseDto> {
+    return this.authService.loginWithGoogle(dto.idToken);
+  }
+
+  @Post('register')
+  @ApiOperation({ summary: 'Đăng ký tài khoản mới (name, email, password).' })
+  @ApiResponse({ status: 201, description: 'Tạo tài khoản thành công.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Dữ liệu không hợp lệ hoặc email đã tồn tại.',
+  })
+  register(@Body() dto: RegisterDto): Promise<SafeUser> {
+    return this.authService.register(dto);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Đăng nhập bằng email/password, trả về JWT tokens.',
+  })
+  @ApiResponse({ status: 200, type: AuthTokensDto })
+  @ApiResponse({ status: 401, description: 'Sai email hoặc mật khẩu.' })
+  login(@Body() dto: LoginDto): Promise<AuthTokensDto> {
+    return this.authService.login(dto);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Đổi refresh token lấy cặp token mới (rotation).' })
+  @ApiResponse({ status: 200, type: AuthTokensDto })
+  @ApiResponse({
+    status: 401,
+    description: 'Refresh token không hợp lệ hoặc đã hết hạn.',
+  })
+  refresh(@Body() dto: RefreshTokenDto): Promise<AuthTokensDto> {
+    return this.authService.refresh(dto.refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Vô hiệu hóa refresh token hiện tại.' })
+  @ApiResponse({ status: 200, description: 'Logged out successfully.' })
+  @ApiResponse({ status: 401, description: 'Thiếu hoặc sai access token.' })
+  logout(
+    @CurrentUser() user: User,
+    @Body() dto: RefreshTokenDto,
+  ): Promise<{ message: string }> {
+    return this.authService.logout(user.id, dto.refreshToken);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Thông tin user đang đăng nhập.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Thông tin user (không kèm password).',
+  })
+  @ApiResponse({ status: 401, description: 'Thiếu hoặc sai access token.' })
+  me(@CurrentUser() user: User): User {
+    return user;
+  }
+}

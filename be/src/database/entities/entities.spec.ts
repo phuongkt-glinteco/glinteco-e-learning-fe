@@ -15,6 +15,7 @@ import {
   SubmissionHistory,
   Tag,
   Document,
+  RefreshToken,
 } from './index';
 import { InitialSchema1781611485949 } from '../migrations/1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from '../migrations/1781616508023-AddGoogleIdToUsers';
@@ -58,6 +59,7 @@ describe('Database Entities', () => {
         SubmissionHistory,
         Tag,
         Document,
+        RefreshToken,
       ],
       synchronize: false,
       logging: false,

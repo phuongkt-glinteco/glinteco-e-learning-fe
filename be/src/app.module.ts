@@ -9,7 +9,7 @@ import {
 import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -30,6 +30,9 @@ import { AuthModule } from './auth/auth.module';
           'rampup_password',
         ),
         database: configService.get<string>('DATABASE_NAME', 'rampup_db'),
+        entities: [
+          path.join(__dirname, 'database/entities', '*.entity{.ts,.js}'),
+        ],
         autoLoadEntities: true,
         // Schema is managed by migrations (src/database/migrations). Keep
         // synchronize off by default to avoid accidental schema drift.

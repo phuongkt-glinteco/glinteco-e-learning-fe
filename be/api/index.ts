@@ -16,6 +16,26 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Redirect Swagger UI static assets to CDN to avoid 404s in serverless environments
+  app.use((req: any, res: any, next: any) => {
+    if (req.url.includes('swagger-ui.css')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css');
+    }
+    if (req.url.includes('swagger-ui-bundle.js')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js');
+    }
+    if (req.url.includes('swagger-ui-standalone-preset.js')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js');
+    }
+    if (req.url.includes('favicon-32x32.png')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-32x32.png');
+    }
+    if (req.url.includes('favicon-16x16.png')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-16x16.png');
+    }
+    next();
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

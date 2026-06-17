@@ -1,6 +1,10 @@
-import React from 'react';
+interface HPBarProps {
+  value: number;
+  segments?: number;
+  warn?: boolean;
+}
 
-export default function HPBar({ value, segments = 20, warn = false }) {
+export default function HPBar({ value, segments = 20, warn = false }: HPBarProps) {
   const filled = Math.round((value / 100) * segments);
   return (
     <div className="flex gap-0.5 w-full bg-slate-100 p-0.5 rounded-md border border-slate-200">

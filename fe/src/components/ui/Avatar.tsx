@@ -1,6 +1,11 @@
-import React from 'react';
+interface AvatarProps {
+  name?: string;
+  hue?: number;
+  size?: number;
+  ring?: boolean;
+}
 
-export default function Avatar({ name, hue = 162, size = 40, ring = false }) {
+export default function Avatar({ name, hue = 162, size = 40, ring = false }: AvatarProps) {
   const initials = name
     ? name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : '??';

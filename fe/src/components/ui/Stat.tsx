@@ -1,9 +1,16 @@
 'use client';
 
-import React from 'react';
 import { Icon } from '@iconify/react';
 
-export default function Stat({ label, value, sub, icon, accent }) {
+interface StatProps {
+  label: string;
+  value: string | number;
+  sub?: string;
+  icon?: string;
+  accent?: boolean;
+}
+
+export default function Stat({ label, value, sub, icon, accent }: StatProps) {
   return (
     <div className="bg-surface border border-outline rounded-xl p-5 shadow-sm transition-all hover:shadow-md">
       <div className="flex justify-between items-start">

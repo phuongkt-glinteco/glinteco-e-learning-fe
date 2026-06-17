@@ -1,12 +1,16 @@
-import React from 'react';
+interface CircleMeterProps {
+  value: number;
+  size?: number;
+  label?: string;
+}
 
-export default function CircleMeter({ value, size = 132, label }) {
+export default function CircleMeter({ value, size = 132, label }: CircleMeterProps) {
   const steps = 24;
   const lit = Math.round((value / 100) * steps);
   const seg = 360 / steps;
-  const stops = [];
+  const stops: string[] = [];
   for (let i = 0; i < steps; i++) {
-    const c = i < lit ? '#2563EB' : '#E2E8F0'; // Primary Blue or Gray border
+    const c = i < lit ? '#2563EB' : '#E2E8F0';
     stops.push(`${c} ${i * seg}deg ${(i + 1) * seg - 2}deg, transparent ${(i + 1) * seg - 2}deg ${(i + 1) * seg}deg`);
   }
 

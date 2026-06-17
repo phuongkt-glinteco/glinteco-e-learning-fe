@@ -17,6 +17,7 @@ import {
   Tag,
   Document,
   RefreshToken,
+  LessonProgress,
 } from './index';
 
 describe('Database Entities', () => {
@@ -59,6 +60,7 @@ describe('Database Entities', () => {
         Tag,
         Document,
         RefreshToken,
+        LessonProgress,
       ],
       migrations: [join(__dirname, '../migrations/[0-9]*.{ts,js}')],
       synchronize: false,

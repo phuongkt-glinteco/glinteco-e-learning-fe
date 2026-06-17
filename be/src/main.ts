@@ -36,7 +36,13 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup(`${apiPrefix}/docs`, app, document);
+  SwaggerModule.setup(`${apiPrefix}/docs`, app, document, {
+    customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+    customJs: [
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+    ],
+  });
 
   const port = process.env.PORT || 5000;
   await app.listen(port);

@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface NavItem {
   label: string;
@@ -24,9 +25,11 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <nav className="hidden md:flex flex-col fixed left-0 top-0 h-screen w-sidebar py-lg z-40 bg-surface-container-low border-r border-outline-variant">
+    <nav className="hidden 
+      md:flex flex-col fixed left-0 top-0 h-screen w-sidebar py-lg z-40 
+      bg-surface-container-low border-r border-outline-variant">
       <div className="px-lg mb-8">
-        <div className="flex items-center gap-sm">
+        <div className="flex items-center justify-start gap-sm">
           <div className="w-10 h-10 bg-primary rounded flex items-center justify-center shrink-0 text-on-primary">
             <span className="material-symbols-outlined">rocket_launch</span>
           </div>
@@ -41,7 +44,7 @@ export default function Sidebar() {
         {mainNav.map((item) => {
           const active = pathname.startsWith(item.href);
           return (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -52,7 +55,7 @@ export default function Sidebar() {
             >
               <span className="material-symbols-outlined">{item.icon}</span>
               {item.label}
-            </a>
+            </Link>
           );
         })}
       </div>
@@ -61,7 +64,7 @@ export default function Sidebar() {
         {footerNav.map((item) => {
           const active = pathname.startsWith(item.href);
           return (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -72,7 +75,7 @@ export default function Sidebar() {
             >
               <span className="material-symbols-outlined">{item.icon}</span>
               {item.label}
-            </a>
+            </Link>
           );
         })}
       </div>

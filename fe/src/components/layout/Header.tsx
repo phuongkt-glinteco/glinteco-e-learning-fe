@@ -4,7 +4,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 flex justify-between items-center px-lg py-sm w-full bg-surface border-b border-outline-variant shadow-sm">
       <div className="flex items-center gap-sm">
-        <span className="material-symbols-outlined md:hidden text-on-surface">menu</span>
+        <span className="material-symbols-outlined md:!hidden text-on-surface">menu</span>
         <h1 className="md:hidden text-xl font-bold text-primary">RAMP UP</h1>
       </div>
 

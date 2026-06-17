@@ -54,17 +54,17 @@
   --font-sans: 'Inter', sans-serif;
 
   /* Spacing */
-  --space-base: 4px;
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
-  --space-container-max: 1280px;
-  --space-gutter: 24px;
-  --space-margin-mobile: 16px;
+  --spacing-base: 4px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  --spacing-container-max: 1280px;
+  --spacing-gutter: 24px;
+  --spacing-margin-mobile: 16px;
 
   /* Rounded corners */
   --radius: 0.5rem;

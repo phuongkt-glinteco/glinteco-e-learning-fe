@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { Lesson } from './lesson.entity';
 import { TrackProgress } from './track-progress.entity';
@@ -18,6 +19,7 @@ export class Track {
   @Column()
   name: string;
 
+  @Index('IDX_tracks_track_order')
   @Column({ name: 'track_order' })
   order: number;
 

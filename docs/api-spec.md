@@ -78,6 +78,27 @@ Get lessons for a specific track.
   }
   ```
 
+### `PATCH /tracks/reorder` (Admin Only)
+Reorder learning tracks by providing an array of track IDs in the new order.
+- **Request Body**:
+  ```json
+  {
+    "order": [
+      "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
+    ]
+  }
+  ```
+- **Validation Rules**:
+  - `order`: IsArray({ message: 'order phải là một mảng' }), ArrayNotEmpty({ message: 'Danh sách order không được để trống' }), IsUUID('4', { each: true, message: 'Mỗi phần tử trong order phải là một UUID hợp lệ' }), ArrayUnique({ message: 'Các ID trong danh sách order không được trùng lặp' })
+- **Response**: `200 OK`
+  ```json
+  {
+    "message": "Tracks reordered",
+    "count": 2
+  }
+  ```
+
 ---
 
 ## 4. Track Progress

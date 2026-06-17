@@ -38,7 +38,7 @@ This document provides a detailed overview of the TypeORM entities designed for 
 ### 3. Track (`tracks` table)
 - **id**: UUID (Primary Key)
 - **name**: VARCHAR
-- **order**: INT
+- **order**: INT (with B-Tree index: `IDX_tracks_track_order`)
 - **lessonsCount**: INT - Default: 0
 - **createdAt**: TIMESTAMP
 - **updatedAt**: TIMESTAMP

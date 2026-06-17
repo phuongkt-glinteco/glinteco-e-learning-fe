@@ -10,6 +10,7 @@ import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { TracksModule } from './tracks/tracks.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { AuthModule } from './auth/auth.module';
       ],
     }),
     AuthModule,
+    TracksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

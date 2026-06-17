@@ -20,6 +20,7 @@ import {
   LessonProgress,
 } from './index';
 
+
 describe('Database Entities', () => {
   let pgClient: Client;
   let dataSource: DataSource;
@@ -92,12 +93,14 @@ describe('Database Entities', () => {
     expect(savedCohort.id).toBeDefined();
     expect(savedCohort.name).toBe('Test Cohort');
     expect(savedCohort.targetRampDays).toBe(60);
+    expect(savedCohort.isActive).toBe(true);
 
     const foundCohort = await cohortRepo.findOne({
       where: { id: savedCohort.id },
       relations: { users: true },
     });
     expect(foundCohort).toBeDefined();
+    expect(foundCohort?.isActive).toBe(true);
     expect(foundCohort?.users).toEqual([]);
   });
 

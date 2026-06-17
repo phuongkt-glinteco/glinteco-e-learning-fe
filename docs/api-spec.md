@@ -26,21 +26,98 @@ Retrieve the current authenticated user's profile.
 
 ## 2. Cohorts
 
-### `GET /cohorts`
-List cohorts (Admin only).
+### `POST /cohorts` (Admin only)
+Create a new cohort.
+- **Request Body**:
+  ```json
+  {
+    "name": "Summer 2026",
+    "targetRampDays": 14
+  }
+  ```
+- **Validation Rules**:
+  - `name`: IsString(), IsNotEmpty()
+  - `targetRampDays`: IsInt(), IsPositive(), IsNotEmpty()
+- **Response**: `201 Created`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Summer 2026",
+    "targetRampDays": 14,
+    "isActive": true,
+    "createdAt": "2026-06-16T22:00:00.000Z",
+    "updatedAt": "2026-06-16T22:00:00.000Z"
+  }
+  ```
+
+### `GET /cohorts` (Admin only)
+List cohorts with pagination.
+- **Query Params**: `?page=1&limit=20`
 - **Response**: `200 OK`
   ```json
   {
     "data": [
       {
         "id": "uuid",
-        "name": "Batch 1",
-        "targetRampDays": 30
+        "name": "Summer 2026",
+        "targetRampDays": 14,
+        "isActive": true,
+        "createdAt": "2026-06-16T22:00:00.000Z",
+        "updatedAt": "2026-06-16T22:00:00.000Z"
       }
     ],
-    "meta": { "total": 1, "page": 1 }
+    "meta": {
+      "total": 1,
+      "page": 1,
+      "limit": 20,
+      "lastPage": 1
+    }
   }
   ```
+
+### `GET /cohorts/:id` (Admin only)
+Get details of a cohort.
+- **Response**: `200 OK`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Summer 2026",
+    "targetRampDays": 14,
+    "isActive": true,
+    "createdAt": "2026-06-16T22:00:00.000Z",
+    "updatedAt": "2026-06-16T22:00:00.000Z"
+  }
+  ```
+
+### `PATCH /cohorts/:id` (Admin only)
+Update details of a cohort.
+- **Request Body**:
+  ```json
+  {
+    "name": "Summer 2026 - Revised",
+    "targetRampDays": 15,
+    "isActive": false
+  }
+  ```
+- **Validation Rules**:
+  - `name`: IsString(), IsOptional()
+  - `targetRampDays`: IsInt(), IsPositive(), IsOptional()
+  - `isActive`: IsBoolean(), IsOptional()
+- **Response**: `200 OK`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Summer 2026 - Revised",
+    "targetRampDays": 15,
+    "isActive": false,
+    "createdAt": "2026-06-16T22:00:00.000Z",
+    "updatedAt": "2026-06-16T22:05:00.000Z"
+  }
+  ```
+
+### `DELETE /cohorts/:id` (Admin only)
+Delete a cohort. Will reject if there are users associated with the cohort.
+- **Response**: `200 OK` or `400 Bad Request` (if contains users)
 
 ---
 

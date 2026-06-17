@@ -1,9 +1,17 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Icon } from '@iconify/react';
 
-export default function Modal({ open, onClose, title, children, width = 520 }) {
+interface ModalProps {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+  width?: number;
+}
+
+export default function Modal({ open, onClose, title, children, width = 520 }: ModalProps) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
@@ -27,7 +35,6 @@ export default function Modal({ open, onClose, title, children, width = 520 }) {
         style={{ maxWidth: width, maxHeight: '90vh' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0]">
           <h3 className="text-[18px] font-semibold text-[#0F172A]">{title}</h3>
           <button
@@ -37,7 +44,6 @@ export default function Modal({ open, onClose, title, children, width = 520 }) {
             <Icon icon="lucide:x" className="w-5 h-5" />
           </button>
         </div>
-        {/* Body */}
         <div className="p-6 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>

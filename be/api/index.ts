@@ -2,16 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
 
-const server = express();
+let expressApp: any;
 
-async function bootstrap(expressInstance: express.Express) {
-  const app = await NestFactory.create(
-    AppModule,
-    new ExpressAdapter(expressInstance),
-  );
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
 
   const apiPrefix = process.env.API_PREFIX || 'api/v1';
   app.setGlobalPrefix(apiPrefix);
@@ -42,10 +37,11 @@ async function bootstrap(expressInstance: express.Express) {
   SwaggerModule.setup(`${apiPrefix}/docs`, app, document);
 
   await app.init();
+  expressApp = app.getHttpAdapter().getInstance();
 }
 
 let isAppInitialized = false;
-const initPromise = bootstrap(server).then(() => {
+const initPromise = bootstrap().then(() => {
   isAppInitialized = true;
 });
 
@@ -53,5 +49,5 @@ export default async (req: any, res: any) => {
   if (!isAppInitialized) {
     await initPromise;
   }
-  server(req, res);
+  expressApp(req, res);
 };

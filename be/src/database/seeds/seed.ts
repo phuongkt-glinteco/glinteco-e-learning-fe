@@ -3,6 +3,7 @@ import {
   Cohort,
   Document,
   Exercise,
+  ExerciseDifficulty,
   Lesson,
   ProgressStatus,
   Submission,
@@ -137,6 +138,12 @@ async function seed(): Promise<void> {
       exerciseRepo.create({
         trackId: backendTrack.id,
         title: 'Xây dựng REST API quản lý người dùng',
+        tag: 'backend',
+        difficulty: ExerciseDifficulty.BEGINNER,
+        estimatedTime: '2 hours',
+        xp: 200,
+        brief: 'Xây dựng module User trong NestJS',
+        overview: 'Trong bài tập này, bạn sẽ thực hiện viết REST API cho User và tích hợp cơ sở dữ liệu.',
         objectives: [
           'Tạo module User với controller và service',
           'Triển khai cursor pagination cho endpoint danh sách',

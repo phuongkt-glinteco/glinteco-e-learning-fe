@@ -31,21 +31,22 @@ import { SubmissionsModule } from './submissions/submissions.module';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host:
-          configService.get<string>('DATABASE_HOST') ||
-          configService.get<string>('POSTGRES_HOST', 'localhost'),
+          configService.get<string>('POSTGRES_HOST') ||
+          configService.get<string>('DATABASE_HOST', 'localhost'),
         port: Number(
-          configService.get<string>('DATABASE_PORT') ||
-            configService.get<string>('POSTGRES_PORT', '5432'),
+          configService.get<string>('POSTGRES_PORT') ||
+            configService.get<string>('DATABASE_PORT') ||
+            (configService.get<string>('POSTGRES_HOST') ? '5432' : '5435'),
         ),
         username:
-          configService.get<string>('DATABASE_USER') ||
-          configService.get<string>('POSTGRES_USER', 'rampup_user'),
+          configService.get<string>('POSTGRES_USER') ||
+          configService.get<string>('DATABASE_USER', 'rampup_user'),
         password:
-          configService.get<string>('DATABASE_PASSWORD') ||
-          configService.get<string>('POSTGRES_PASSWORD', 'rampup_password'),
+          configService.get<string>('POSTGRES_PASSWORD') ||
+          configService.get<string>('DATABASE_PASSWORD', 'rampup_password'),
         database:
-          configService.get<string>('DATABASE_NAME') ||
-          configService.get<string>('POSTGRES_DATABASE', 'rampup_db'),
+          configService.get<string>('POSTGRES_DATABASE') ||
+          configService.get<string>('DATABASE_NAME', 'rampup_db'),
         ssl:
           configService.get<string>('DATABASE_SSL') === 'true' ||
           !!configService.get<string>('POSTGRES_HOST')

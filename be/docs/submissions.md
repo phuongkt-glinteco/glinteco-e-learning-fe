@@ -68,10 +68,21 @@ Then Trạng thái bài nộp đổi sang "APPROVED"
 
 | Test Case ID | Mục tiêu kiểm thử | Dữ liệu đầu vào (Input) | Các bước thực hiện | Kết quả mong đợi (Expected Output) |
 | :--- | :--- | :--- | :--- | :--- |
-| **TC_SUB_01** | Nộp bài thành công | Body: `{ "prUrl": "https://github.com/user/repo/pull/1" }` | 1. Gửi request POST tới `/exercises/:id/submissions`. | HTTP 201 Created, tạo mới bài nộp trạng thái SUBMITTED. |
-| **TC_SUB_02** | Validation PR URL lỗi | Body: `{ "prUrl": "google.com" }` | 1. Gửi request nộp bài với URL sai chuẩn. | HTTP 400 Bad Request. |
-| **TC_SUB_03** | Admin duyệt bài | Body: `{ "comment": "Good job" }` | 1. Admin gửi POST tới `/submissions/:id/approve`. | HTTP 200 OK, cập nhật trạng thái bài nộp thành APPROVED. |
+| **TC_SUB_01** | Nộp bài thành công | Body: `{ "prUrl": "https://github.com/pr/1" }` | 1. Gửi request POST tới `/exercises/:id/submissions` kèm URL PR GitHub hợp lệ. | HTTP 201 Created, tạo mới bài nộp trạng thái SUBMITTED. |
+| **TC_SUB_02** | Validation PR URL lỗi | Body: `{ "prUrl": "google.com" }` | 1. Gửi request nộp bài với URL sai định dạng. | HTTP 400 Bad Request. |
+| **TC_SUB_03** | Admin duyệt bài | Body: `{ "comment": "Good job" }` | 1. Admin gửi POST tới `/submissions/:id/approve` kèm comment. | HTTP 200 OK, cập nhật trạng thái bài nộp thành APPROVED, cộng XP và thăng cấp người dùng. |
 | **TC_SUB_04** | Learner cố tình duyệt bài | Body: `{ "comment": "Hack" }` | 1. Learner gửi POST tới `/submissions/:id/approve`. | HTTP 403 Forbidden. |
+| **TC_SUB_05** | Nộp lại bài tập (Resubmit) thành công | Params: `exerciseId = ex-1`<br>Body: `{ "prUrl": "https://github.com/pr/new" }` | 1. Learner gửi POST tới `/exercises/:id/resubmit` khi trạng thái bài nộp cũ là `CHANGES`. | HTTP 201 Created, cập nhật `prUrl` mới và chuyển trạng thái về `SUBMITTED`. |
+| **TC_SUB_06** | Nộp bài thất bại do đã nộp trước đó và không ở trạng thái CHANGES | Params: `exerciseId = ex-1` | 1. Learner gửi POST tới `/exercises/:id/submissions` khi bài nộp cũ đang ở trạng thái `SUBMITTED` hoặc `APPROVED`. | HTTP 400 Bad Request. |
+| **TC_SUB_07** | Lấy danh sách bài tập kèm thông tin nộp bài của Learner | Query: `?trackId=track-1` | 1. Learner gửi GET tới `/submissions/exercises` để xem trạng thái nộp bài của các bài tập trong Track. | HTTP 200 OK, trả về danh sách bài tập và thông tin chi tiết bài nộp (nếu có). |
+| **TC_SUB_08** | Nộp bài thất bại do Bài tập không tồn tại | Params: `exerciseId = invalid-id` | 1. Learner gửi POST tới `/exercises/invalid-id/submissions`. | HTTP 404 Not Found. |
+| **TC_SUB_09** | Tra cứu danh sách tất cả các bài nộp (Admin) | Query: `?status=submitted&page=2&limit=5` | 1. Admin gửi GET tới `/submissions` có phân trang và bộ lọc theo trạng thái. | HTTP 200 OK, trả về danh sách các bài nộp toàn hệ thống kèm metadata phân trang. |
+| **TC_SUB_10** | Tra cứu danh sách bài nộp cá nhân (Learner) | Header: JWT Learner | 1. Learner gửi GET tới `/submissions/mine`. | HTTP 200 OK, trả về danh sách bài nộp của riêng người dùng này. |
+| **TC_SUB_11** | Xem chi tiết bài nộp của chính mình thành công | Params: `id = sub-1` | 1. Learner gửi GET tới `/submissions/sub-1`. | HTTP 200 OK, trả về thông tin chi tiết bài nộp. |
+| **TC_SUB_12** | Xem chi tiết bài nộp của người khác thất bại (Learner) | Params: `id = sub-1` (của người khác) | 1. Learner gửi GET tới `/submissions/sub-1` của học viên khác. | HTTP 403 Forbidden. |
+| **TC_SUB_13** | Xem chi tiết bài nộp của học viên bất kỳ thành công (Admin) | Params: `id = sub-1` (của học viên khác) | 1. Admin gửi GET tới `/submissions/sub-1`. | HTTP 200 OK, trả về thông tin chi tiết bài nộp. |
+| **TC_SUB_14** | Admin yêu cầu sửa đổi bài nộp (Request Changes) | Body: `{ "comment": "Tối ưu vòng lặp" }` | 1. Admin gửi POST tới `/submissions/:id/request-changes` kèm nhận xét. | HTTP 200 OK, cập nhật trạng thái bài nộp thành `CHANGES`. |
+| **TC_SUB_15** | Tra cứu lịch sử phiên bản của bài nộp | Params: `id = sub-1` | 1. Học viên hoặc Admin gửi GET tới `/submissions/sub-1/history`. | HTTP 200 OK, trả về danh sách các sự kiện thay đổi trạng thái và review comments của bài nộp. |
 
 ---
 

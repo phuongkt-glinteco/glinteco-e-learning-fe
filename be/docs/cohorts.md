@@ -65,6 +65,11 @@ Then Hệ thống chặn yêu cầu ngay lập tức ở RolesGuard
 | **TC_COH_02** | Tạo lớp học thiếu tên (Validation) | Body: `{ "targetRampDays": 30 }` | 1. Gửi request tạo lớp học thiếu trường `name`. | HTTP 400 Bad Request. |
 | **TC_COH_03** | Learner cố sửa đổi lớp học | Params: `id = uuid-1`<br>Body: `{ "name": "K26 Updated" }` | 1. Learner gửi PUT tới `/cohorts/uuid-1`. | HTTP 403 Forbidden. |
 | **TC_COH_04** | Cập nhật lớp học không tồn tại | Params: `id = invalid-uuid`<br>Body: `{ "name": "K26" }` | 1. Admin gửi PUT tới `/cohorts/invalid-uuid`. | HTTP 404 Not Found. |
+| **TC_COH_05** | Lấy danh sách toàn bộ lớp học có phân trang | Query: `?page=1&limit=20` | 1. Gửi request GET tới `/cohorts`. | HTTP 200 OK, trả về danh sách lớp học và metadata phân trang. |
+| **TC_COH_06** | Tìm thông tin lớp học theo ID | Params: `id = uuid-1` | 1. Gửi request GET tới `/cohorts/uuid-1`. | HTTP 200 OK, trả về chi tiết lớp học. |
+| **TC_COH_07** | Sửa thông tin lớp học thành công (Admin) | Params: `id = uuid-1`<br>Body: `{ "name": "Batch 1 Updated", "isActive": false }` | 1. Admin gửi PUT tới `/cohorts/uuid-1`. | HTTP 200 OK, trả về thông tin lớp học đã cập nhật. |
+| **TC_COH_08** | Xóa lớp học thành công khi không có học viên | Params: `id = uuid-1` | 1. Admin gửi DELETE tới `/cohorts/uuid-1`. | HTTP 200 OK, xóa lớp học khỏi cơ sở dữ liệu. |
+| **TC_COH_09** | Xóa lớp học thất bại do có học viên đang thuộc lớp | Params: `id = uuid-1` | 1. Admin gửi DELETE tới `/cohorts/uuid-1` khi đếm số học viên > 0. | HTTP 400 Bad Request. |
 
 ---
 

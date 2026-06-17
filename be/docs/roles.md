@@ -58,12 +58,12 @@ Then Hệ thống xác thực quyền hợp lệ thông qua Decorator "@Roles(Us
 
 ## 4. Đặc tả Test Case Bảo mật (Security Test Cases)
 
-| Test Case ID | Mục tiêu kiểm thử | Dữ liệu đầu vào (Input) | Các bước thực hiện | Kết quả mong đợi (Expected Output) |
+| Test Case ID | Mục tiêu kiểm thử | Dữ liệu đầu vào (Input) | Các bước thực hiện & Nơi kiểm thử | Kết quả mong đợi (Expected Output) |
 | :--- | :--- | :--- | :--- | :--- |
-| **TC_SEC_01** | Gọi API không có Token | Request bất kỳ API có bảo vệ (ví dụ: `GET /cohorts`) | 1. Gửi request không đính kèm header `Authorization`. | HTTP Status: `401 Unauthorized`. |
-| **TC_SEC_02** | Gọi API với Token sai định dạng | Header: `Authorization: Bearer invalid_token` | 1. Gửi request kèm chuỗi token ngẫu nhiên không đúng chuẩn JWT. | HTTP Status: `401 Unauthorized`. |
-| **TC_SEC_03** | Sai vai trò truy cập (Learner -> Admin API) | Header: JWT Learner<br>API: `POST /cohorts` | 1. Đăng nhập tài khoản Learner.<br>2. Gọi API tạo Cohort của Admin. | HTTP Status: `403 Forbidden`. |
-| **TC_SEC_04** | Đúng vai trò truy cập (Admin -> Admin API) | Header: JWT Admin<br>API: `POST /cohorts` | 1. Đăng nhập tài khoản Admin.<br>2. Gọi API tạo Cohort. | HTTP Status: `201 Created` / `200 OK`. |
+| **TC_SEC_01** | Gọi API không có Token | Request bất kỳ API có bảo vệ (ví dụ: `GET /cohorts`) | 1. Gửi request không đính kèm header `Authorization`. <br>*(Kiểm thử trong `test/auth.e2e-spec.ts`)* | HTTP Status: `401 Unauthorized`. |
+| **TC_SEC_02** | Gọi API với Token sai định dạng | Header: `Authorization: Bearer invalid_token` | 1. Gửi request kèm chuỗi token ngẫu nhiên không đúng chuẩn JWT. <br>*(Kiểm thử trong `test/auth.e2e-spec.ts`)* | HTTP Status: `401 Unauthorized`. |
+| **TC_SEC_03** | Sai vai trò truy cập (Learner -> Admin API) | Header: JWT Learner<br>API: `POST /cohorts` | 1. Đăng nhập tài khoản Learner.<br>2. Gọi API tạo Cohort của Admin.<br>*(Kiểm thử trong `roles.guard.spec.ts` và E2E)* | HTTP Status: `403 Forbidden` (ForbiddenException). |
+| **TC_SEC_04** | Đúng vai trò truy cập (Admin -> Admin API) | Header: JWT Admin<br>API: `POST /cohorts` | 1. Đăng nhập tài khoản Admin.<br>2. Gọi API tạo Cohort.<br>*(Kiểm thử trong `roles.guard.spec.ts` và E2E)* | HTTP Status: `201 Created` / `200 OK`. |
 
 ---
 

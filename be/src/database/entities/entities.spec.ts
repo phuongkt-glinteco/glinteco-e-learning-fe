@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+import { join } from 'path';
 import { Client } from 'pg';
 import { DataSource } from 'typeorm';
 import {
@@ -17,8 +18,6 @@ import {
   Document,
   RefreshToken,
 } from './index';
-import { InitialSchema1781611485949 } from '../migrations/1781611485949-InitialSchema';
-import { AddGoogleIdToUsers1781616508023 } from '../migrations/1781616508023-AddGoogleIdToUsers';
 
 describe('Database Entities', () => {
   let pgClient: Client;
@@ -61,19 +60,14 @@ describe('Database Entities', () => {
         Document,
         RefreshToken,
       ],
+      migrations: [join(__dirname, '../migrations/[0-9]*.{ts,js}')],
       synchronize: false,
       logging: false,
     });
     await dataSource.initialize();
 
-    // Run migrations to setup schema
-    const queryRunner = dataSource.createQueryRunner();
-    await queryRunner.connect();
-    const migration1 = new InitialSchema1781611485949();
-    await migration1.up(queryRunner);
-    const migration2 = new AddGoogleIdToUsers1781616508023();
-    await migration2.up(queryRunner);
-    await queryRunner.release();
+    // Run all migrations to setup schema automatically
+    await dataSource.runMigrations();
   });
 
   afterAll(async () => {

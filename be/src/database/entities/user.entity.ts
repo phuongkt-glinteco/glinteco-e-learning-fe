@@ -12,6 +12,7 @@ import { Cohort } from './cohort.entity';
 import { TrackProgress } from './track-progress.entity';
 import { Submission } from './submission.entity';
 import { RefreshToken } from './refresh-token.entity';
+import { LessonProgress } from './lesson-progress.entity';
 
 export enum UserRole {
   LEARNER = 'learner',
@@ -39,6 +40,12 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: true, select: false })
   password?: string;
 
+  @Column({ nullable: true })
+  title: string;
+
+  @Column({ type: 'int', nullable: true })
+  avatarHue: number;
+
   @Column({ type: 'enum', enum: UserRole, default: UserRole.LEARNER })
   role: UserRole;
 
@@ -60,6 +67,9 @@ export class User {
 
   @OneToMany(() => TrackProgress, (progress) => progress.user)
   trackProgresses: TrackProgress[];
+
+  @OneToMany(() => LessonProgress, (progress) => progress.user)
+  lessonProgresses: LessonProgress[];
 
   @OneToMany(() => Submission, (submission) => submission.user)
   submissions: Submission[];

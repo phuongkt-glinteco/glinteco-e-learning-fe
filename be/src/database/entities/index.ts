@@ -9,3 +9,4 @@ export * from './submission-history.entity';
 export * from './document.entity';
 export * from './tag.entity';
 export * from './refresh-token.entity';
+export * from './lesson-progress.entity';

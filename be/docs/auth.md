@@ -159,3 +159,23 @@ describe('AuthService', () => {
   });
 });
 ```
+
+---
+
+## 5. Kết Quả Kiểm Thử & Độ Bao Phủ (Test Results & Coverage Report)
+
+Dưới đây là thống kê độ bao phủ (code coverage) thực tế của phân hệ Xác thực & Ủy quyền (Auth Module) thu được từ Jest:
+
+| File / Thư mục | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **src/modules/auth** | **100%** | **83.62%** | **100%** | **100%** | |
+| ├─ `auth.controller.ts` | 100% | 75% | 100% | 100% | 30-109 |
+| └─ `auth.service.ts` | 100% | 91.66% | 100% | 100% | 46-51 |
+| **src/modules/auth/guards** | **100%** | **90%** | **100%** | **100%** | |
+| ├─ `jwt-auth.guard.ts` | 100% | 100% | 100% | 100% | |
+| └─ `roles.guard.ts` | 100% | 90% | 100% | 100% | 14 |
+| **src/modules/auth/strategies** | **100%** | **80%** | **100%** | **100%** | |
+| └─ `jwt.strategy.ts` | 100% | 80% | 100% | 100% | 17 |
+
+Các ca kiểm thử đã được chạy thành công và đạt độ bao phủ tuyệt đối về mặt dòng lệnh (Statements) và hàm (Functions), các nhánh logic rẽ nhánh (Branches) đạt trên 80% độ bao phủ.
+

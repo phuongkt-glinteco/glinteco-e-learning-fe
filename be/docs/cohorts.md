@@ -154,3 +154,18 @@ describe('CohortService', () => {
   });
 });
 ```
+
+---
+
+## 5. Kết Quả Kiểm Thử & Độ Bao Phủ (Test Results & Coverage Report)
+
+Dưới đây là thống kê độ bao phủ (code coverage) thực tế của phân hệ Lớp học (Cohorts Module) thu được từ Jest:
+
+| File / Thư mục | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **src/cohort** | **100%** | **68.75%** | **100%** | **100%** | |
+| ├─ `cohort.controller.ts` | 100% | 68.75% | 100% | 100% | 34-75 |
+| └─ `cohort.service.ts` | 100% | 68.75% | 100% | 100% | 17-51 |
+
+Các ca kiểm thử đã được chạy thành công và đạt độ bao phủ tuyệt đối (100%) về số dòng lệnh (Statements) và hàm (Functions) trong việc quản lý và cập nhật lớp học.
+

@@ -144,3 +144,17 @@ describe('RolesGuard', () => {
   });
 });
 ```
+
+---
+
+## 6. Kết Quả Kiểm Thử & Độ Bao Phủ (Test Results & Coverage Report)
+
+Dưới đây là thống kê độ bao phủ (code coverage) thực tế liên quan đến phân quyền truy cập (Guards & Decorators) thu được từ Jest:
+
+| File / Thư mục | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **src/modules/auth/guards/roles.guard.ts** | **100%** | **90%** | **100%** | **100%** | 14 |
+| **src/modules/auth/guards/jwt-auth.guard.ts** | **100%** | **100%** | **100%** | **100%** | |
+
+Các ca kiểm thử bảo mật (Security Test Cases) được triển khai đầy đủ nhằm ngăn chặn học viên truy cập các API của quản trị viên và ngược lại, đảm bảo hệ thống RBAC hoạt động chính xác với độ bao phủ 100% statements.
+

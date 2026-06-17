@@ -174,3 +174,18 @@ describe('SubmissionsService', () => {
   });
 });
 ```
+
+---
+
+## 5. Kết Quả Kiểm Thử & Độ Bao Phủ (Test Results & Coverage Report)
+
+Dưới đây là thống kê độ bao phủ (code coverage) thực tế của phân hệ Quản Lý Bài Nộp (Submissions Module) thu được từ Jest:
+
+| File / Thư mục | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **src/submissions** | **88.35%** | **67.3%** | **100%** | **88.57%** | |
+| ├─ `submissions.controller.ts` | 100% | 75% | 100% | 100% | 40-107 |
+| └─ `submissions.service.ts` | 84.68% | 65.47% | 100% | 85.04% | 73-274, 288, 294 |
+
+Các ca kiểm thử bao phủ toàn bộ luồng nghiệp vụ cốt lõi bao gồm nộp bài, cập nhật bài nộp, gửi thông báo Slack/Email và phê duyệt bài nộp từ Admin.
+

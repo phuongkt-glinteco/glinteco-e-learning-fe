@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcryptjs';
 import AppDataSource from '../data-source';
 import {
   Cohort,
@@ -53,11 +54,14 @@ async function seed(): Promise<void> {
 
     // --- Users -----------------------------------------------------------
     const userRepo = dataSource.getRepository(User);
+    const passwordHash = await bcrypt.hash('rampup123', 10);
+
     const admin = await userRepo.save(
       userRepo.create({
         email: 'admin@glinteco.com',
         name: 'Admin Glinteco',
         role: UserRole.ADMIN,
+        password: passwordHash,
         level: 10,
         xp: 9999,
         streakDays: 30,
@@ -68,6 +72,7 @@ async function seed(): Promise<void> {
         email: 'alice@glinteco.com',
         name: 'Alice Nguyen',
         role: UserRole.LEARNER,
+        password: passwordHash,
         level: 3,
         xp: 450,
         streakDays: 7,
@@ -77,6 +82,7 @@ async function seed(): Promise<void> {
         email: 'bob@glinteco.com',
         name: 'Bob Tran',
         role: UserRole.LEARNER,
+        password: passwordHash,
         level: 1,
         xp: 80,
         streakDays: 2,

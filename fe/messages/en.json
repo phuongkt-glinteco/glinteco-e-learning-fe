@@ -21,5 +21,20 @@
     "passwordMinLength": "Password must be at least 6 characters",
     "alertGoogleSuccess": "Google login successful!",
     "alertEmailSuccess": "Successfully signed in with: {email}"
+  },
+  "AppShell": {
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "myCourses": "My Courses",
+    "documentation": "Documentation",
+    "settings": "Settings",
+    "support": "Support",
+    "notifications": "Notifications",
+    "engineeringPortal": "Engineering Portal",
+    "searchPlaceholder": "Search...",
+    "help": "Help",
+    "role": "Backend Engineer",
+    "subLogoTitle": "Engineering Portal"
   }
 }
+

@@ -21,5 +21,20 @@
     "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
     "alertGoogleSuccess": "Đăng nhập qua Google thành công!",
     "alertEmailSuccess": "Đăng nhập thành công với: {email}"
+  },
+  "AppShell": {
+    "dashboard": "Bảng điều khiển",
+    "courses": "Khóa học",
+    "myCourses": "Khóa học của tôi",
+    "documentation": "Tài liệu",
+    "settings": "Cài đặt",
+    "support": "Hỗ trợ",
+    "notifications": "Thông báo",
+    "engineeringPortal": "Cổng thông tin kỹ thuật",
+    "searchPlaceholder": "Tìm kiếm...",
+    "help": "Trợ giúp",
+    "role": "Kỹ sư Backend",
+    "subLogoTitle": "Cổng thông tin kỹ thuật"
   }
 }
+

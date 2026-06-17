@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Image from 'next/image';
-import { useTranslations, useLocale } from 'next-intl';
-import { useLanguage } from '@/providers/LanguageProvider';
+import { useTranslations } from 'next-intl';
+import LanguageToggle from '@/components/ui/LanguageToggle';
 
 interface LoginFormData {
   email: string;
@@ -13,7 +13,6 @@ interface LoginFormData {
 
 export default function LoginPage() {
   const t = useTranslations('LoginPage');
-  const locale = useLocale();
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     defaultValues: {
@@ -21,8 +20,6 @@ export default function LoginPage() {
       password: 'password123'
     }
   });
-
-  const { changeLanguage } = useLanguage();
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,20 +42,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
-      <div className="absolute top-6 right-6 z-20 bg-surface/85 backdrop-blur-md border border-outline p-0.5 rounded-lg flex items-center shadow-sm">
-        <button
-          onClick={() => changeLanguage('vi')}
-          className={`px-3 py-1 text-[13px] font-semibold rounded-md transition-all cursor-pointer ${locale === 'vi' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
-        >
-          VI
-        </button>
-        <button
-          onClick={() => changeLanguage('en')}
-          className={`px-3 py-1 text-[13px] font-semibold rounded-md transition-all cursor-pointer ${locale === 'en' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
-        >
-          EN
-        </button>
-      </div>
+      <LanguageToggle size="md" className="hidden md:block absolute top-6 right-6 z-20 border-outline" />
+
 
       <div className="flex w-full h-full min-h-screen">
         <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-primary to-secondary p-12 relative overflow-hidden">

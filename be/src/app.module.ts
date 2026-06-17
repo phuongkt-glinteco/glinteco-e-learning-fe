@@ -7,6 +7,7 @@ import {
   AcceptLanguageResolver,
 } from 'nestjs-i18n';
 import * as path from 'path';
+import * as fs from 'fs';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
@@ -67,7 +68,9 @@ import { NotificationsModule } from './notifications/notifications.module';
     I18nModule.forRoot({
       fallbackLanguage: 'vi',
       loaderOptions: {
-        path: path.join(__dirname, '/i18n/'),
+        path: fs.existsSync(path.join(__dirname, '/i18n/'))
+          ? path.join(__dirname, '/i18n/')
+          : path.join(__dirname, '../i18n/'),
         watch: true,
       },
       resolvers: [

@@ -27,7 +27,9 @@ export class AddKindToDocumentsAndSearchIndexes1781617508000 implements Migratio
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes
     await queryRunner.query(`DROP INDEX "public"."IDX_exercises_title_search"`);
-    await queryRunner.query(`DROP INDEX "public"."IDX_documents_content_search"`);
+    await queryRunner.query(
+      `DROP INDEX "public"."IDX_documents_content_search"`,
+    );
     await queryRunner.query(`DROP INDEX "public"."IDX_tracks_name_search"`);
 
     // Drop kind column and enum type

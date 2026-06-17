@@ -46,10 +46,10 @@ export class TrackProgress {
   lessonsCompleted: number;
 
   @Column({ type: 'timestamp', nullable: true })
-  startedAt: Date;
+  startedAt: Date | null;
 
   @Column({ type: 'timestamp', nullable: true })
-  completedAt: Date;
+  completedAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

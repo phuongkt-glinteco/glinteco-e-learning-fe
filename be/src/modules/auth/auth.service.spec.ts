@@ -80,7 +80,7 @@ describe('AuthService', () => {
     };
     userRepository = {
       findOne: jest.fn(),
-      create: jest.fn((dto) => ({ id: 'generated-uuid', ...dto } as User)),
+      create: jest.fn((dto) => ({ id: 'generated-uuid', ...dto }) as User),
       save: jest.fn((entity) => Promise.resolve(entity as User)),
     };
     jwtService = {

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cohort } from '../database/entities/cohort.entity';
@@ -20,7 +24,13 @@ export class CohortService {
     return this.cohortRepository.save(cohort);
   }
 
-  async findAll(page = 1, limit = 20): Promise<{ data: Cohort[]; meta: { total: number; page: number; limit: number; lastPage: number } }> {
+  async findAll(
+    page = 1,
+    limit = 20,
+  ): Promise<{
+    data: Cohort[];
+    meta: { total: number; page: number; limit: number; lastPage: number };
+  }> {
     const adjustedLimit = Math.min(limit, 50);
     const skip = (page - 1) * adjustedLimit;
 
@@ -61,7 +71,7 @@ export class CohortService {
 
   async remove(id: string): Promise<void> {
     const cohort = await this.findOne(id);
-    
+
     // Check if there are users in this cohort
     const usersCount = await this.userRepository.count({
       where: { cohortId: id },

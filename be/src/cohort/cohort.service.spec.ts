@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { CohortService } from './cohort.service';
 import { Cohort } from '../database/entities/cohort.entity';
 import { User } from '../database/entities/user.entity';
@@ -10,8 +9,6 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('CohortService', () => {
   let service: CohortService;
-  let cohortRepository: Repository<Cohort>;
-  let userRepository: Repository<User>;
 
   const mockCohortRepository = {
     create: jest.fn(),
@@ -42,8 +39,6 @@ describe('CohortService', () => {
     }).compile();
 
     service = module.get<CohortService>(CohortService);
-    cohortRepository = module.get<Repository<Cohort>>(getRepositoryToken(Cohort));
-    userRepository = module.get<Repository<User>>(getRepositoryToken(User));
   });
 
   it('should be defined', () => {
@@ -67,7 +62,9 @@ describe('CohortService', () => {
 
   describe('findAll', () => {
     it('should return paginated cohorts', async () => {
-      const cohorts = [{ id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true }];
+      const cohorts = [
+        { id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true },
+      ];
       mockCohortRepository.findAndCount.mockResolvedValue([cohorts, 1]);
 
       const result = await service.findAll(1, 20);
@@ -90,24 +87,38 @@ describe('CohortService', () => {
 
   describe('findOne', () => {
     it('should return a cohort by ID if it exists', async () => {
-      const cohort = { id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true };
+      const cohort = {
+        id: 'uuid-1',
+        name: 'Batch 1',
+        targetRampDays: 30,
+        isActive: true,
+      };
       mockCohortRepository.findOne.mockResolvedValue(cohort);
 
       const result = await service.findOne('uuid-1');
-      expect(mockCohortRepository.findOne).toHaveBeenCalledWith({ where: { id: 'uuid-1' } });
+      expect(mockCohortRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 'uuid-1' },
+      });
       expect(result).toEqual(cohort);
     });
 
     it('should throw NotFoundException if cohort does not exist', async () => {
       mockCohortRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('invalid-uuid')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('invalid-uuid')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('update', () => {
     it('should update and save the cohort', async () => {
-      const cohort = { id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true };
+      const cohort = {
+        id: 'uuid-1',
+        name: 'Batch 1',
+        targetRampDays: 30,
+        isActive: true,
+      };
       const dto: UpdateCohortDto = { name: 'Updated Name', isActive: false };
       const updatedCohort = { ...cohort, ...dto };
 
@@ -122,22 +133,36 @@ describe('CohortService', () => {
 
   describe('remove', () => {
     it('should delete the cohort if there are no users associated', async () => {
-      const cohort = { id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true };
+      const cohort = {
+        id: 'uuid-1',
+        name: 'Batch 1',
+        targetRampDays: 30,
+        isActive: true,
+      };
       mockCohortRepository.findOne.mockResolvedValue(cohort);
       mockUserRepository.count.mockResolvedValue(0);
       mockCohortRepository.remove.mockResolvedValue(undefined);
 
       await service.remove('uuid-1');
-      expect(mockUserRepository.count).toHaveBeenCalledWith({ where: { cohortId: 'uuid-1' } });
+      expect(mockUserRepository.count).toHaveBeenCalledWith({
+        where: { cohortId: 'uuid-1' },
+      });
       expect(mockCohortRepository.remove).toHaveBeenCalledWith(cohort);
     });
 
     it('should throw BadRequestException if cohort has users', async () => {
-      const cohort = { id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true };
+      const cohort = {
+        id: 'uuid-1',
+        name: 'Batch 1',
+        targetRampDays: 30,
+        isActive: true,
+      };
       mockCohortRepository.findOne.mockResolvedValue(cohort);
       mockUserRepository.count.mockResolvedValue(3);
 
-      await expect(service.remove('uuid-1')).rejects.toThrow(BadRequestException);
+      await expect(service.remove('uuid-1')).rejects.toThrow(
+        BadRequestException,
+      );
       expect(mockCohortRepository.remove).not.toHaveBeenCalled();
     });
   });

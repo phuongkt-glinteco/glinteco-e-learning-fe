@@ -12,6 +12,11 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CohortModule } from './cohort/cohort.module';
+import { TracksModule } from './tracks/tracks.module';
+import { DocumentsModule } from './documents/documents.module';
+import { SearchModule } from './search/search.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { SubmissionsModule } from './submissions/submissions.module';
 
 @Module({
   imports: [
@@ -56,6 +61,11 @@ import { CohortModule } from './cohort/cohort.module';
     }),
     AuthModule,
     CohortModule,
+    TracksModule,
+    DocumentsModule,
+    SearchModule,
+    LeaderboardModule,
+    SubmissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

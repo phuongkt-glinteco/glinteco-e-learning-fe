@@ -1,26 +1,38 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Repository, Not, IsNull, SelectQueryBuilder } from 'typeorm';
+import { NotFoundException } from '@nestjs/common';
 import { User, UserRole } from '../../database/entities/user.entity';
 import { Lesson } from '../../database/entities/lesson.entity';
 import { LessonProgress } from '../../database/entities/lesson-progress.entity';
 import { Track } from '../../database/entities/track.entity';
-import { TrackProgress, ProgressStatus } from '../../database/entities/track-progress.entity';
-import { Submission, SubmissionStatus } from '../../database/entities/submission.entity';
+import {
+  TrackProgress,
+  ProgressStatus,
+} from '../../database/entities/track-progress.entity';
+import {
+  Submission,
+  SubmissionStatus,
+} from '../../database/entities/submission.entity';
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {
   let service: UsersService;
-  
+
   let userRepository: jest.Mocked<
     Pick<Repository<User>, 'findOne' | 'create' | 'save' | 'createQueryBuilder'>
   >;
   let mockLessonRepository: jest.Mocked<Pick<Repository<Lesson>, 'count'>>;
-  let mockLessonProgressRepository: jest.Mocked<Pick<Repository<LessonProgress>, 'count'>>;
+  let mockLessonProgressRepository: jest.Mocked<
+    Pick<Repository<LessonProgress>, 'count'>
+  >;
   let mockTrackRepository: jest.Mocked<Pick<Repository<Track>, 'count'>>;
-  let mockTrackProgressRepository: jest.Mocked<Pick<Repository<TrackProgress>, 'count'>>;
-  let mockSubmissionRepository: jest.Mocked<Pick<Repository<Submission>, 'find'>>;
+  let mockTrackProgressRepository: jest.Mocked<
+    Pick<Repository<TrackProgress>, 'count'>
+  >;
+  let mockSubmissionRepository: jest.Mocked<
+    Pick<Repository<Submission>, 'find'>
+  >;
 
   const mockUser = {
     id: 'user-id-123',
@@ -126,7 +138,7 @@ describe('UsersService', () => {
         getOne: jest.fn().mockResolvedValue(mockUser),
       };
       userRepository.createQueryBuilder.mockReturnValue(
-        mockQueryBuilder as any,
+        mockQueryBuilder as unknown as SelectQueryBuilder<User>,
       );
 
       const result = await service.findByEmailWithPassword('test@example.com');
@@ -310,7 +322,9 @@ describe('UsersService', () => {
       mockLessonProgressRepository.count.mockResolvedValue(3);
       mockTrackRepository.count.mockResolvedValue(5);
       mockTrackProgressRepository.count.mockResolvedValue(2);
-      mockSubmissionRepository.find.mockResolvedValue(mockSubmissions as Submission[]);
+      mockSubmissionRepository.find.mockResolvedValue(
+        mockSubmissions as Submission[],
+      );
 
       const result = await service.getStats('u_123');
 

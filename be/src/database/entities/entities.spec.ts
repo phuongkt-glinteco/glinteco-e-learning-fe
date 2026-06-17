@@ -21,7 +21,6 @@ import {
   LessonProgress,
 } from './index';
 
-
 describe('Database Entities', () => {
   let pgClient: Client;
   let dataSource: DataSource;
@@ -363,13 +362,6 @@ describe('Database Entities', () => {
       docRepo.create({
         title: 'Bookmarked Document',
         url: 'https://example.com/bookmarked',
-      }),
-    );
-
-    const doc2 = await docRepo.save(
-      docRepo.create({
-        title: 'Another Document',
-        url: 'https://example.com/another',
       }),
     );
 

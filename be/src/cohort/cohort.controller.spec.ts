@@ -59,7 +59,9 @@ describe('CohortController', () => {
   describe('findAll', () => {
     it('should call cohortService.findAll', async () => {
       const expectedResult = {
-        data: [{ id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true }],
+        data: [
+          { id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true },
+        ],
         meta: { total: 1, page: 1, limit: 20, lastPage: 1 },
       };
       mockCohortService.findAll.mockResolvedValue(expectedResult);
@@ -72,7 +74,12 @@ describe('CohortController', () => {
 
   describe('findOne', () => {
     it('should call cohortService.findOne', async () => {
-      const expectedCohort = { id: 'uuid-1', name: 'Batch 1', targetRampDays: 30, isActive: true };
+      const expectedCohort = {
+        id: 'uuid-1',
+        name: 'Batch 1',
+        targetRampDays: 30,
+        isActive: true,
+      };
       mockCohortService.findOne.mockResolvedValue(expectedCohort);
 
       const result = await controller.findOne('uuid-1');
@@ -84,7 +91,12 @@ describe('CohortController', () => {
   describe('update', () => {
     it('should call cohortService.update', async () => {
       const dto: UpdateCohortDto = { name: 'Batch 1 Updated' };
-      const expectedCohort = { id: 'uuid-1', name: 'Batch 1 Updated', targetRampDays: 30, isActive: true };
+      const expectedCohort = {
+        id: 'uuid-1',
+        name: 'Batch 1 Updated',
+        targetRampDays: 30,
+        isActive: true,
+      };
       mockCohortService.update.mockResolvedValue(expectedCohort);
 
       const result = await controller.update('uuid-1', dto);

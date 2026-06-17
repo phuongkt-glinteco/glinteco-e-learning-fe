@@ -51,7 +51,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
-    this.googleClientId = this.configService.get<string>('GOOGLE_CLIENT_ID', '');
+    this.googleClientId = this.configService.get<string>(
+      'GOOGLE_CLIENT_ID',
+      '',
+    );
     this.allowedDomain = this.configService.get<string>('ALLOWED_EMAIL_DOMAIN');
     this.googleClient = new OAuth2Client(this.googleClientId);
   }

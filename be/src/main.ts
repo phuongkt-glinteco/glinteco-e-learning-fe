@@ -47,4 +47,4 @@ async function bootstrap() {
     `Swagger documentation is available at: http://localhost:${port}/${apiPrefix}/docs`,
   );
 }
-bootstrap();
+void bootstrap();

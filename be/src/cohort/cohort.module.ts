@@ -7,10 +7,7 @@ import { CohortService } from './cohort.service';
 import { AuthModule } from '../modules/auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Cohort, User]),
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Cohort, User]), AuthModule],
   controllers: [CohortController],
   providers: [CohortService],
   exports: [CohortService],

@@ -9,7 +9,10 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 describe('AuthController', () => {
   let controller: AuthController;
   let authService: jest.Mocked<
-    Pick<AuthService, 'register' | 'login' | 'refresh' | 'logout' | 'loginWithGoogle'>
+    Pick<
+      AuthService,
+      'register' | 'login' | 'refresh' | 'logout' | 'loginWithGoogle'
+    >
   >;
 
   const mockUser = {
@@ -171,9 +174,7 @@ describe('AuthController', () => {
 
       const result = await controller.googleLogin(dto);
 
-      expect(authService.loginWithGoogle).toHaveBeenCalledWith(
-        'test-id-token',
-      );
+      expect(authService.loginWithGoogle).toHaveBeenCalledWith('test-id-token');
       expect(result).toEqual(expectedResponse);
     });
   });

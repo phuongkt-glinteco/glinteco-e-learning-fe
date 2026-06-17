@@ -30,7 +30,7 @@ export class LessonProgress {
   lesson: Lesson;
 
   @Column({ type: 'timestamp', nullable: true })
-  completedAt: Date;
+  completedAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

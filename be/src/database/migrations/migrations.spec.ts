@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { InitialSchema1781611485949 } from './1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from './1781616508023-AddGoogleIdToUsers';
 import { UpdateSubmissionStatusEnum1781617000000 } from './1781617000000-UpdateSubmissionStatusEnum';
+import { AddTrackOrderIndex1781617100000 } from './1781617100000-AddTrackOrderIndex';
 import { AddKindToDocumentsAndSearchIndexes1781617508000 } from './1781617508000-AddKindToDocumentsAndSearchIndexes';
 import { AddExerciseDetails1781622361007 } from './1781622361007-AddExerciseDetails';
 import { AddUserBookmarks1781623541186 } from './1781623541186-AddUserBookmarks';
@@ -61,6 +62,7 @@ describe('Database Migrations', () => {
     const migration1 = new InitialSchema1781611485949();
     const migration2 = new AddGoogleIdToUsers1781616508023();
     const migration3 = new UpdateSubmissionStatusEnum1781617000000();
+    const migrationTrackOrder = new AddTrackOrderIndex1781617100000();
     const migration4 = new AddKindToDocumentsAndSearchIndexes1781617508000();
     const migration5 = new AddExerciseDetails1781622361007();
     const migration6 = new AddUserBookmarks1781623541186();
@@ -82,11 +84,20 @@ describe('Database Migrations', () => {
     // Run UP 3
     await migration3.up(queryRunner);
     const enumValues = await queryRunner.query(
-      `SELECT enumlabel FROM pg_enum WHERE enumtypid = 'public.submissions_status_enum'::regtype::oid`
+      `SELECT enumlabel FROM pg_enum WHERE enumtypid = 'public.submissions_status_enum'::regtype::oid`,
     );
-    const labels = enumValues.map((row: any) => row.enumlabel);
+    const labels = enumValues.map(
+      (row: { enumlabel: string }) => row.enumlabel,
+    );
     expect(labels).toContain('submitted');
     expect(labels).toContain('changes');
+
+    // Run UP Track Order Index
+    await migrationTrackOrder.up(queryRunner);
+    const indexResult = await queryRunner.query(
+      `SELECT indexname FROM pg_indexes WHERE tablename = 'tracks' AND indexname = 'IDX_tracks_track_order'`,
+    );
+    expect(indexResult.length).toBe(1);
 
     // Run UP 4
     await migration4.up(queryRunner);
@@ -106,15 +117,21 @@ describe('Database Migrations', () => {
     // Run UP 7
     await migration7.up(queryRunner);
     expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(true);
-    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(false);
+    expect(
+      await queryRunner.hasColumn('track_progresses', 'lessonsCompleted'),
+    ).toBe(false);
 
     // Run UP 8
     await migration8.up(queryRunner);
-    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(true);
+    expect(
+      await queryRunner.hasColumn('track_progresses', 'lessonsCompleted'),
+    ).toBe(true);
 
     // Run DOWN 8
     await migration8.down(queryRunner);
-    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(false);
+    expect(
+      await queryRunner.hasColumn('track_progresses', 'lessonsCompleted'),
+    ).toBe(false);
 
     // Run DOWN 7
     await migration7.down(queryRunner);
@@ -133,12 +150,21 @@ describe('Database Migrations', () => {
     await migration4.down(queryRunner);
     expect(await queryRunner.hasColumn('documents', 'kind')).toBe(false);
 
+    // Run DOWN Track Order Index
+    await migrationTrackOrder.down(queryRunner);
+    const indexResultAfterDown = await queryRunner.query(
+      `SELECT indexname FROM pg_indexes WHERE tablename = 'tracks' AND indexname = 'IDX_tracks_track_order'`,
+    );
+    expect(indexResultAfterDown.length).toBe(0);
+
     // Run DOWN 3
     await migration3.down(queryRunner);
     const enumValuesAfterDown = await queryRunner.query(
-      `SELECT enumlabel FROM pg_enum WHERE enumtypid = 'public.submissions_status_enum'::regtype::oid`
+      `SELECT enumlabel FROM pg_enum WHERE enumtypid = 'public.submissions_status_enum'::regtype::oid`,
     );
-    const labelsAfterDown = enumValuesAfterDown.map((row: any) => row.enumlabel);
+    const labelsAfterDown = enumValuesAfterDown.map(
+      (row: { enumlabel: string }) => row.enumlabel,
+    );
     expect(labelsAfterDown).not.toContain('submitted');
     expect(labelsAfterDown).not.toContain('changes');
 

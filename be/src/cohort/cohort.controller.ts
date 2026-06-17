@@ -48,17 +48,16 @@ export class CohortController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'Lấy danh sách thành công.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
-  findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 20;
     return this.cohortService.findAll(pageNum, limitNum);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Lấy thông tin chi tiết của Cohort theo ID (Admin only)' })
+  @ApiOperation({
+    summary: 'Lấy thông tin chi tiết của Cohort theo ID (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Lấy thông tin thành công.' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
@@ -81,7 +80,10 @@ export class CohortController {
   @Delete(':id')
   @ApiOperation({ summary: 'Xóa Cohort theo ID (Admin only)' })
   @ApiResponse({ status: 200, description: 'Xóa thành công.' })
-  @ApiResponse({ status: 400, description: 'Không thể xóa do ràng buộc dữ liệu.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Không thể xóa do ràng buộc dữ liệu.',
+  })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   remove(@Param('id', ParseUUIDPipe) id: string) {

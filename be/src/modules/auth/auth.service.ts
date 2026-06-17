@@ -11,7 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import * as bcrypt from 'bcryptjs';
-import { createHash, randomUUID } from 'crypto';
+import { createHash, randomUUID, randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { RefreshToken } from '../../database/entities/refresh-token.entity';
 import { User, UserRole } from '../../database/entities/user.entity';
@@ -343,4 +343,58 @@ export class AuthService {
       },
     };
   }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new BadRequestException('Email không tồn tại trong hệ thống');
+    }
+
+    const token = randomBytes(32).toString('hex');
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 1);
+
+    await this.userRepository.update(user.id, {
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: expires,
+    });
+
+    const resetLink = `http://localhost:6336/reset-password?token=${token}`;
+    this.logger.log(`[Mock Email] Password Reset Link: ${resetLink}`);
+    console.log(`[Mock Email] Password Reset Link: ${resetLink}`);
+
+    return { message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.' };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const hashedToken = createHash('sha256').update(token).digest('hex');
+
+    const user = await this.userRepository.findOne({
+      where: {
+        resetPasswordToken: hashedToken,
+      },
+      select: { id: true, resetPasswordExpires: true },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Mã khôi phục mật khẩu không hợp lệ hoặc đã qua sử dụng');
+    }
+
+    if (!user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
+      throw new BadRequestException('Mã khôi phục mật khẩu đã hết hạn');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    await this.userRepository.update(user.id, {
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+    });
+
+    return { message: 'Mật khẩu đã được thay đổi thành công.' };
+  }
 }
+

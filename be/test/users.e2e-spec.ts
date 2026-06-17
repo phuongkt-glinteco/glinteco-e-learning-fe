@@ -5,6 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { User, UserRole } from '../src/database/entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 
 interface ResponseBodyMe {
   id: string;
@@ -39,6 +40,8 @@ describe('UsersController (e2e)', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
   let userRepo: Repository<User>;
+  let jwtService: JwtService;
+  let authToken: string;
   const mockUserId = 'e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2';
 
   beforeAll(async () => {
@@ -58,6 +61,8 @@ describe('UsersController (e2e)', () => {
 
     dataSource = moduleFixture.get<DataSource>(DataSource);
     userRepo = dataSource.getRepository(User);
+    jwtService = moduleFixture.get<JwtService>(JwtService);
+    authToken = jwtService.sign({ sub: mockUserId, role: UserRole.LEARNER });
   });
 
   beforeEach(async () => {
@@ -111,6 +116,7 @@ describe('UsersController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch('/api/v1/users/me')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(payload)
         .expect(200);
 
@@ -137,6 +143,7 @@ describe('UsersController (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch('/api/v1/users/me')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(payload)
         .expect(400);
 
@@ -154,6 +161,7 @@ describe('UsersController (e2e)', () => {
 
       await request(app.getHttpServer())
         .patch('/api/v1/users/me')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(payload)
         .expect(400);
     });
@@ -163,6 +171,7 @@ describe('UsersController (e2e)', () => {
     it('should return correct learner stats', async () => {
       const response = await request(app.getHttpServer())
         .get('/api/v1/users/me/stats')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       const body = response.body as ResponseBodyStats;
@@ -181,6 +190,7 @@ describe('UsersController (e2e)', () => {
       const start = Date.now();
       await request(app.getHttpServer())
         .get('/api/v1/users/me/stats')
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
       const duration = Date.now() - start;
       expect(duration).toBeLessThan(200);

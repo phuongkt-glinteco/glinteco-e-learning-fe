@@ -19,6 +19,7 @@ import {
   Document,
   RefreshToken,
   LessonProgress,
+  Notification,
 } from './index';
 
 describe('Database Entities', () => {
@@ -62,6 +63,7 @@ describe('Database Entities', () => {
         Document,
         RefreshToken,
         LessonProgress,
+        Notification,
       ],
       migrations: [join(__dirname, '../migrations/[0-9]*.{ts,js}')],
       synchronize: false,
@@ -385,5 +387,39 @@ describe('Database Entities', () => {
     expect(foundDoc1).toBeDefined();
     expect(foundDoc1?.bookmarkedBy.length).toBe(1);
     expect(foundDoc1?.bookmarkedBy[0].email).toBe('bookmark-test@example.com');
+  });
+
+  it('should create and verify Notification entity', async () => {
+    const userRepo = dataSource.getRepository(User);
+    const notificationRepo = dataSource.getRepository(Notification);
+
+    const user = await userRepo.save(
+      userRepo.create({
+        email: 'notify-test@example.com',
+        name: 'Notify Tester',
+      }),
+    );
+
+    const notification = notificationRepo.create({
+      userId: user.id,
+      type: 'track_unlocked',
+      title: 'New track unlocked',
+      body: 'System Architecture is now available',
+      read: false,
+    });
+    const savedNotification = await notificationRepo.save(notification);
+    expect(savedNotification.id).toBeDefined();
+    expect(savedNotification.userId).toBe(user.id);
+    expect(savedNotification.type).toBe('track_unlocked');
+    expect(savedNotification.title).toBe('New track unlocked');
+    expect(savedNotification.body).toBe('System Architecture is now available');
+    expect(savedNotification.read).toBe(false);
+
+    const foundNotification = await notificationRepo.findOne({
+      where: { id: savedNotification.id },
+      relations: { user: true },
+    });
+    expect(foundNotification).toBeDefined();
+    expect(foundNotification?.user.id).toBe(user.id);
   });
 });

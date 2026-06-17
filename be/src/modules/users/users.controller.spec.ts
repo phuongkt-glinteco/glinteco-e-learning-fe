@@ -1,14 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersController, MockAuthGuard } from './users.controller';
+import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { UnauthorizedException, ExecutionContext } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-
-interface RequestWithUser {
-  user?: {
-    id: string;
-  };
-}
+import { User, UserRole } from '../../database/entities/user.entity';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -16,7 +11,21 @@ describe('UsersController', () => {
   const mockUsersService = {
     updateProfile: jest.fn(),
     getStats: jest.fn(),
+    findAll: jest.fn(),
+    findOneOrFail: jest.fn(),
   };
+
+  const mockLearner = {
+    id: 'user-123',
+    email: 'learner@company.com',
+    role: UserRole.LEARNER,
+  } as User;
+
+  const mockAdmin = {
+    id: 'admin-123',
+    email: 'admin@company.com',
+    role: UserRole.ADMIN,
+  } as User;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,85 +49,67 @@ describe('UsersController', () => {
     expect(controller).toBeDefined();
   });
 
+  describe('findAll', () => {
+    it('should call service.findAll with query', async () => {
+      const query = { role: 'learner', q: 'John' };
+      mockUsersService.findAll.mockResolvedValue({ data: [] });
+
+      const result = await controller.findAll(query);
+      expect(mockUsersService.findAll).toHaveBeenCalledWith(query);
+      expect(result).toEqual({ data: [] });
+    });
+  });
+
+  describe('findOne', () => {
+    it('should throw ForbiddenException if user is not admin and not the owner', async () => {
+      await expect(controller.findOne('other-id', mockLearner)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should allow access if user is the owner', async () => {
+      const mockUser = { id: 'user-123', email: 'learner@company.com' } as User;
+      mockUsersService.findOneOrFail.mockResolvedValue(mockUser);
+
+      const result = await controller.findOne('user-123', mockLearner);
+      expect(mockUsersService.findOneOrFail).toHaveBeenCalledWith('user-123');
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should allow access if user is an admin', async () => {
+      const mockUser = { id: 'user-123', email: 'learner@company.com' } as User;
+      mockUsersService.findOneOrFail.mockResolvedValue(mockUser);
+
+      const result = await controller.findOne('user-123', mockAdmin);
+      expect(mockUsersService.findOneOrFail).toHaveBeenCalledWith('user-123');
+      expect(result).toEqual(mockUser);
+    });
+  });
+
   describe('updateProfile', () => {
-    it('should throw UnauthorizedException if req.user is missing', async () => {
-      const req: RequestWithUser = {};
-      const dto: UpdateProfileDto = { name: 'Mina' };
-      await expect(controller.updateProfile(req, dto)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should throw UnauthorizedException if req.user.id is missing', async () => {
-      const req: RequestWithUser = { user: undefined };
-      const dto: UpdateProfileDto = { name: 'Mina' };
-      await expect(controller.updateProfile(req, dto)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
     it('should call service.updateProfile with userId and dto', async () => {
-      const req: RequestWithUser = { user: { id: 'u_123' } };
       const dto: UpdateProfileDto = {
         name: 'Mina',
         title: 'Developer',
         avatarHue: 120,
       };
-      const mockResult = { id: 'u_123', ...dto };
+      const mockResult = { id: 'user-123', ...dto };
       mockUsersService.updateProfile.mockResolvedValue(mockResult);
 
-      const result = await controller.updateProfile(req, dto);
-      expect(mockUsersService.updateProfile).toHaveBeenCalledWith('u_123', dto);
+      const result = await controller.updateProfile(mockLearner, dto);
+      expect(mockUsersService.updateProfile).toHaveBeenCalledWith('user-123', dto);
       expect(result).toEqual(mockResult);
     });
   });
 
   describe('getStats', () => {
-    it('should throw UnauthorizedException if req.user is missing', async () => {
-      const req: RequestWithUser = {};
-      await expect(controller.getStats(req)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should throw UnauthorizedException if req.user.id is missing', async () => {
-      const req: RequestWithUser = { user: undefined };
-      await expect(controller.getStats(req)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
     it('should call service.getStats with userId', async () => {
-      const req: RequestWithUser = { user: { id: 'u_123' } };
       const mockResult = { level: 1, xp: 100 };
       mockUsersService.getStats.mockResolvedValue(mockResult);
 
-      const result = await controller.getStats(req);
-      expect(mockUsersService.getStats).toHaveBeenCalledWith('u_123');
+      const result = await controller.getStats(mockLearner);
+      expect(mockUsersService.getStats).toHaveBeenCalledWith('user-123');
       expect(result).toEqual(mockResult);
-    });
-  });
-
-  describe('MockAuthGuard', () => {
-    let guard: MockAuthGuard;
-
-    beforeEach(() => {
-      guard = new MockAuthGuard();
-    });
-
-    it('should set request.user and return true', () => {
-      const mockRequest: RequestWithUser = {};
-      const mockContext = {
-        switchToHttp: () => ({
-          getRequest: () => mockRequest,
-        }),
-      } as unknown as ExecutionContext;
-
-      const result = guard.canActivate(mockContext);
-      expect(result).toBe(true);
-      expect(mockRequest.user).toEqual({
-        id: 'e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2',
-      });
     });
   });
 });

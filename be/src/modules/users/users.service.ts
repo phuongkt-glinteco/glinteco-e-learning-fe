@@ -14,6 +14,7 @@ import {
   SubmissionStatus,
 } from '../../database/entities/submission.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UserQueryDto } from './dto/user-query.dto';
 
 @Injectable()
 export class UsersService {
@@ -154,5 +155,57 @@ export class UsersService {
         unread: 0,
       },
     };
+  }
+
+  async findAll(query: UserQueryDto) {
+    const { cohortId, role, q, page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+
+    const qb = this.userRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.cohort', 'cohort');
+
+    if (cohortId) {
+      qb.andWhere('user.cohortId = :cohortId', { cohortId });
+    }
+
+    if (role) {
+      qb.andWhere('user.role = :role', { role });
+    }
+
+    if (q) {
+      qb.andWhere(
+        '(LOWER(user.name) LIKE :q OR LOWER(user.email) LIKE :q)',
+        { q: `%${q.toLowerCase()}%` }
+      );
+    }
+
+    const [users, total] = await qb
+      .orderBy('user.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const lastPage = Math.ceil(total / limit);
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        lastPage,
+      },
+    };
+  }
+
+  async findOneOrFail(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: { cohort: true },
+    });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+    return user;
   }
 }

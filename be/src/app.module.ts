@@ -17,6 +17,8 @@ import { DocumentsModule } from './documents/documents.module';
 import { SearchModule } from './search/search.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { SubmissionsModule } from './submissions/submissions.module';
+import { ExercisesModule } from './exercises/exercises.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -80,6 +82,8 @@ import { SubmissionsModule } from './submissions/submissions.module';
     SearchModule,
     LeaderboardModule,
     SubmissionsModule,
+    ExercisesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

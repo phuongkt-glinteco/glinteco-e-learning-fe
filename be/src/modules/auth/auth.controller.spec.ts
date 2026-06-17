@@ -11,7 +11,7 @@ describe('AuthController', () => {
   let authService: jest.Mocked<
     Pick<
       AuthService,
-      'register' | 'login' | 'refresh' | 'logout' | 'loginWithGoogle'
+      'register' | 'login' | 'refresh' | 'logout' | 'loginWithGoogle' | 'forgotPassword' | 'resetPassword'
     >
   >;
 
@@ -41,6 +41,8 @@ describe('AuthController', () => {
       refresh: jest.fn(),
       logout: jest.fn(),
       loginWithGoogle: jest.fn(),
+      forgotPassword: jest.fn(),
+      resetPassword: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -175,6 +177,32 @@ describe('AuthController', () => {
       const result = await controller.googleLogin(dto);
 
       expect(authService.loginWithGoogle).toHaveBeenCalledWith('test-id-token');
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('should call authService.forgotPassword', async () => {
+      const dto = { email: 'user@example.com' };
+      const expectedResponse = { message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.' };
+      authService.forgotPassword.mockResolvedValue(expectedResponse);
+
+      const result = await controller.forgotPassword(dto);
+
+      expect(authService.forgotPassword).toHaveBeenCalledWith(dto.email);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should call authService.resetPassword', async () => {
+      const dto = { token: 'reset-token', password: 'new-password' };
+      const expectedResponse = { message: 'Mật khẩu đã được thay đổi thành công.' };
+      authService.resetPassword.mockResolvedValue(expectedResponse);
+
+      const result = await controller.resetPassword(dto);
+
+      expect(authService.resetPassword).toHaveBeenCalledWith(dto.token, dto.password);
       expect(result).toEqual(expectedResponse);
     });
   });

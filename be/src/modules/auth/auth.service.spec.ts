@@ -55,7 +55,7 @@ describe('AuthService', () => {
     Pick<Repository<RefreshToken>, 'create' | 'save' | 'findOne' | 'delete'>
   >;
   let userRepository: jest.Mocked<
-    Pick<Repository<User>, 'findOne' | 'create' | 'save'>
+    Pick<Repository<User>, 'findOne' | 'create' | 'save' | 'update'>
   >;
   let jwtService: jest.Mocked<Pick<JwtService, 'signAsync' | 'verifyAsync'>>;
 
@@ -82,6 +82,7 @@ describe('AuthService', () => {
       findOne: jest.fn(),
       create: jest.fn((dto) => ({ id: 'generated-uuid', ...dto }) as User),
       save: jest.fn((entity) => Promise.resolve(entity as User)),
+      update: jest.fn(() => Promise.resolve({ affected: 1, raw: [] })),
     };
     jwtService = {
       signAsync: jest.fn(),
@@ -619,6 +620,80 @@ describe('AuthService', () => {
       expect(userRepository.create).not.toHaveBeenCalled();
       expect(userRepository.save).not.toHaveBeenCalled();
       expect(result.user.id).toBe('existing-uuid');
+    });
+  });
+
+  describe('forgotPassword / resetPassword', () => {
+    describe('forgotPassword', () => {
+      it('should throw BadRequestException if email does not exist', async () => {
+        usersService.findByEmail.mockResolvedValue(null);
+
+        await expect(service.forgotPassword('nonexistent@company.com')).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+
+      it('should generate token, set expiry and update user, logging mock email', async () => {
+        const user = buildUser({ id: 'user-123', email: 'user@company.com' });
+        usersService.findByEmail.mockResolvedValue(user);
+
+        const result = await service.forgotPassword('user@company.com');
+
+        expect(result).toEqual({ message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.' });
+        expect(userRepository.update).toHaveBeenCalledWith(
+          'user-123',
+          expect.objectContaining({
+            resetPasswordToken: expect.any(String),
+            resetPasswordExpires: expect.any(Date),
+          }),
+        );
+      });
+    });
+
+    describe('resetPassword', () => {
+      it('should throw BadRequestException if token is invalid', async () => {
+        userRepository.findOne.mockResolvedValue(null);
+
+        await expect(service.resetPassword('invalid-token', 'new-password')).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+
+      it('should throw BadRequestException if token is expired', async () => {
+        const expiredDate = new Date();
+        expiredDate.setHours(expiredDate.getHours() - 2); // 2 hours ago
+        const user = buildUser({
+          id: 'user-123',
+          resetPasswordExpires: expiredDate,
+        });
+        userRepository.findOne.mockResolvedValue(user);
+
+        await expect(service.resetPassword('expired-token', 'new-password')).rejects.toThrow(
+          BadRequestException,
+        );
+      });
+
+      it('should hash new password, clear token/expiry, and update user', async () => {
+        const futureDate = new Date();
+        futureDate.setHours(futureDate.getHours() + 1); // 1 hour in future
+        const user = buildUser({
+          id: 'user-123',
+          resetPasswordExpires: futureDate,
+        });
+        userRepository.findOne.mockResolvedValue(user);
+
+        const result = await service.resetPassword('valid-token', 'NewSecurePassword123');
+
+        expect(result).toEqual({ message: 'Mật khẩu đã được thay đổi thành công.' });
+        expect(userRepository.update).toHaveBeenCalledWith(
+          'user-123',
+          expect.objectContaining({
+            password: expect.any(String),
+            resetPasswordToken: null,
+            resetPasswordExpires: null,
+          }),
+        );
+      });
     });
   });
 });

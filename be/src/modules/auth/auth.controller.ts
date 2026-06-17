@@ -22,6 +22,8 @@ import { GoogleLoginDto } from './dto/google-login.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('auth')
@@ -108,5 +110,23 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Thiếu hoặc sai access token.' })
   me(@CurrentUser() user: User): User {
     return user;
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Yêu cầu khôi phục mật khẩu qua email.' })
+  @ApiResponse({ status: 200, description: 'Đường dẫn khôi phục mật khẩu đã được gửi.' })
+  @ApiResponse({ status: 400, description: 'Email không tồn tại.' })
+  forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
+    return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Đặt lại mật khẩu mới bằng token.' })
+  @ApiResponse({ status: 200, description: 'Mật khẩu đã được thay đổi thành công.' })
+  @ApiResponse({ status: 400, description: 'Token không hợp lệ hoặc hết hạn.' })
+  resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
+    return this.authService.resetPassword(dto.token, dto.password);
   }
 }

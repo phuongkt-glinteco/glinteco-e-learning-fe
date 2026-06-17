@@ -3,61 +3,81 @@ import {
   Get,
   Patch,
   Body,
+  Param,
+  Query,
   Req,
   UnauthorizedException,
+  ForbiddenException,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-
-// A mock guard to simulate user auth since real auth guard wasn't in scope.
-// You should replace it with the real JWT Guard when merging.
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { UserQueryDto } from './dto/user-query.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { User, UserRole } from '../../database/entities/user.entity';
 
 interface RequestWithUser {
-  user?: {
+  user: {
     id: string;
+    role: string;
   };
-}
-
-@Injectable()
-export class MockAuthGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<RequestWithUser>();
-    // Simulate logged in user
-    request.user = { id: 'e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2' }; // Mock UUID
-    return true;
-  }
 }
 
 @ApiTags('users')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('api/v1/users')
-@UseGuards(MockAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get()
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Lấy danh sách người dùng (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Lấy danh sách thành công.' })
+  @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
+  async findAll(@Query() query: UserQueryDto) {
+    return this.usersService.findAll(query);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Lấy thông tin chi tiết một người dùng (Admin hoặc chính chủ)' })
+  @ApiResponse({ status: 200, description: 'Lấy chi tiết thành công.' })
+  @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy người dùng.' })
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    if (currentUser.role !== UserRole.ADMIN && currentUser.id !== id) {
+      throw new ForbiddenException('Không có quyền truy cập hồ sơ này');
+    }
+    return this.usersService.findOneOrFail(id);
+  }
+
   @Patch('me')
-  @ApiOperation({ summary: 'Update personal profile' })
+  @ApiOperation({ summary: 'Cập nhật thông tin cá nhân' })
+  @ApiResponse({ status: 200, description: 'Cập nhật thành công.' })
   async updateProfile(
-    @Req() req: RequestWithUser,
+    @CurrentUser() currentUser: User,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new UnauthorizedException('User not authenticated');
-    }
-    return this.usersService.updateProfile(userId, updateProfileDto);
+    return this.usersService.updateProfile(currentUser.id, updateProfileDto);
   }
 
   @Get('me/stats')
-  @ApiOperation({ summary: 'Get learning stats for dashboard' })
-  async getStats(@Req() req: RequestWithUser) {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new UnauthorizedException('User not authenticated');
-    }
-    return this.usersService.getStats(userId);
+  @ApiOperation({ summary: 'Lấy chỉ số học tập để hiển thị trên Dashboard' })
+  @ApiResponse({ status: 200, description: 'Lấy chỉ số thành công.' })
+  async getStats(@CurrentUser() currentUser: User) {
+    return this.usersService.getStats(currentUser.id);
   }
 }

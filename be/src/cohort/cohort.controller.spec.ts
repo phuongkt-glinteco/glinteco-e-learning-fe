@@ -15,6 +15,9 @@ describe('CohortController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
+    getOverview: jest.fn(),
+    getTrackCompletion: jest.fn(),
+    exportReport: jest.fn(),
   };
 
   const mockJwtAuthGuard = { canActivate: jest.fn(() => true) };
@@ -69,6 +72,61 @@ describe('CohortController', () => {
       const result = await controller.findAll('1', '20');
       expect(mockCohortService.findAll).toHaveBeenCalledWith(1, 20);
       expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('getOverview', () => {
+    it('should call cohortService.getOverview', async () => {
+      const expectedOverview = {
+        activeLearners: 14,
+        newThisWeek: 3,
+        avgCompletion: 58,
+        avgCompletionDelta: 12,
+        pendingReview: 3,
+        oldestPendingAgo: '3h',
+        avgRampDays: 11,
+        targetRampDays: 14,
+      };
+      mockCohortService.getOverview.mockResolvedValue(expectedOverview);
+
+      const result = await controller.getOverview('uuid-1');
+      expect(mockCohortService.getOverview).toHaveBeenCalledWith('uuid-1');
+      expect(result).toEqual(expectedOverview);
+    });
+  });
+
+  describe('getTrackCompletion', () => {
+    it('should call cohortService.getTrackCompletion', async () => {
+      const expectedTrackCompletion = {
+        data: [
+          { trackId: 't1', title: 'Local Dev Environment', completionPct: 92 },
+        ],
+      };
+      mockCohortService.getTrackCompletion.mockResolvedValue(expectedTrackCompletion);
+
+      const result = await controller.getTrackCompletion('uuid-1');
+      expect(mockCohortService.getTrackCompletion).toHaveBeenCalledWith('uuid-1');
+      expect(result).toEqual(expectedTrackCompletion);
+    });
+  });
+
+  describe('exportReport', () => {
+    it('should call cohortService.exportReport and return CSV', async () => {
+      const csvContent =
+        'name,email,completion,xp,level,tracksCompleted,exercisesApproved\nMina,mina@acme.dev,40,500,2,1,1';
+      mockCohortService.exportReport.mockResolvedValue(csvContent);
+
+      const res = {
+        header: jest.fn(),
+        attachment: jest.fn(),
+        send: jest.fn(),
+      };
+
+      await controller.exportReport('uuid-1', res as any);
+      expect(mockCohortService.exportReport).toHaveBeenCalledWith('uuid-1');
+      expect(res.header).toHaveBeenCalledWith('Content-Type', 'text/csv');
+      expect(res.attachment).toHaveBeenCalledWith('cohort-uuid-1-report.csv');
+      expect(res.send).toHaveBeenCalledWith(csvContent);
     });
   });
 

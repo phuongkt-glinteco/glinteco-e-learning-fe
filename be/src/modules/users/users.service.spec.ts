@@ -401,4 +401,60 @@ describe('UsersService', () => {
       expect(result.overallCompletion).toBe(0);
     });
   });
+
+  describe('findAll', () => {
+    it('should query and return users list with pagination', async () => {
+      const mockUsers = [{ id: 'user-1', name: 'John Doe', email: 'john@company.com' }];
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockUsers, 1]),
+      };
+
+      userRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+
+      const result = await service.findAll({
+        cohortId: 'cohort-123',
+        role: 'learner',
+        q: 'john',
+        page: 1,
+        limit: 10,
+      });
+
+      expect(userRepository.createQueryBuilder).toHaveBeenCalledWith('user');
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('user.cohort', 'cohort');
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('user.cohortId = :cohortId', { cohortId: 'cohort-123' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('user.role = :role', { role: 'learner' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        '(LOWER(user.name) LIKE :q OR LOWER(user.email) LIKE :q)',
+        { q: '%john%' }
+      );
+      expect(result.data).toEqual(mockUsers);
+      expect(result.meta.total).toBe(1);
+    });
+  });
+
+  describe('findOneOrFail', () => {
+    it('should throw NotFoundException if user is not found', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.findOneOrFail('invalid-id')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should return user if found', async () => {
+      const user = { id: 'user-123', email: 'user@company.com' } as User;
+      userRepository.findOne.mockResolvedValue(user);
+
+      const result = await service.findOneOrFail('user-123');
+
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 'user-123' },
+        relations: { cohort: true },
+      });
+      expect(result).toEqual(user);
+    });
+  });
 });

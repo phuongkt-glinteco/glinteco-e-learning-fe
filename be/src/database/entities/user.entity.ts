@@ -88,6 +88,12 @@ export class User {
   })
   bookmarkedDocuments: Document[];
 
+  @Column({ nullable: true, select: false, name: 'reset_password_token' })
+  resetPasswordToken?: string | null;
+
+  @Column({ type: 'timestamp', nullable: true, select: false, name: 'reset_password_expires' })
+  resetPasswordExpires?: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

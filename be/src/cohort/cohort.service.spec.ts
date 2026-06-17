@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CohortService } from './cohort.service';
 import { Cohort } from '../database/entities/cohort.entity';
-import { User } from '../database/entities/user.entity';
+import { User, UserRole } from '../database/entities/user.entity';
+import { Track } from '../database/entities/track.entity';
+import { TrackProgress, ProgressStatus } from '../database/entities/track-progress.entity';
+import { Submission, SubmissionStatus } from '../database/entities/submission.entity';
+import { Lesson } from '../database/entities/lesson.entity';
+import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { CreateCohortDto } from './dto/create-cohort.dto';
 import { UpdateCohortDto } from './dto/update-cohort.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
@@ -20,6 +25,31 @@ describe('CohortService', () => {
 
   const mockUserRepository = {
     count: jest.fn(),
+    find: jest.fn(),
+  };
+
+  const mockTrackRepository = {
+    count: jest.fn(),
+    find: jest.fn(),
+  };
+
+  const mockTrackProgressRepository = {
+    find: jest.fn(),
+    count: jest.fn(),
+  };
+
+  const mockSubmissionRepository = {
+    count: jest.fn(),
+    findOne: jest.fn(),
+  };
+
+  const mockLessonRepository = {
+    count: jest.fn(),
+  };
+
+  const mockLessonProgressRepository = {
+    count: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -34,6 +64,26 @@ describe('CohortService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: mockUserRepository,
+        },
+        {
+          provide: getRepositoryToken(Track),
+          useValue: mockTrackRepository,
+        },
+        {
+          provide: getRepositoryToken(TrackProgress),
+          useValue: mockTrackProgressRepository,
+        },
+        {
+          provide: getRepositoryToken(Submission),
+          useValue: mockSubmissionRepository,
+        },
+        {
+          provide: getRepositoryToken(Lesson),
+          useValue: mockLessonRepository,
+        },
+        {
+          provide: getRepositoryToken(LessonProgress),
+          useValue: mockLessonProgressRepository,
         },
       ],
     }).compile();
@@ -164,6 +214,82 @@ describe('CohortService', () => {
         BadRequestException,
       );
       expect(mockCohortRepository.remove).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getOverview', () => {
+    it('should return overview stats correctly', async () => {
+      const cohort = { id: 'cohort-1', name: 'Batch 1', targetRampDays: 14 };
+      mockCohortRepository.findOne.mockResolvedValue(cohort);
+
+      const learners = [
+        { id: 'user-1', name: 'Mina', email: 'mina@acme.dev', role: UserRole.LEARNER, createdAt: new Date() },
+      ];
+      mockUserRepository.find.mockResolvedValue(learners);
+      mockLessonRepository.count.mockResolvedValue(10);
+      
+      const queryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([{ userId: 'user-1', count: '5' }]),
+      };
+      mockLessonProgressRepository.createQueryBuilder.mockReturnValue(queryBuilder as any);
+      mockSubmissionRepository.count.mockResolvedValue(2);
+      mockSubmissionRepository.findOne.mockResolvedValue({
+        submittedAt: new Date(Date.now() - 3600000 * 3), // 3h ago
+      });
+      mockTrackRepository.count.mockResolvedValue(2);
+      mockTrackProgressRepository.find.mockResolvedValue([
+        { userId: 'user-1', trackId: 'track-1', status: ProgressStatus.COMPLETED, completedAt: new Date() },
+        { userId: 'user-1', trackId: 'track-2', status: ProgressStatus.COMPLETED, completedAt: new Date() },
+      ]);
+
+      const result = await service.getOverview('cohort-1');
+      expect(result).toBeDefined();
+      expect(result.activeLearners).toBe(1);
+      expect(result.avgCompletion).toBe(50);
+      expect(result.pendingReview).toBe(2);
+      expect(result.oldestPendingAgo).toBe('3h');
+      expect(result.avgRampDays).toBeDefined();
+      expect(result.targetRampDays).toBe(14);
+    });
+  });
+
+  describe('getTrackCompletion', () => {
+    it('should return track completion rate array', async () => {
+      mockCohortRepository.findOne.mockResolvedValue({ id: 'cohort-1' });
+      mockUserRepository.find.mockResolvedValue([{ id: 'user-1' }, { id: 'user-2' }]);
+      mockTrackRepository.find.mockResolvedValue([
+        { id: 't1', name: 'Track 1', order: 1 },
+      ]);
+      mockTrackProgressRepository.find.mockResolvedValue([
+        { userId: 'user-1', trackId: 't1', status: ProgressStatus.COMPLETED },
+      ]);
+
+      const result = await service.getTrackCompletion('cohort-1');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].trackId).toBe('t1');
+      expect(result.data[0].completionPct).toBe(50);
+    });
+  });
+
+  describe('exportReport', () => {
+    it('should return CSV text', async () => {
+      mockCohortRepository.findOne.mockResolvedValue({ id: 'cohort-1' });
+      mockUserRepository.find.mockResolvedValue([
+        { id: 'user-1', name: 'Mina', email: 'mina@acme.dev', xp: 500, level: 2 },
+      ]);
+      mockLessonRepository.count.mockResolvedValue(10);
+      mockLessonProgressRepository.count.mockResolvedValue(4);
+      mockTrackProgressRepository.count.mockResolvedValue(1);
+      mockSubmissionRepository.count.mockResolvedValue(1);
+
+      const csv = await service.exportReport('cohort-1');
+      expect(csv).toContain('name,email,completion,xp,level,tracksCompleted,exercisesApproved');
+      expect(csv).toContain('Mina,mina@acme.dev,40,500,2,1,1');
     });
   });
 });

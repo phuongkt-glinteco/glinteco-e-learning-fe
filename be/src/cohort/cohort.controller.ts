@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -52,6 +53,39 @@ export class CohortController {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 20;
     return this.cohortService.findAll(pageNum, limitNum);
+  }
+
+  @Get(':id/overview')
+  @ApiOperation({ summary: 'Lấy thông tin tổng quan số liệu của Cohort (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Lấy thông tin thành công.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
+  @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
+  getOverview(@Param('id', ParseUUIDPipe) id: string) {
+    return this.cohortService.getOverview(id);
+  }
+
+  @Get(':id/track-completion')
+  @ApiOperation({ summary: 'Lấy tỷ lệ hoàn thành các track của Cohort (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Lấy thông tin thành công.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
+  @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
+  getTrackCompletion(@Param('id', ParseUUIDPipe) id: string) {
+    return this.cohortService.getTrackCompletion(id);
+  }
+
+  @Get(':id/export')
+  @ApiOperation({ summary: 'Xuất báo cáo tiến độ học viên của Cohort dưới dạng CSV (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Xuất báo cáo thành công.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
+  @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
+  async exportReport(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res() res: any,
+  ) {
+    const csv = await this.cohortService.exportReport(id);
+    res.header('Content-Type', 'text/csv');
+    res.attachment(`cohort-${id}-report.csv`);
+    return res.send(csv);
   }
 
   @Get(':id')

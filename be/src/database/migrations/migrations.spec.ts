@@ -5,6 +5,7 @@ import { InitialSchema1781611485949 } from './1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from './1781616508023-AddGoogleIdToUsers';
 import { AddIsActiveToCohorts1781624224625 } from './1781624224625-AddIsActiveToCohorts';
 import { AddUserBookmarks1781623541186 } from './1781623541186-AddUserBookmarks';
+import { AddLessonsCompletedToTrackProgress1781628751000 } from './1781628751000-AddLessonsCompletedToTrackProgress';
 
 describe('Database Migrations', () => {
   let pgClient: Client;
@@ -58,6 +59,7 @@ describe('Database Migrations', () => {
     const migration2 = new AddGoogleIdToUsers1781616508023();
     const migration3 = new AddUserBookmarks1781623541186();
     const migration4 = new AddIsActiveToCohorts1781624224625();
+    const migration5 = new AddLessonsCompletedToTrackProgress1781628751000();
 
     // Run UP 1
     await migration1.up(queryRunner);
@@ -79,6 +81,15 @@ describe('Database Migrations', () => {
     // Run UP 4
     await migration4.up(queryRunner);
     expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(true);
+    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(false);
+
+    // Run UP 5
+    await migration5.up(queryRunner);
+    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(true);
+
+    // Run DOWN 5
+    await migration5.down(queryRunner);
+    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(false);
 
     // Run DOWN 4
     await migration4.down(queryRunner);

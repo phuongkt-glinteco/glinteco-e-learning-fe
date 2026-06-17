@@ -124,7 +124,7 @@ Delete a cohort. Will reject if there are users associated with the cohort.
 ## 3. Tracks & Lessons
 
 ### `GET /tracks`
-Get all learning tracks.
+Get all learning tracks with current learner's progress.
 - **Response**: `200 OK`
   ```json
   {
@@ -133,11 +133,83 @@ Get all learning tracks.
         "id": "uuid",
         "name": "Frontend Basics",
         "order": 1,
-        "lessonsCount": 10
+        "lessonsCount": 10,
+        "progress": {
+          "lessonsCompleted": 4,
+          "status": "in_progress" // "locked", "in_progress", "completed"
+        }
       }
     ]
   }
   ```
+
+### `POST /tracks` (Admin Only)
+Create a new learning track.
+- **Request Body**:
+  ```json
+  {
+    "name": "Backend Basics",
+    "order": 2
+  }
+  ```
+- **Validation Rules**:
+  - `name`: IsString(), IsNotEmpty(), MaxLength(100)
+  - `order`: IsInt(), IsMin(1), IsNotEmpty()
+- **Response**: `201 Created`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Backend Basics",
+    "order": 2,
+    "lessonsCount": 0,
+    "createdAt": "2026-06-16T15:12:34.000Z",
+    "updatedAt": "2026-06-16T15:12:34.000Z"
+  }
+  ```
+
+### `GET /tracks/:id`
+Get a specific learning track details.
+- **Response**: `200 OK`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Frontend Basics",
+    "order": 1,
+    "lessonsCount": 10,
+    "progress": {
+      "lessonsCompleted": 4,
+      "status": "in_progress"
+    }
+  }
+  ```
+
+### `PATCH /tracks/:id` (Admin Only)
+Update an existing learning track.
+- **Request Body**:
+  ```json
+  {
+    "name": "Advanced Frontend",
+    "order": 1
+  }
+  ```
+- **Validation Rules**:
+  - `name`: IsString(), IsOptional(), MaxLength(100)
+  - `order`: IsInt(), IsMin(1), IsOptional()
+- **Response**: `200 OK`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Advanced Frontend",
+    "order": 1,
+    "lessonsCount": 10,
+    "createdAt": "2026-06-16T15:12:34.000Z",
+    "updatedAt": "2026-06-16T15:12:35.000Z"
+  }
+  ```
+
+### `DELETE /tracks/:id` (Admin Only)
+Delete a learning track.
+- **Response**: `204 No Content`
 
 ### `GET /tracks/:id/lessons`
 Get lessons for a specific track.

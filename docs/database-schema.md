@@ -71,6 +71,7 @@ This document provides a detailed overview of the TypeORM entities designed for 
 - **userId**: UUID (Foreign Key to `users.id`)
 - **trackId**: UUID (Foreign Key to `tracks.id`)
 - **status**: ENUM (`not_started`, `in_progress`, `completed`) - Default: `not_started`
+- **lessonsCompleted**: INT - Default: 0
 - **startedAt**: TIMESTAMP (Nullable)
 - **completedAt**: TIMESTAMP (Nullable)
 - **createdAt**: TIMESTAMP

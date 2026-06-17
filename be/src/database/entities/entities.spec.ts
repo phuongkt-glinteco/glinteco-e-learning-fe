@@ -199,6 +199,7 @@ describe('Database Entities', () => {
     expect(savedProgress.userId).toBe(user.id);
     expect(savedProgress.trackId).toBe(track.id);
     expect(savedProgress.status).toBe(ProgressStatus.IN_PROGRESS);
+    expect(savedProgress.lessonsCompleted).toBe(0);
     expect(savedProgress.startedAt).toBeDefined();
     expect(savedProgress.completedAt).toBeNull();
 

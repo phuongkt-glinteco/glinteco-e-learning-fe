@@ -103,7 +103,7 @@ This document provides a detailed overview of the TypeORM entities designed for 
 - **userId**: UUID (Foreign Key to `users.id`)
 - **exerciseId**: UUID (Foreign Key to `exercises.id`)
 - **prUrl**: VARCHAR
-- **status**: ENUM (`pending`, `reviewed`, `approved`, `rejected`) - Default: `pending`
+- **status**: ENUM (`pending`, `submitted`, `changes`, `approved`, `rejected`) - Default: `pending`
 - **submittedAt**: TIMESTAMP (Nullable)
 - **createdAt**: TIMESTAMP
 - **updatedAt**: TIMESTAMP

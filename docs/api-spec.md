@@ -275,6 +275,52 @@ Submit a PR link for an exercise.
   - `prUrl`: IsUrl(), IsNotEmpty()
 - **Response**: `201 Created`
 
+### `GET /submissions` (Admin Only)
+Retrieve the grading queue (Admin Review Queue) containing all pending/submitted student submissions.
+- **Query Parameters**:
+  - `status`: string (optional, enum: `submitted`, `changes`, `approved`, `rejected`) - Lọc theo trạng thái bài nộp.
+  - `cohortId`: UUID (optional) - Lọc theo ID của khóa học.
+  - `userId`: UUID (optional) - Lọc theo ID của học viên.
+  - `exerciseId`: UUID (optional) - Lọc theo ID của bài tập.
+  - `page`: number (optional, default: 1) - Trang cần lấy dữ liệu.
+  - `limit`: number (optional, default: 10, max: 100) - Số lượng bài nộp trên mỗi trang.
+  - `sortBy`: string (optional, default: `submittedAt`) - Trường sắp xếp kết quả.
+  - `sortOrder`: string (optional, enum: `ASC` | `DESC`, default: `ASC`) - Thứ tự sắp xếp.
+- **Response**: `200 OK`
+  ```json
+  {
+    "data": [
+      {
+        "id": "uuid",
+        "userId": "uuid",
+        "user": {
+          "id": "uuid",
+          "name": "Alice Learner",
+          "email": "alice@example.com",
+          "cohortId": "uuid"
+        },
+        "exerciseId": "uuid",
+        "exercise": {
+          "id": "uuid",
+          "title": "Build a Todo App",
+          "trackId": "uuid"
+        },
+        "prUrl": "https://github.com/phuongkt-glinteco/glinteco-e-learning-fe/pull/42",
+        "status": "submitted",
+        "submittedAt": "2026-06-12T10:30:00.000Z",
+        "createdAt": "2026-06-12T10:30:00.000Z",
+        "updatedAt": "2026-06-12T10:30:00.000Z"
+      }
+    ],
+    "meta": {
+      "total": 1,
+      "page": 1,
+      "limit": 10,
+      "totalPages": 1
+    }
+  }
+  ```
+
 ### `POST /submissions/:id/review` (Admin Only)
 Review a submission and log history.
 - **Request Body**:

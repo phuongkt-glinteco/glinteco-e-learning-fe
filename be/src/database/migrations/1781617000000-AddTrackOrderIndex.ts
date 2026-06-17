@@ -10,8 +10,6 @@ export class AddTrackOrderIndex1781617000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_tracks_track_order"`,
-    );
+    await queryRunner.query(`DROP INDEX "public"."IDX_tracks_track_order"`);
   }
 }

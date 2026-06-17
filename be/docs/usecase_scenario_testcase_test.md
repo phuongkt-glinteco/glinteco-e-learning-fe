@@ -1,103 +1,121 @@
-# Tài liệu Đặc tả Use Case, Scenario, Test Case & Unit Test
+# Hướng dẫn và Đặc tả chi tiết: Use Case, Scenario, Test Case & Unit/E2E Test
 
-Tài liệu này trình bày quy trình từ khâu thiết kế **Use Case**, mô tả **Scenario (BDD)**, đặc tả **Test Case**, cho đến viết mã nguồn **Unit Test** trong hệ thống **RAMP UP** (Glinteco e-Learning BE). 
-
-Chúng ta sẽ lấy phân hệ **Quản lý Bài nộp của Học viên (Submissions Module)** làm ví dụ cốt lõi.
+Tài liệu này cung cấp một hướng dẫn thực tiễn, toàn diện và đầy đủ nhất về cách thiết kế, chuyển đổi các yêu cầu nghiệp vụ thành **Use Case**, **Scenario (BDD)**, **Test Case**, và cuối cùng là triển khai kiểm thử tự động (**Unit Test & E2E Test**) trong dự án **RAMP UP (Glinteco e-Learning BE)** chạy trên nền tảng NestJS.
 
 ---
 
-## 1. Use Case (Lược đồ Sử dụng)
+## I. Tổng quan về Quy trình Phát triển và Kiểm thử
 
-### Use Case 1: Nộp bài tập lần đầu (Learner)
-* **Tên Use Case**: Nộp bài tập (Submit Exercise)
-* **Tác nhân (Actor)**: Học viên (Learner)
-* **Mô tả**: Học viên thực hiện gửi đường dẫn Pull Request (PR URL) GitHub chứa mã nguồn bài giải cho một bài tập trong hệ thống.
-* **Tiền điều kiện (Preconditions)**:
-  1. Học viên đã đăng nhập và được xác thực qua JWT.
-  2. Bài tập (Exercise) tồn tại trong hệ thống và thuộc về Track mà học viên đang tham gia.
-* **Luồng xử lý chính (Basic Flow)**:
-  1. Học viên truy cập vào bài tập, nhập PR URL của GitHub và bấm gửi.
-  2. Hệ thống kiểm tra tính hợp lệ của PR URL (phải là URL GitHub hợp lệ).
-  3. Hệ thống kiểm tra xem học viên đã từng nộp bài tập này chưa.
-  4. Hệ thống lưu bài nộp với trạng thái ban đầu là `SUBMITTED` (Đã nộp).
-  5. Hệ thống ghi lại lịch sử bài nộp (Submission History) và trả về thông tin bài nộp thành công.
-* **Luồng rẽ nhánh / Ngoại lệ (Alternative / Exception Flows)**:
-  * *Ngoại lệ 1 (PR URL không đúng định dạng)*: Hệ thống báo lỗi Validation và không tạo bài nộp.
-  * *Ngoại lệ 2 (Bài tập đã nộp trước đó)*: Hệ thống hướng dẫn học viên sử dụng chức năng nộp lại (Resubmit).
+Quy trình phát triển phần mềm chuẩn hướng chất lượng (Quality-Driven Development) đi từ trừu tượng đến cụ thể như sau:
 
----
-
-### Use Case 2: Đánh giá bài tập (Admin)
-* **Tên Use Case**: Đánh giá bài nộp (Review Submission)
-* **Tác nhân (Actor)**: Quản trị viên (Admin) / Người chấm điểm
-* **Mô tả**: Admin xem chi tiết bài nộp và đưa ra quyết định Duyệt (`APPROVED`) hoặc Yêu cầu sửa đổi (`CHANGES_REQUESTED`) kèm theo nhận xét.
-* **Tiền điều kiện**:
-  1. Admin đã đăng nhập thành công.
-  2. Bài nộp tồn tại và ở trạng thái chờ chấm điểm (`SUBMITTED`).
-* **Luồng xử lý chính (Basic Flow)**:
-  1. Admin xem danh sách bài nộp chờ chấm.
-  2. Admin bấm chọn xem chi tiết bài nộp của học viên.
-  3. Admin đưa ra nhận xét (comment) và chọn trạng thái chấm (Duyệt/Yêu cầu sửa đổi).
-  4. Hệ thống cập nhật trạng thái bài nộp.
-  5. Hệ thống lưu lại lịch sử chấm điểm (ai chấm, khi nào, nhận xét gì).
-* **Luồng rẽ nhánh / Ngoại lệ**:
-  * *Ngoại lệ 1 (Người dùng không phải Admin)*: Hệ thống chặn quyền bằng `RolesGuard` và trả về lỗi `403 Forbidden`.
-
----
-
-## 2. Scenario (Kịch bản BDD)
-
-Sử dụng ngôn ngữ Gherkin (`Given - When - Then`) để đặc tả kịch bản hành vi.
-
-### Kịch bản 1: Học viên nộp bài tập thành công
-```gherkin
-Given Học viên có tài khoản hợp lệ và đã đăng nhập
-  And Bài tập có ID "ex-101" tồn tại trong hệ thống
-When Học viên gửi yêu cầu nộp bài tập "ex-101" với PR URL "https://github.com/user/repo/pull/1"
-Then Hệ thống tạo mới một bản ghi bài nộp (Submission)
-  And Trạng thái của bài nộp là "SUBMITTED"
-  And Trả về mã phản hồi thành công "201 Created"
+```mermaid
+graph TD
+    A[Yêu cầu Nghiệp vụ] --> B[Use Case Specification]
+    B --> C[Scenario - BDD Gherkin]
+    C --> D[Test Case Specification]
+    D --> E[Unit / Integration Test]
+    D --> F[E2E / API Integration Test]
 ```
 
-### Kịch bản 2: Học viên gửi PR URL không hợp lệ
+1. **Use Case**: Định nghĩa hành vi của hệ thống từ góc nhìn của tác nhân (Actor). Nó trả lời câu hỏi: *Tác nhân muốn đạt được mục tiêu gì và hệ thống phản hồi ra sao?*
+2. **Scenario (Kịch bản BDD)**: Cụ thể hóa luồng Use Case dưới dạng các kịch bản thực tế bằng ngôn ngữ tự nhiên thông qua cú pháp `Given - When - Then`. Giúp BA, QA và Developer có chung một ngôn ngữ hiểu biết.
+3. **Test Case**: Là tài liệu kiểm thử chi tiết gồm các bước (Steps), dữ liệu đầu vào (Inputs), và kết quả kỳ vọng (Expected Outputs) dùng để QA kiểm thử thủ công hoặc làm nền tảng viết code test.
+4. **Unit / E2E Test**: Chuyển đổi các kịch bản kiểm thử thành mã nguồn chạy tự động để đảm bảo hệ thống không bị lỗi lũy tiến (Regression) khi thay đổi mã nguồn.
+
+---
+
+## II. Phân hệ 1: Quản lý bài nộp (Submissions Module)
+
+Phân hệ này quản lý việc nộp bài tập của học viên (Learner) thông qua URL Pull Request trên GitHub và việc đánh giá, phản hồi từ phía Quản trị viên (Admin).
+
+### 1. Đặc tả Use Case (Use Case Specification)
+
+#### Use Case: UC-SUB-01 - Nộp Bài tập (Learner)
+* **Actor**: Học viên (Learner)
+* **Preconditions**:
+  * Học viên đã đăng nhập hệ thống và có mã JWT hợp lệ.
+  * Bài tập (Exercise) tồn tại trong hệ thống và thuộc về Track mà học viên đang kích hoạt.
+* **Basic Flow**:
+  1. Học viên gửi yêu cầu nộp bài tập chứa `exerciseId` và `prUrl`.
+  2. Hệ thống kiểm tra tính hợp lệ của định dạng GitHub PR URL (phải khớp regex: `^https:\/\/github\.com\/[^\/]+\/[^\/]+\/pull\/[0-9]+$`).
+  3. Hệ thống kiểm tra xem bài tập này đã có bản ghi nộp bài nào chưa.
+  4. Nếu chưa có, hệ thống tạo mới bản ghi `Submission` với trạng thái `SUBMITTED`.
+  5. Hệ thống tạo thêm bản ghi `SubmissionHistory` để lưu dấu vết người nộp, thời gian và sự kiện.
+  6. Hệ thống trả về trạng thái `201 Created` cùng thông tin chi tiết bài nộp.
+* **Alternative Flows**:
+  * *Học viên nộp lại bài tập (Resubmit)*: Nếu hệ thống phát hiện đã có bài nộp trước đó ở trạng thái `CHANGES_REQUESTED` (Yêu cầu sửa đổi), hệ thống sẽ cho phép cập nhật lại `prUrl` mới, chuyển trạng thái về `SUBMITTED`, lưu thêm lịch sử với hành động là `RESUBMITTED`.
+* **Exception Flows**:
+  * *PR URL không hợp lệ*: Trả về lỗi `400 Bad Request` chứa thông điệp lỗi validation chi tiết.
+  * *Bài tập không tồn tại*: Trả về lỗi `404 Not Found`.
+
+#### Use Case: UC-SUB-02 - Đánh giá và Chấm điểm (Admin)
+* **Actor**: Quản trị viên (Admin)
+* **Preconditions**:
+  * Admin đăng nhập hệ thống thành công (JWT chứa vai trò `admin`).
+  * Bản ghi bài nộp (`Submission`) tồn tại và đang ở trạng thái `SUBMITTED`.
+* **Basic Flow**:
+  1. Admin gửi yêu cầu đánh giá bài nộp chứa `submissionId`, trạng thái đích (`status` là `APPROVED` hoặc `CHANGES`), và nhận xét (`comment`).
+  2. Hệ thống kiểm tra quyền hạn của người thực hiện thông qua `RolesGuard`.
+  3. Hệ thống kiểm tra tính hợp lệ của trạng thái đích (không cho phép tự chuyển về trạng thái ban đầu).
+  4. Hệ thống cập nhật trạng thái của bản ghi `Submission`.
+  5. Hệ thống tạo bản ghi `SubmissionHistory` lưu tên Admin, thời gian chấm và nội dung nhận xét.
+  6. Hệ thống trả về kết quả thành công `200 OK`.
+* **Exception Flows**:
+  * *Không có quyền (Role Learner)*: Trả về lỗi `403 Forbidden` khi người dùng thường cố tình gọi API này.
+
+---
+
+### 2. Kịch bản BDD (Scenario - Gherkin)
+
+#### Scenario 1: Học viên nộp bài tập lần đầu thành công
 ```gherkin
-Given Học viên đã đăng nhập hệ thống
-When Học viên nộp bài tập với PR URL "link-invalid-github"
-Then Hệ thống chặn yêu cầu ngay lập tức
-  And Trả về lỗi Validation "400 Bad Request"
-  And Không tạo mới bất kỳ bản ghi bài nộp nào
+Given Học viên có tài khoản hợp lệ với vai trò "learner" và đã đăng nhập
+  And Bài tập với ID "ex-10" có tồn tại trên hệ thống
+When Học viên gửi yêu cầu POST tới "/exercises/ex-10/submissions" với payload:
+  | prUrl | https://github.com/glinteco/project/pull/42 |
+Then Hệ thống sẽ tạo mới một bản ghi bài nộp
+  And Trạng thái của bài nộp được đặt là "SUBMITTED"
+  And Trả về mã HTTP Status "201 Created" chứa ID bài nộp vừa tạo
 ```
 
-### Kịch bản 3: Admin phê duyệt bài tập của học viên
+#### Scenario 2: Học viên gửi đường dẫn PR GitHub sai định dạng
 ```gherkin
-Given Admin đã đăng nhập hệ thống
-  And Bài nộp có ID "sub-202" đang ở trạng thái "SUBMITTED"
-When Admin gửi yêu cầu phê duyệt bài nộp "sub-202" với nhận xét "Mã nguồn sạch, thuật toán tối ưu!"
-Then Trạng thái bài nộp "sub-202" chuyển thành "APPROVED"
-  And Lịch sử chấm bài được ghi nhận
-  And Trả về kết quả thành công "200 OK"
+Given Học viên đã đăng nhập thành công
+When Học viên gửi yêu cầu POST tới "/exercises/ex-10/submissions" với payload:
+  | prUrl | https://google.com/not-github-pr |
+Then Hệ thống từ chối yêu cầu
+  And Không tạo mới bản ghi bài nộp nào trong cơ sở dữ liệu
+  And Trả về mã HTTP Status "400 Bad Request" kèm thông báo validation định dạng URL
+```
+
+#### Scenario 3: Admin duyệt bài nộp hợp lệ
+```gherkin
+Given Người dùng đăng nhập tài khoản vai trò "admin"
+  And Có bài nộp ID "sub-50" đang ở trạng thái "SUBMITTED"
+When Admin gửi yêu cầu POST tới "/submissions/sub-50/approve" với payload:
+  | comment | Thuật toán tối ưu, viết test đầy đủ. Duyệt! |
+Then Hệ thống cập nhật trạng thái bài nộp "sub-50" thành "APPROVED"
+  And Bản ghi lịch sử được tạo mới lưu nhận xét của Admin
+  And Trả về mã HTTP Status "200 OK"
 ```
 
 ---
 
-## 3. Test Case (Bảng ca kiểm thử)
+### 3. Ca Kiểm thử Chi tiết (Test Case Specification)
 
-| ID | Tên Test Case | Mô tả / Các bước thực hiện | Dữ liệu đầu vào (Input) | Kết quả mong đợi (Expected Output) | Trạng thái |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **TC_SUB_01** | Nộp bài thành công | 1. Gửi request POST `exercises/ex-1/submissions`<br>2. Kiểm tra DB | Header: JWT (Learner)<br>Body: `{ "prUrl": "https://github.com/org/repo/pull/5" }` | Response `201 Created` chứa ID bài nộp, trạng thái là `SUBMITTED`. | Pass |
-| **TC_SUB_02** | Validation PR URL thất bại | Gửi request POST với URL không phải GitHub | Header: JWT (Learner)<br>Body: `{ "prUrl": "google.com" }` | Response `400 Bad Request` cùng với thông báo lỗi định dạng URL. | Pass |
-| **TC_SUB_03** | Lấy danh sách bài nộp cá nhân | Gửi request GET `submissions/mine` | Header: JWT (Learner) | Trả về mảng bài nộp chỉ của học viên đó. | Pass |
-| **TC_SUB_04** | Admin duyệt bài nộp | Gửi request POST `submissions/sub-1/approve` | Header: JWT (Admin)<br>Body: `{ "comment": "Good job" }` | Trạng thái bài nộp cập nhật sang `APPROVED`, trả về `200 OK`. | Pass |
-| **TC_SUB_05** | Người dùng thường không được duyệt bài | Gửi request duyệt bài bằng tài khoản Learner | Header: JWT (Learner) | Trả về `403 Forbidden`. | Pass |
+| Test Case ID | Mục tiêu kiểm thử | Dữ liệu đầu vào (Input) | Các bước thực hiện | Kết quả mong đợi (Expected Output) |
+| :--- | :--- | :--- | :--- | :--- |
+| **TC_SUB_01** | Nộp bài thành công (Lần đầu) | Header: JWT Learner<br>Params: `id = ex-10`<br>Body: `{ "prUrl": "https://github.com/user/repo/pull/1" }` | 1. Gửi request POST tới `/exercises/ex-10/submissions` với token học viên.<br>2. Kiểm tra dữ liệu trong DB. | - HTTP Status: `201 Created`. <br>- Body chứa thông tin bài nộp có trạng thái là `SUBMITTED`. |
+| **TC_SUB_02** | Nộp bài lỗi định dạng PR URL | Header: JWT Learner<br>Params: `id = ex-10`<br>Body: `{ "prUrl": "not_a_valid_github_url" }` | 1. Gửi request POST tới `/exercises/ex-10/submissions` với URL sai định dạng. | - HTTP Status: `400 Bad Request`.<br>- Thông báo lỗi chỉ rõ định dạng PR URL không hợp lệ. |
+| **TC_SUB_03** | Duyệt bài nộp thành công (Admin) | Header: JWT Admin<br>Params: `id = sub-50`<br>Body: `{ "comment": "Tốt" }` | 1. Gửi request POST tới `/submissions/sub-50/approve` với token của quản trị viên. | - HTTP Status: `200 OK`.<br>- Trường trạng thái cập nhật thành `APPROVED`. |
+| **TC_SUB_04** | Học viên cố tình duyệt bài nộp | Header: JWT Learner<br>Params: `id = sub-50`<br>Body: `{ "comment": "Hack" }` | 1. Gửi request duyệt bài bằng token của học viên. | - HTTP Status: `403 Forbidden` do vi phạm phân quyền chặn bởi RolesGuard. |
 
 ---
 
-## 4. Test (Mã nguồn kiểm thử tự động)
+### 4. Triển khai Unit Test & Integration Test
 
-Dưới đây là cách triển khai ca kiểm thử bằng Jest trong NestJS cho **SubmissionsController** và **SubmissionsService**.
-
-### 4.1. Unit Test cho Controller (`submissions.controller.spec.ts`)
-Chúng ta sử dụng mock service để kiểm tra xem Controller có chuyển tiếp đúng tham số từ Request và DTO xuống cho Service xử lý hay không.
+#### 4.1. Unit Test cho Controller (`submissions.controller.spec.ts`)
+Chúng ta kiểm tra xem Controller có nhận diện đúng các tham số đầu vào và truyền xuống Service tương ứng hay không.
 
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
@@ -110,7 +128,6 @@ import { RolesGuard } from '../modules/auth/guards/roles.guard';
 describe('SubmissionsController', () => {
   let controller: SubmissionsController;
 
-  // Tạo mock service
   const mockSubmissionsService = {
     submit: jest.fn(),
     review: jest.fn(),
@@ -123,7 +140,6 @@ describe('SubmissionsController', () => {
         { provide: SubmissionsService, useValue: mockSubmissionsService },
       ],
     })
-      // Override guards để bỏ qua logic phân quyền khi unit test controller
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
       .overrideGuard(RolesGuard)
@@ -133,43 +149,29 @@ describe('SubmissionsController', () => {
     controller = module.get<SubmissionsController>(SubmissionsController);
   });
 
-  // TC_SUB_01: Nộp bài thành công (kiểm tra phía controller)
-  it('should delegate submit to service with userId and prUrl', async () => {
-    const mockRequest = { user: { id: 'learner-123', role: 'learner' } };
-    const dto = { prUrl: 'https://github.com/user/repo/pull/1' };
-    mockSubmissionsService.submit.mockResolvedValue({ id: 'sub-999', status: SubmissionStatus.SUBMITTED });
+  describe('submit', () => {
+    it('TC_SUB_01: should delegate submit to service and return 201', async () => {
+      const mockRequest = { user: { id: 'user-123', role: 'learner' } };
+      const dto = { prUrl: 'https://github.com/glinteco/elearning/pull/10' };
+      const expectedOutput = { id: 'sub-001', status: SubmissionStatus.SUBMITTED };
+      
+      mockSubmissionsService.submit.mockResolvedValue(expectedOutput);
 
-    const result = await controller.submit('ex-1', dto, mockRequest);
+      const result = await controller.submit('ex-10', dto, mockRequest as any);
 
-    expect(mockSubmissionsService.submit).toHaveBeenCalledWith(
-      'ex-1',
-      'learner-123',
-      dto.prUrl
-    );
-    expect(result).toEqual({ id: 'sub-999', status: SubmissionStatus.SUBMITTED });
-  });
-
-  // TC_SUB_04: Admin duyệt bài nộp
-  it('should delegate approve to review service with APPROVED status', async () => {
-    const mockRequest = { user: { id: 'admin-456', role: 'admin' } };
-    const body = { comment: 'Làm rất tốt!' };
-    mockSubmissionsService.review.mockResolvedValue({ id: 'sub-999', status: SubmissionStatus.APPROVED });
-
-    const result = await controller.approve('sub-999', body, mockRequest);
-
-    expect(mockSubmissionsService.review).toHaveBeenCalledWith(
-      'sub-999',
-      'admin-456',
-      SubmissionStatus.APPROVED,
-      body.comment
-    );
-    expect(result).toEqual({ id: 'sub-999', status: SubmissionStatus.APPROVED });
+      expect(mockSubmissionsService.submit).toHaveBeenCalledWith(
+        'ex-10',
+        'user-123',
+        dto.prUrl
+      );
+      expect(result).toEqual(expectedOutput);
+    });
   });
 });
 ```
 
-### 4.2. Integration/Unit Test cho Service (`submissions.service.spec.ts`)
-Phần này kiểm tra logic nghiệp vụ thực tế như: lưu trữ vào cơ sở dữ liệu, bắn lỗi khi không tìm thấy bài tập, hay cập nhật lịch sử.
+#### 4.2. Unit Test cho Service nghiệp vụ (`submissions.service.spec.ts`)
+Kiểm tra các luật nghiệp vụ (Business Logic) và các trường hợp lỗi ném ra ngoại lệ.
 
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
@@ -183,7 +185,6 @@ import { NotFoundException } from '@nestjs/common';
 describe('SubmissionsService', () => {
   let service: SubmissionsService;
 
-  // Mock các repository
   const mockSubmissionRepo = {
     findOne: jest.fn(),
     create: jest.fn(),
@@ -212,32 +213,33 @@ describe('SubmissionsService', () => {
 
   describe('submit', () => {
     it('should throw NotFoundException if exercise does not exist', async () => {
-      mockExerciseRepo.findOne.mockResolvedValue(null); // Không tìm thấy exercise
+      mockExerciseRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        service.submit('invalid-exercise', 'user-1', 'https://github.com/pr/1')
+        service.submit('ex-999', 'user-1', 'https://github.com/user/repo/pull/1')
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should create and save submission and history', async () => {
-      const mockExercise = { id: 'ex-1', title: 'Bài tập 1' };
+    it('should save submission and create history logs', async () => {
+      const mockExercise = { id: 'ex-10', title: 'Test Exercise' };
       mockExerciseRepo.findOne.mockResolvedValue(mockExercise);
-      
-      const savedSubmission = {
+
+      const expectedSubmission = {
         id: 'sub-1',
-        exerciseId: 'ex-1',
+        exerciseId: 'ex-10',
         userId: 'user-1',
-        prUrl: 'https://github.com/pr/1',
+        prUrl: 'https://github.com/user/repo/pull/1',
         status: SubmissionStatus.SUBMITTED,
       };
-      mockSubmissionRepo.create.mockReturnValue(savedSubmission);
-      mockSubmissionRepo.save.mockResolvedValue(savedSubmission);
 
-      const result = await service.submit('ex-1', 'user-1', 'https://github.com/pr/1');
+      mockSubmissionRepo.create.mockReturnValue(expectedSubmission);
+      mockSubmissionRepo.save.mockResolvedValue(expectedSubmission);
+
+      const result = await service.submit('ex-10', 'user-1', 'https://github.com/user/repo/pull/1');
 
       expect(mockSubmissionRepo.save).toHaveBeenCalled();
       expect(mockHistoryRepo.save).toHaveBeenCalled();
-      expect(result).toEqual(savedSubmission);
+      expect(result).toEqual(expectedSubmission);
     });
   });
 });
@@ -245,8 +247,139 @@ describe('SubmissionsService', () => {
 
 ---
 
-## 5. Kết luận
-* **Use Case** định nghĩa **cái gì** (What) khách hàng/người dùng muốn làm.
-* **Scenario** cụ thể hóa **luồng kịch bản cụ thể** (How it behaves) bằng ngôn ngữ tự nhiên, giúp BA, QA và Developer thống nhất hiểu biết.
-* **Test Case** vạch ra **bước kiểm thử chi tiết** kèm dữ liệu đầu vào & kết quả mong đợi.
-* **Unit/Integration Test** tự động hóa các kịch bản kiểm thử trên để đảm bảo mã nguồn chạy ổn định, không bị lỗi khi sửa đổi (regression).
+## III. Phân hệ 2: Xác thực & Phân quyền (Auth Module)
+
+Phân hệ này xử lý đăng nhập qua Google OAuth2, cấp phát và quản lý JWT Token cũng như phân loại quyền lực (Learner vs Admin).
+
+### 1. Đặc tả Use Case (Use Case Specification)
+
+#### Use Case: UC-AUTH-01 - Đăng nhập bằng Google (Google Login)
+* **Actor**: Học viên / Quản trị viên
+* **Preconditions**: Người dùng đã có một tài khoản Google hợp lệ.
+* **Basic Flow**:
+  1. Người dùng gửi mã Token nhận được từ Google OAuth2 Client (`idToken`) lên máy chủ.
+  2. Máy chủ sử dụng thư viện `google-auth-library` để xác thực tính hợp lệ của token này với Google API.
+  3. Sau khi xác thực thành công, hệ thống lấy ra các thông tin cá nhân: `email`, `name`, `picture`.
+  4. Hệ thống kiểm tra xem email này đã tồn tại trong cơ sở dữ liệu hệ thống chưa.
+     * Nếu đã có: Lấy thông tin tài khoản hiện tại.
+     * Nếu chưa có: Tạo mới một người dùng (User) với vai trò mặc định là `LEARNER`.
+  5. Hệ thống tạo cặp mã JWT Token bao gồm: `accessToken` (thời hạn ngắn, dùng để gọi API) và `refreshToken` (thời hạn dài, lưu DB để gia hạn).
+  6. Hệ thống trả về thông tin người dùng và bộ token mới.
+
+---
+
+### 2. Kịch bản BDD (Scenario)
+
+#### Scenario 1: Đăng nhập thành công bằng tài khoản Google mới
+```gherkin
+Given Người dùng nhận được idToken hợp lệ từ Google Client SDK
+When Người dùng gửi POST "/auth/google" chứa idToken hợp lệ
+Then Hệ thống xác thực thông tin tài khoản với Google API thành công
+  And Tạo một tài khoản User mới trong DB với email từ Google
+  And Cấp cặp mã accessToken và refreshToken
+  And Trả về mã phản hồi "201 Created" cùng thông tin cá nhân
+```
+
+#### Scenario 2: Đăng nhập thất bại do Token giả mạo hoặc hết hạn
+```gherkin
+Given Người dùng gửi một idToken tự chế hoặc đã quá hạn
+When Người dùng gửi POST "/auth/google" chứa token này
+Then Hệ thống từ chối xác thực tài khoản
+  And Trả về lỗi bảo mật "401 Unauthorized"
+```
+
+---
+
+### 3. Ca Kiểm thử Chi tiết (Test Case Specification)
+
+| Test Case ID | Mục tiêu kiểm thử | Dữ liệu đầu vào (Input) | Các bước thực hiện | Kết quả mong đợi (Expected Output) |
+| :--- | :--- | :--- | :--- | :--- |
+| **TC_AUTH_01** | Đăng nhập thành công | Header: Trống<br>Body: `{ "idToken": "valid_google_token_xyz" }` | 1. Gửi request POST tới `/auth/google`. | - HTTP Status: `201 Created`.<br>- Trả về `accessToken` và thông tin `email`. |
+| **TC_AUTH_02** | Đăng nhập thất bại với token lỗi | Header: Trống<br>Body: `{ "idToken": "invalid_or_expired_token" }` | 1. Gửi request POST tới `/auth/google` kèm token lỗi. | - HTTP Status: `401 Unauthorized`. |
+
+---
+
+### 4. Triển khai E2E Integration Test (Kiểm thử Tích hợp Toàn diện)
+
+E2E test giúp kiểm thử toàn bộ luồng từ HTTP Request, đi qua các Guards, qua Controller, Service, kết nối cơ sở dữ liệu thật (hoặc DB testing riêng biệt) mà không mock logic.
+
+Sử dụng thư viện `supertest` và `@nestjs/testing`:
+
+```typescript
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { User, UserRole } from '../src/database/entities/user.entity';
+import { Connection } from 'typeorm';
+
+describe('Auth & Submissions E2E Test Flow', () => {
+  let app: INestApplication;
+  let moduleFixture: TestingModule;
+  let dbConnection: Connection;
+  let userToken: string;
+  let adminToken: string;
+
+  beforeAll(async () => {
+    moduleFixture = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
+    await app.init();
+
+    dbConnection = moduleFixture.get<Connection>(Connection);
+  });
+
+  afterAll(async () => {
+    // Dọn dẹp kết nối cơ sở dữ liệu sau khi kết thúc test
+    await dbConnection.close();
+    await app.close();
+  });
+
+  // Kiểm thử phân quyền - chặn học viên truy cập tài nguyên admin
+  it('GET /submissions -> Should return 403 Forbidden for Learners', async () => {
+    // Tạo token giả lập cho học viên (Learner)
+    const mockUserJwt = 'bearer_token_cua_learner_sau_khi_sign_jwt';
+    
+    return request(app.getHttpServer())
+      .get('/submissions')
+      .set('Authorization', `Bearer ${mockUserJwt}`)
+      .expect(403); // Đảm bảo trả về lỗi Forbidden do sai quyền
+  });
+
+  // Kiểm thử nộp bài và lỗi validation dữ liệu
+  it('POST /exercises/:id/submissions -> Should return 400 Bad Request if URL invalid', async () => {
+    const mockUserJwt = 'jwt_token_learner_hop_le';
+
+    return request(app.getHttpServer())
+      .post('/exercises/ex-1/submissions')
+      .set('Authorization', `Bearer ${mockUserJwt}`)
+      .send({ prUrl: 'not_a_valid_github_url' })
+      .expect(400) // Yêu cầu phải báo lỗi bad request
+      .expect((res) => {
+        expect(res.body.message).toContain('prUrl must be a URL address');
+      });
+  });
+});
+```
+
+---
+
+## IV. Các nguyên tắc vàng khi thiết kế kiểm thử (Testing Best Practices)
+
+1. **Quy tắc AAA (Arrange - Act - Assert)**:
+   * **Arrange**: Thiết lập dữ liệu giả lập (Mock, DTO, Entities).
+   * **Act**: Gọi phương thức cần kiểm thử (gọi hàm Service/Controller).
+   * **Assert**: So sánh kết quả trả về hoặc hành vi tương tác với mong đợi (`expect(...)`).
+2. **Luôn Mock tầng bên dưới (Isolation)**:
+   * Khi test Controller, hãy mock Service.
+   * Khi test Service, hãy mock Database Repositories hoặc Third-party APIs (Google, GitHub, Mailer).
+3. **Độ bao phủ kiểm thử (Test Coverage)**:
+   * Chạy lệnh `pnpm run test:cov` để kiểm tra độ phủ của mã nguồn.
+   * Đảm bảo tất cả các nhánh rẽ điều kiện (`if/else`), các bắt lỗi (`try/catch`) đều được phủ bởi ít nhất một ca kiểm thử.
+4. **Viết tên kiểm thử rõ nghĩa**:
+   * Nên mô tả rõ: *Điều kiện là gì* -> *Hành động thực hiện* -> *Kết quả trả về*.
+   * Ví dụ: `it('should throw NotFoundException when updating a non-existent cohort')`.

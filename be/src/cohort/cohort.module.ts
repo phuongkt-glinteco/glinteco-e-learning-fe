@@ -4,7 +4,7 @@ import { Cohort } from '../database/entities/cohort.entity';
 import { User } from '../database/entities/user.entity';
 import { CohortController } from './cohort.controller';
 import { CohortService } from './cohort.service';
-import { AuthModule } from '../auth/auth.module';
+import { AuthModule } from '../modules/auth/auth.module';
 
 @Module({
   imports: [

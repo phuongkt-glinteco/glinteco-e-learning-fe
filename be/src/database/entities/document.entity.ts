@@ -24,6 +24,13 @@ export class Document {
   @Column({ nullable: true })
   url: string;
 
+  @Column({
+    type: 'enum',
+    enum: ['Guide', 'Reference', 'Runbook', 'Tutorial', 'Link'],
+    default: 'Guide',
+  })
+  kind: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+
   @ManyToMany(() => Tag, (tag) => tag.documents)
   @JoinTable({
     name: 'document_tags',

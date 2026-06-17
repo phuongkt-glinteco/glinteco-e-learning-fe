@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { InitialSchema1781611485949 } from './1781611485949-InitialSchema';
 import { AddGoogleIdToUsers1781616508023 } from './1781616508023-AddGoogleIdToUsers';
 import { UpdateSubmissionStatusEnum1781617000000 } from './1781617000000-UpdateSubmissionStatusEnum';
+import { AddKindToDocumentsAndSearchIndexes1781617508000 } from './1781617508000-AddKindToDocumentsAndSearchIndexes';
 import { AddExerciseDetails1781622361007 } from './1781622361007-AddExerciseDetails';
 import { AddUserBookmarks1781623541186 } from './1781623541186-AddUserBookmarks';
 import { AddIsActiveToCohorts1781624224625 } from './1781624224625-AddIsActiveToCohorts';
@@ -60,10 +61,11 @@ describe('Database Migrations', () => {
     const migration1 = new InitialSchema1781611485949();
     const migration2 = new AddGoogleIdToUsers1781616508023();
     const migration3 = new UpdateSubmissionStatusEnum1781617000000();
-    const migration4 = new AddExerciseDetails1781622361007();
-    const migration5 = new AddUserBookmarks1781623541186();
-    const migration6 = new AddIsActiveToCohorts1781624224625();
-    const migration7 = new AddLessonsCompletedToTrackProgress1781628751000();
+    const migration4 = new AddKindToDocumentsAndSearchIndexes1781617508000();
+    const migration5 = new AddExerciseDetails1781622361007();
+    const migration6 = new AddUserBookmarks1781623541186();
+    const migration7 = new AddIsActiveToCohorts1781624224625();
+    const migration8 = new AddLessonsCompletedToTrackProgress1781628751000();
 
     // Run UP 1
     await migration1.up(queryRunner);
@@ -75,7 +77,7 @@ describe('Database Migrations', () => {
     // Run UP 2
     await migration2.up(queryRunner);
     expect(await queryRunner.hasColumn('users', 'google_id')).toBe(true);
-    expect(await queryRunner.hasTable('user_bookmarks')).toBe(false);
+    expect(await queryRunner.hasColumn('documents', 'kind')).toBe(false);
 
     // Run UP 3
     await migration3.up(queryRunner);
@@ -88,39 +90,48 @@ describe('Database Migrations', () => {
 
     // Run UP 4
     await migration4.up(queryRunner);
-    expect(await queryRunner.hasColumn('exercises', 'difficulty')).toBe(true);
-    expect(await queryRunner.hasTable('exercise_documents')).toBe(true);
+    expect(await queryRunner.hasColumn('documents', 'kind')).toBe(true);
+    expect(await queryRunner.hasTable('user_bookmarks')).toBe(false);
 
     // Run UP 5
     await migration5.up(queryRunner);
-    expect(await queryRunner.hasTable('user_bookmarks')).toBe(true);
-    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(false);
+    expect(await queryRunner.hasColumn('exercises', 'difficulty')).toBe(true);
+    expect(await queryRunner.hasTable('exercise_documents')).toBe(true);
 
     // Run UP 6
     await migration6.up(queryRunner);
-    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(true);
-    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(false);
+    expect(await queryRunner.hasTable('user_bookmarks')).toBe(true);
+    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(false);
 
     // Run UP 7
     await migration7.up(queryRunner);
+    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(true);
+    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(false);
+
+    // Run UP 8
+    await migration8.up(queryRunner);
     expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(true);
+
+    // Run DOWN 8
+    await migration8.down(queryRunner);
+    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(false);
 
     // Run DOWN 7
     await migration7.down(queryRunner);
-    expect(await queryRunner.hasColumn('track_progresses', 'lessonsCompleted')).toBe(false);
+    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(false);
 
     // Run DOWN 6
     await migration6.down(queryRunner);
-    expect(await queryRunner.hasColumn('cohorts', 'isActive')).toBe(false);
+    expect(await queryRunner.hasTable('user_bookmarks')).toBe(false);
 
     // Run DOWN 5
     await migration5.down(queryRunner);
-    expect(await queryRunner.hasTable('user_bookmarks')).toBe(false);
+    expect(await queryRunner.hasColumn('exercises', 'difficulty')).toBe(false);
+    expect(await queryRunner.hasTable('exercise_documents')).toBe(false);
 
     // Run DOWN 4
     await migration4.down(queryRunner);
-    expect(await queryRunner.hasColumn('exercises', 'difficulty')).toBe(false);
-    expect(await queryRunner.hasTable('exercise_documents')).toBe(false);
+    expect(await queryRunner.hasColumn('documents', 'kind')).toBe(false);
 
     // Run DOWN 3
     await migration3.down(queryRunner);

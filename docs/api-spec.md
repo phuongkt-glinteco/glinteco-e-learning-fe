@@ -425,3 +425,67 @@ Retrieve leaderboard rankings for learners.
     "hasMore": false
   }
   ```
+
+---
+
+## 7. Search & Notifications
+
+### `GET /search`
+Global quick search (⌘K) across tracks, documents, and exercises.
+- **Query Params**:
+  - `q`: String (Required, search query term)
+- **Validation Rules**:
+  - `q`: IsString(), IsNotEmpty(), MinLength(1)
+- **Response**: `200 OK`
+  ```json
+  {
+    "tracks": [
+      {
+        "id": "uuid",
+        "title": "NestJS Service Layer"
+      }
+    ],
+    "documents": [
+      {
+        "id": "uuid",
+        "title": "Service Auth & JWT Flow",
+        "kind": "Guide"
+      }
+    ],
+    "exercises": [
+      {
+        "id": "uuid",
+        "title": "Service Auth Middleware",
+        "tag": "NestJS"
+      }
+    ]
+  }
+  ```
+
+### Data Transfer Objects (DTO) and Validation
+
+#### `SearchQueryDto`
+- **q**: `string`
+  - `@IsString()`: Must be a string.
+  - `@IsNotEmpty()`: Must not be empty.
+  - `@MinLength(1)`: Must have at least 1 character.
+
+#### `SearchResponseDto`
+- **tracks**: `SearchTrackResultDto[]`
+- **documents**: `SearchDocumentResultDto[]`
+- **exercises**: `SearchExerciseResultDto[]`
+
+#### `SearchTrackResultDto`
+- **id**: `string` (UUID)
+- **title**: `string` (Maps to Track `name`)
+
+#### `SearchDocumentResultDto`
+- **id**: `string` (UUID)
+- **title**: `string`
+- **kind**: `string` (`'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link'`)
+
+#### `SearchExerciseResultDto`
+- **id**: `string` (UUID)
+- **title**: `string`
+- **tag**: `string` (Maps to Track `name`)
+

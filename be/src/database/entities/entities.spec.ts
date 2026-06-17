@@ -11,6 +11,7 @@ import {
   TrackProgress,
   ProgressStatus,
   Exercise,
+  ExerciseDifficulty,
   Submission,
   SubmissionStatus,
   SubmissionHistory,
@@ -239,6 +240,12 @@ describe('Database Entities', () => {
     const exercise = exerciseRepo.create({
       trackId: track.id,
       title: 'Exercise 1',
+      tag: 'NestJS',
+      difficulty: ExerciseDifficulty.INTERMEDIATE,
+      estimatedTime: '2h',
+      xp: 100,
+      brief: 'Test brief',
+      overview: 'Test overview',
       objectives: { goal: 'Test objectives' },
       steps: { step1: 'First step' },
     });
@@ -246,6 +253,12 @@ describe('Database Entities', () => {
     expect(savedExercise.id).toBeDefined();
     expect(savedExercise.trackId).toBe(track.id);
     expect(savedExercise.title).toBe('Exercise 1');
+    expect(savedExercise.tag).toBe('NestJS');
+    expect(savedExercise.difficulty).toBe(ExerciseDifficulty.INTERMEDIATE);
+    expect(savedExercise.estimatedTime).toBe('2h');
+    expect(savedExercise.xp).toBe(100);
+    expect(savedExercise.brief).toBe('Test brief');
+    expect(savedExercise.overview).toBe('Test overview');
     expect(savedExercise.objectives).toEqual({ goal: 'Test objectives' });
     expect(savedExercise.steps).toEqual({ step1: 'First step' });
 

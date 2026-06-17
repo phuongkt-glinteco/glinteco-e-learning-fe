@@ -7,12 +7,15 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Cohort } from './cohort.entity';
 import { TrackProgress } from './track-progress.entity';
 import { Submission } from './submission.entity';
 import { RefreshToken } from './refresh-token.entity';
 import { LessonProgress } from './lesson-progress.entity';
+import { Document } from './document.entity';
 
 export enum UserRole {
   LEARNER = 'learner',
@@ -76,6 +79,14 @@ export class User {
 
   @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
   refreshTokens: RefreshToken[];
+
+  @ManyToMany(() => Document, (document) => document.bookmarkedBy)
+  @JoinTable({
+    name: 'user_bookmarks',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'documentId', referencedColumnName: 'id' },
+  })
+  bookmarkedDocuments: Document[];
 
   @CreateDateColumn()
   createdAt: Date;

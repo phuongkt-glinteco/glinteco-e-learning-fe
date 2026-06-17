@@ -223,7 +223,12 @@ Review a submission and log history.
 
 ### `GET /documents`
 Search for documents.
-- **Query Params**: `?tags=react,hooks&search=state`
+- **Query Params**:
+  - `q`: Search keyword in title or content (optional).
+  - `tags`: Comma-separated list of tag names (e.g., `NestJS,Architecture`) (optional).
+  - `kind`: Filter by document kind (Guide, Reference, Runbook, Tutorial, Link) (optional).
+  - `limit`: Number of records to return (optional, default 20, max 50).
+  - `cursor`: Keyset pagination cursor (optional).
 - **Response**: `200 OK`
   ```json
   {
@@ -231,9 +236,32 @@ Search for documents.
       {
         "id": "uuid",
         "title": "React Hooks Cheatsheet",
+        "content": "Lesson content or document description...",
         "url": "https://reactjs.org/docs/hooks-intro.html",
-        "tags": [{ "id": "uuid", "name": "react" }]
+        "kind": "Guide",
+        "tags": [{ "id": "uuid", "name": "react" }],
+        "isBookmarked": true
       }
-    ]
+    ],
+    "nextCursor": "eyJpZCI6ImRiNmE2NzYzIn0=",
+    "hasMore": false
   }
   ```
+
+### `POST /documents/:id/bookmark`
+Bookmark a document for the current authenticated user.
+- **Path Params**:
+  - `id`: UUID of the document to bookmark.
+- **Response**: `200 OK`
+  ```json
+  {
+    "documentId": "uuid",
+    "bookmarked": true
+  }
+  ```
+
+### `DELETE /documents/:id/bookmark`
+Remove a bookmarked document for the current authenticated user.
+- **Path Params**:
+  - `id`: UUID of the document to unbookmark.
+- **Response**: `204 No Content`

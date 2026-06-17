@@ -30,14 +30,27 @@ import { SubmissionsModule } from './submissions/submissions.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DATABASE_HOST', 'localhost'),
-        port: configService.get<number>('DATABASE_PORT', 5432),
-        username: configService.get<string>('DATABASE_USER', 'rampup_user'),
-        password: configService.get<string>(
-          'DATABASE_PASSWORD',
-          'rampup_password',
+        host:
+          configService.get<string>('DATABASE_HOST') ||
+          configService.get<string>('POSTGRES_HOST', 'localhost'),
+        port: Number(
+          configService.get<string>('DATABASE_PORT') ||
+            configService.get<string>('POSTGRES_PORT', '5432'),
         ),
-        database: configService.get<string>('DATABASE_NAME', 'rampup_db'),
+        username:
+          configService.get<string>('DATABASE_USER') ||
+          configService.get<string>('POSTGRES_USER', 'rampup_user'),
+        password:
+          configService.get<string>('DATABASE_PASSWORD') ||
+          configService.get<string>('POSTGRES_PASSWORD', 'rampup_password'),
+        database:
+          configService.get<string>('DATABASE_NAME') ||
+          configService.get<string>('POSTGRES_DATABASE', 'rampup_db'),
+        ssl:
+          configService.get<string>('DATABASE_SSL') === 'true' ||
+          !!configService.get<string>('POSTGRES_HOST')
+            ? { rejectUnauthorized: false }
+            : false,
         entities: [
           path.join(__dirname, 'database/entities', '*.entity{.ts,.js}'),
         ],

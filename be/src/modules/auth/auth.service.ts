@@ -180,11 +180,11 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync(accessPayload, {
       secret: this.getAccessSecret(),
       expiresIn: accessExpiresIn,
-    });
+    } as any);
     const refreshToken = await this.jwtService.signAsync(refreshPayload, {
       secret: this.getRefreshSecret(),
       expiresIn: refreshExpiresIn,
-    });
+    } as any);
 
     await this.refreshTokenRepository.save(
       this.refreshTokenRepository.create({

@@ -8,7 +8,10 @@
   ],
   "functions": {
     "api/index.ts": {
-      "includeFiles": "src/i18n/**"
+      "includeFiles": [
+        "src/i18n/**",
+        "docs/openapi.yaml"
+      ]
     }
   }
 }

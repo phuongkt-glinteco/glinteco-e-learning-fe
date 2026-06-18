@@ -245,6 +245,56 @@ describe('AuthService', () => {
       expect(savedRow.id).toBe(refreshPayload.jti);
     });
 
+    it('issues refresh token with shorter expiry when rememberMe is false', async () => {
+      const hash = await bcrypt.hash('P@ssw0rd123', 10);
+      usersService.findByEmailWithPassword.mockResolvedValue(
+        buildUser({ password: hash }),
+      );
+      jwtService.signAsync
+        .mockResolvedValueOnce('access-token')
+        .mockResolvedValueOnce('refresh-token');
+
+      await service.login({
+        email: 'user@example.com',
+        password: 'P@ssw0rd123',
+        rememberMe: false,
+      });
+
+      const savedRow = refreshTokenRepository.save.mock
+        .calls[0][0] as RefreshToken;
+      const expectedExpiry = Date.now() + 86400 * 1000;
+      expect(Math.abs(savedRow.expiresAt.getTime() - expectedExpiry)).toBeLessThan(5000);
+      const refreshPayload = jwtService.signAsync.mock.calls[1][0] as {
+        rememberMe: boolean;
+      };
+      expect(refreshPayload.rememberMe).toBe(false);
+    });
+
+    it('issues refresh token with default expiry when rememberMe is true', async () => {
+      const hash = await bcrypt.hash('P@ssw0rd123', 10);
+      usersService.findByEmailWithPassword.mockResolvedValue(
+        buildUser({ password: hash }),
+      );
+      jwtService.signAsync
+        .mockResolvedValueOnce('access-token')
+        .mockResolvedValueOnce('refresh-token');
+
+      await service.login({
+        email: 'user@example.com',
+        password: 'P@ssw0rd123',
+        rememberMe: true,
+      });
+
+      const savedRow = refreshTokenRepository.save.mock
+        .calls[0][0] as RefreshToken;
+      const expectedExpiry = Date.now() + 604800 * 1000;
+      expect(Math.abs(savedRow.expiresAt.getTime() - expectedExpiry)).toBeLessThan(5000);
+      const refreshPayload = jwtService.signAsync.mock.calls[1][0] as {
+        rememberMe: boolean;
+      };
+      expect(refreshPayload.rememberMe).toBe(true);
+    });
+
     it('rejects invalid credentials with 401', async () => {
       usersService.findByEmailWithPassword.mockResolvedValue(null);
       await expect(

@@ -83,7 +83,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
-    return this.issueTokens(user);
+    return this.issueTokens(user, dto.rememberMe);
   }
 
   /**
@@ -138,7 +138,7 @@ export class AuthService {
       );
     }
 
-    return this.issueTokens(user);
+    return this.issueTokens(user, payload.rememberMe);
   }
 
   /**
@@ -169,13 +169,15 @@ export class AuthService {
   }
 
   /** Sign an access/refresh pair and persist a revocable handle for the refresh token. */
-  private async issueTokens(user: User): Promise<AuthTokensDto> {
+  private async issueTokens(user: User, rememberMe = true): Promise<AuthTokensDto> {
     const accessExpiresIn = this.getAccessExpiresIn();
-    const refreshExpiresIn = this.getRefreshExpiresIn();
+    const refreshExpiresIn = rememberMe
+      ? this.getRefreshExpiresIn()
+      : 86400; // 1 day if rememberMe is false
     const jti = randomUUID();
 
     const accessPayload: JwtPayload = { sub: user.id, email: user.email };
-    const refreshPayload: RefreshTokenPayload = { sub: user.id, jti };
+    const refreshPayload: RefreshTokenPayload = { sub: user.id, jti, rememberMe };
 
     const accessToken = await this.jwtService.signAsync(accessPayload, {
       secret: this.getAccessSecret(),

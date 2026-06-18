@@ -2,6 +2,7 @@ import './globals.css';
 import { getLocale } from 'next-intl/server';
 import { LanguageProvider } from '@/providers/LanguageProvider';
 import { ApiErrorProvider } from '@/providers/ApiErrorProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 import { ApiErrorContainer } from '@/components/ui/ApiErrorContainer';
 import type { ReactNode } from 'react';
 
@@ -22,8 +23,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <LanguageProvider initialLocale={locale}>
           <ApiErrorProvider>
-            {children}
-            <ApiErrorContainer />
+            <AuthProvider>
+              {children}
+              <ApiErrorContainer />
+            </AuthProvider>
           </ApiErrorProvider>
         </LanguageProvider>
       </body>

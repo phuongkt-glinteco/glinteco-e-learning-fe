@@ -23,3 +23,20 @@ export default function HPBar({ value, segments = 20, warn = false }: HPBarProps
     </div>
   );
 }
+
+interface ProgressBarProps {
+  value: number;
+  className?: string;
+  barClassName?: string;
+}
+
+export function ProgressBar({ value, className = '', barClassName = '' }: ProgressBarProps) {
+  return (
+    <div className={`w-full bg-surface-container h-2 rounded-full overflow-hidden ${className}`}>
+      <div
+        className={`bg-primary h-full rounded-full transition-all duration-300 ${barClassName}`}
+        style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+      />
+    </div>
+  );
+}

@@ -33,3 +33,4 @@ client.interceptors.error.use((error, response, request) => {
 // Re-export the global client and all auto-generated SDK endpoints/types
 export { client };
 export * from './client';
+export type * from './client/types.gen';

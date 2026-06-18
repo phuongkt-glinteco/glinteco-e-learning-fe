@@ -1,6 +1,12 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
-export default function SectionHead({ kicker, title, children }) {
+interface SectionHeadProps {
+  kicker?: string;
+  title: string;
+  children?: ReactNode;
+}
+
+export default function SectionHead({ kicker, title, children }: SectionHeadProps) {
   return (
     <div className="flex items-end justify-between gap-4 mb-4 flex-wrap w-full">
       <div>

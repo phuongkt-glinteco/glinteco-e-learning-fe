@@ -1,7 +1,9 @@
+import './globals.css';
 import { getLocale } from 'next-intl/server';
 import { LanguageProvider } from '@/providers/LanguageProvider';
+import { ApiErrorProvider } from '@/providers/ApiErrorProvider';
+import { ApiErrorContainer } from '@/components/ui/ApiErrorContainer';
 import type { ReactNode } from 'react';
-import './globals.css';
 
 export const metadata = {
   title: 'RAMP UP',
@@ -19,7 +21,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body>
         <LanguageProvider initialLocale={locale}>
-          {children}
+          <ApiErrorProvider>
+            {children}
+            <ApiErrorContainer />
+          </ApiErrorProvider>
         </LanguageProvider>
       </body>
     </html>

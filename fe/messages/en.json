@@ -35,6 +35,34 @@
     "help": "Help",
     "role": "Backend Engineer",
     "subLogoTitle": "Engineering Portal"
+  },
+  "Errors": {
+    "LOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "UNAUTHORIZED": "Session expired or invalid. Please sign in again.",
+    "FORBIDDEN": "You do not have permission to perform this action.",
+    "NOT_FOUND": "Requested resource not found.",
+    "VALIDATION_ERROR": "Invalid data submitted.",
+    "NETWORK_ERROR": "Cannot connect to server. Please check your network connection.",
+    "INTERNAL_SERVER_ERROR": "Internal server error. Please try again later.",
+    "UNKNOWN_ERROR": "An unexpected error occurred."
+  },
+  "ApiErrors": {
+    "titleVALIDATION_ERROR": "Validation Error",
+    "contentVALIDATION_ERROR": "The data submitted was invalid. Please check and try again.",
+    "titleLOGIN_INVALID_CREDENTIALS": "Login Failed",
+    "contentLOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "titleUNAUTHORIZED": "Session Expired",
+    "contentUNAUTHORIZED": "Your session has expired. Please sign in again.",
+    "titleFORBIDDEN": "Access Denied",
+    "contentFORBIDDEN": "You do not have permission to perform this action.",
+    "titleNOT_FOUND": "Not Found",
+    "contentNOT_FOUND": "The requested resource could not be found.",
+    "titleINTERNAL_SERVER_ERROR": "Server Error",
+    "contentINTERNAL_SERVER_ERROR": "An internal server error occurred. Please try again later.",
+    "titleNETWORK_ERROR": "Network Connection Error",
+    "contentNETWORK_ERROR": "Cannot connect to the server. Please check your connection and try again.",
+    "titleUNKNOWN_ERROR": "Unexpected Error",
+    "contentUNKNOWN_ERROR": "An unexpected error occurred. Please try again."
   }
 }
 

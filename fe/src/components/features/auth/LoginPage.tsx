@@ -58,7 +58,7 @@ export default function LoginPage() {
        
   };
 
-
+    const [googleButtonLoaded, setGoogleButtonLoaded] = useState(false);
   return (
     <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
       <LanguageToggle size="md" className="hidden md:block absolute top-6 right-6 z-20 border-outline" />
@@ -178,9 +178,11 @@ export default function LoginPage() {
                   ) : t('signInButton')}
                 </button>
 
-                <div id="google-signin-btn" className="w-full flex justify-center min-h-[44px]">
-                  <GoogleLoginButton onSuccess={onGoogleSignIn} title={t('googleButton')} />
-                </div>
+                {googleButtonLoaded && (
+                  <div id="google-signin-btn" className="w-full flex justify-center min-h-[44px]">
+                    <GoogleLoginButton onSuccess={onGoogleSignIn} title={t('googleButton')} />
+                  </div>
+                )}
               </div>
             </form>
 
@@ -197,6 +199,9 @@ export default function LoginPage() {
       </div>
       <Script
         src="https://accounts.google.com/gsi/client"
+        onLoad={() => {
+          setGoogleButtonLoaded(true);
+        }}
         strategy="afterInteractive"
       />
     </div>

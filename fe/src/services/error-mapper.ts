@@ -1,4 +1,4 @@
-import { AppError, HttpError } from './errors';
+import { AppError, HttpError, ValidationError } from './errors';
 
 interface BackendErrorResponse {
   statusCode?: number;
@@ -65,7 +65,7 @@ export function mapBackendError(
     // Map HTTP Status and Request URL Context to Frontend Error Codes
     switch (statusCode) {
       case 400:
-        code = 'VALIDATION_ERROR';
+        return new ValidationError(message, error);
         break;
       case 401:
         if (url.includes('/auth/login')) {

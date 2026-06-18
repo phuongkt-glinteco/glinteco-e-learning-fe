@@ -49,8 +49,7 @@ async function bootstrap() {
           {
             url: currentServerUrl,
             description: process.env.NODE_ENV === 'production' ? 'Môi trường Production (Vercel)' : 'Môi trường Local Development',
-          },
-          ...(parsedDoc.servers || []),
+          }
         ];
         document = parsedDoc;
         yamlContent = yaml.dump(document);

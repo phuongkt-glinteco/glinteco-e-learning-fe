@@ -104,3 +104,30 @@ Dự án được cấu trúc dạng monorepo gồm 2 thư mục chính:
 4. Truy cập ứng dụng tại địa chỉ: [http://localhost:6336](http://localhost:6336)
 
 Trang đăng nhập (Login) được định tuyến tại đường dẫn `/login` (tương ứng với [page.jsx](file:///home/phamhung/Work/glinteco-e-learning-fe/fe/src/app/login/page.jsx)).
+
+---
+
+## 🌐 Môi trường Trực tuyến (Production URLs)
+
+Hệ thống được triển khai tự động lên **Vercel** tích hợp cùng database đám mây **Supabase PostgreSQL** (Singapore):
+* **Cổng API Swagger Docs:** [https://be-teal-tau.vercel.app/api/v1/docs](https://be-teal-tau.vercel.app/api/v1/docs)
+* **Base API Endpoint:** [https://be-teal-tau.vercel.app](https://be-teal-tau.vercel.app)
+
+*Lưu ý: Môi trường trực tuyến tự động chuyển hướng các tệp tĩnh Swagger UI qua CDN để đảm bảo hiển thị đúng giao diện trên Vercel Serverless Lambdas.*
+
+---
+
+## 🔑 Cấu hình Google OAuth 2.0 (Đăng nhập Google)
+Hệ thống sử dụng Google Client ID cho cả môi trường phát triển cục bộ và trực tuyến:
+* **GOOGLE_CLIENT_ID:** `124638674818-rbtfgrnjb311gri42l3t4ujefl5j4l43.apps.googleusercontent.com`
+* **Cách thiết lập local:** Điền biến môi trường trên vào file `be/.env`.
+
+---
+
+## 🧪 Tài liệu Đặc tả Kiểm thử & Sử dụng API (Testing & API Guides)
+Tham khảo hướng dẫn chi tiết từng phân hệ tại thư mục `be/docs/`:
+* 🔑 **[Ma trận Phân quyền & Vai trò (roles.md)](be/docs/roles.md)**: Ma trận phân quyền `LEARNER`/`ADMIN` và unit test `RolesGuard`.
+* 🔒 **[Đặc tả & Kiểm thử Xác thực (auth.md)](be/docs/auth.md)**: Chi tiết kiểm thử Google Login, Refresh Token và Unit Test.
+* 📝 **[Đặc tả & Kiểm thử Bài nộp (submissions.md)](be/docs/submissions.md)**: Luồng kiểm thử nộp bài tập và duyệt bài nộp.
+* 🏫 **[Đặc tả & Kiểm thử Lớp học (cohorts.md)](be/docs/cohorts.md)**: Luồng kiểm thử quản lý Cohorts của Admin.
+* 🚀 **[Hướng dẫn Sử dụng API & Tài khoản kiểm thử (api_usage_guide.md)](be/docs/api_usage_guide.md)**: Hướng dẫn cURL, Postman và danh sách tài khoản kiểm thử mặc định (password: `rampup123`).

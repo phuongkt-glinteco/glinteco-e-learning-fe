@@ -2493,11 +2493,22 @@ paths:
       parameters:
         - name: cohortId
           in: query
-          description: Lọc bảng xếp hạng theo khóa học cụ thể. Nếu bỏ trống sẽ lấy bảng xếp hạng toàn công ty.
+          description: Lọc bảng xếp hạng theo khóa học cụ thể. Nếu bỏ trống và scope là cohort, hệ thống tự động lấy cohort của học viên hiện tại.
           required: false
           schema:
             type: string
             example: c_spring2026
+        - name: scope
+          in: query
+          description: Phạm vi bảng xếp hạng (cohort hoặc global). Nếu chọn cohort và không truyền cohortId, hệ thống tự động lấy cohort của học viên hiện tại.
+          required: false
+          schema:
+            type: string
+            enum:
+              - cohort
+              - global
+            default: global
+            example: global
         - name: limit
           in: query
           description: Số lượng học viên hiển thị tối đa trên bảng xếp hạng
@@ -2507,6 +2518,13 @@ paths:
             maximum: 100
             default: 10
             example: 3
+        - name: cursor
+          in: query
+          description: Con trỏ base64 dùng để phân trang dựa trên (level, xp, streakDays, createdAt, id)
+          required: false
+          schema:
+            type: string
+            example: eyJsaW1pdCI6MTAsImN1cnNvciI6eyJsZXZlbCI6MiwidHAiOjcyMCwic3RyZWFrRGF5cyI6Miwid3JlYXRlZEF0IjoiMjAyNi0wNi0xNlQxMDoxNTowMFoiLCJpZCI6InV1aWQifX0=
       responses:
         '200':
           description: Thành công.

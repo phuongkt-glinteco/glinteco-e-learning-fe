@@ -16,6 +16,26 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // Redirect Swagger UI static assets to CDN to avoid 404s in serverless environments
+  app.use((req: any, res: any, next: any) => {
+    if (req.url.includes('swagger-ui.css')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css');
+    }
+    if (req.url.includes('swagger-ui-bundle.js')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js');
+    }
+    if (req.url.includes('swagger-ui-standalone-preset.js')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js');
+    }
+    if (req.url.includes('favicon-32x32.png')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-32x32.png');
+    }
+    if (req.url.includes('favicon-16x16.png')) {
+      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-16x16.png');
+    }
+    next();
+  });
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -36,11 +56,21 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup(`${apiPrefix}/docs`, app, document);
+  SwaggerModule.setup(`${apiPrefix}/docs`, app, document, {
+    customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+    customJs: [
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+    ],
+  });
 
   const port = process.env.PORT || 5000;
   await app.listen(port);
-  console.log(`Application is running on: http://localhost:${port}/${apiPrefix}`);
-  console.log(`Swagger documentation is available at: http://localhost:${port}/${apiPrefix}/docs`);
+  console.log(
+    `Application is running on: http://localhost:${port}/${apiPrefix}`,
+  );
+  console.log(
+    `Swagger documentation is available at: http://localhost:${port}/${apiPrefix}/docs`,
+  );
 }
-bootstrap();
+void bootstrap();

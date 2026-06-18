@@ -2,6 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,8 +19,46 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Redirect Swagger UI static assets to CDN to avoid 404s in serverless environments
+  // Swagger OpenAPI Documentation - load first so it can be served via middleware
+  let yamlContent: string | null = null;
+  let document: any;
+  const yamlPaths = [
+    path.join(process.cwd(), 'docs/openapi.yaml'),
+    path.join(process.cwd(), '../docs/openapi.yaml'),
+    path.join(__dirname, '..', '..', 'docs/openapi.yaml'),
+  ];
+  let foundPath: string | null = null;
+  for (const p of yamlPaths) {
+    if (fs.existsSync(p)) {
+      foundPath = p;
+      break;
+    }
+  }
+
+  if (foundPath) {
+    console.log(`Loading OpenAPI Spec from: ${foundPath}`);
+    try {
+      yamlContent = fs.readFileSync(foundPath, 'utf8');
+      document = yaml.load(yamlContent);
+    } catch (err) {
+      console.error(`Error loading or parsing openapi.yaml:`, err);
+    }
+  }
+
+  // Redirect Swagger UI static assets to CDN and serve raw/JSON OpenAPI doc directly
   app.use((req: any, res: any, next: any) => {
+    if (req.url.endsWith('/openapi.yaml') || req.url.endsWith('/openapi.yml')) {
+      if (yamlContent) {
+        res.setHeader('Content-Type', 'text/yaml');
+        return res.send(yamlContent);
+      }
+    }
+    if (req.url.endsWith('/openapi.json')) {
+      if (document) {
+        res.setHeader('Content-Type', 'application/json');
+        return res.send(JSON.stringify(document, null, 2));
+      }
+    }
     if (req.url.includes('swagger-ui.css')) {
       return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css');
     }
@@ -45,17 +86,19 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger OpenAPI Documentation
-  const config = new DocumentBuilder()
-    .setTitle('RAMP UP — Engineering Onboarding Portal API')
-    .setDescription(
-      'Tài liệu đặc tả API (OpenAPI Specification) cho hệ thống **RAMP UP** (Glinteco e-Learning).',
-    )
-    .setVersion('1.0.0')
-    .addBearerAuth()
-    .build();
+  if (!document) {
+    console.log('Generating Swagger document dynamically...');
+    const config = new DocumentBuilder()
+      .setTitle('RAMP UP — Engineering Onboarding Portal API')
+      .setDescription(
+        'Tài liệu đặc tả API (OpenAPI Specification) cho hệ thống **RAMP UP** (Glinteco e-Learning).',
+      )
+      .setVersion('1.0.0')
+      .addBearerAuth()
+      .build();
+    document = SwaggerModule.createDocument(app, config);
+  }
 
-  const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(`${apiPrefix}/docs`, app, document, {
     customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
     customJs: [

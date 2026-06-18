@@ -2,7 +2,7 @@
 
 @theme {
   /* Colors */
-  --color-surface: #ffffff;
+  --color-surface: #f8f9ff;
   --color-surface-dim: #cbdbf5;
   --color-surface-bright: #f8f9ff;
   --color-surface-container-lowest: #ffffff;
@@ -10,19 +10,19 @@
   --color-surface-container: #e5eeff;
   --color-surface-container-high: #dce9ff;
   --color-surface-container-highest: #d3e4fe;
-  --color-on-surface: #0f172a;
-  --color-on-surface-variant: #64748b;
+  --color-on-surface: #0b1c30;
+  --color-on-surface-variant: #434655;
   --color-inverse-surface: #213145;
   --color-inverse-on-surface: #eaf1ff;
-  --color-outline: #e2e8f0;
+  --color-outline: #737686;
   --color-outline-variant: #c3c6d7;
   --color-surface-tint: #0053db;
-  --color-primary: #2563eb;
+  --color-primary: #004ac6;
   --color-on-primary: #ffffff;
   --color-primary-container: #2563eb;
   --color-on-primary-container: #eeefff;
   --color-inverse-primary: #b4c5ff;
-  --color-secondary: #7c3aed;
+  --color-secondary: #712ae2;
   --color-on-secondary: #ffffff;
   --color-secondary-container: #8a4cfc;
   --color-on-secondary-container: #fffbff;
@@ -46,28 +46,219 @@
   --color-tertiary-fixed-dim: #62df7d;
   --color-on-tertiary-fixed: #002109;
   --color-on-tertiary-fixed-variant: #005320;
-  --color-background: #f8fafc;
-  --color-on-background: #0f172a;
+  --color-background: #f8f9ff;
+  --color-on-background: #0b1c30;
   --color-surface-variant: #d3e4fe;
 
   /* Typography */
   --font-sans: 'Inter', sans-serif;
 
-  /* Spacing (Using --space-* instead of --spacing-* to avoid overriding Tailwind's max-w-* width sizes) */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
-  --space-container-max: 1280px;
-  --space-gutter: 24px;
-  --space-margin-mobile: 16px;
+
+
+
 
   /* Rounded corners */
+  --radius: 0.5rem;
   --radius-sm: 0.25rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0px 1px 3px 0px rgba(15, 23, 42, 0.05), 0px 1px 2px -1px rgba(15, 23, 42, 0.05);
+
+  /* Layout */
+  --width-sidebar: 256px;
+}
+
+/* --- UTILITIES CHO P- (PADDING ĐỀU 4 CẠNH) --- */
+@utility p-base { padding: 4px; }
+@utility p-xs   { padding: 4px; }
+@utility p-sm   { padding: 8px; }
+@utility p-md   { padding: 16px; }
+@utility p-lg   { padding: 24px; }
+@utility p-xl   { padding: 32px; }
+@utility p-2xl  { padding: 48px; }
+@utility p-3xl  { padding: 64px; }
+@utility p-gutter { padding: 24px; }
+@utility p-margin-mobile { padding: 16px; }
+
+/* --- UTILITIES CHO PX- (PADDING TRÁI / PHẢI) --- */
+@utility px-base { padding-left: 4px; padding-right: 4px; }
+@utility px-xs   { padding-left: 4px; padding-right: 4px; }
+@utility px-sm   { padding-left: 8px; padding-right: 8px; }
+@utility px-md   { padding-left: 16px; padding-right: 16px; }
+@utility px-lg   { padding-left: 24px; padding-right: 24px; }
+@utility px-xl   { padding-left: 32px; padding-right: 32px; }
+@utility px-2xl  { padding-left: 48px; padding-right: 48px; }
+@utility px-3xl  { padding-left: 64px; padding-right: 64px; }
+@utility px-gutter { padding-left: 24px; padding-right: 24px; }
+@utility px-margin-mobile { padding-left: 16px; padding-right: 16px; }
+
+/* --- UTILITIES CHO PY- (PADDING TRÊN / DƯỚI) --- */
+@utility py-base { padding-top: 4px; padding-bottom: 4px; }
+@utility py-xs   { padding-top: 4px; padding-bottom: 4px; }
+@utility py-sm   { padding-top: 8px; padding-bottom: 8px; }
+@utility py-md   { padding-top: 16px; padding-bottom: 16px; }
+@utility py-lg   { padding-top: 24px; padding-bottom: 24px; }
+@utility py-xl   { padding-top: 32px; padding-bottom: 32px; }
+@utility py-2xl  { padding-top: 48px; padding-bottom: 48px; }
+@utility py-3xl  { padding-top: 64px; padding-bottom: 64px; }
+@utility py-gutter { padding-top: 24px; padding-bottom: 24px; }
+@utility py-margin-mobile { padding-top: 16px; padding-bottom: 16px; }
+
+/* ==========================================================================
+   --- UTILITIES CHO MARGIN ---
+   ========================================================================== */
+
+/* --- M- (MARGIN ĐỀU 4 CẠNH) --- */
+@utility m-base { margin: 4px; }
+@utility m-xs   { margin: 4px; }
+@utility m-sm   { margin: 8px; }
+@utility m-md   { margin: 16px; }
+@utility m-lg   { margin: 24px; }
+@utility m-xl   { margin: 32px; }
+@utility m-2xl  { margin: 48px; }
+@utility m-3xl  { margin: 64px; }
+@utility m-gutter { margin: 24px; }
+@utility m-margin-mobile { margin: 16px; }
+
+/* --- MX- (MARGIN TRÁI / PHẢI) --- */
+@utility mx-base { margin-left: 4px; margin-right: 4px; }
+@utility mx-xs   { margin-left: 4px; margin-right: 4px; }
+@utility mx-sm   { margin-left: 8px; margin-right: 8px; }
+@utility mx-md   { margin-left: 16px; margin-right: 16px; }
+@utility mx-lg   { margin-left: 24px; margin-right: 24px; }
+@utility mx-xl   { margin-left: 32px; margin-right: 32px; }
+@utility mx-2xl  { margin-left: 48px; margin-right: 48px; }
+@utility mx-3xl  { margin-left: 64px; margin-right: 64px; }
+@utility mx-gutter { margin-left: 24px; margin-right: 24px; }
+@utility mx-margin-mobile { margin-left: 16px; margin-right: 16px; }
+
+/* --- MY- (MARGIN TRÊN / DƯỚI) --- */
+@utility my-base { margin-top: 4px; margin-bottom: 4px; }
+@utility my-xs   { margin-top: 4px; margin-bottom: 4px; }
+@utility my-sm   { margin-top: 8px; margin-bottom: 8px; }
+@utility my-md   { margin-top: 16px; margin-bottom: 16px; }
+@utility my-lg   { margin-top: 24px; margin-bottom: 24px; }
+@utility my-xl   { margin-top: 32px; margin-bottom: 32px; }
+@utility my-2xl  { margin-top: 48px; margin-bottom: 48px; }
+@utility my-3xl  { margin-top: 64px; margin-bottom: 64px; }
+@utility my-gutter { margin-top: 24px; margin-bottom: 24px; }
+@utility my-margin-mobile { margin-top: 16px; margin-bottom: 16px; }
+
+
+/* ==========================================================================
+   --- UTILITIES CHO GAP (FLEXBOX / GRID) ---
+   ========================================================================== */
+
+/* --- GAP- (KHOẢNG CÁCH CẢ 2 CHIỀU) --- */
+@utility gap-base { gap: 4px; }
+@utility gap-xs   { gap: 4px; }
+@utility gap-sm   { gap: 8px; }
+@utility gap-md   { gap: 16px; }
+@utility gap-lg   { gap: 24px; }
+@utility gap-xl   { gap: 32px; }
+@utility gap-2xl  { gap: 48px; }
+@utility gap-3xl  { gap: 64px; }
+@utility gap-gutter { gap: 24px; }
+@utility gap-margin-mobile { gap: 16px; }
+
+/* --- GAP-X- (KHOẢNG CÁCH THEO CHIỀU NGANG / CỘT) --- */
+@utility gap-x-base { column-gap: 4px; }
+@utility gap-x-xs   { column-gap: 4px; }
+@utility gap-x-sm   { column-gap: 8px; }
+@utility gap-x-md   { column-gap: 16px; }
+@utility gap-x-lg   { column-gap: 24px; }
+@utility gap-x-xl   { column-gap: 32px; }
+@utility gap-x-2xl  { column-gap: 48px; }
+@utility gap-x-3xl  { column-gap: 64px; }
+@utility gap-x-gutter { column-gap: 24px; }
+@utility gap-x-margin-mobile { column-gap: 16px; }
+
+/* --- GAP-Y- (KHOẢNG CÁCH THEO CHIỀU DỌC / HÀNG) --- */
+@utility gap-y-base { row-gap: 4px; }
+@utility gap-y-xs   { row-gap: 4px; }
+@utility gap-y-sm   { row-gap: 8px; }
+@utility gap-y-md   { row-gap: 16px; }
+@utility gap-y-lg   { row-gap: 24px; }
+@utility gap-y-xl   { row-gap: 32px; }
+@utility gap-y-2xl  { row-gap: 48px; }
+@utility gap-y-3xl  { row-gap: 64px; }
+@utility gap-y-gutter { row-gap: 24px; }
+@utility gap-y-margin-mobile { row-gap: 16px; }
+
+@utility headline-lg {
+  font-family: 'Inter', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+  letter-spacing: -0.02em;
+}
+
+@utility headline-lg-mobile {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+@utility headline-md {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+
+@utility headline-sm {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+@utility body-lg {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28px;
+}
+
+@utility body-md {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+@utility body-sm {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+@utility label-md {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+@utility label-sm {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.02em;
+}
+
+@utility code {
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
 }

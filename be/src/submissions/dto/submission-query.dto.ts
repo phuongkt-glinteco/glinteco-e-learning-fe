@@ -53,17 +53,6 @@ export class SubmissionQueryDto {
   exerciseId?: string;
 
   @ApiPropertyOptional({
-    description: 'Trang cần lấy dữ liệu.',
-    default: 1,
-    minimum: 1,
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt({ message: 'Trang (page) phải là số nguyên' })
-  @Min(1, { message: 'Trang tối thiểu là 1' })
-  page?: number = 1;
-
-  @ApiPropertyOptional({
     description: 'Số lượng bài nộp trên mỗi trang.',
     default: 10,
     minimum: 1,
@@ -77,19 +66,10 @@ export class SubmissionQueryDto {
   limit?: number = 10;
 
   @ApiPropertyOptional({
-    description: 'Trường sắp xếp kết quả.',
-    default: 'submittedAt',
+    description: 'Con trỏ (cursor) phục vụ phân trang',
+    example: 'eyJpZCI6ImRiNmE2NzYzIn0=',
   })
   @IsOptional()
-  @IsString({ message: 'Trường sắp xếp phải là chuỗi' })
-  sortBy?: string = 'submittedAt';
-
-  @ApiPropertyOptional({
-    description: 'Thứ tự sắp xếp kết quả (tăng dần hoặc giảm dần).',
-    enum: SortOrder,
-    default: SortOrder.ASC,
-  })
-  @IsOptional()
-  @IsEnum(SortOrder, { message: 'Thứ tự sắp xếp không hợp lệ (ASC hoặc DESC)' })
-  sortOrder?: SortOrder = SortOrder.ASC;
+  @IsString({ message: 'Con trỏ phải là chuỗi' })
+  cursor?: string;
 }

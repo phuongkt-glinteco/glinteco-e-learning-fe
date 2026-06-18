@@ -4,8 +4,14 @@ import { CohortService } from './cohort.service';
 import { Cohort } from '../database/entities/cohort.entity';
 import { User, UserRole } from '../database/entities/user.entity';
 import { Track } from '../database/entities/track.entity';
-import { TrackProgress, ProgressStatus } from '../database/entities/track-progress.entity';
-import { Submission, SubmissionStatus } from '../database/entities/submission.entity';
+import {
+  TrackProgress,
+  ProgressStatus,
+} from '../database/entities/track-progress.entity';
+import {
+  Submission,
+  SubmissionStatus,
+} from '../database/entities/submission.entity';
 import { Lesson } from '../database/entities/lesson.entity';
 import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { CreateCohortDto } from './dto/create-cohort.dto';
@@ -223,28 +229,48 @@ describe('CohortService', () => {
       mockCohortRepository.findOne.mockResolvedValue(cohort);
 
       const learners = [
-        { id: 'user-1', name: 'Mina', email: 'mina@acme.dev', role: UserRole.LEARNER, createdAt: new Date() },
+        {
+          id: 'user-1',
+          name: 'Mina',
+          email: 'mina@acme.dev',
+          role: UserRole.LEARNER,
+          createdAt: new Date(),
+        },
       ];
       mockUserRepository.find.mockResolvedValue(learners);
       mockLessonRepository.count.mockResolvedValue(10);
-      
+
       const queryBuilder = {
         select: jest.fn().mockReturnThis(),
         addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([{ userId: 'user-1', count: '5' }]),
+        getRawMany: jest
+          .fn()
+          .mockResolvedValue([{ userId: 'user-1', count: '5' }]),
       };
-      mockLessonProgressRepository.createQueryBuilder.mockReturnValue(queryBuilder as any);
+      mockLessonProgressRepository.createQueryBuilder.mockReturnValue(
+        queryBuilder as any,
+      );
       mockSubmissionRepository.count.mockResolvedValue(2);
       mockSubmissionRepository.findOne.mockResolvedValue({
         submittedAt: new Date(Date.now() - 3600000 * 3), // 3h ago
       });
       mockTrackRepository.count.mockResolvedValue(2);
       mockTrackProgressRepository.find.mockResolvedValue([
-        { userId: 'user-1', trackId: 'track-1', status: ProgressStatus.COMPLETED, completedAt: new Date() },
-        { userId: 'user-1', trackId: 'track-2', status: ProgressStatus.COMPLETED, completedAt: new Date() },
+        {
+          userId: 'user-1',
+          trackId: 'track-1',
+          status: ProgressStatus.COMPLETED,
+          completedAt: new Date(),
+        },
+        {
+          userId: 'user-1',
+          trackId: 'track-2',
+          status: ProgressStatus.COMPLETED,
+          completedAt: new Date(),
+        },
       ]);
 
       const result = await service.getOverview('cohort-1');
@@ -256,12 +282,32 @@ describe('CohortService', () => {
       expect(result.avgRampDays).toBeDefined();
       expect(result.targetRampDays).toBe(14);
     });
+
+    it('should return overview stats correctly when cohort has no learners', async () => {
+      const cohort = { id: 'cohort-1', name: 'Batch 1', targetRampDays: 14 };
+      mockCohortRepository.findOne.mockResolvedValue(cohort);
+      mockUserRepository.find.mockResolvedValue([]);
+      mockLessonRepository.count.mockResolvedValue(10);
+      mockTrackRepository.count.mockResolvedValue(2);
+
+      const result = await service.getOverview('cohort-1');
+      expect(result).toBeDefined();
+      expect(result.activeLearners).toBe(0);
+      expect(result.avgCompletion).toBe(0);
+      expect(result.pendingReview).toBe(0);
+      expect(result.oldestPendingAgo).toBe('0m');
+      expect(result.avgRampDays).toBe(0);
+      expect(result.targetRampDays).toBe(14);
+    });
   });
 
   describe('getTrackCompletion', () => {
     it('should return track completion rate array', async () => {
       mockCohortRepository.findOne.mockResolvedValue({ id: 'cohort-1' });
-      mockUserRepository.find.mockResolvedValue([{ id: 'user-1' }, { id: 'user-2' }]);
+      mockUserRepository.find.mockResolvedValue([
+        { id: 'user-1' },
+        { id: 'user-2' },
+      ]);
       mockTrackRepository.find.mockResolvedValue([
         { id: 't1', name: 'Track 1', order: 1 },
       ]);
@@ -280,7 +326,13 @@ describe('CohortService', () => {
     it('should return CSV text', async () => {
       mockCohortRepository.findOne.mockResolvedValue({ id: 'cohort-1' });
       mockUserRepository.find.mockResolvedValue([
-        { id: 'user-1', name: 'Mina', email: 'mina@acme.dev', xp: 500, level: 2 },
+        {
+          id: 'user-1',
+          name: 'Mina',
+          email: 'mina@acme.dev',
+          xp: 500,
+          level: 2,
+        },
       ]);
       mockLessonRepository.count.mockResolvedValue(10);
       mockLessonProgressRepository.count.mockResolvedValue(4);
@@ -288,8 +340,33 @@ describe('CohortService', () => {
       mockSubmissionRepository.count.mockResolvedValue(1);
 
       const csv = await service.exportReport('cohort-1');
-      expect(csv).toContain('name,email,completion,xp,level,tracksCompleted,exercisesApproved');
+      expect(csv).toContain(
+        'name,email,completion,xp,level,tracksCompleted,exercisesApproved',
+      );
       expect(csv).toContain('Mina,mina@acme.dev,40,500,2,1,1');
+    });
+
+    it('should handle null or undefined name and email in CSV output', async () => {
+      mockCohortRepository.findOne.mockResolvedValue({ id: 'cohort-1' });
+      mockUserRepository.find.mockResolvedValue([
+        {
+          id: 'user-2',
+          name: null,
+          email: null,
+          xp: 100,
+          level: 1,
+        },
+      ]);
+      mockLessonRepository.count.mockResolvedValue(10);
+      mockLessonProgressRepository.count.mockResolvedValue(0);
+      mockTrackProgressRepository.count.mockResolvedValue(0);
+      mockSubmissionRepository.count.mockResolvedValue(0);
+
+      const csv = await service.exportReport('cohort-1');
+      expect(csv).toContain(
+        'name,email,completion,xp,level,tracksCompleted,exercisesApproved',
+      );
+      expect(csv).toContain(',,0,100,1,0,0');
     });
   });
 });

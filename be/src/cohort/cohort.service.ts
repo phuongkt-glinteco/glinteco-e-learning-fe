@@ -8,8 +8,14 @@ import { Repository, In, Not, IsNull } from 'typeorm';
 import { Cohort } from '../database/entities/cohort.entity';
 import { User, UserRole } from '../database/entities/user.entity';
 import { Track } from '../database/entities/track.entity';
-import { TrackProgress, ProgressStatus } from '../database/entities/track-progress.entity';
-import { Submission, SubmissionStatus } from '../database/entities/submission.entity';
+import {
+  TrackProgress,
+  ProgressStatus,
+} from '../database/entities/track-progress.entity';
+import {
+  Submission,
+  SubmissionStatus,
+} from '../database/entities/submission.entity';
 import { Lesson } from '../database/entities/lesson.entity';
 import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { CreateCohortDto } from './dto/create-cohort.dto';
@@ -111,7 +117,9 @@ export class CohortService {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const newThisWeek = learners.filter((u) => u.createdAt >= sevenDaysAgo).length;
+    const newThisWeek = learners.filter(
+      (u) => u.createdAt >= sevenDaysAgo,
+    ).length;
 
     const totalLessons = await this.lessonRepository.count();
     const learnerIds = learners.map((l) => l.id);
@@ -128,7 +136,9 @@ export class CohortService {
         .getRawMany();
 
       const progressMap = new Map<string, number>();
-      progressCounts.forEach((p) => progressMap.set(p.userId, parseInt(p.count, 10)));
+      progressCounts.forEach((p) =>
+        progressMap.set(p.userId, parseInt(p.count, 10)),
+      );
 
       const totalPct = learners.reduce((sum, l) => {
         const completed = progressMap.get(l.id) || 0;
@@ -257,12 +267,17 @@ export class CohortService {
 
     const trackCompletedCount = new Map<string, number>();
     completedProgresses.forEach((p) => {
-      trackCompletedCount.set(p.trackId, (trackCompletedCount.get(p.trackId) || 0) + 1);
+      trackCompletedCount.set(
+        p.trackId,
+        (trackCompletedCount.get(p.trackId) || 0) + 1,
+      );
     });
 
     const data = tracks.map((t) => {
       const completedCount = trackCompletedCount.get(t.id) || 0;
-      const completionPct = Math.round((completedCount / learners.length) * 100);
+      const completionPct = Math.round(
+        (completedCount / learners.length) * 100,
+      );
       return {
         trackId: t.id,
         title: t.name,
@@ -282,14 +297,18 @@ export class CohortService {
 
     const totalLessons = await this.lessonRepository.count();
 
-    const csvRows = ['name,email,completion,xp,level,tracksCompleted,exercisesApproved'];
+    const csvRows = [
+      'name,email,completion,xp,level,tracksCompleted,exercisesApproved',
+    ];
 
     for (const learner of learners) {
       const completedLessons = await this.lessonProgressRepository.count({
         where: { userId: learner.id, completedAt: Not(IsNull()) },
       });
       const completion =
-        totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+        totalLessons > 0
+          ? Math.round((completedLessons / totalLessons) * 100)
+          : 0;
 
       const tracksCompleted = await this.trackProgressRepository.count({
         where: { userId: learner.id, status: ProgressStatus.COMPLETED },
@@ -299,8 +318,10 @@ export class CohortService {
         where: { userId: learner.id, status: SubmissionStatus.APPROVED },
       });
 
-      const name = learner.name.includes(',') ? `"${learner.name}"` : learner.name;
-      const email = learner.email.includes(',') ? `"${learner.email}"` : learner.email;
+      const nameStr = learner.name || '';
+      const emailStr = learner.email || '';
+      const name = nameStr.includes(',') ? `"${nameStr}"` : nameStr;
+      const email = emailStr.includes(',') ? `"${emailStr}"` : emailStr;
 
       csvRows.push(
         `${name},${email},${completion},${learner.xp},${learner.level},${tracksCompleted},${exercisesApproved}`,

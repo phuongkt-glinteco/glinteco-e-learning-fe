@@ -169,24 +169,29 @@ export class AuthService {
   }
 
   /** Sign an access/refresh pair and persist a revocable handle for the refresh token. */
-  private async issueTokens(user: User, rememberMe = true): Promise<AuthTokensDto> {
+  private async issueTokens(
+    user: User,
+    rememberMe = true,
+  ): Promise<AuthTokensDto> {
     const accessExpiresIn = this.getAccessExpiresIn();
-    const refreshExpiresIn = rememberMe
-      ? this.getRefreshExpiresIn()
-      : 86400; // 1 day if rememberMe is false
+    const refreshExpiresIn = rememberMe ? this.getRefreshExpiresIn() : 86400; // 1 day if rememberMe is false
     const jti = randomUUID();
 
     const accessPayload: JwtPayload = { sub: user.id, email: user.email };
-    const refreshPayload: RefreshTokenPayload = { sub: user.id, jti, rememberMe };
+    const refreshPayload: RefreshTokenPayload = {
+      sub: user.id,
+      jti,
+      rememberMe,
+    };
 
     const accessToken = await this.jwtService.signAsync(accessPayload, {
       secret: this.getAccessSecret(),
       expiresIn: accessExpiresIn,
-    } as any);
+    });
     const refreshToken = await this.jwtService.signAsync(refreshPayload, {
       secret: this.getRefreshSecret(),
       expiresIn: refreshExpiresIn,
-    } as any);
+    });
 
     await this.refreshTokenRepository.save(
       this.refreshTokenRepository.create({
@@ -370,7 +375,10 @@ export class AuthService {
     return { message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.' };
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
     const hashedToken = createHash('sha256').update(token).digest('hex');
 
     const user = await this.userRepository.findOne({
@@ -381,7 +389,9 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new BadRequestException('Mã khôi phục mật khẩu không hợp lệ hoặc đã qua sử dụng');
+      throw new BadRequestException(
+        'Mã khôi phục mật khẩu không hợp lệ hoặc đã qua sử dụng',
+      );
     }
 
     if (!user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
@@ -399,4 +409,3 @@ export class AuthService {
     return { message: 'Mật khẩu đã được thay đổi thành công.' };
   }
 }
-

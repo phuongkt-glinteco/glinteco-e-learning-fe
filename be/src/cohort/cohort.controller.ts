@@ -56,7 +56,9 @@ export class CohortController {
   }
 
   @Get(':id/overview')
-  @ApiOperation({ summary: 'Lấy thông tin tổng quan số liệu của Cohort (Admin only)' })
+  @ApiOperation({
+    summary: 'Lấy thông tin tổng quan số liệu của Cohort (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Lấy thông tin thành công.' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
@@ -65,7 +67,9 @@ export class CohortController {
   }
 
   @Get(':id/track-completion')
-  @ApiOperation({ summary: 'Lấy tỷ lệ hoàn thành các track của Cohort (Admin only)' })
+  @ApiOperation({
+    summary: 'Lấy tỷ lệ hoàn thành các track của Cohort (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Lấy thông tin thành công.' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
@@ -74,14 +78,14 @@ export class CohortController {
   }
 
   @Get(':id/export')
-  @ApiOperation({ summary: 'Xuất báo cáo tiến độ học viên của Cohort dưới dạng CSV (Admin only)' })
+  @ApiOperation({
+    summary:
+      'Xuất báo cáo tiến độ học viên của Cohort dưới dạng CSV (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Xuất báo cáo thành công.' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
-  async exportReport(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Res() res: any,
-  ) {
+  async exportReport(@Param('id', ParseUUIDPipe) id: string, @Res() res: any) {
     const csv = await this.cohortService.exportReport(id);
     res.header('Content-Type', 'text/csv');
     res.attachment(`cohort-${id}-report.csv`);

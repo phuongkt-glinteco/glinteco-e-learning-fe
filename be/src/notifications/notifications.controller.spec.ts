@@ -42,20 +42,31 @@ describe('NotificationsController', () => {
 
   describe('findAll', () => {
     it('should call service.findAll', async () => {
-      mockNotificationsService.findAll.mockResolvedValue({ data: [], unreadCount: 0 });
+      mockNotificationsService.findAll.mockResolvedValue({
+        data: [],
+        unreadCount: 0,
+      });
 
       const result = await controller.findAll(mockUser);
-      expect(mockNotificationsService.findAll).toHaveBeenCalledWith(mockUser.id);
+      expect(mockNotificationsService.findAll).toHaveBeenCalledWith(
+        mockUser.id,
+      );
       expect(result).toEqual({ data: [], unreadCount: 0 });
     });
   });
 
   describe('markRead', () => {
     it('should call service.markRead', async () => {
-      mockNotificationsService.markRead.mockResolvedValue({ id: 'n1', read: true });
+      mockNotificationsService.markRead.mockResolvedValue({
+        id: 'n1',
+        read: true,
+      });
 
       const result = await controller.markRead('n1', mockUser);
-      expect(mockNotificationsService.markRead).toHaveBeenCalledWith('n1', mockUser.id);
+      expect(mockNotificationsService.markRead).toHaveBeenCalledWith(
+        'n1',
+        mockUser.id,
+      );
       expect(result).toEqual({ id: 'n1', read: true });
     });
   });

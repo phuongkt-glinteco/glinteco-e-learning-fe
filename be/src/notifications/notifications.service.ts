@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from '../database/entities/notification.entity';
@@ -10,7 +14,12 @@ export class NotificationsService {
     private readonly notificationRepository: Repository<Notification>,
   ) {}
 
-  async create(userId: string, type: string, title: string, body: string): Promise<Notification> {
+  async create(
+    userId: string,
+    type: string,
+    title: string,
+    body: string,
+  ): Promise<Notification> {
     const notification = this.notificationRepository.create({
       userId,
       type,

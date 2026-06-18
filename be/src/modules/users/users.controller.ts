@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Body,
   Param,
@@ -50,7 +51,9 @@ export class UsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Lấy thông tin chi tiết một người dùng (Admin hoặc chính chủ)' })
+  @ApiOperation({
+    summary: 'Lấy thông tin chi tiết một người dùng (Admin hoặc chính chủ)',
+  })
   @ApiResponse({ status: 200, description: 'Lấy chi tiết thành công.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy người dùng.' })
@@ -79,5 +82,13 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Lấy chỉ số thành công.' })
   async getStats(@CurrentUser() currentUser: User) {
     return this.usersService.getStats(currentUser.id);
+  }
+
+  @Post('me/claim-xp')
+  @ApiOperation({ summary: 'Điểm danh hàng ngày nhận XP và tích streak' })
+  @ApiResponse({ status: 200, description: 'Điểm danh nhận XP thành công.' })
+  @ApiResponse({ status: 400, description: 'Bạn đã nhận XP ngày hôm nay rồi.' })
+  async claimDailyXp(@CurrentUser() currentUser: User) {
+    return this.usersService.claimDailyXp(currentUser.id);
   }
 }

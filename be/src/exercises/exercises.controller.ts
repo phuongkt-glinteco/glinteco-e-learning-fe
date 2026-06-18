@@ -44,12 +44,11 @@ export class ExercisesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Lấy danh sách bài tập thực hành kèm trạng thái bài nộp cá nhân' })
+  @ApiOperation({
+    summary: 'Lấy danh sách bài tập thực hành kèm trạng thái bài nộp cá nhân',
+  })
   @ApiResponse({ status: 200, description: 'Lấy danh sách thành công.' })
-  findAll(
-    @Query() query: ExerciseQueryDto,
-    @CurrentUser() currentUser: User,
-  ) {
+  findAll(@Query() query: ExerciseQueryDto, @CurrentUser() currentUser: User) {
     return this.exercisesService.findAll(query, currentUser.id);
   }
 

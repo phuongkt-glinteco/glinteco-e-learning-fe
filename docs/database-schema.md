@@ -65,6 +65,9 @@ This document provides a detailed overview of the TypeORM entities designed for 
 - **createdAt**: TIMESTAMP
 - **updatedAt**: TIMESTAMP
 
+> [!NOTE]
+> Lesson-level metadata shown on the UI (duration/read time, difficulty, XP) is dynamically retrieved from the parent Track's associated `Exercise` details to avoid database redundancy.
+
 **Relationships:**
 - **Many-to-One** with `Track` (A lesson belongs to a track).
 
@@ -91,6 +94,13 @@ This document provides a detailed overview of the TypeORM entities designed for 
 - **id**: UUID (Primary Key)
 - **trackId**: UUID (Foreign Key to `tracks.id`)
 - **title**: VARCHAR
+- **tag**: VARCHAR
+- **difficulty**: ENUM (`Beginner`, `Intermediate`, `Advanced`) - Default: `Intermediate`
+- **estimatedTime**: VARCHAR - Default: `1h`
+- **xp**: INT - Default: 0
+- **brief**: TEXT
+- **overview**: TEXT
+- **hint**: TEXT (Nullable)
 - **objectives**: JSONB (Nullable)
 - **steps**: JSONB (Nullable)
 - **createdAt**: TIMESTAMP
@@ -99,6 +109,7 @@ This document provides a detailed overview of the TypeORM entities designed for 
 **Relationships:**
 - **Many-to-One** with `Track`
 - **One-to-Many** with `Submission`
+- **Many-to-Many** with `Document` (Using junction table `exercise_documents`)
 
 ---
 
@@ -122,17 +133,16 @@ This document provides a detailed overview of the TypeORM entities designed for 
 ### 8. SubmissionHistory (`submission_histories` table)
 - **id**: UUID (Primary Key)
 - **submissionId**: UUID (Foreign Key to `submissions.id`)
-- **adminId**: UUID (Foreign Key to `users.id`)
-- **action**: VARCHAR (e.g., `approve`, `request_changes`)
+- **adminId**: UUID (Foreign Key to `users.id`, Nullable)
+- **prUrl**: VARCHAR (Nullable)
+- **action**: VARCHAR (e.g., `submitted`, `resubmitted`, `approve`, `request_changes`)
 - **comment**: TEXT (Nullable)
 - **createdAt**: TIMESTAMP
 - **updatedAt**: TIMESTAMP
 
 **Relationships:**
 - **Many-to-One** with `Submission`
-- **Many-to-One** with `User` (Admin)
-
----
+- **Many-to-One** with `User` (Admin, Nullable)
 
 ### 9. Document (`documents` table)
 - **id**: UUID (Primary Key)

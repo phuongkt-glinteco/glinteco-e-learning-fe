@@ -18,16 +18,19 @@ export class SubmissionHistory {
   @Column()
   submissionId: string;
 
-  @Column()
-  adminId: string;
+  @Column({ nullable: true })
+  adminId?: string | null;
 
   @ManyToOne(() => Submission, (submission) => submission.histories)
   @JoinColumn({ name: 'submissionId' })
   submission: Submission;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'adminId' })
-  admin: User;
+  admin?: User | null;
+
+  @Column({ name: 'pr_url', type: 'varchar', nullable: true })
+  prUrl?: string | null;
 
   @Column()
   action: string;

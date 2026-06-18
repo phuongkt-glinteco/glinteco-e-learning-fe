@@ -102,10 +102,14 @@ describe('CohortController', () => {
           { trackId: 't1', title: 'Local Dev Environment', completionPct: 92 },
         ],
       };
-      mockCohortService.getTrackCompletion.mockResolvedValue(expectedTrackCompletion);
+      mockCohortService.getTrackCompletion.mockResolvedValue(
+        expectedTrackCompletion,
+      );
 
       const result = await controller.getTrackCompletion('uuid-1');
-      expect(mockCohortService.getTrackCompletion).toHaveBeenCalledWith('uuid-1');
+      expect(mockCohortService.getTrackCompletion).toHaveBeenCalledWith(
+        'uuid-1',
+      );
       expect(result).toEqual(expectedTrackCompletion);
     });
   });

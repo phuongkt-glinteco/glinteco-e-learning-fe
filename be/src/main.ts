@@ -41,15 +41,19 @@ async function bootstrap() {
       const rawYaml = fs.readFileSync(foundPath, 'utf8');
       const parsedDoc = yaml.load(rawYaml) as any;
       if (parsedDoc && typeof parsedDoc === 'object') {
-        const currentServerUrl = process.env.NODE_ENV === 'production'
-          ? 'https://be-teal-tau.vercel.app/api/v1'
-          : `http://localhost:${process.env.PORT || 5000}/${apiPrefix}`;
+        const currentServerUrl =
+          process.env.NODE_ENV === 'production'
+            ? 'https://be-teal-tau.vercel.app/api/v1'
+            : `http://localhost:${process.env.PORT || 5000}/${apiPrefix}`;
 
         parsedDoc.servers = [
           {
             url: currentServerUrl,
-            description: process.env.NODE_ENV === 'production' ? 'Môi trường Production (Vercel)' : 'Môi trường Local Development',
-          }
+            description:
+              process.env.NODE_ENV === 'production'
+                ? 'Môi trường Production (Vercel)'
+                : 'Môi trường Local Development',
+          },
         ];
         document = parsedDoc;
         yamlContent = yaml.dump(document);
@@ -77,19 +81,29 @@ async function bootstrap() {
       }
     }
     if (req.url.includes('swagger-ui.css')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+      );
     }
     if (req.url.includes('swagger-ui-bundle.js')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
+      );
     }
     if (req.url.includes('swagger-ui-standalone-preset.js')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+      );
     }
     if (req.url.includes('favicon-32x32.png')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-32x32.png');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-32x32.png',
+      );
     }
     if (req.url.includes('favicon-16x16.png')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-16x16.png');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-16x16.png',
+      );
     }
     next();
   });
@@ -117,7 +131,8 @@ async function bootstrap() {
   }
 
   SwaggerModule.setup(`${apiPrefix}/docs`, app, document, {
-    customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+    customCssUrl:
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
     customJs: [
       'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
       'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',

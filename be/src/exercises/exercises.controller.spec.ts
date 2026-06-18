@@ -79,7 +79,10 @@ describe('ExercisesController', () => {
       mockExercisesService.findAll.mockResolvedValue({ data: [] });
 
       const result = await controller.findAll(query, mockUser);
-      expect(mockExercisesService.findAll).toHaveBeenCalledWith(query, mockUser.id);
+      expect(mockExercisesService.findAll).toHaveBeenCalledWith(
+        query,
+        mockUser.id,
+      );
       expect(result).toEqual({ data: [] });
     });
   });
@@ -89,7 +92,10 @@ describe('ExercisesController', () => {
       mockExercisesService.findOne.mockResolvedValue({ id: 'ex-1' });
 
       const result = await controller.findOne('ex-1', mockUser);
-      expect(mockExercisesService.findOne).toHaveBeenCalledWith('ex-1', mockUser.id);
+      expect(mockExercisesService.findOne).toHaveBeenCalledWith(
+        'ex-1',
+        mockUser.id,
+      );
       expect(result).toEqual({ id: 'ex-1' });
     });
   });
@@ -97,7 +103,10 @@ describe('ExercisesController', () => {
   describe('update', () => {
     it('should call service.update', async () => {
       const dto: UpdateExerciseDto = { title: 'Updated' };
-      mockExercisesService.update.mockResolvedValue({ id: 'ex-1', title: 'Updated' });
+      mockExercisesService.update.mockResolvedValue({
+        id: 'ex-1',
+        title: 'Updated',
+      });
 
       const result = await controller.update('ex-1', dto);
       expect(mockExercisesService.update).toHaveBeenCalledWith('ex-1', dto);

@@ -1,10 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ExercisesService } from './exercises.service';
-import { Exercise, ExerciseDifficulty } from '../database/entities/exercise.entity';
+import {
+  Exercise,
+  ExerciseDifficulty,
+} from '../database/entities/exercise.entity';
 import { Track } from '../database/entities/track.entity';
 import { Document } from '../database/entities/document.entity';
-import { Submission, SubmissionStatus } from '../database/entities/submission.entity';
+import {
+  Submission,
+  SubmissionStatus,
+} from '../database/entities/submission.entity';
 import { NotFoundException } from '@nestjs/common';
 
 describe('ExercisesService', () => {
@@ -82,10 +88,14 @@ describe('ExercisesService', () => {
       mockTrackRepository.findOne.mockResolvedValue({ id: 'track-1' });
       mockDocumentRepository.findBy.mockResolvedValue([{ id: 'doc-1' }]);
       mockExerciseRepository.create.mockReturnValue({ id: 'ex-1', ...dto });
-      mockExerciseRepository.save.mockImplementation((ex) => Promise.resolve(ex));
+      mockExerciseRepository.save.mockImplementation((ex) =>
+        Promise.resolve(ex),
+      );
 
       const result = await service.create(dto);
-      expect(mockTrackRepository.findOne).toHaveBeenCalledWith({ where: { id: 'track-1' } });
+      expect(mockTrackRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 'track-1' },
+      });
       expect(mockDocumentRepository.findBy).toHaveBeenCalled();
       expect(result).toBeDefined();
       expect(result.title).toBe('New Ex');
@@ -127,7 +137,12 @@ describe('ExercisesService', () => {
         },
       ]);
       mockSubmissionRepository.find.mockResolvedValue([
-        { id: 'sub-1', exerciseId: 'ex-1', status: SubmissionStatus.SUBMITTED, prUrl: 'github.com/pr' },
+        {
+          id: 'sub-1',
+          exerciseId: 'ex-1',
+          status: SubmissionStatus.SUBMITTED,
+          prUrl: 'github.com/pr',
+        },
       ]);
 
       const result = await service.findAll({ limit: 20 }, 'user-1');
@@ -165,7 +180,9 @@ describe('ExercisesService', () => {
 
     it('should throw NotFoundException if exercise not found', async () => {
       mockExerciseRepository.findOne.mockResolvedValue(null);
-      await expect(service.findOne('ex-1', 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('ex-1', 'user-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -177,7 +194,9 @@ describe('ExercisesService', () => {
         resources: [],
       };
       mockExerciseRepository.findOne.mockResolvedValue(existing);
-      mockExerciseRepository.save.mockImplementation((ex) => Promise.resolve(ex));
+      mockExerciseRepository.save.mockImplementation((ex) =>
+        Promise.resolve(ex),
+      );
 
       const result = await service.update('ex-1', { title: 'New Title' });
       expect(result.title).toBe('New Title');

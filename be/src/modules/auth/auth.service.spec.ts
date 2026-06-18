@@ -263,7 +263,9 @@ describe('AuthService', () => {
       const savedRow = refreshTokenRepository.save.mock
         .calls[0][0] as RefreshToken;
       const expectedExpiry = Date.now() + 86400 * 1000;
-      expect(Math.abs(savedRow.expiresAt.getTime() - expectedExpiry)).toBeLessThan(5000);
+      expect(
+        Math.abs(savedRow.expiresAt.getTime() - expectedExpiry),
+      ).toBeLessThan(5000);
       const refreshPayload = jwtService.signAsync.mock.calls[1][0] as {
         rememberMe: boolean;
       };
@@ -288,7 +290,9 @@ describe('AuthService', () => {
       const savedRow = refreshTokenRepository.save.mock
         .calls[0][0] as RefreshToken;
       const expectedExpiry = Date.now() + 604800 * 1000;
-      expect(Math.abs(savedRow.expiresAt.getTime() - expectedExpiry)).toBeLessThan(5000);
+      expect(
+        Math.abs(savedRow.expiresAt.getTime() - expectedExpiry),
+      ).toBeLessThan(5000);
       const refreshPayload = jwtService.signAsync.mock.calls[1][0] as {
         rememberMe: boolean;
       };
@@ -678,9 +682,9 @@ describe('AuthService', () => {
       it('should throw BadRequestException if email does not exist', async () => {
         usersService.findByEmail.mockResolvedValue(null);
 
-        await expect(service.forgotPassword('nonexistent@company.com')).rejects.toThrow(
-          BadRequestException,
-        );
+        await expect(
+          service.forgotPassword('nonexistent@company.com'),
+        ).rejects.toThrow(BadRequestException);
       });
 
       it('should generate token, set expiry and update user, logging mock email', async () => {
@@ -689,7 +693,9 @@ describe('AuthService', () => {
 
         const result = await service.forgotPassword('user@company.com');
 
-        expect(result).toEqual({ message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.' });
+        expect(result).toEqual({
+          message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.',
+        });
         expect(userRepository.update).toHaveBeenCalledWith(
           'user-123',
           expect.objectContaining({
@@ -704,9 +710,9 @@ describe('AuthService', () => {
       it('should throw BadRequestException if token is invalid', async () => {
         userRepository.findOne.mockResolvedValue(null);
 
-        await expect(service.resetPassword('invalid-token', 'new-password')).rejects.toThrow(
-          BadRequestException,
-        );
+        await expect(
+          service.resetPassword('invalid-token', 'new-password'),
+        ).rejects.toThrow(BadRequestException);
       });
 
       it('should throw BadRequestException if token is expired', async () => {
@@ -718,9 +724,9 @@ describe('AuthService', () => {
         });
         userRepository.findOne.mockResolvedValue(user);
 
-        await expect(service.resetPassword('expired-token', 'new-password')).rejects.toThrow(
-          BadRequestException,
-        );
+        await expect(
+          service.resetPassword('expired-token', 'new-password'),
+        ).rejects.toThrow(BadRequestException);
       });
 
       it('should hash new password, clear token/expiry, and update user', async () => {
@@ -732,9 +738,14 @@ describe('AuthService', () => {
         });
         userRepository.findOne.mockResolvedValue(user);
 
-        const result = await service.resetPassword('valid-token', 'NewSecurePassword123');
+        const result = await service.resetPassword(
+          'valid-token',
+          'NewSecurePassword123',
+        );
 
-        expect(result).toEqual({ message: 'Mật khẩu đã được thay đổi thành công.' });
+        expect(result).toEqual({
+          message: 'Mật khẩu đã được thay đổi thành công.',
+        });
         expect(userRepository.update).toHaveBeenCalledWith(
           'user-123',
           expect.objectContaining({

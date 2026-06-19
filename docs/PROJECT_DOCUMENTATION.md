@@ -183,6 +183,9 @@ List endpoints use **cursor pagination** (`?cursor=&limit=` → `{ data, nextCur
 | `POST` | `/auth/reset-password` | public | Reset password with token. |
 | `GET`  | `/auth/me` | auth | Current user + role + profile. |
 
+*Chi tiết sơ đồ và cách hoạt động của luồng đăng nhập Google tại [docs/google-auth-flow.md](./google-auth-flow.md).*
+
+
 ### 5.2 Users & profile
 | Method | Path | Role | Description |
 |---|---|---|---|

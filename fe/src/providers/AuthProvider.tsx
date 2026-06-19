@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { client, postAuthLogin, postAuthGoogle, getAuthMe } from '@/services/api-client';
+import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
+import { client, postAuthLogin, getAuthMe } from '@/services/api-client';
 import type { UserDetail } from '@/services/api-client';
 
 interface AuthContextValue {
@@ -10,7 +11,7 @@ interface AuthContextValue {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<void>;
+  loginWithGoogle: () => void;
   logout: () => void;
 }
 
@@ -27,6 +28,16 @@ function loadToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+const AUTH_COOKIE = 'auth_verified';
+
+function setAuthCookie(role: string) {
+  document.cookie = `${AUTH_COOKIE}=${role};path=/;max-age=86400;samesite=lax`;
+}
+
+function clearAuthCookie() {
+  document.cookie = `${AUTH_COOKIE}=;path=/;max-age=0`;
+}
+
 function saveToken(token: string | null) {
   if (token) {
     localStorage.setItem(TOKEN_KEY, token);
@@ -37,29 +48,46 @@ function saveToken(token: string | null) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const { data: nextAuthSession, status: nextAuthStatus } = useSession();
   const [user, setUser] = useState<UserDetail | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount, restore token and fetch user
+  // Sync next-auth session (Google login) into our auth state
   useEffect(() => {
-    const savedToken = loadToken();
-    if (savedToken) {
-      setClientToken(savedToken);
-      getAuthMe({ throwOnError: true })
-        .then((res) => {
-          setUser(res.data);
-          setToken(savedToken);
-        })
-        .catch(() => {
-          saveToken(null);
-          setClientToken(null);
-        })
-        .finally(() => setLoading(false));
-    } else {
+    if (nextAuthStatus === 'loading') return;
+
+    if (nextAuthStatus === 'authenticated' && nextAuthSession?.accessToken) {
+      const sessionToken = nextAuthSession.accessToken;
+      const sessionUser = nextAuthSession.user as UserDetail | undefined;
+      setClientToken(sessionToken);
+      saveToken(sessionToken);
+      setAuthCookie(sessionUser?.role ?? 'learner');
+      setToken(sessionToken);
+      if (sessionUser) {
+        setUser(sessionUser);
+      }
       setLoading(false);
+    } else {
+      // Fallback to localStorage token (email/password login)
+      const savedToken = loadToken();
+      if (savedToken) {
+        setClientToken(savedToken);
+        getAuthMe({ throwOnError: true })
+          .then((res) => {
+            setUser(res.data);
+            setToken(savedToken);
+          })
+          .catch(() => {
+            saveToken(null);
+            setClientToken(null);
+          })
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     }
-  }, []);
+  }, [nextAuthStatus, nextAuthSession]);
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -67,42 +95,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: { email, password },
         throwOnError: true,
       });
-      const { accessToken, user: loginUser } = res.data;
-      if (!accessToken) throw new Error('No access token returned');
-      setClientToken(accessToken);
-      saveToken(accessToken);
-      setToken(accessToken);
-      // Fetch full profile
-      const profileRes = await getAuthMe({ throwOnError: true });
-      setUser(profileRes.data);
-      router.push('/dashboard/learner');
-    },
-    [router],
-  );
-
-  const loginWithGoogle = useCallback(
-    async (idToken: string) => {
-      const res = await postAuthGoogle({
-        body: { idToken },
-        throwOnError: true,
-      });
-      const { accessToken, user: loginUser } = res.data;
+      const { accessToken } = res.data;
       if (!accessToken) throw new Error('No access token returned');
       setClientToken(accessToken);
       saveToken(accessToken);
       setToken(accessToken);
       const profileRes = await getAuthMe({ throwOnError: true });
+      setAuthCookie(profileRes.data?.role ?? 'learner');
       setUser(profileRes.data);
-      router.push('/dashboard/learner');
     },
-    [router],
+    [],
   );
 
-  const logout = useCallback(() => {
+  const loginWithGoogle = useCallback(() => {
+    nextAuthSignIn('google', { callbackUrl: '/' });
+  }, []);
+
+  const logout = useCallback(async () => {
     setClientToken(null);
     saveToken(null);
+    clearAuthCookie();
     setToken(null);
     setUser(null);
+    await nextAuthSignOut({ redirect: false });
     router.push('/login');
   }, [router]);
 

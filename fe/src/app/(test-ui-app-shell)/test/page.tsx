@@ -8,7 +8,6 @@ import HPBar from '@/components/ui/HPBar';
 import Modal from '@/components/ui/Modal';
 import Stat from '@/components/ui/Stat';
 import CircleMeter from '@/components/ui/CircleMeter';
-import GoogleLoginButton from '@/components/ui/GoogleLoginButton';
 import { StatusBadge, Tag, TimeBadge } from '@/components/ui/Badge';
 import { ApiErrorItem } from '@/components/ui/ApiErrorItem';
 
@@ -74,17 +73,6 @@ const components: Array<{ name: string; Component: React.ReactNode }> = [
   {
     name: 'CircleMeter',
     Component: <CircleMeter value={72} label="Progress" />,
-  },
-  {
-    name: 'GoogleLoginButton',
-    Component: (
-      <div className="w-full max-w-xs">
-        <GoogleLoginButton
-          title="Sign in with Google"
-          onSuccess={() => Promise.resolve()}
-        />
-      </div>
-    ),
   },
   {
     name: 'StatusBadge',

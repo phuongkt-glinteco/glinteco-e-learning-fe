@@ -30,8 +30,17 @@ export default function LearnerDashboardPage() {
   const [tracks, setTracks] = useState<TrackSummary[]>([]);
   const [recentDocs, setRecentDocs] = useState<RecentDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || authLoading) return;
+    let cancelled = false;
+
     async function fetchData() {
       try {
         const [statsRes, docsRes, tracksRes] = await Promise.all([
@@ -39,6 +48,7 @@ export default function LearnerDashboardPage() {
           getDocumentsRecent({ throwOnError: true }),
           getTracks({ throwOnError: true }),
         ]);
+        if (cancelled) return;
         setStats(statsRes.data);
         setTracks(tracksRes.data?.data ?? []);
         setRecentDocs(
@@ -50,15 +60,27 @@ export default function LearnerDashboardPage() {
           }))
         );
       } catch {
-        // Errors handled globally by api-client interceptor
+        if (!cancelled) setError(true);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     fetchData();
-  }, []);
 
-  if (authLoading || loading) return null;
+    return () => {
+      cancelled = true;
+    };
+  }, [mounted, authLoading]);
+
+  if (authLoading || !mounted) return null;
+  if (loading) return <DashboardSkeleton />;
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">Failed to load dashboard. Please try again.</p>
+      </div>
+    );
+  }
 
   const currentTrack = tracks.find((t) => t.status === 'in_progress');
 
@@ -119,6 +141,24 @@ export default function LearnerDashboardPage() {
         </div>
       </div>
       <div className="h-8" />
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="max-w-container-max mx-auto flex flex-col gap-lg animate-pulse">
+      <div className="h-24 bg-gray-100 rounded-xl" />
+      <div className="grid grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-28 bg-gray-100 rounded-xl" />
+        ))}
+      </div>
+      <div className="h-48 bg-gray-100 rounded-xl" />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="h-64 bg-gray-100 rounded-xl" />
+        <div className="h-64 bg-gray-100 rounded-xl" />
+      </div>
     </div>
   );
 }

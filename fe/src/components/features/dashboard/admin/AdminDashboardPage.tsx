@@ -1,158 +1,288 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import {
+  getCohorts,
+  getCohortsByIdOverview,
+  getSubmissions,
+  getCohortsByIdTrackCompletion,
+} from '@/services/api-client';
+import type {
+  CohortDashboardStats,
+  SubmissionFeedItem,
+  ExerciseDetail,
+} from '@/services/api-client';
+import { useTranslations } from 'next-intl';
+import { useAuth } from '@/providers/AuthProvider';
 import StatsCard from './StatsCard';
 import SubmissionFeed from './SubmissionFeed';
 import CohortVelocityChart from './CohortVelocityChart';
 import QuickLinksCard from './QuickLinksCard';
+import CohortSelector from './CohortSelector';
 import { ProgressBar } from '@/components/ui/HPBar';
 
-const stats = [
-  {
-    label: 'Active Learners',
-    value: '14',
-    sub: '+3 this week',
-    icon: 'group',
-    accent: 'text-blue-500',
-    children: <ProgressBar value={70} className="mt-2" />,
-  },
-  {
-    label: 'Avg. Completion',
-    value: '58%',
-    sub: '+12% vs last week',
-    icon: 'query_stats',
-    accent: 'text-emerald-500',
-    children: <ProgressBar value={58} barClassName="bg-emerald-500" className="mt-2" />,
-  },
-  {
-    label: 'Pending Reviews',
-    value: '3',
-    sub: 'Oldest: 3h ago',
-    icon: 'reviews',
-    accent: 'text-amber-500',
-    children: (
-      <div className="flex gap-1 mt-2">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className={`h-1 flex-1 rounded-full ${
-              i <= 3 ? 'bg-amber-500' : 'bg-surface-container'
-            }`}
-          />
-        ))}
-      </div>
-    ),
-  },
-  {
-    label: 'Ramp-up Speed',
-    value: '11d',
-    sub: 'Target: 14d',
-    icon: 'speed',
-    accent: 'text-on-surface-variant',
-    children: (
-      <p className="text-[10px] text-emerald-500 font-bold uppercase mt-2">
-        3 Days Ahead of Schedule
-      </p>
-    ),
-  },
-];
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
 
-const submissions = [
-  {
-    id: 's1',
-    user: {
-      id: 'u_jordan',
-      name: 'Jordan Smith',
-      role: 'Engineering I',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBk4i-tAc99cWu9BfJGyQW_Wio0eCRBYFPclluvimoYMkBlf_UlJ3w3Dfnci3GURCHdwPl29BbUfrSNEoGI4VqL920X9poKBDMSxls12iJjSlh0E5vF_5kBDfRBvoQY3_XkW_swLRhCCO4ws0eINZtKDgEs4L5DAMkqAlJmnNzRgp5lcgY9QCNG3vX3Hxqv6zBpp_a_DVQp0XPEPSNUqPEjwBSTe1B6ikFo2p58lp0t2HFl7hxjMz6wEviu4f8HOiATJKdwlFLQXGvG',
-    },
-    exercise: 'Auth Middleware',
-    prUrl: '#',
-    status: 'pending_review' as const,
-    timeAgo: '3h ago',
-  },
-  {
-    id: 's2',
-    user: {
-      id: 'u_sarah',
-      name: 'Sarah Chen',
-      role: 'Intern',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDzei1-hPog6jZ4XMWkAdUovPndBuPVUVfqvS6HH_sZT75_mzmKX3flqsURR5G7W39RlOLa9w4kVG38htVp4Vlmp9GvK8qhffQF64PmKsqvrBMGFofJLyGi-qcY_D4DJcEVfXVq1y02tJNIkc5_iCZEuZNDoGYfMCHIBD4nCUPz3dyTqQMxUkZXBdJuI6nKq3gMYkIohRRSKJOzkrqYP6_-FStNBOJwJKfcXq95VJZrULK-u34YwBd9AESlqssw2gsVkfFiUNXyOOUG',
-    },
-    exercise: 'React State Patterns',
-    prUrl: '#',
-    status: 'changes_requested' as const,
-    timeAgo: '5h ago',
-  },
-  {
-    id: 's3',
-    user: {
-      id: 'u_marcus',
-      name: 'Marcus Lu',
-      role: 'Engineering I',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA6ntl6_rajJY8ha9frG5u-faKp-949O9OYku2F172vlVXCEtHHujiLuPRrPHOwBb4yQua_E3IV6DhV5FFD6Z-8DK75bvyf2h1nQ-qGmkHKeN8aoM_U3iAwCU-1GGNRj23jaqo0S0mPLBuQeFqxHySFSYq3ecx19rlQoB4CBvjR5UxP46ksnpr78vlWekDaSRmSKK4qepY33JPraxlOHm4i5omHdgEBRmhG9QdKGn89guCn6kpMt49gWonClJfTjKYINLXoLTstgW5b',
-    },
-    exercise: 'SQL Optimization',
-    prUrl: '#',
-    status: 'approved' as const,
-    timeAgo: '1d ago',
-  },
-];
+function extractExerciseName(exercise: ExerciseDetail | undefined): string {
+  return exercise?.title ?? '';
+}
 
-const velocityData = [
-  { label: 'Mon', value: 40 },
-  { label: 'Tue', value: 55 },
-  { label: 'Wed', value: 45 },
-  { label: 'Thu', value: 75 },
-  { label: 'Fri', value: 60 },
-  { label: 'Sat', value: 85 },
-  { label: 'Sun', value: 95 },
-];
+function mapStatus(apiStatus: string): 'pending_review' | 'changes_requested' | 'approved' {
+  switch (apiStatus) {
+    case 'submitted': return 'pending_review';
+    case 'changes': return 'changes_requested';
+    case 'approved': return 'approved';
+    default: return 'pending_review';
+  }
+}
 
 export default function AdminDashboardPage() {
+  const t = useTranslations('AdminDashboardPage');
+  const { user, loading: authLoading } = useAuth();
+
+  const [cohortList, setCohortList] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
+
+  const [stats, setStats] = useState<CohortDashboardStats | null>(null);
+  const [submissions, setSubmissions] = useState<SubmissionFeedItem[]>([]);
+  const [trackCompletion, setTrackCompletion] = useState<{ label: string; value: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch cohorts list once
+  useEffect(() => {
+    if (!mounted || authLoading) return;
+    let cancelled = false;
+
+    getCohorts({ throwOnError: true })
+      .then((res) => {
+        if (cancelled) return;
+        const list = (res.data?.data ?? []).map((c) => ({
+          id: c.id ?? '',
+          name: c.name ?? '',
+        }));
+        setCohortList(list);
+
+        // Default selection: user's cohort, or first cohort
+        const defaultId = user?.cohortId && list.some((c) => c.id === user.cohortId)
+          ? user.cohortId
+          : list[0]?.id ?? null;
+        setSelectedCohortId(defaultId);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      });
+
+    return () => { cancelled = true; };
+  }, [mounted, authLoading, user?.cohortId]);
+
+  // Fetch dashboard data when selected cohort changes
+  useEffect(() => {
+    const cid = selectedCohortId;
+    if (!cid) return;
+    setLoading(true);
+    setError(false);
+    let cancelled = false;
+
+    async function fetchData() {
+      try {
+        const [overviewRes, submissionsRes, trackRes] = await Promise.all([
+          getCohortsByIdOverview({ path: { id: cid! }, throwOnError: true }),
+          getSubmissions({ query: { cohortId: cid! }, throwOnError: true }),
+          getCohortsByIdTrackCompletion({ path: { id: cid! }, throwOnError: true }),
+        ]);
+        if (cancelled) return;
+        setStats(overviewRes.data ?? null);
+        setSubmissions(submissionsRes.data?.data ?? []);
+        setTrackCompletion(
+          (trackRes.data?.data ?? []).map((t) => ({
+            label: t.title ?? '',
+            value: t.completionPct ?? 0,
+          }))
+        );
+      } catch {
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchData();
+
+    return () => { cancelled = true; };
+  }, [selectedCohortId]);
+
+  if (authLoading || !mounted) return null;
+  if (error && !cohortList.length) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">{t('loadError')}</p>
+      </div>
+    );
+  }
+  if (!selectedCohortId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">{t('noCohort')}</p>
+      </div>
+    );
+  }
+
+  const statCards = [
+    {
+      label: t('activeLearners'),
+      value: String(stats?.activeLearners ?? 0),
+      sub: t('thisWeek', { count: stats?.newThisWeek ?? 0 }),
+      icon: 'group',
+      accent: 'text-blue-500',
+      children: <ProgressBar value={75} className="mt-2" />,
+    },
+    {
+      label: t('avgCompletion'),
+      value: `${stats?.avgCompletion ?? 0}%`,
+      sub: t('vsLastWeek', { pct: stats?.avgCompletionDelta ?? 0 }),
+      icon: 'query_stats',
+      accent: 'text-emerald-500',
+      children: <ProgressBar value={stats?.avgCompletion ?? 0} barClassName="bg-emerald-500" className="mt-2" />,
+    },
+    {
+      label: t('pendingReviews'),
+      value: String(stats?.pendingReview ?? 0),
+      sub: t('oldest', { time: stats?.oldestPendingAgo ?? '0h' }),
+      icon: 'reviews',
+      accent: 'text-amber-500',
+      children: (
+        <div className="flex gap-1 mt-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className={`h-1 flex-1 rounded-full ${i <= (stats?.pendingReview ?? 0) ? 'bg-amber-500' : 'bg-surface-container'}`}
+            />
+          ))}
+        </div>
+      ),
+    },
+    {
+      label: t('rampSpeed'),
+      value: `${stats?.avgRampDays ?? 0}d`,
+      sub: t('target', { days: stats?.targetRampDays ?? 0 }),
+      icon: 'speed',
+      accent: 'text-on-surface-variant',
+      children: (
+        <p className="text-[10px] text-emerald-500 font-bold uppercase mt-2">
+          {(stats?.targetRampDays ?? 0) - (stats?.avgRampDays ?? 0) > 0
+            ? t('aheadOfSchedule', { days: (stats?.targetRampDays ?? 0) - (stats?.avgRampDays ?? 0) })
+            : t('behindSchedule')}
+        </p>
+      ),
+    },
+  ];
+
+  const feedItems = submissions.map((s) => ({
+    id: s.id ?? '',
+    user: {
+      id: s.user?.id ?? '',
+      name: s.user?.name ?? '',
+      avatarHue: s.user?.avatarHue,
+    },
+    exercise: extractExerciseName(s.exercise as ExerciseDetail | undefined),
+    prUrl: s.prUrl ?? '#',
+    status: mapStatus(s.status ?? ''),
+    timeAgo: s.submittedAt ? timeAgo(s.submittedAt) : '',
+  }));
+
+  const statusCounts = {
+    pending: submissions.filter((s) => s.status === 'submitted').length,
+    changes: submissions.filter((s) => s.status === 'changes').length,
+    approved: submissions.filter((s) => s.status === 'approved').length,
+  };
+
+  const oldestSubmission = submissions
+    .filter((s) => s.submittedAt)
+    .sort((a, b) => new Date(a.submittedAt!).getTime() - new Date(b.submittedAt!).getTime())[0];
+
   return (
     <div className="max-w-container-max mx-auto flex flex-col gap-lg">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-headline-lg-mobile md:text-headline-lg text-primary font-bold">
-            Dashboard Overview
+            {t('title')}
           </h2>
+          <div className="mt-2">
+            <CohortSelector
+              cohorts={cohortList}
+              selectedId={selectedCohortId}
+              onChange={setSelectedCohortId}
+            />
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
-        {stats.map((s) => (
-          <StatsCard key={s.label} {...s} />
-        ))}
+        {loading
+          ? [1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-32 bg-surface-container-low rounded-lg animate-pulse" />
+            ))
+          : statCards.map((s) => (
+              <StatsCard key={s.label} {...s} />
+            ))
+        }
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
         <div className="lg:col-span-2">
-          <SubmissionFeed
-            items={submissions}
-            totalCount={3}
-            statusCounts={{ pending: 1, changes: 1, approved: 1 }}
-            oldestAgo="3h"
-            onFilter={() => {}}
-            onViewAll={() => {}}
-          />
+          {loading ? (
+            <div className="h-[600px] bg-surface-container-low rounded-lg animate-pulse" />
+          ) : (
+            <SubmissionFeed
+              items={feedItems}
+              totalCount={submissions.length}
+              statusCounts={statusCounts}
+              oldestAgo={oldestSubmission?.submittedAt ? timeAgo(oldestSubmission.submittedAt).replace(' ago', '') : '0h'}
+              onFilter={() => {}}
+              onViewAll={() => {}}
+            />
+          )}
         </div>
-        <div className="flex flex-col justify-between mb-2">
-          <CohortVelocityChart data={velocityData} />
-          <QuickLinksCard
-            title="Curriculum Management"
-            icon="edit_note"
-            links={[
-              { label: 'Track Editor', href: '#' },
-              { label: 'Lesson Planner', href: '#', icon: 'chevron_right' },
-            ]}
-          />
-          <QuickLinksCard
-            title="Documentation Portal"
-            icon="menu_book"
-            links={[
-              { label: 'Manage Docs', href: '#', icon: 'open_in_new' },
-            ]}
-          />
+        <div className="space-y-lg flex flex-col">
+          {loading ? (
+            <>
+              <div className="h-48 bg-surface-container-low rounded-lg animate-pulse" />
+              <div className="h-32 bg-surface-container-low rounded-lg animate-pulse" />
+              <div className="h-24 bg-surface-container-low rounded-lg animate-pulse" />
+            </>
+          ) : (
+            <>
+              {trackCompletion.length > 0 && <CohortVelocityChart data={trackCompletion} />}
+              <QuickLinksCard
+                title={t('curriculumManagement')}
+                icon="edit_note"
+                links={[
+                  { label: t('trackEditor'), href: '/admin/tracks' },
+                  { label: t('lessonPlanner'), href: '/admin/tracks', icon: 'chevron_right' },
+                ]}
+              />
+              <QuickLinksCard
+                title={t('documentationPortal')}
+                icon="menu_book"
+                links={[
+                  { label: t('manageDocs'), href: '/admin/docs', icon: 'open_in_new' },
+                ]}
+              />
+            </>
+          )}
         </div>
       </div>
 

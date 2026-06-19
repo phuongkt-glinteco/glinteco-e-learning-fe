@@ -1,4 +1,10 @@
 {
+  "LogoutPage": {
+    "signingOut": "Signing you out...",
+    "description": "Safely ending your session. You'll be redirected to the login page in a moment.",
+    "processing": "Processing",
+    "redirecting": "Redirecting now..."
+  },
   "LoginPage": {
     "brandSubtitle": "Level up your engineering journey.",
     "brandTagline": "Learn, Practice, Review.",
@@ -36,6 +42,7 @@
     "notifications": "Notifications",
     "engineeringPortal": "Engineering Portal",
     "searchPlaceholder": "Search...",
+    "profile": "Profile",
     "help": "Help",
     "role": "Backend Engineer",
     "subLogoTitle": "Engineering Portal",
@@ -82,7 +89,13 @@
     "manageDocs": "Manage Docs",
     "loadError": "Failed to load dashboard. Please try again.",
     "noCohort": "No cohort assigned. Please contact an administrator.",
-    "selectCohort": "Select Cohort"
+    "selectCohort": "Select Cohort",
+    "timeAgoMin": "{count}m ago",
+    "timeAgoHour": "{count}h ago",
+    "timeAgoDay": "{count}d ago",
+    "chartCompleted": "{count}/{total} completed",
+    "chartAbove50": "{count}/{total} in progress",
+    "chartBelow50": "{count}/{total} behind"
   },
   "LearnerDashboard": {
     "welcomeTitle": "Hi {name},",

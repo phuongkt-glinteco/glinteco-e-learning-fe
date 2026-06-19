@@ -23,7 +23,7 @@ export default function CohortSelector({ cohorts, selectedId, onChange }: Cohort
         <select
           value={selectedId}
           onChange={(e) => onChange(e.target.value)}
-          className="appearance-none w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-body-sm font-medium text-on-surface-variant focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all hover:bg-surface-container-low"
+          className="appearance-none w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 pr-8 text-body-sm font-medium text-on-surface-variant focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all hover:bg-surface-container-low"
         >
           {cohorts.map((c) => (
             <option key={c.id} value={c.id}>

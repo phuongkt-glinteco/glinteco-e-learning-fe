@@ -22,16 +22,6 @@ import QuickLinksCard from './QuickLinksCard';
 import CohortSelector from './CohortSelector';
 import { ProgressBar } from '@/components/ui/HPBar';
 
-function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
-
 function extractExerciseName(exercise: ExerciseDetail | undefined): string {
   return exercise?.title ?? '';
 }
@@ -58,6 +48,16 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  function timeAgo(iso: string): string {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return t('timeAgoMin', { count: mins });
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return t('timeAgoHour', { count: hrs });
+    const days = Math.floor(hrs / 24);
+    return t('timeAgoDay', { count: days });
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -177,7 +177,7 @@ export default function AdminDashboardPage() {
     },
     {
       label: t('rampSpeed'),
-      value: `${stats?.avgRampDays ?? 0}d`,
+      value: String(stats?.avgRampDays ?? 0),
       sub: t('target', { days: stats?.targetRampDays ?? 0 }),
       icon: 'speed',
       accent: 'text-on-surface-variant',
@@ -257,7 +257,7 @@ export default function AdminDashboardPage() {
             />
           )}
         </div>
-        <div className="space-y-lg flex flex-col">
+        <div className="gap-lg flex flex-col">
           {loading ? (
             <>
               <Skeleton height={192} />

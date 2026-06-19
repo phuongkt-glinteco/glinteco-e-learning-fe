@@ -11,7 +11,7 @@ import { useAuth } from '@/providers/AuthProvider';
 export default function Header() {
   const t = useTranslations('AppShell');
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -69,18 +69,18 @@ export default function Header() {
                 }}
                 className="w-full flex items-center gap-2 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors"
               >
-                <span className="material-symbols-outlined text-lg">person</span>
-                Profile
+                <span className="material-symbols-outlined text-lg flex-shrink-0">person</span>
+                <span className="truncate">{t('profile')}</span>
               </button>
               <button
                 onClick={() => {
                   setDropdownOpen(false);
-                  logout();
+                  router.push('/logout');
                 }}
                 className="w-full flex items-center gap-2 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors"
               >
-                <span className="material-symbols-outlined text-lg">logout</span>
-                Logout
+                <span className="material-symbols-outlined text-lg flex-shrink-0">logout</span>
+                <span className="truncate">{t('logout')}</span>
               </button>
             </div>
           )}

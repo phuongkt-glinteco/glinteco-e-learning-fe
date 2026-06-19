@@ -1,4 +1,10 @@
 {
+  "LogoutPage": {
+    "signingOut": "Đang đăng xuất...",
+    "description": "Kết thúc phiên làm việc an toàn. Bạn sẽ được chuyển hướng đến trang đăng nhập trong giây lát.",
+    "processing": "Đang xử lý",
+    "redirecting": "Đang chuyển hướng..."
+  },
   "LoginPage": {
     "brandSubtitle": "Nâng tầm hành trình kỹ sư của bạn.",
     "brandTagline": "Học tập, Thực hành, Đánh giá.",
@@ -36,6 +42,7 @@
     "notifications": "Thông báo",
     "engineeringPortal": "Cổng thông tin kỹ thuật",
     "searchPlaceholder": "Tìm kiếm...",
+    "profile": "Hồ sơ",
     "help": "Trợ giúp",
     "role": "Kỹ sư Backend",
     "subLogoTitle": "Cổng thông tin kỹ thuật",
@@ -82,7 +89,13 @@
     "manageDocs": "Quản Lý Tài Liệu",
     "loadError": "Không thể tải bảng điều khiển. Vui lòng thử lại.",
     "noCohort": "Chưa được phân lớp. Vui lòng liên hệ quản trị viên.",
-    "selectCohort": "Chọn Lớp Học"
+    "selectCohort": "Chọn Lớp Học",
+    "timeAgoMin": "{count} phút trước",
+    "timeAgoHour": "{count} giờ trước",
+    "timeAgoDay": "{count} ngày trước",
+    "chartCompleted": "{count}/{total} hoàn thành",
+    "chartAbove50": "{count}/{total} trên 50%",
+    "chartBelow50": "{count}/{total} dưới 50%"
   },
   "LearnerDashboard": {
     "welcomeTitle": "Chào {name},",

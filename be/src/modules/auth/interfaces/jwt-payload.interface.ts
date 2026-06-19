@@ -13,4 +13,5 @@ export interface JwtPayload {
 export interface RefreshTokenPayload {
   sub: string;
   jti: string;
+  rememberMe?: boolean;
 }

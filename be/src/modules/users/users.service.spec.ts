@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository, Not, IsNull, SelectQueryBuilder } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { User, UserRole } from '../../database/entities/user.entity';
 import { Lesson } from '../../database/entities/lesson.entity';
 import { LessonProgress } from '../../database/entities/lesson-progress.entity';
@@ -404,7 +404,9 @@ describe('UsersService', () => {
 
   describe('findAll', () => {
     it('should query and return users list with pagination', async () => {
-      const mockUsers = [{ id: 'user-1', name: 'John Doe', email: 'john@company.com' }];
+      const mockUsers = [
+        { id: 'user-1', name: 'John Doe', email: 'john@company.com' },
+      ];
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
@@ -414,7 +416,9 @@ describe('UsersService', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockUsers, 1]),
       };
 
-      userRepository.createQueryBuilder.mockReturnValue(mockQueryBuilder as any);
+      userRepository.createQueryBuilder.mockReturnValue(
+        mockQueryBuilder as any,
+      );
 
       const result = await service.findAll({
         cohortId: 'cohort-123',
@@ -425,12 +429,21 @@ describe('UsersService', () => {
       });
 
       expect(userRepository.createQueryBuilder).toHaveBeenCalledWith('user');
-      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('user.cohort', 'cohort');
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('user.cohortId = :cohortId', { cohortId: 'cohort-123' });
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('user.role = :role', { role: 'learner' });
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'user.cohort',
+        'cohort',
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'user.cohortId = :cohortId',
+        { cohortId: 'cohort-123' },
+      );
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'user.role = :role',
+        { role: 'learner' },
+      );
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         '(LOWER(user.name) LIKE :q OR LOWER(user.email) LIKE :q)',
-        { q: '%john%' }
+        { q: '%john%' },
       );
       expect(result.data).toEqual(mockUsers);
       expect(result.meta.total).toBe(1);
@@ -441,7 +454,9 @@ describe('UsersService', () => {
     it('should throw NotFoundException if user is not found', async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOneOrFail('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOneOrFail('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should return user if found', async () => {
@@ -455,6 +470,101 @@ describe('UsersService', () => {
         relations: { cohort: true },
       });
       expect(result).toEqual(user);
+    });
+  });
+
+  describe('claimDailyXp', () => {
+    it('should throw NotFoundException if user is not found', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+      await expect(service.claimDailyXp('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should set streak to 1 and award 50 XP if first check-in ever', async () => {
+      const mockUser = {
+        id: 'u_123',
+        name: 'Mina',
+        xp: 0,
+        level: 1,
+        streakDays: 0,
+        lastClaimedXpAt: null,
+      } as User;
+
+      userRepository.findOne.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+      const result = await service.claimDailyXp('u_123');
+
+      expect(result.success).toBe(true);
+      expect(result.xpAwarded).toBe(50);
+      expect(result.streakDays).toBe(1);
+      expect(result.xp).toBe(50);
+      expect(result.level).toBe(1);
+      expect(result.lastClaimedXpAt).toBeInstanceOf(Date);
+    });
+
+    it('should throw BadRequestException if claimed again today', async () => {
+      const now = new Date();
+      const mockUser = {
+        id: 'u_123',
+        name: 'Mina',
+        xp: 50,
+        level: 1,
+        streakDays: 1,
+        lastClaimedXpAt: now,
+      } as User;
+
+      userRepository.findOne.mockResolvedValue(mockUser);
+
+      await expect(service.claimDailyXp('u_123')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should increment streak if claimed yesterday', async () => {
+      const now = new Date();
+      // Yestarday at UTC, e.g. -24 hours from todayStart
+      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const yesterday = new Date(todayStart.getTime() - 12 * 60 * 60 * 1000); // 12 hours before today start
+      const mockUser = {
+        id: 'u_123',
+        name: 'Mina',
+        xp: 50,
+        level: 1,
+        streakDays: 1,
+        lastClaimedXpAt: yesterday,
+      } as User;
+
+      userRepository.findOne.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+      const result = await service.claimDailyXp('u_123');
+
+      expect(result.streakDays).toBe(2);
+      expect(result.xp).toBe(100);
+    });
+
+    it('should reset streak to 1 if claimed more than a day ago', async () => {
+      const now = new Date();
+      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const twoDaysAgo = new Date(todayStart.getTime() - 48 * 60 * 60 * 1000);
+      const mockUser = {
+        id: 'u_123',
+        name: 'Mina',
+        xp: 100,
+        level: 1,
+        streakDays: 5,
+        lastClaimedXpAt: twoDaysAgo,
+      } as User;
+
+      userRepository.findOne.mockResolvedValue(mockUser);
+      userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+      const result = await service.claimDailyXp('u_123');
+
+      expect(result.streakDays).toBe(1);
+      expect(result.xp).toBe(150);
     });
   });
 });

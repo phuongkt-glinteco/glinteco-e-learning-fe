@@ -23,9 +23,13 @@ export class ExercisesService {
   ) {}
 
   async create(dto: CreateExerciseDto): Promise<Exercise> {
-    const track = await this.trackRepository.findOne({ where: { id: dto.trackId } });
+    const track = await this.trackRepository.findOne({
+      where: { id: dto.trackId },
+    });
     if (!track) {
-      throw new NotFoundException(`Không tìm thấy Track với ID: ${dto.trackId}`);
+      throw new NotFoundException(
+        `Không tìm thấy Track với ID: ${dto.trackId}`,
+      );
     }
 
     const exercise = this.exerciseRepository.create({
@@ -144,9 +148,13 @@ export class ExercisesService {
     }
 
     if (dto.trackId) {
-      const track = await this.trackRepository.findOne({ where: { id: dto.trackId } });
+      const track = await this.trackRepository.findOne({
+        where: { id: dto.trackId },
+      });
       if (!track) {
-        throw new NotFoundException(`Không tìm thấy Track với ID: ${dto.trackId}`);
+        throw new NotFoundException(
+          `Không tìm thấy Track với ID: ${dto.trackId}`,
+        );
       }
     }
 
@@ -154,12 +162,17 @@ export class ExercisesService {
       title: dto.title !== undefined ? dto.title : exercise.title,
       trackId: dto.trackId !== undefined ? dto.trackId : exercise.trackId,
       tag: dto.tag !== undefined ? dto.tag : exercise.tag,
-      difficulty: dto.difficulty !== undefined ? dto.difficulty : exercise.difficulty,
-      estimatedTime: dto.estimatedTime !== undefined ? dto.estimatedTime : exercise.estimatedTime,
+      difficulty:
+        dto.difficulty !== undefined ? dto.difficulty : exercise.difficulty,
+      estimatedTime:
+        dto.estimatedTime !== undefined
+          ? dto.estimatedTime
+          : exercise.estimatedTime,
       xp: dto.xp !== undefined ? dto.xp : exercise.xp,
       brief: dto.brief !== undefined ? dto.brief : exercise.brief,
       overview: dto.overview !== undefined ? dto.overview : exercise.overview,
-      objectives: dto.objectives !== undefined ? dto.objectives : exercise.objectives,
+      objectives:
+        dto.objectives !== undefined ? dto.objectives : exercise.objectives,
       steps: dto.steps !== undefined ? dto.steps : exercise.steps,
       hint: dto.hint !== undefined ? dto.hint : exercise.hint,
     });

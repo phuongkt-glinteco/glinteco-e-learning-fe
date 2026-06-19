@@ -41,10 +41,21 @@ describe('NotificationsService', () => {
         title: 'New track',
         body: 'Body text',
       };
-      mockNotificationRepository.create.mockReturnValue({ id: 'notif-1', ...dto, read: false });
-      mockNotificationRepository.save.mockImplementation((n) => Promise.resolve(n));
+      mockNotificationRepository.create.mockReturnValue({
+        id: 'notif-1',
+        ...dto,
+        read: false,
+      });
+      mockNotificationRepository.save.mockImplementation((n) =>
+        Promise.resolve(n),
+      );
 
-      const result = await service.create(dto.userId, dto.type, dto.title, dto.body);
+      const result = await service.create(
+        dto.userId,
+        dto.type,
+        dto.title,
+        dto.body,
+      );
       expect(result).toBeDefined();
       expect(result.id).toBe('notif-1');
       expect(result.read).toBe(false);
@@ -55,8 +66,24 @@ describe('NotificationsService', () => {
     it('should return notifications list and unread count', async () => {
       const date = new Date();
       mockNotificationRepository.find.mockResolvedValue([
-        { id: 'n1', userId: 'user-1', type: 't1', title: 'T1', body: 'B1', read: false, createdAt: date },
-        { id: 'n2', userId: 'user-1', type: 't2', title: 'T2', body: 'B2', read: true, createdAt: date },
+        {
+          id: 'n1',
+          userId: 'user-1',
+          type: 't1',
+          title: 'T1',
+          body: 'B1',
+          read: false,
+          createdAt: date,
+        },
+        {
+          id: 'n2',
+          userId: 'user-1',
+          type: 't2',
+          title: 'T2',
+          body: 'B2',
+          read: true,
+          createdAt: date,
+        },
       ]);
 
       const result = await service.findAll('user-1');
@@ -70,7 +97,9 @@ describe('NotificationsService', () => {
     it('should mark notification read successfully', async () => {
       const notif = { id: 'n1', userId: 'user-1', read: false };
       mockNotificationRepository.findOne.mockResolvedValue(notif);
-      mockNotificationRepository.save.mockImplementation((n) => Promise.resolve(n));
+      mockNotificationRepository.save.mockImplementation((n) =>
+        Promise.resolve(n),
+      );
 
       const result = await service.markRead('n1', 'user-1');
       expect(result.read).toBe(true);
@@ -79,14 +108,18 @@ describe('NotificationsService', () => {
 
     it('should throw NotFoundException if notification not found', async () => {
       mockNotificationRepository.findOne.mockResolvedValue(null);
-      await expect(service.markRead('n1', 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(service.markRead('n1', 'user-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ForbiddenException if userId does not match owner', async () => {
       const notif = { id: 'n1', userId: 'user-2', read: false };
       mockNotificationRepository.findOne.mockResolvedValue(notif);
 
-      await expect(service.markRead('n1', 'user-1')).rejects.toThrow(ForbiddenException);
+      await expect(service.markRead('n1', 'user-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

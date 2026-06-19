@@ -115,7 +115,10 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Yêu cầu khôi phục mật khẩu qua email.' })
-  @ApiResponse({ status: 200, description: 'Đường dẫn khôi phục mật khẩu đã được gửi.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Đường dẫn khôi phục mật khẩu đã được gửi.',
+  })
   @ApiResponse({ status: 400, description: 'Email không tồn tại.' })
   forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
     return this.authService.forgotPassword(dto.email);
@@ -124,7 +127,10 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đặt lại mật khẩu mới bằng token.' })
-  @ApiResponse({ status: 200, description: 'Mật khẩu đã được thay đổi thành công.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Mật khẩu đã được thay đổi thành công.',
+  })
   @ApiResponse({ status: 400, description: 'Token không hợp lệ hoặc hết hạn.' })
   resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
     return this.authService.resetPassword(dto.token, dto.password);

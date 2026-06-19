@@ -13,6 +13,7 @@ describe('UsersController', () => {
     getStats: jest.fn(),
     findAll: jest.fn(),
     findOneOrFail: jest.fn(),
+    claimDailyXp: jest.fn(),
   };
 
   const mockLearner = {
@@ -97,7 +98,10 @@ describe('UsersController', () => {
       mockUsersService.updateProfile.mockResolvedValue(mockResult);
 
       const result = await controller.updateProfile(mockLearner, dto);
-      expect(mockUsersService.updateProfile).toHaveBeenCalledWith('user-123', dto);
+      expect(mockUsersService.updateProfile).toHaveBeenCalledWith(
+        'user-123',
+        dto,
+      );
       expect(result).toEqual(mockResult);
     });
   });
@@ -109,6 +113,17 @@ describe('UsersController', () => {
 
       const result = await controller.getStats(mockLearner);
       expect(mockUsersService.getStats).toHaveBeenCalledWith('user-123');
+      expect(result).toEqual(mockResult);
+    });
+  });
+
+  describe('claimDailyXp', () => {
+    it('should call service.claimDailyXp with userId', async () => {
+      const mockResult = { success: true, xpAwarded: 50, streakDays: 1 };
+      mockUsersService.claimDailyXp.mockResolvedValue(mockResult);
+
+      const result = await controller.claimDailyXp(mockLearner);
+      expect(mockUsersService.claimDailyXp).toHaveBeenCalledWith('user-123');
       expect(result).toEqual(mockResult);
     });
   });

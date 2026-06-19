@@ -11,4 +11,3 @@ export * from './tag.entity';
 export * from './refresh-token.entity';
 export * from './lesson-progress.entity';
 export * from './notification.entity';
-

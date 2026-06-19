@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SubmissionsService } from './submissions.service';
 import {
   Submission,
@@ -22,6 +23,7 @@ describe('SubmissionsService', () => {
     leftJoinAndSelect: jest.fn().mockReturnThis(),
     andWhere: jest.fn().mockReturnThis(),
     orderBy: jest.fn().mockReturnThis(),
+    addOrderBy: jest.fn().mockReturnThis(),
     getCount: jest.fn(),
     skip: jest.fn().mockReturnThis(),
     take: jest.fn().mockReturnThis(),
@@ -52,8 +54,19 @@ describe('SubmissionsService', () => {
     save: jest.fn(),
   };
 
+  const mockEventEmitter = {
+    emit: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockUserRepository.findOne.mockResolvedValue({
+      id: 'user-1',
+      name: 'Learner 1',
+      email: 'learner@company.com',
+      xp: 500,
+      level: 1,
+    } as User);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubmissionsService,
@@ -70,6 +83,7 @@ describe('SubmissionsService', () => {
           useValue: mockExerciseRepository,
         },
         { provide: getRepositoryToken(User), useValue: mockUserRepository },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
 
@@ -135,6 +149,7 @@ describe('SubmissionsService', () => {
     it('should create new submission if none exists', async () => {
       const ex = { id: 'ex-1', title: 'Exercise 1' };
       const subObj = {
+        id: 'sub-1',
         exerciseId: 'ex-1',
         userId: 'user-1',
         prUrl: 'https://github.com/pr/1',
@@ -145,6 +160,8 @@ describe('SubmissionsService', () => {
       mockSubmissionRepository.findOne.mockResolvedValue(null);
       mockSubmissionRepository.create.mockReturnValue(subObj);
       mockSubmissionRepository.save.mockResolvedValue(subObj);
+      mockSubmissionHistoryRepository.create.mockReturnValue({});
+      mockSubmissionHistoryRepository.save.mockResolvedValue({});
 
       const result = await service.submit(
         'ex-1',
@@ -154,6 +171,13 @@ describe('SubmissionsService', () => {
       expect(result).toBeDefined();
       expect(result.status).toBe(SubmissionStatus.SUBMITTED);
       expect(mockSubmissionRepository.create).toHaveBeenCalled();
+      expect(mockSubmissionHistoryRepository.create).toHaveBeenCalledWith({
+        submissionId: 'sub-1',
+        adminId: null,
+        action: 'submitted',
+        prUrl: 'https://github.com/pr/1',
+        comment: '',
+      });
     });
   });
 
@@ -182,8 +206,10 @@ describe('SubmissionsService', () => {
       };
       mockSubmissionRepository.findOne.mockResolvedValue(oldSub);
       mockSubmissionRepository.save.mockImplementation((x) =>
-        Promise.resolve(x),
+        Promise.resolve({ ...x, id: 'sub-1' }),
       );
+      mockSubmissionHistoryRepository.create.mockReturnValue({});
+      mockSubmissionHistoryRepository.save.mockResolvedValue({});
 
       const result = await service.resubmit(
         'ex-1',
@@ -192,27 +218,54 @@ describe('SubmissionsService', () => {
       );
       expect(result.prUrl).toBe('https://github.com/pr/new');
       expect(result.status).toBe(SubmissionStatus.SUBMITTED);
+      expect(mockSubmissionHistoryRepository.create).toHaveBeenCalledWith({
+        submissionId: 'sub-1',
+        adminId: null,
+        action: 'resubmitted',
+        prUrl: 'https://github.com/pr/new',
+        comment: '',
+      });
     });
   });
 
   describe('findAll', () => {
-    it('should search with parameters and pagination', async () => {
+    it('should search with parameters and keyset cursor-based pagination', async () => {
       const query: SubmissionQueryDto = {
         status: SubmissionStatus.SUBMITTED,
         limit: 5,
-        page: 2,
+        cursor: Buffer.from(
+          JSON.stringify({
+            submittedAt: new Date('2026-06-18T08:00:00.000Z').toISOString(),
+            id: 'sub-0',
+          }),
+        ).toString('base64'),
       };
-      mockQueryBuilder.getCount.mockResolvedValue(12);
-      mockQueryBuilder.getMany.mockResolvedValue([{ id: 'sub-1' }]);
+      const mockSubmissions = [
+        { id: 'sub-1', submittedAt: new Date('2026-06-18T07:59:00.000Z') },
+        { id: 'sub-2', submittedAt: new Date('2026-06-18T07:58:00.000Z') },
+        { id: 'sub-3', submittedAt: new Date('2026-06-18T07:57:00.000Z') },
+        { id: 'sub-4', submittedAt: new Date('2026-06-18T07:56:00.000Z') },
+        { id: 'sub-5', submittedAt: new Date('2026-06-18T07:55:00.000Z') },
+        { id: 'sub-6', submittedAt: new Date('2026-06-18T07:54:00.000Z') },
+      ];
+      mockQueryBuilder.getMany.mockResolvedValue(mockSubmissions);
 
       const result = await service.findAll(query);
-      expect(result.data).toHaveLength(1);
-      expect(result.meta.totalPages).toBe(3);
-      expect(result.meta.page).toBe(2);
+      expect(result.data).toHaveLength(5);
+      expect(result.hasMore).toBe(true);
+      expect(result.nextCursor).toBeDefined();
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'submission.status = :status',
         { status: SubmissionStatus.SUBMITTED },
       );
+
+      const expectedCursor = Buffer.from(
+        JSON.stringify({
+          submittedAt: mockSubmissions[4].submittedAt.toISOString(),
+          id: mockSubmissions[4].id,
+        }),
+      ).toString('base64');
+      expect(result.nextCursor).toBe(expectedCursor);
     });
   });
 
@@ -263,9 +316,15 @@ describe('SubmissionsService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should update status and create submission history', async () => {
+    it('should update status and create submission history with dynamic XP award', async () => {
       const user = { id: 'user-1', name: 'Learner 1', xp: 500, level: 1 };
-      const sub = { id: 'sub-1', status: SubmissionStatus.SUBMITTED, user };
+      const exercise = { id: 'ex-1', title: 'Exercise 1', xp: 300 };
+      const sub = {
+        id: 'sub-1',
+        status: SubmissionStatus.SUBMITTED,
+        user,
+        exercise,
+      };
       const history = {
         id: 'h-1',
         submissionId: 'sub-1',
@@ -287,7 +346,7 @@ describe('SubmissionsService', () => {
         'Good job',
       );
       expect(result.status).toBe(SubmissionStatus.APPROVED);
-      expect(user.xp).toBe(700); // 500 + 200
+      expect(user.xp).toBe(800); // 500 + 300
       expect(user.level).toBe(2); // level 2 is xp >= 600
     });
   });

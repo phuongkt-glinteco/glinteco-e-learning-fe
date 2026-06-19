@@ -8,12 +8,18 @@ export class UserQueryDto {
   @IsUUID('4', { message: 'cohortId phải là một UUID hợp lệ' })
   cohortId?: string;
 
-  @ApiProperty({ required: false, description: 'Lọc theo vai trò (learner / admin).' })
+  @ApiProperty({
+    required: false,
+    description: 'Lọc theo vai trò (learner / admin).',
+  })
   @IsOptional()
   @IsString({ message: 'role phải là chuỗi ký tự' })
   role?: string;
 
-  @ApiProperty({ required: false, description: 'Tìm kiếm theo tên hoặc email.' })
+  @ApiProperty({
+    required: false,
+    description: 'Tìm kiếm theo tên hoặc email.',
+  })
   @IsOptional()
   @IsString({ message: 'q phải là chuỗi ký tự' })
   q?: string;
@@ -25,7 +31,11 @@ export class UserQueryDto {
   @Min(1)
   page?: number = 1;
 
-  @ApiProperty({ required: false, description: 'Số lượng phần tử mỗi trang.', default: 20 })
+  @ApiProperty({
+    required: false,
+    description: 'Số lượng phần tử mỗi trang.',
+    default: 20,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

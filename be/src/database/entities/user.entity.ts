@@ -88,10 +88,27 @@ export class User {
   })
   bookmarkedDocuments: Document[];
 
-  @Column({ type: 'varchar', nullable: true, select: false, name: 'reset_password_token' })
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    name: 'last_claimed_xp_at',
+  })
+  lastClaimedXpAt?: Date | null;
+
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    select: false,
+    name: 'reset_password_token',
+  })
   resetPasswordToken?: string | null;
 
-  @Column({ type: 'timestamp', nullable: true, select: false, name: 'reset_password_expires' })
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    select: false,
+    name: 'reset_password_expires',
+  })
   resetPasswordExpires?: Date | null;
 
   @CreateDateColumn()

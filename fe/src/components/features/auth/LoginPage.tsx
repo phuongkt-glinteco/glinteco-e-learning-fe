@@ -15,17 +15,20 @@ export default function LoginPage() {
   const router = useRouter();
   const { user, loading: authLoading, login, loginWithGoogle } = useAuth();
 
+
   const { register, handleSubmit, formState: { errors } } = useForm<AuthLoginInput>({
     resolver: zodResolver(authLoginRequestSchema),
     defaultValues: {
-      email: 'mina@acme.dev',
-      password: 'password123',
-      rememberMe: true
+
+      email: 'alice@glinteco.com',
+      password: 'rampup123',
+      rememberMe: true,
     }
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -39,6 +42,7 @@ export default function LoginPage() {
       await login(data.email, data.password);
     } catch {
       // Error handled by global interceptor
+
     } finally {
       setLoading(false);
     }
@@ -100,6 +104,13 @@ export default function LoginPage() {
               <h3 className="text-[20px] font-semibold text-on-surface">{t('welcomeBack')}</h3>
               <p className="text-[14px] text-on-surface-variant mt-1">{t('signInPrompt')}</p>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">error</span>
+                <span>{error}</span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>

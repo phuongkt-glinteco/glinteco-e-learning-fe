@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, IsNull, Repository } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
@@ -161,7 +161,8 @@ export class UsersService {
     const { cohortId, role, q, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    const qb = this.userRepository.createQueryBuilder('user')
+    const qb = this.userRepository
+      .createQueryBuilder('user')
       .leftJoinAndSelect('user.cohort', 'cohort');
 
     if (cohortId) {
@@ -173,10 +174,9 @@ export class UsersService {
     }
 
     if (q) {
-      qb.andWhere(
-        '(LOWER(user.name) LIKE :q OR LOWER(user.email) LIKE :q)',
-        { q: `%${q.toLowerCase()}%` }
-      );
+      qb.andWhere('(LOWER(user.name) LIKE :q OR LOWER(user.email) LIKE :q)', {
+        q: `%${q.toLowerCase()}%`,
+      });
     }
 
     const [users, total] = await qb
@@ -207,5 +207,53 @@ export class UsersService {
       throw new NotFoundException('Không tìm thấy người dùng');
     }
     return user;
+  }
+
+  resolveLevel(xp: number): number {
+    if (xp >= 1200) return 3;
+    if (xp >= 600) return 2;
+    return 1;
+  }
+
+  async claimDailyXp(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng');
+    }
+
+    const now = new Date();
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
+
+    if (user.lastClaimedXpAt) {
+      const lastClaimed = new Date(user.lastClaimedXpAt);
+      const lastClaimedUTC = new Date(Date.UTC(lastClaimed.getUTCFullYear(), lastClaimed.getUTCMonth(), lastClaimed.getUTCDate()));
+
+      if (lastClaimedUTC.getTime() >= todayStart.getTime()) {
+        throw new BadRequestException('Bạn đã nhận XP ngày hôm nay rồi.');
+      } else if (lastClaimedUTC.getTime() === yesterdayStart.getTime()) {
+        user.streakDays += 1;
+      } else {
+        user.streakDays = 1;
+      }
+    } else {
+      user.streakDays = 1;
+    }
+
+    user.lastClaimedXpAt = now;
+    const xpAwarded = 50;
+    user.xp += xpAwarded;
+    user.level = this.resolveLevel(user.xp);
+
+    await this.userRepository.save(user);
+
+    return {
+      success: true,
+      xpAwarded,
+      streakDays: user.streakDays,
+      level: user.level,
+      xp: user.xp,
+      lastClaimedXpAt: user.lastClaimedXpAt,
+    };
   }
 }

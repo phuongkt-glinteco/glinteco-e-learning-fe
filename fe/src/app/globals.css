@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@keyframes loading-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility loading-spinner {
+  animation: loading-spinner 1s linear infinite;
+}
+
 @keyframes neon-pulse {
   0%, 100% {
     box-shadow:

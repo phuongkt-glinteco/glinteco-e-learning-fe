@@ -22,6 +22,10 @@
     "alertGoogleSuccess": "Đăng nhập qua Google thành công!",
     "alertEmailSuccess": "Đăng nhập thành công với: {email}"
   },
+  "LoadingPage": {
+    "title": "Đang chuẩn bị không gian làm việc...",
+    "description": "Khởi tạo học phần và tài liệu khóa học"
+  },
   "AppShell": {
     "dashboard": "Bảng điều khiển",
     "courses": "Khóa học",
@@ -79,6 +83,33 @@
     "loadError": "Không thể tải bảng điều khiển. Vui lòng thử lại.",
     "noCohort": "Chưa được phân lớp. Vui lòng liên hệ quản trị viên.",
     "selectCohort": "Chọn Lớp Học"
+  },
+  "LearnerDashboard": {
+    "welcomeTitle": "Chào {name},",
+    "welcomeSubtitle": "{title} (Cohort #{cohortId}) — Hãy tiếp tục học tập nhé.",
+    "overallProgress": "Tiến Độ Tổng Thể",
+    "totalXp": "Tổng XP",
+    "thisWeek": "Tuần này: +{xp} XP",
+    "currentLevel": "Cấp Độ Hiện Tại",
+    "level": "Cấp {level}",
+    "keepGoing": "Cố lên!",
+    "streak": "Chuỗi Ngày",
+    "days": "Ngày",
+    "continueLearning": "Tiếp Tục Học",
+    "viewPath": "Xem Lộ Trình",
+    "lessonProgress": "Tiến Độ Bài Học",
+    "continueLesson": "Tiếp Tục Bài Học",
+    "learningActivity": "Hoạt Động Học Tập",
+    "tracksCompleted": "Track Đã Hoàn Thành",
+    "exercises": "Bài Tập",
+    "total": "Tổng",
+    "approved": "{count} Đạt",
+    "awaitingReview": "{count} Chờ Chấm",
+    "savedDocs": "Tài Liệu Đã Lưu",
+    "unread": "{count} Chưa Đọc",
+    "recentDocuments": "Tài Liệu Gần Đây",
+    "viewed": "Đã xem {time}",
+    "noRecentDocuments": "Chưa có tài liệu nào gần đây"
   },
   "ApiErrors": {
     "titleVALIDATION_ERROR": "Lỗi Dữ Liệu",

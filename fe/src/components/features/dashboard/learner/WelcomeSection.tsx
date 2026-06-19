@@ -1,20 +1,21 @@
-interface WelcomeSectionProps {
-  name: string;
-  title: string;
-  cohortId: string | number;
-}
+'use client';
 
-export default function WelcomeSection({ name, title, cohortId }: WelcomeSectionProps) {
+import { useTranslations } from 'next-intl';
+import { useAuth } from '@/providers/AuthProvider';
+import SectionHead from '@/components/ui/SectionHead'
+
+export default function WelcomeSection() {
+  const t = useTranslations('LearnerDashboard');
+  const { user } = useAuth();
+
   return (
-    <section className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-      <div>
-        <h2 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">
-          Hi {name},
-        </h2>
-        <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">
-          {title} (Cohort #{cohortId}) &mdash; Let&apos;s continue ramping up.
-        </p>
-      </div>
+    <section className="flex flex-col gap-1">
+      <SectionHead
+        title={t('welcomeTitle', { name: user?.name ?? 'Learner' })}
+      />
+      <p className="text-body-md text-on-surface-variant">
+        {user?.title ?? 'Engineer'} &mdash; Cohort #{user?.cohortId ?? ''}
+      </p>
     </section>
   );
 }

@@ -14,6 +14,7 @@ import type {
 } from '@/services/api-client';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
+import Skeleton from '@/components/ui/Skeleton';
 import StatsCard from './StatsCard';
 import SubmissionFeed from './SubmissionFeed';
 import CohortVelocityChart from './CohortVelocityChart';
@@ -233,7 +234,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
         {loading
           ? [1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-surface-container-low rounded-lg animate-pulse" />
+              <Skeleton key={i} height={128} />
             ))
           : statCards.map((s) => (
               <StatsCard key={s.label} {...s} />
@@ -244,7 +245,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
         <div className="lg:col-span-2">
           {loading ? (
-            <div className="h-[600px] bg-surface-container-low rounded-lg animate-pulse" />
+            <Skeleton height={600} />
           ) : (
             <SubmissionFeed
               items={feedItems}
@@ -259,9 +260,9 @@ export default function AdminDashboardPage() {
         <div className="space-y-lg flex flex-col">
           {loading ? (
             <>
-              <div className="h-48 bg-surface-container-low rounded-lg animate-pulse" />
-              <div className="h-32 bg-surface-container-low rounded-lg animate-pulse" />
-              <div className="h-24 bg-surface-container-low rounded-lg animate-pulse" />
+              <Skeleton height={192} />
+              <Skeleton height={128} />
+              <Skeleton height={96} />
             </>
           ) : (
             <>

@@ -7,6 +7,15 @@ client.setConfig({
   baseUrl: process.env.NEXT_PUBLIC_API_URL || client.getConfig().baseUrl,
 });
 
+// Restore auth token from localStorage synchronously so every API call
+// after module init already has the bearer token (no race with AuthProvider).
+if (typeof window !== 'undefined') {
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    client.setConfig({ auth: token });
+  }
+}
+
 /**
  * Programmatically triggers a global API error popup.
  * Useful for manual error handling or testing.
@@ -56,15 +65,7 @@ export function clearTokens() {
 // ── Token Refresh (shared mutex) ──────────────────────────────────────
 
 let refreshPromise: Promise<boolean> | null = null;
-
-function isTokenExpired(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.exp * 1000 < Date.now();
-  } catch {
-    return true;
-  }
-}
+let isLoggingOut = false;
 
 /**
  * Attempt to refresh tokens using the saved refresh token.
@@ -91,46 +92,76 @@ export async function attemptTokenRefresh(): Promise<boolean> {
   }
 }
 
-// ── Request Interceptor: auto-refresh expired tokens ──────────────────
+// ── Error Interceptor: auto-refresh on 401 ────────────────────────────
 
-client.interceptors.request.use(async (request) => {
-  // Don't try to refresh when we're already hitting the refresh endpoint
+client.interceptors.error.use(async (error, response, request) => {
+  // Handle non-401 errors OR errors without a request object normally
+  if (response?.status !== 401 || !request) {
+    const mappedError = mapBackendError(error, response, request);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('api-error', { detail: mappedError }));
+    }
+    return mappedError;
+  }
+
+  // Don't loop on refresh/logout endpoints
   const url = new URL(request.url);
-  if (url.pathname.endsWith('/auth/refresh')) return request;
-
-  const accessToken = getAccessToken();
-  if (accessToken && isTokenExpired(accessToken)) {
-    if (!refreshPromise) {
-      refreshPromise = attemptTokenRefresh().finally(() => {
-        refreshPromise = null;
-      });
-    }
-    const success = await refreshPromise;
-    if (success) {
-      const newToken = getAccessToken();
-      if (newToken) {
-        // Override the stale Authorization header that was set by beforeRequest
-        request.headers.set('Authorization', `Bearer ${newToken}`);
-      }
-    }
+  if (url.pathname.endsWith('/auth/refresh') || url.pathname.endsWith('/auth/logout')) {
+    return error;
   }
-  return request;
-});
 
-// ── Error Interceptor ─────────────────────────────────────────────────
+  // Already logging out → bail out
+  if (isLoggingOut) {
+    return error;
+  }
 
-client.interceptors.error.use((error, response, request) => {
-  // Map the raw error payload/HTTP status to our custom AppError
-  const mappedError = mapBackendError(error, response, request);
+  // ── Attempt token refresh ──
+  if (!refreshPromise) {
+    refreshPromise = attemptTokenRefresh().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  const success = await refreshPromise;
 
-  // Dispatch custom event for global error UI component
+  if (success) {
+    // Retry original request with new token
+    const newToken = getAccessToken();
+    if (newToken) {
+      request.headers.set('Authorization', `Bearer ${newToken}`);
+    }
+    return fetch(request);
+  }
+
+  // Refresh failed → logout and report session expired
+  if (onSessionExpired) {
+    isLoggingOut = true;
+    onSessionExpired();
+  } else {
+    clearTokens();
+  }
+
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('api-error', { detail: mappedError }));
+    window.dispatchEvent(new CustomEvent('api-error', { detail: { code: 'SESSION_EXPIRED' } }));
   }
 
-  // Returning the mapped error here will cause the hey-api client to throw it as the final error
+  const mappedError = mapBackendError(error, response, request);
   return mappedError;
 });
+
+// ── Session Expired Callback ──────────────────────────────────────────
+
+let onSessionExpired: (() => void) | null = null;
+
+/**
+ * Register a callback to be called when token refresh fails.
+ * Useful for AuthProvider to trigger full logout (server revoke, cookie clear, redirect).
+ */
+export function setOnSessionExpired(callback: (() => void) | null) {
+  onSessionExpired = callback;
+  if (!callback) {
+    isLoggingOut = false;
+  }
+}
 
 // Re-export the global client and all auto-generated SDK endpoints/types
 export { client };

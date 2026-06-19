@@ -20,6 +20,7 @@ export const mainNav: NavItem[] = [
 export const footerNav: NavItem[] = [
   { label: 'Settings', translationKey: 'settings', icon: 'settings', href: '/settings' },
   { label: 'Support', translationKey: 'support', icon: 'contact_support', href: '/support' },
+  { label: 'Logout', translationKey: 'logout', icon: 'logout', href: '/logout' },
 ];
 
 

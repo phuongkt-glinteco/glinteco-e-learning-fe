@@ -10,13 +10,49 @@ interface StatsGridProps {
 
 function StreakDots({ days }: { days: number }) {
   const dotCount = Math.min(days, 7);
+
+  const weeklyStreak = Math.min(
+    days >= 7 ? Math.floor(days / 7) : 0,
+    4
+  );
+
+  if (days >= 7) {
+    return (
+      <div
+        className="
+          mt-2
+          overflow-hidden
+          rounded-md
+          border border-cyan-400
+          animate-neon-pulse
+        "
+      >
+        <div className="flex h-2 w-full bg-yellow-300 divide-x divide-blue-400">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className={`
+                flex-1 transition-all duration-500
+                ${i < weeklyStreak
+                  ? 'bg-orange-500'
+                  : 'bg-yellow-300'} animate-neon-pulse
+              `}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex gap-1 mt-2">
+    <div className="mt-2 flex overflow-hidden rounded-md border border-outline-variant divide-x divide-outline-variant">
       {Array.from({ length: 7 }).map((_, i) => (
         <div
           key={i}
-          className={`w-2 h-2 rounded-full ${
-            i < dotCount ? 'bg-[#F59E0B]' : 'bg-slate-200'
+          className={`h-2 w-full ${
+            i < dotCount
+              ? 'bg-yellow-300 animate-neon-pulse'
+              : 'bg-slate-200'
           }`}
         />
       ))}

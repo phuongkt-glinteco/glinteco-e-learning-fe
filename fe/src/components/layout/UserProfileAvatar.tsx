@@ -30,7 +30,6 @@ export default function UserProfileAvatar({
 
   const avatarCircle = (
     <div
-      onClick={() => router.push('/profile')}
       className={`${
         isLarge ? 'h-16 w-16' : 'h-8 w-8'
       } bg-surface-container rounded-full border border-outline-variant flex items-center justify-center shrink-0 overflow-hidden ${showDetails ? '' : className}`}
@@ -55,7 +54,7 @@ export default function UserProfileAvatar({
     return (
       <div className={`flex items-center gap-md pb-lg border-b border-outline-variant w-full ${className}`}>
         {avatarCircle}
-        <div>
+        <div onClick={() => router.push('/profile')} className="flex flex-col gap-1 cursor-pointer">
           <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">{name}</h2>
           <p className="font-body-sm text-sm text-on-surface-variant font-medium">{displayRole}</p>
         </div>

@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 2px rgba(228, 34, 238, 0.3),
+      0 0 6px rgba(238, 34, 75, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 6px rgba(238, 133, 34, 0.6),
+      0 0 12px rgba(238, 201, 34, 0.4);
+  }
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 1.8s ease-in-out infinite;
+}
+
 @theme {
   /* Colors */
   --color-surface: #f8f9ff;

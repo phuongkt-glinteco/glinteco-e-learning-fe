@@ -34,7 +34,8 @@
     "searchPlaceholder": "Search...",
     "help": "Help",
     "role": "Backend Engineer",
-    "subLogoTitle": "Engineering Portal"
+    "subLogoTitle": "Engineering Portal",
+    "logout": "Logout"
   },
   "Errors": {
     "LOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",

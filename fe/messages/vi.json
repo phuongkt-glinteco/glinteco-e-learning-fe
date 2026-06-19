@@ -34,7 +34,8 @@
     "searchPlaceholder": "Tìm kiếm...",
     "help": "Trợ giúp",
     "role": "Kỹ sư Backend",
-    "subLogoTitle": "Cổng thông tin kỹ thuật"
+    "subLogoTitle": "Cổng thông tin kỹ thuật",
+    "logout": "Đăng xuất"
   },
   "Errors": {
     "LOGIN_INVALID_CREDENTIALS": "Tên đăng nhập hoặc mật khẩu không chính xác.",

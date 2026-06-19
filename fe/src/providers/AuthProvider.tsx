@@ -3,8 +3,17 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
-import { client, postAuthLogin, getAuthMe } from '@/services/api-client';
-import type { UserDetail } from '@/services/api-client';
+import {
+  postAuthLogin,
+  postAuthLogout,
+  getAuthMe,
+  getAccessToken,
+  setClientToken,
+  saveTokens,
+  clearTokens,
+  attemptTokenRefresh,
+  type UserDetail,
+} from '@/services/api-client';
 
 interface AuthContextValue {
   user: UserDetail | null;
@@ -17,17 +26,6 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const TOKEN_KEY = 'accessToken';
-
-function setClientToken(token: string | null) {
-  client.setConfig({ auth: token ?? undefined });
-}
-
-function loadToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
-}
-
 const AUTH_COOKIE = 'auth_verified';
 
 function setAuthCookie(role: string) {
@@ -36,14 +34,6 @@ function setAuthCookie(role: string) {
 
 function clearAuthCookie() {
   document.cookie = `${AUTH_COOKIE}=;path=/;max-age=0`;
-}
-
-function saveToken(token: string | null) {
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  } else {
-    localStorage.removeItem(TOKEN_KEY);
-  }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -59,9 +49,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (nextAuthStatus === 'authenticated' && nextAuthSession?.accessToken) {
       const sessionToken = nextAuthSession.accessToken;
+      const sessionRefreshToken = nextAuthSession.refreshToken;
       const sessionUser = nextAuthSession.user as UserDetail | undefined;
-      setClientToken(sessionToken);
-      saveToken(sessionToken);
+      if (sessionRefreshToken) {
+        saveTokens(sessionToken, sessionRefreshToken);
+      } else {
+        setClientToken(sessionToken);
+        localStorage.setItem('accessToken', sessionToken);
+      }
       setAuthCookie(sessionUser?.role ?? 'learner');
       setToken(sessionToken);
       if (sessionUser) {
@@ -70,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     } else {
       // Fallback to localStorage token (email/password login)
-      const savedToken = loadToken();
+      const savedToken = getAccessToken();
       if (savedToken) {
         setClientToken(savedToken);
         getAuthMe({ throwOnError: true })
@@ -78,9 +73,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(res.data);
             setToken(savedToken);
           })
-          .catch(() => {
-            saveToken(null);
-            setClientToken(null);
+          .catch(async () => {
+            // Token might be expired — try refreshing
+            const refreshed = await attemptTokenRefresh();
+            if (refreshed) {
+              const newToken = getAccessToken();
+              if (newToken) {
+                setClientToken(newToken);
+                try {
+                  const res = await getAuthMe({ throwOnError: true });
+                  setUser(res.data);
+                  setToken(newToken);
+                  return;
+                } catch {
+                  // profile fetch failed even after refresh
+                }
+              }
+            }
+            clearTokens();
           })
           .finally(() => setLoading(false));
       } else {
@@ -95,10 +105,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: { email, password },
         throwOnError: true,
       });
-      const { accessToken } = res.data;
+      const { accessToken, refreshToken } = res.data;
       if (!accessToken) throw new Error('No access token returned');
-      setClientToken(accessToken);
-      saveToken(accessToken);
+      if (refreshToken) {
+        saveTokens(accessToken, refreshToken);
+      } else {
+        setClientToken(accessToken);
+        localStorage.setItem('accessToken', accessToken);
+      }
       setToken(accessToken);
       const profileRes = await getAuthMe({ throwOnError: true });
       setAuthCookie(profileRes.data?.role ?? 'learner');
@@ -108,12 +122,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const loginWithGoogle = useCallback(() => {
-    nextAuthSignIn('google', { callbackUrl: '/' });
+    nextAuthSignIn('google', { callbackUrl: '/login' });
   }, []);
 
   const logout = useCallback(async () => {
-    setClientToken(null);
-    saveToken(null);
+    // Revoke the refresh token on the server (best-effort, needs auth header)
+    try {
+      await postAuthLogout();
+    } catch {
+      // server revocation is best-effort during logout
+    }
+    clearTokens();
     clearAuthCookie();
     setToken(null);
     setUser(null);

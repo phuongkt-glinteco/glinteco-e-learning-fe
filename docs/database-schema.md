@@ -43,9 +43,12 @@ This document provides a detailed overview of the TypeORM entities designed for 
 
 ### 3. Track (`tracks` table)
 - **id**: UUID (Primary Key)
-- **name**: VARCHAR
+- **title**: VARCHAR
 - **order**: INT
 - **lessonsCount**: INT - Default: 0
+- **description**: TEXT
+- **estimatedTime**: VARCHAR
+- **icon**: VARCHAR - Default: `'flag'`
 - **createdAt**: TIMESTAMP
 - **updatedAt**: TIMESTAMP
 
@@ -59,9 +62,10 @@ This document provides a detailed overview of the TypeORM entities designed for 
 ### 4. Lesson (`lessons` table)
 - **id**: UUID (Primary Key)
 - **trackId**: UUID (Foreign Key to `tracks.id`)
-- **name**: VARCHAR
+- **title**: VARCHAR
 - **order**: INT
-- **content**: TEXT
+- **estimatedTime**: VARCHAR - Default: `'30m'`
+- **body**: TEXT
 - **createdAt**: TIMESTAMP
 - **updatedAt**: TIMESTAMP
 
@@ -162,7 +166,7 @@ This document provides a detailed overview of the TypeORM entities designed for 
 ## Database Optimizations for Global Search (⌘K)
 
 To support efficient full-text searching (FTS) across tracks, documents, and exercises, GIN (Generalized Inverted Index) indexes are created:
-1. **Tracks**: GIN index using `to_tsvector('simple', "name")`
+1. **Tracks**: GIN index using `to_tsvector('simple', "title")`
 2. **Documents**: GIN index using `to_tsvector('simple', "title" || ' ' || coalesce("content", ''))`
 3. **Exercises**: GIN index using `to_tsvector('simple', "title")`
 

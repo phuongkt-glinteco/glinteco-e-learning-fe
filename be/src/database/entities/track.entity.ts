@@ -16,13 +16,22 @@ export class Track {
   id: string;
 
   @Column()
-  name: string;
+  title: string;
 
   @Column({ name: 'track_order' })
   order: number;
 
   @Column({ default: 0 })
   lessonsCount: number;
+
+  @Column({ type: 'text' })
+  description: string;
+
+  @Column()
+  estimatedTime: string;
+
+  @Column({ default: 'flag' })
+  icon: string;
 
   @OneToMany(() => Lesson, (lesson) => lesson.track)
   lessons: Lesson[];

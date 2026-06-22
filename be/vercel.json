@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.ts"
+    }
+  ],
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "{src/i18n/**,docs/openapi.yaml}"
+    }
+  }
+}

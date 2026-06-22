@@ -33,6 +33,7 @@ dist/
 .next/
 out/
 build/
+coverage/
 
 # Environment files (Secrets)
 .env
@@ -56,4 +57,5 @@ desktop.ini
 *.sln
 *.sw?
 
+mini-task/
 /mini-task

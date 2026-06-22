@@ -1,48 +1,67 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { LanguageSwitcher } from '@/shared/ui/language-switcher';
-
-interface LoginFormData {
-  email: string;
-  password: string;
-}
+import LanguageToggle from '@/components/ui/LanguageToggle';
+import { authLoginRequestSchema, type AuthLoginInput } from '@/schemas';
+import { useAuth } from '@/providers/AuthProvider';
 
 export default function LoginPage() {
   const t = useTranslations('LoginPage');
+  const router = useRouter();
+  const { user, loading: authLoading, login, loginWithGoogle } = useAuth();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+
+  const { register, handleSubmit, formState: { errors } } = useForm<AuthLoginInput>({
+    resolver: zodResolver(authLoginRequestSchema),
     defaultValues: {
-      email: 'mina@acme.dev',
-      password: 'password123'
+
+      email: 'alice@glinteco.com',
+      password: 'rampup123',
+      rememberMe: true,
     }
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = (data: LoginFormData) => {
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/dashboard/learner');
+    }
+  }, [user, authLoading, router]);
+
+  const onSubmit = async (data: AuthLoginInput) => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await login(data.email, data.password);
+    } catch {
+      // Error handled by global interceptor
+
+    } finally {
       setLoading(false);
-      alert(t('alertEmailSuccess', { email: data.email }));
-    }, 800);
+    }
   };
 
-  const handleGoogleLogin = () => {
+  const onGoogleSignIn = async () => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      await loginWithGoogle();
+    } catch {
+      // Error handled by global interceptor
+    } finally {
       setLoading(false);
-      alert(t('alertGoogleSuccess'));
-    }, 800);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
-      <LanguageSwitcher className="absolute right-6 top-6 z-20" />
+      <LanguageToggle size="md" className="hidden md:block absolute top-6 right-6 z-20 border-outline" />
 
       <div className="flex w-full h-full min-h-screen">
         <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-primary to-secondary p-12 relative overflow-hidden">
@@ -86,6 +105,13 @@ export default function LoginPage() {
               <p className="text-[14px] text-on-surface-variant mt-1">{t('signInPrompt')}</p>
             </div>
 
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">error</span>
+                <span>{error}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-[14px] font-medium text-on-surface-variant mb-1" htmlFor="email">{t('emailLabel')}</label>
@@ -94,18 +120,12 @@ export default function LoginPage() {
                   id="email"
                   type="text"
                   placeholder={t('emailPlaceholder')}
-                  {...register('email', {
-                    required: t('emailRequired'),
-                    pattern: {
-                      value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                      message: t('emailInvalid')
-                    }
-                  })}
+                  {...register('email')}
                 />
                 {errors.email && (
                   <p className="text-error text-[12px] mt-1 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">error</span>
-                    {errors.email.message}
+                    {t(errors.email.message as any)}
                   </p>
                 )}
               </div>
@@ -118,13 +138,7 @@ export default function LoginPage() {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder={t('passwordPlaceholder')}
-                    {...register('password', {
-                      required: t('passwordRequired'),
-                      minLength: {
-                        value: 6,
-                        message: t('passwordMinLength')
-                      }
-                    })}
+                    {...register('password')}
                   />
                   <button
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface"
@@ -139,7 +153,7 @@ export default function LoginPage() {
                 {errors.password && (
                   <p className="text-error text-[12px] mt-1 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">error</span>
-                    {errors.password.message}
+                    {t(errors.password.message as any)}
                   </p>
                 )}
               </div>
@@ -150,7 +164,7 @@ export default function LoginPage() {
                     className="h-4 w-4 rounded border-outline text-primary focus:ring-primary bg-surface"
                     id="remember"
                     type="checkbox"
-                    defaultChecked
+                    {...register('rememberMe')}
                   />
                   <label className="ml-2 block text-[14px] text-on-surface-variant select-none" htmlFor="remember">{t('rememberMe')}</label>
                 </div>
@@ -171,9 +185,9 @@ export default function LoginPage() {
                 </button>
 
                 <button
-                  className="w-full bg-surface border border-outline text-on-surface text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-background transition-colors flex justify-center items-center gap-2"
+                  className="w-full bg-surface border border-outline text-on-surface text-[14px] font-medium py-3 px-4 rounded-lg hover:bg-background transition-colors flex justify-center items-center gap-2 cursor-pointer"
                   type="button"
-                  onClick={handleGoogleLogin}
+                  onClick={onGoogleSignIn}
                   disabled={loading}
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

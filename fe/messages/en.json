@@ -1,4 +1,10 @@
 {
+  "LogoutPage": {
+    "signingOut": "Signing you out...",
+    "description": "Safely ending your session. You'll be redirected to the login page in a moment.",
+    "processing": "Processing",
+    "redirecting": "Redirecting now..."
+  },
   "LoginPage": {
     "brandSubtitle": "Level up your engineering journey.",
     "brandTagline": "Learn, Practice, Review.",
@@ -22,6 +28,7 @@
     "alertGoogleSuccess": "Google login successful!",
     "alertEmailSuccess": "Successfully signed in with: {email}"
   },
+
   "LandingPage": {
     "brandName": "RAMP UP",
     "cta": {
@@ -173,5 +180,120 @@
         "contact": "Contact"
       }
     }
+  },
+  "LoadingPage": {
+    "title": "Preparing your workspace...",
+    "description": "Initializing course modules and documentation"
+  },
+  "AppShell": {
+    "dashboard": "Dashboard",
+    "courses": "Courses",
+    "myCourses": "My Courses",
+    "documentation": "Documentation",
+    "settings": "Settings",
+    "support": "Support",
+    "notifications": "Notifications",
+    "engineeringPortal": "Engineering Portal",
+    "searchPlaceholder": "Search...",
+    "profile": "Profile",
+    "help": "Help",
+    "role": "Backend Engineer",
+    "subLogoTitle": "Engineering Portal",
+    "logout": "Logout"
+  },
+  "Errors": {
+    "LOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "UNAUTHORIZED": "Session expired or invalid. Please sign in again.",
+    "FORBIDDEN": "You do not have permission to perform this action.",
+    "NOT_FOUND": "Requested resource not found.",
+    "VALIDATION_ERROR": "Invalid data submitted.",
+    "NETWORK_ERROR": "Cannot connect to server. Please check your network connection.",
+    "INTERNAL_SERVER_ERROR": "Internal server error. Please try again later.",
+    "UNKNOWN_ERROR": "An unexpected error occurred."
+  },
+  "AdminDashboardPage": {
+    "title": "Dashboard Overview",
+    "activeLearners": "Active Learners",
+    "thisWeek": "+{count} this week",
+    "avgCompletion": "Avg. Completion",
+    "vsLastWeek": "+{pct}% vs last week",
+    "pendingReviews": "Pending Reviews",
+    "oldest": "Oldest: {time} ago",
+    "rampSpeed": "Ramp-up Speed",
+    "target": "Target: {days}d",
+    "aheadOfSchedule": "{days} Days Ahead of Schedule",
+    "behindSchedule": "Behind Schedule",
+    "filter": "Filter",
+    "recentSubmissions": "Recent Submissions",
+    "totalSubmissions": "{count} Total Submissions",
+    "pending": "PENDING",
+    "changes": "CHANGES",
+    "approved": "APPROVED",
+    "viewPr": "View PR",
+    "pendingReview": "Pending Review",
+    "changesRequested": "Changes Requested",
+    "approvedStatus": "Approved",
+    "viewAllSubmissions": "View All Submissions",
+    "trackCompletion": "Track Completion",
+    "curriculumManagement": "Curriculum Management",
+    "trackEditor": "Track Editor",
+    "lessonPlanner": "Lesson Planner",
+    "documentationPortal": "Documentation Portal",
+    "manageDocs": "Manage Docs",
+    "loadError": "Failed to load dashboard. Please try again.",
+    "noCohort": "No cohort assigned. Please contact an administrator.",
+    "selectCohort": "Select Cohort",
+    "timeAgoMin": "{count}m ago",
+    "timeAgoHour": "{count}h ago",
+    "timeAgoDay": "{count}d ago",
+    "chartCompleted": "{count}/{total} completed",
+    "chartAbove50": "{count}/{total} in progress",
+    "chartBelow50": "{count}/{total} behind"
+  },
+  "LearnerDashboard": {
+    "welcomeTitle": "Hi {name},",
+    "welcomeSubtitle": "{title} (Cohort #{cohortId}) — Let's continue ramping up.",
+    "overallProgress": "Overall Progress",
+    "totalXp": "Total XP",
+    "thisWeek": "This Week: +{xp} XP",
+    "currentLevel": "Current Level",
+    "level": "Level {level}",
+    "keepGoing": "Keep going!",
+    "streak": "Streak",
+    "days": "Days",
+    "continueLearning": "Continue Learning",
+    "viewPath": "View Path",
+    "lessonProgress": "Lesson Progress",
+    "continueLesson": "Continue Lesson",
+    "learningActivity": "Learning Activity",
+    "tracksCompleted": "Tracks Completed",
+    "exercises": "Exercises",
+    "total": "Total",
+    "approved": "{count} Approved",
+    "awaitingReview": "{count} Awaiting Review",
+    "savedDocs": "Saved Docs",
+    "unread": "{count} Unread",
+    "recentDocuments": "Recent Documents",
+    "viewed": "Viewed {time}",
+    "noRecentDocuments": "No recent documents yet"
+  },
+  "ApiErrors": {
+    "titleVALIDATION_ERROR": "Validation Error",
+    "contentVALIDATION_ERROR": "The data submitted was invalid. Please check and try again.",
+    "titleLOGIN_INVALID_CREDENTIALS": "Login Failed",
+    "contentLOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "titleUNAUTHORIZED": "Session Expired",
+    "contentUNAUTHORIZED": "Your session has expired. Please sign in again.",
+    "titleFORBIDDEN": "Access Denied",
+    "contentFORBIDDEN": "You do not have permission to perform this action.",
+    "titleNOT_FOUND": "Not Found",
+    "contentNOT_FOUND": "The requested resource could not be found.",
+    "titleINTERNAL_SERVER_ERROR": "Server Error",
+    "contentINTERNAL_SERVER_ERROR": "An internal server error occurred. Please try again later.",
+    "titleNETWORK_ERROR": "Network Connection Error",
+    "contentNETWORK_ERROR": "Cannot connect to the server. Please check your connection and try again.",
+    "titleUNKNOWN_ERROR": "Unexpected Error",
+    "contentUNKNOWN_ERROR": "An unexpected error occurred. Please try again."
   }
 }
+

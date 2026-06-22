@@ -1,7 +1,11 @@
+import './globals.css';
 import { getLocale } from 'next-intl/server';
 import { LanguageProvider } from '@/providers/LanguageProvider';
+import { ApiErrorProvider } from '@/providers/ApiErrorProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
+import SessionProvider from '@/providers/SessionProvider';
+import { ApiErrorContainer } from '@/components/ui/ApiErrorContainer';
 import type { ReactNode } from 'react';
-import './globals.css';
 
 export const metadata = {
   title: 'RAMP UP',
@@ -14,6 +18,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -21,10 +26,18 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           rel="stylesheet"
         />
       </head>
+
       <body>
-        <LanguageProvider initialLocale={locale}>
-          {children}
-        </LanguageProvider>
+        <SessionProvider>
+          <LanguageProvider initialLocale={locale}>
+            <ApiErrorProvider>
+              <AuthProvider>
+                {children}
+                <ApiErrorContainer />
+              </AuthProvider>
+            </ApiErrorProvider>
+          </LanguageProvider>
+        </SessionProvider>
       </body>
     </html>
   );

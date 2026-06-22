@@ -1,24 +1,38 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, MaxLength, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, MaxLength } from 'class-validator';
 
 export class UpdateTrackDto {
   @ApiPropertyOptional({
-    description: 'Tên lộ trình học',
+    description: 'Tên lộ trình học (tiêu đề)',
     example: 'Advanced Frontend',
     maxLength: 100,
   })
-  @IsString({ message: 'name phải là chuỗi' })
+  @IsString({ message: 'title phải là chuỗi' })
   @IsOptional()
-  @MaxLength(100, { message: 'name không được vượt quá 100 ký tự' })
-  name?: string;
+  @MaxLength(100, { message: 'title không được vượt quá 100 ký tự' })
+  title?: string;
 
   @ApiPropertyOptional({
-    description: 'Thứ tự sắp xếp của lộ trình',
-    example: 1,
-    minimum: 1,
+    description: 'Mô tả lộ trình học',
+    example: 'Updated description here.',
   })
-  @IsInt({ message: 'order phải là số nguyên' })
-  @Min(1, { message: 'order phải lớn hơn hoặc bằng 1' })
+  @IsString({ message: 'description phải là chuỗi' })
   @IsOptional()
-  order?: number;
+  description?: string;
+
+  @ApiPropertyOptional({
+    description: 'Thời gian ước tính',
+    example: '3h',
+  })
+  @IsString({ message: 'estimatedTime phải là chuỗi' })
+  @IsOptional()
+  estimatedTime?: string;
+
+  @ApiPropertyOptional({
+    description: 'Icon đại diện',
+    example: 'sitemap',
+  })
+  @IsString({ message: 'icon phải là chuỗi' })
+  @IsOptional()
+  icon?: string;
 }

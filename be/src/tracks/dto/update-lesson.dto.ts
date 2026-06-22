@@ -3,14 +3,14 @@ import { IsString, IsOptional, MaxLength, IsInt, Min } from 'class-validator';
 
 export class UpdateLessonDto {
   @ApiPropertyOptional({
-    description: 'Tên bài học',
+    description: 'Tiêu đề bài học',
     example: 'Advanced React',
     maxLength: 255,
   })
-  @IsString({ message: 'name phải là chuỗi' })
+  @IsString({ message: 'title phải là chuỗi' })
   @IsOptional()
-  @MaxLength(255, { message: 'name không được vượt quá 255 ký tự' })
-  name?: string;
+  @MaxLength(255, { message: 'title không được vượt quá 255 ký tự' })
+  title?: string;
 
   @ApiPropertyOptional({
     description: 'Thứ tự của bài học trong lộ trình',
@@ -23,10 +23,18 @@ export class UpdateLessonDto {
   order?: number;
 
   @ApiPropertyOptional({
-    description: 'Nội dung bài học',
-    example: 'Updated lesson content...',
+    description: 'Thời gian ước tính hoàn thành bài học',
+    example: '30m',
   })
-  @IsString({ message: 'content phải là chuỗi' })
+  @IsString({ message: 'estimatedTime phải là chuỗi' })
   @IsOptional()
-  content?: string;
+  estimatedTime?: string;
+
+  @ApiPropertyOptional({
+    description: 'Nội dung bài học',
+    example: 'Updated lesson body...',
+  })
+  @IsString({ message: 'body phải là chuỗi' })
+  @IsOptional()
+  body?: string;
 }

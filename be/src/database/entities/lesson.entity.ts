@@ -24,13 +24,16 @@ export class Lesson {
   track: Track;
 
   @Column()
-  name: string;
+  title: string;
 
   @Column({ name: 'lesson_order' })
   order: number;
 
+  @Column()
+  estimatedTime: string;
+
   @Column({ type: 'text' })
-  content: string;
+  body: string;
 
   @OneToMany(() => LessonProgress, (progress) => progress.lesson)
   progresses: LessonProgress[];

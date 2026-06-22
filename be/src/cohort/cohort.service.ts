@@ -251,7 +251,7 @@ export class CohortService {
       return {
         data: tracks.map((t) => ({
           trackId: t.id,
-          title: t.name,
+          title: t.title,
           completionPct: 0,
         })),
       };
@@ -280,7 +280,7 @@ export class CohortService {
       );
       return {
         trackId: t.id,
-        title: t.name,
+        title: t.title,
         completionPct,
       };
     });

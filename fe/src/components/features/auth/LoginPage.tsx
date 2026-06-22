@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import LanguageToggle from '@/components/ui/LanguageToggle';
+import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { authLoginRequestSchema, type AuthLoginInput } from '@/schemas';
 import { useAuth } from '@/providers/AuthProvider';
 

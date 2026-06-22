@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { getUsersMeStats } from '@/services/api-client';
 import type { UserDashboardStats } from '@/services/api-client';
-import Skeleton from '@/components/ui/Skeleton';
+import Skeleton from '@/components/ui/loading/Skeleton';
 import { ProgressBar } from '@/components/ui/HPBar';
 
 function StreakDots({ days }: { days: number }) {

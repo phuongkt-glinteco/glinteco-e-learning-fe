@@ -4,7 +4,7 @@ import { LanguageProvider } from '@/providers/LanguageProvider';
 import { ApiErrorProvider } from '@/providers/ApiErrorProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import SessionProvider from '@/providers/SessionProvider';
-import { ApiErrorContainer } from '@/components/ui/ApiErrorContainer';
+import { ApiErrorContainer } from '@/components/ui/containers/ApiErrorContainer';
 import type { ReactNode } from 'react';
 
 export const metadata = {

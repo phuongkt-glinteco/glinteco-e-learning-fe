@@ -2,15 +2,16 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
+import { defaultLocale, isLocale, type Locale } from '@/i18n/locales';
 
 import en from '../../messages/en.json';
 import vi from '../../messages/vi.json';
 
-const messages: Record<string, typeof en> = { en, vi };
+const messages: Record<Locale, typeof en> = { en, vi };
 
 interface LanguageContextType {
-  locale: string;
-  changeLanguage: (nextLocale: string) => void;
+  locale: Locale;
+  changeLanguage: (nextLocale: Locale) => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
@@ -21,9 +22,11 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children, initialLocale }: LanguageProviderProps) {
-  const [locale, setLocale] = useState(initialLocale);
+  const [locale, setLocale] = useState<Locale>(
+    isLocale(initialLocale) ? initialLocale : defaultLocale,
+  );
 
-  const changeLanguage = useCallback((nextLocale: string) => {
+  const changeLanguage = useCallback((nextLocale: Locale) => {
     document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
     setLocale(nextLocale);
   }, []);

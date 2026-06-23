@@ -126,6 +126,9 @@ export class SubmissionsService {
     });
     await this.submissionHistoryRepository.save(history);
 
+    if (!savedSubmission.submittedAt) {
+      throw new Error('Submission submittedAt is missing');
+    }
     // Emit event
     const event = new SubmissionCreatedEvent();
     event.submissionId = savedSubmission.id;
@@ -188,7 +191,12 @@ export class SubmissionsService {
       const histories = await this.submissionHistoryRepository.find({
         where: { submissionId: savedSubmission.id },
       });
-      const previousComments = histories.map(h => h.comment).filter(c => !!c);
+      const previousComments = histories
+        .map((h) => h.comment)
+        .filter((c) => !!c);
+      if (!savedSubmission.submittedAt) {
+        throw new Error('Submission submittedAt is missing after save');
+      }
 
       const event = new SubmissionResubmittedEvent();
       event.submissionId = savedSubmission.id;

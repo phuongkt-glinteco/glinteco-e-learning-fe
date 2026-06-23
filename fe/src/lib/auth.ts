@@ -1,7 +1,6 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.glinteco-elearning.dev/api/v1';
+import { API_BASE_URL } from '@/services/api-config';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google],
@@ -9,7 +8,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, account }) {
       if (account?.id_token) {
         try {
-          const res = await fetch(`${API_URL}/auth/google`, {
+          const res = await fetch(`${API_BASE_URL}/auth/google`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idToken: account.id_token }),

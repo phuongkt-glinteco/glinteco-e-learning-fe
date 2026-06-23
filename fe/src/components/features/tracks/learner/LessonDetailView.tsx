@@ -44,7 +44,7 @@ export function LessonDetailView({
             type="button"
             onClick={onBackToTracks}
             className="w-9 h-9 border border-outline-variant hover:bg-surface-container-low rounded-lg flex items-center justify-center text-on-surface-variant transition-colors cursor-pointer"
-            aria-label="Back to courses"
+            aria-label="Back to tracks"
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           </button>

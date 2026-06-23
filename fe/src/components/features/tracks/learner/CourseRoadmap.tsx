@@ -44,8 +44,8 @@ export function CourseRoadmap({
         </span>
       </div>
 
-      <div className="relative flex flex-col gap-4">
-        <div className="absolute bottom-6 left-[23px] top-6 w-px bg-outline-variant" />
+      <div className="relative isolate flex flex-col gap-4">
+        <div className="pointer-events-none absolute bottom-8 left-10 top-8 z-0 w-px bg-outline-variant/80" />
 
         {lessons.map((lesson) => {
           const state = getLessonState(lesson, activeLessonId);
@@ -55,13 +55,17 @@ export function CourseRoadmap({
           return (
             <article
               key={lesson.id}
-              className={`relative grid grid-cols-[48px_1fr] gap-4 rounded-lg border p-4 transition-colors ${
+              className={`relative z-10 grid grid-cols-[48px_1fr] gap-4 overflow-hidden rounded-lg border bg-surface-container-lowest p-4 transition-all ${
                 isCurrent
-                  ? 'border-primary bg-primary/5'
-                  : 'border-outline-variant bg-surface'
+                  ? 'border-primary shadow-sm ring-1 ring-primary/20'
+                  : 'border-outline-variant hover:border-primary/40'
               }`}
             >
-              <div className={`z-10 flex h-12 w-12 items-center justify-center rounded-full border-4 border-surface ${
+              {isCurrent && (
+                <div className="pointer-events-none absolute inset-0 z-0 bg-primary/5" />
+              )}
+
+              <div className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-4 border-surface-container-lowest shadow-sm ${
                 isCompleted
                   ? 'bg-green-600 text-white'
                   : isCurrent
@@ -73,7 +77,7 @@ export function CourseRoadmap({
                 </span>
               </div>
 
-              <div className="min-w-0">
+              <div className="relative z-10 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
                     Lesson {lesson.order}

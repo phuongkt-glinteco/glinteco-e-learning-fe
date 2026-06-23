@@ -36,7 +36,7 @@ export function TracksGrid({
       <header>
         <h1 className="headline-lg text-primary">Learning Tracks</h1>
         <p className="mt-2 body-md text-on-surface-variant">
-          Explore available courses to advance your engineering skills.
+          Explore available learning tracks to advance your engineering skills.
         </p>
       </header>
 
@@ -49,7 +49,7 @@ export function TracksGrid({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             className="h-12 w-full rounded-lg border border-outline-variant bg-surface-container-lowest pl-12 pr-4 body-sm text-on-surface outline-none transition-colors placeholder:text-outline focus:border-primary"
-            placeholder="Search courses..."
+            placeholder="Search tracks..."
             type="search"
           />
         </label>

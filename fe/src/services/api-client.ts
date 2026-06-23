@@ -1,10 +1,10 @@
 import { client } from './client/client.gen';
+import { API_BASE_URL } from './api-config';
 import { mapBackendError } from './error-mapper';
 import { postAuthRefresh } from './client/sdk.gen';
 
-const DEFAULT_BASE_URL = 'https://api.glinteco-elearning.dev/api/v1';
 client.setConfig({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || DEFAULT_BASE_URL,
+  baseUrl: API_BASE_URL,
 });
 
 if (typeof window !== 'undefined') {

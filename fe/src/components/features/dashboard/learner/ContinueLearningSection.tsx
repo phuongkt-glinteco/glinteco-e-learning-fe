@@ -7,6 +7,7 @@ import type { TrackSummary } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 import { ProgressBar } from '@/components/ui/HPBar';
+import { normalizeTrackIcon } from '@/utils/track-icons';
 
 export default function ContinueLearningSection() {
   const t = useTranslations('LearnerDashboard');
@@ -38,7 +39,7 @@ export default function ContinueLearningSection() {
   const progress = currentTrack.lessonCount
     ? Math.round(((currentTrack.lessonsCompleted ?? 0) / currentTrack.lessonCount) * 100)
     : 0;
-  const icon = currentTrack.icon ?? 'data_object';
+  const icon = normalizeTrackIcon(currentTrack.icon) ?? 'data_object';
 
   return (
     <section>

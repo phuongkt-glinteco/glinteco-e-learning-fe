@@ -5,14 +5,15 @@ import { useTranslations } from 'next-intl';
 
 
 interface PrerequisitesCardProps {
-  prerequisites?: String;
+  prerequisites?: string | string[];
 }
 
 export function PrerequisitesCard({
   prerequisites,
-  isOpen = false
 }: PrerequisitesCardProps) {
   const t = useTranslations('TrackPreview');
+  const prerequisiteItems = (Array.isArray(prerequisites) ? prerequisites : [prerequisites])
+    .filter((item): item is string => Boolean(item?.trim()));
 
 
   return (
@@ -21,36 +22,25 @@ export function PrerequisitesCard({
         <span className="material-symbols-outlined text-primary">verified</span>
         <h3 className="font-headline-sm text-[18px] text-on-surface">{t('prerequisitesTitle')}</h3>
       </div>
-      {prerequisites && (
+      {prerequisiteItems.length === 0 ? (
         <p className="text-on-surface-variant text-[14px]">{t('noPrerequisites')}</p>
-      ) }
-      <ul className="flex flex-col gap-3">
-        {prerequisites && (
-          <li
-            className="flex items-center gap-3 p-3 bg-surface-container-low rounded-lg border border-outline-variant"
-          >
-            <span className="material-symbols-outlined text-[20px] text-primary">
-              { 'terminal'}
-            </span>
-            <div className="flex-1">
-              <p className="font-label-md text-label-md text-on-surface">
-                {prerequisites}
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {prerequisiteItems.map((item) => (
+            <li
+              key={item}
+              className="flex items-center gap-3 rounded-lg border border-outline-variant bg-surface-container-low p-3"
+            >
+              <span className="material-symbols-outlined text-[20px] text-primary">
+                terminal
+              </span>
+              <p className="flex-1 font-label-md text-label-md text-on-surface">
+                {item}
               </p>
-              {/* {prereq.isCompleted && (
-                <p className="text-[10px] text-tertiary flex items-center gap-1 font-bold">
-                  <span
-                    className="material-symbols-outlined text-[12px]"
-                    style={{ fontVariationSettings: '"FILL" 1' }}
-                  >
-                    check_circle
-                  </span>
-                  {t('verifiedCompleted')}
-                </p>
-              )} */}
-            </div>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

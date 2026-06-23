@@ -3,96 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getTracksById, getTracksByIdLessons } from '@/services/api-client';
-import type {
-  LessonProgressItem,
-  LessonSummary,
-  TrackDetail,
-} from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { CourseDetailView } from './CourseDetailView';
-import type { LearnerTrack, TrackLessonPreview, TrackStatus } from './types';
-
-const DEFAULT_STATUS: TrackStatus = 'locked';
-
-function getRouteParam(value: string | string[] | undefined) {
-  if (Array.isArray(value)) return value[0] ?? '';
-  return value ?? '';
-}
-
-function getErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    const message = (error as { message?: unknown }).message;
-    if (typeof message === 'string' && message.trim()) return message;
-  }
-  return fallback;
-}
-
-function normalizeTrack(
-  track: TrackDetail,
-  trackId: string,
-  lessons: TrackLessonPreview[]
-): LearnerTrack {
-  const lessonCount = lessons.length;
-  const lessonsCompleted = track.lessonsCompleted
-    ?? lessons.filter((lesson) => lesson.completed).length;
-
-  return {
-    id: track.id ?? trackId,
-    title: track.title?.trim() || 'Untitled track',
-    description: track.description?.trim() || 'Track details are being prepared.',
-    estimatedTime: track.estimatedTime?.trim() || 'TBD',
-    lessonCount,
-    lessonsCompleted,
-    order: track.order ?? 1,
-    status: track.status ?? DEFAULT_STATUS,
-    icon: track.icon,
-  };
-}
-
-function normalizeLessonPreview(
-  lesson: LessonSummary,
-  index: number,
-  progressLesson?: LessonProgressItem
-): TrackLessonPreview | null {
-  const id = progressLesson?.id ?? lesson.id;
-  if (!id) return null;
-
-  return {
-    id,
-    title: lesson.title?.trim() || progressLesson?.title?.trim() || 'Untitled lesson',
-    estimatedTime: lesson.estimatedTime?.trim() || '15m',
-    order: lesson.order ?? progressLesson?.order ?? index + 1,
-    completed: progressLesson?.completed ?? false,
-  };
-}
-
-function normalizeLessons(
-  lessons: LessonSummary[],
-  progressLessons: LessonProgressItem[]
-) {
-  const lessonById = new Map(
-    lessons
-      .filter((lesson): lesson is LessonSummary & { id: string } => Boolean(lesson.id))
-      .map((lesson) => [lesson.id, lesson])
-  );
-
-  if (progressLessons.length > 0) {
-    return progressLessons
-      .map((progressLesson, index) => normalizeLessonPreview(
-        lessonById.get(progressLesson.id ?? '') ?? {},
-        index,
-        progressLesson
-      ))
-      .filter((lesson): lesson is TrackLessonPreview => Boolean(lesson))
-      .sort((a, b) => a.order - b.order);
-  }
-
-  return lessons
-    .map((lesson, index) => normalizeLessonPreview(lesson, index))
-    .filter((lesson): lesson is TrackLessonPreview => Boolean(lesson))
-    .sort((a, b) => a.order - b.order);
-}
+import type { LearnerTrack, TrackLessonPreview } from './types';
+import {
+  getErrorMessage,
+  getRouteParam,
+  normalizeLessonsPreview,
+  normalizeTrackDetail,
+} from './utils';
 
 function CourseDetailLoadingState() {
   return (
@@ -185,13 +104,13 @@ export default function CourseDetailContainer() {
 
       if (!trackResponse.data) throw new Error('Track was not found.');
 
-      const normalizedLessons = normalizeLessons(
+      const normalizedLessons = normalizeLessonsPreview(
         lessonsResponse.data?.data ?? [],
         trackResponse.data.lessons ?? []
       );
 
       setLessons(normalizedLessons);
-      setTrack(normalizeTrack(trackResponse.data, trackId, normalizedLessons));
+      setTrack(normalizeTrackDetail(trackResponse.data, trackId, normalizedLessons));
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, 'Failed to load course details.'));
     } finally {
@@ -208,7 +127,7 @@ export default function CourseDetailContainer() {
   ), [lessons]);
 
   function handleOpenLesson(lessonId: string) {
-    router.push(`/courses/${trackId}/lessons/${lessonId}`);
+    router.push(`/tracks/${trackId}/lessons/${lessonId}`);
   }
 
   if (loading) return <CourseDetailLoadingState />;
@@ -217,7 +136,7 @@ export default function CourseDetailContainer() {
     return (
       <CourseDetailErrorState
         message={error ?? 'Track was not found.'}
-        onBack={() => router.push('/courses')}
+        onBack={() => router.push('/tracks')}
         onRetry={loadCourseDetail}
       />
     );
@@ -228,7 +147,7 @@ export default function CourseDetailContainer() {
       track={track}
       lessons={lessons}
       currentLessonId={currentLessonId}
-      onBackToTracks={() => router.push('/courses')}
+      onBackToTracks={() => router.push('/tracks')}
       onOpenLesson={handleOpenLesson}
     />
   );

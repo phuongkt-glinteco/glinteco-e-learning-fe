@@ -1,9 +1,9 @@
 export class AppError extends Error {
   public readonly code: string;
   public readonly statusCode?: number;
-  public readonly details?: any;
+  public readonly details?: unknown;
 
-  constructor(message: string, code: string, statusCode?: number, details?: any) {
+  constructor(message: string, code: string, statusCode?: number, details?: unknown) {
     super(message);
     this.name = this.constructor.name;
     this.code = code;
@@ -16,13 +16,13 @@ export class AppError extends Error {
 }
 
 export class HttpError extends AppError {
-  constructor(message: string, code: string, statusCode: number, details?: any) {
+  constructor(message: string, code: string, statusCode: number, details?: unknown) {
     super(message, code, statusCode, details);
   }
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, details?: any) {
+  constructor(message: string, details?: unknown) {
     super(message, 'VALIDATION_ERROR', 400, details);
   }
 }

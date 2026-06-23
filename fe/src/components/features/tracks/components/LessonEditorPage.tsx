@@ -7,7 +7,7 @@ import { MarkdownRenderer, parseFrontmatter } from '@/lib/md-renderer';
 import { SyntaxGuide } from './SyntaxGuide';
 import { LessonMetadata } from './LessonMetadata';
 import { useTrackDraftStore, type DraftLesson } from '@/stores/trackDraftStore';
-import { buildTimeString, formatEstimatedTime, type TimeUnit } from '@/lib/time-utils';
+import { buildTimeString, type TimeUnit } from '@/lib/time-utils';
 
 interface LessonEditorPageProps {
   editIndex?: number;
@@ -151,7 +151,6 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
         cursorPos = start + inserted.length;
       } else {
         const before = body.substring(0, start);
-        const after = body.substring(end);
         const newLine = before.endsWith('\n') || before === '' ? '' : '\n';
         inserted = `${newLine}${snippet}${selected}`;
         cursorPos = start + inserted.length;

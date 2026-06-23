@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import UserProfileAvatar from './UserProfileAvatar';
 import NavMenu from './NavMenu';
 import { mainNav, footerNav } from './Sidebar';
@@ -13,9 +11,6 @@ interface MobileSideBarProps {
 }
 
 export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
-  const pathname = usePathname();
-  const isNotificationsActive = pathname.startsWith('/notifications');
-
   return (
     <div
       className={`fixed inset-0 z-50 flex flex-col h-screen w-screen bg-background transition-all duration-300 ease-in-out ${

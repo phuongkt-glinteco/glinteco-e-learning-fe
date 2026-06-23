@@ -3,45 +3,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTracks } from '@/services/api-client';
-import type { TrackSummary } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { TracksGrid } from './TracksGrid';
 import type { TrackFilter } from './TracksGrid';
-import type { LearnerTrack, TrackStatus } from './types';
-
-const DEFAULT_STATUS: TrackStatus = 'locked';
-
-function getErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'object' && error !== null && 'message' in error) {
-    const message = (error as { message?: unknown }).message;
-    if (typeof message === 'string' && message.trim()) return message;
-  }
-  return fallback;
-}
-
-function normalizeTrack(track: TrackSummary, index: number): LearnerTrack | null {
-  if (!track.id) return null;
-
-  return {
-    id: track.id,
-    title: track.title?.trim() || 'Untitled track',
-    description: track.description?.trim() || 'Track details are being prepared.',
-    estimatedTime: track.estimatedTime?.trim() || 'TBD',
-    lessonCount: track.lessonCount ?? 0,
-    lessonsCompleted: track.lessonsCompleted ?? 0,
-    order: track.order ?? index + 1,
-    status: track.status ?? DEFAULT_STATUS,
-    icon: track.icon,
-  };
-}
-
-function normalizeTracks(tracks: TrackSummary[]) {
-  return tracks
-    .map(normalizeTrack)
-    .filter((track): track is LearnerTrack => Boolean(track))
-    .sort((a, b) => a.order - b.order);
-}
+import type { LearnerTrack } from './types';
+import {
+  getErrorMessage,
+  normalizeTrackSummaries,
+} from './utils';
 
 function TracksLoadingState() {
   return (
@@ -105,7 +74,7 @@ export default function TracksContainer() {
 
     try {
       const response = await getTracks({ throwOnError: true });
-      setTracks(normalizeTracks(response.data?.data ?? []));
+      setTracks(normalizeTrackSummaries(response.data?.data ?? []));
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, 'Failed to fetch learning tracks.'));
     } finally {
@@ -123,7 +92,7 @@ export default function TracksContainer() {
 
       try {
         const response = await getTracks({ throwOnError: true });
-        if (active) setTracks(normalizeTracks(response.data?.data ?? []));
+        if (active) setTracks(normalizeTrackSummaries(response.data?.data ?? []));
       } catch (loadError: unknown) {
         if (active) setError(getErrorMessage(loadError, 'Failed to fetch learning tracks.'));
       } finally {
@@ -156,7 +125,7 @@ export default function TracksContainer() {
 
     setOpeningTrackId(track.id);
     setActionError(null);
-    router.push(`/courses/${track.id}`);
+    router.push(`/tracks/${track.id}`);
   }
 
   if (loading) return <TracksLoadingState />;

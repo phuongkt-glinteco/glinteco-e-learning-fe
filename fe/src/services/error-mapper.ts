@@ -6,6 +6,18 @@ interface BackendErrorResponse {
   error?: string;
 }
 
+function getStringProperty(value: unknown, key: string): string | undefined {
+  if (!value || typeof value !== 'object' || !(key in value)) return undefined;
+  const property = (value as Record<string, unknown>)[key];
+  return typeof property === 'string' ? property : undefined;
+}
+
+function getNumberProperty(value: unknown, key: string): number | undefined {
+  if (!value || typeof value !== 'object' || !(key in value)) return undefined;
+  const property = (value as Record<string, unknown>)[key];
+  return typeof property === 'number' ? property : undefined;
+}
+
 /**
  * Maps raw client/network errors and HTTP responses to standardized AppError instances.
  * 
@@ -14,7 +26,7 @@ interface BackendErrorResponse {
  * @param request The HTTP Request object (provided by hey-api interceptor).
  */
 export function mapBackendError(
-  error: any,
+  error: unknown,
   response?: Response,
   request?: Request
 ): AppError {
@@ -25,12 +37,14 @@ export function mapBackendError(
 
   // Handle browser offline or network request failure (no response returned)
   
+  const errorName = getStringProperty(error, 'name');
+  const errorMessage = getStringProperty(error, 'message');
   const isNetworkError = 
     (typeof window !== 'undefined' && !window.navigator.onLine) ||
     error instanceof TypeError ||
-    error.name === 'TypeError' ||
-    error.message?.toLowerCase().includes('fetch') ||
-    error.message?.toLowerCase().includes('network') ||
+    errorName === 'TypeError' ||
+    errorMessage?.toLowerCase().includes('fetch') ||
+    errorMessage?.toLowerCase().includes('network') ||
     !response;
 
   if (isNetworkError && !response) {
@@ -41,7 +55,10 @@ export function mapBackendError(
   }
 
   // Extract HTTP status code from Response object or error payload
-  const statusCode = response?.status || error?.statusCode || error?.status;
+  const statusCode =
+    response?.status ||
+    getNumberProperty(error, 'statusCode') ||
+    getNumberProperty(error, 'status');
 
   if (statusCode) {
     let code = 'UNKNOWN_ERROR';
@@ -92,7 +109,7 @@ export function mapBackendError(
 
   // Fallback for general JavaScript runtime errors
   return new AppError(
-    error.message || 'An unexpected error occurred.',
+    errorMessage || 'An unexpected error occurred.',
     'UNKNOWN_ERROR'
   );
 }

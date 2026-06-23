@@ -8,7 +8,6 @@ import {
   postAuthLogout,
   getAuthMe,
   getAccessToken,
-  getRefreshToken,
   setClientToken,
   saveTokens,
   clearTokens,

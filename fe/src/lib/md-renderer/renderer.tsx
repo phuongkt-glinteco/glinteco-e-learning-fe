@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { Block, Inline, ListItem, NestedListItem, CalloutVariant } from './types';
+import type { Inline, ListItem, NestedListItem, CalloutVariant } from './types';
 import { parseInline } from './parser';
 
 /* ───────── Inline Renderer ───────── */

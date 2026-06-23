@@ -12,7 +12,7 @@ export interface NavItem {
 
 export const mainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
-  { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/courses' },
+  { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/tracks' },
   { label: 'My Courses', translationKey: 'myCourses', icon: 'local_library', href: '/my-courses' },
   { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
 ];

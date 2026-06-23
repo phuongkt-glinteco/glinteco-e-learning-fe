@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+import { API_BASE_URL } from '@/services/api-config';
 
 export interface ApiResponse<T> {
   data?: T;
@@ -22,7 +22,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers,
   });
@@ -53,25 +53,41 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
+type RequestBody = BodyInit | Record<string, unknown> | unknown[] | null;
+
+function serializeBody(body: RequestBody | undefined): BodyInit | undefined {
+  if (body === undefined || body === null) return undefined;
+  if (
+    typeof body === 'string' ||
+    body instanceof Blob ||
+    body instanceof FormData ||
+    body instanceof URLSearchParams ||
+    body instanceof ArrayBuffer
+  ) {
+    return body;
+  }
+  return JSON.stringify(body);
+}
+
 export const apiClient = {
   get: <T>(path: string, options?: RequestInit) => request<T>(path, { ...options, method: 'GET' }),
-  post: <T>(path: string, body?: any, options?: RequestInit) =>
+  post: <T>(path: string, body?: RequestBody, options?: RequestInit) =>
     request<T>(path, {
       ...options,
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
+      body: serializeBody(body),
     }),
-  put: <T>(path: string, body?: any, options?: RequestInit) =>
+  put: <T>(path: string, body?: RequestBody, options?: RequestInit) =>
     request<T>(path, {
       ...options,
       method: 'PUT',
-      body: body ? JSON.stringify(body) : undefined,
+      body: serializeBody(body),
     }),
-  patch: <T>(path: string, body?: any, options?: RequestInit) =>
+  patch: <T>(path: string, body?: RequestBody, options?: RequestInit) =>
     request<T>(path, {
       ...options,
       method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined,
+      body: serializeBody(body),
     }),
   delete: <T>(path: string, options?: RequestInit) => request<T>(path, { ...options, method: 'DELETE' }),
 };

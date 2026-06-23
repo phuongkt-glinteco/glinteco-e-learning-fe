@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/api';
 import CircleMeter from '@/components/ui/CircleMeter';
-import HPBar from '@/components/ui/HPBar';
-import { StatusBadge, Tag, TimeBadge } from '@/components/ui/Badge';
+import { TimeBadge } from '@/components/ui/Badge';
 import { Icon } from '@iconify/react';
 
 interface Lesson {
@@ -49,6 +48,24 @@ interface Exercise {
   resources?: Array<{ id: string; title: string; url?: string }>;
 }
 
+interface LessonCompletionResponse {
+  xpAwarded?: number;
+  unlockedTrackId?: string;
+}
+
+interface ExerciseSubmissionResult {
+  id?: string;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object') {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string') return message;
+  }
+  return fallback;
+}
+
 export default function LessonDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -77,7 +94,6 @@ export default function LessonDetailPage() {
 
   // Video variant state
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [isVideoEnded, setIsVideoEnded] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
 
   // Fetch track, lessons, and exercises on load
@@ -105,8 +121,8 @@ export default function LessonDetailPage() {
       if (activeExercise?.submission?.prUrl) {
         setPrUrlInput(activeExercise.submission.prUrl);
       }
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load lesson details');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to load lesson details'));
     } finally {
       setLoading(false);
     }
@@ -170,7 +186,7 @@ export default function LessonDetailPage() {
     if (!activeLesson) return;
     try {
       setCompletingLesson(true);
-      const res = await apiClient.post<any>(`/lessons/${activeLesson.id}/complete`);
+      const res = await apiClient.post<LessonCompletionResponse>(`/lessons/${activeLesson.id}/complete`);
 
       setToastMessage(`Congratulations! +${res.xpAwarded || 40} XP Claimed.`);
 
@@ -197,15 +213,15 @@ export default function LessonDetailPage() {
 
       // Automatically clear toast after 4 seconds
       setTimeout(() => setToastMessage(null), 4000);
-    } catch (err: any) {
-      alert(err?.message || 'Failed to complete lesson');
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, 'Failed to complete lesson'));
     } finally {
       setCompletingLesson(false);
     }
   };
 
   // Exercise Submission handler
-  const handleSubmitExercise = async (e: React.FormEvent) => {
+  const handleSubmitExercise = async (e: FormEvent) => {
     e.preventDefault();
     if (!activeExercise || !prUrlInput.trim()) return;
     try {
@@ -215,13 +231,13 @@ export default function LessonDetailPage() {
       const hasSubmittedBefore = !!activeExercise.submission;
       const endpoint = `/exercises/${activeExercise.id}/submissions`;
 
-      let submissionResult;
+      let submissionResult: ExerciseSubmissionResult;
       if (hasSubmittedBefore) {
         // PUT for re-submission
-        submissionResult = await apiClient.put<any>(endpoint, { prUrl: prUrlInput });
+        submissionResult = await apiClient.put<ExerciseSubmissionResult>(endpoint, { prUrl: prUrlInput });
       } else {
         // POST for initial submission
-        submissionResult = await apiClient.post<any>(endpoint, { prUrl: prUrlInput });
+        submissionResult = await apiClient.post<ExerciseSubmissionResult>(endpoint, { prUrl: prUrlInput });
       }
 
       setPrSuccessMessage('Pull Request link submitted successfully!');
@@ -244,8 +260,8 @@ export default function LessonDetailPage() {
       );
 
       setTimeout(() => setPrSuccessMessage(null), 4000);
-    } catch (err: any) {
-      alert(err?.message || 'Failed to submit PR link');
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, 'Failed to submit PR link'));
     } finally {
       setSubmittingPr(false);
     }
@@ -474,7 +490,6 @@ export default function LessonDetailPage() {
                         autoPlay
                         controls
                         onEnded={() => {
-                          setIsVideoEnded(true);
                           setIsVideoPlaying(false);
                         }}
                       />
@@ -838,7 +853,7 @@ export default function LessonDetailPage() {
                         </div>
                       ))
                     ) : (
-                      Object.values(activeExercise.objectives).slice(0, 3).map((obj: any, oIdx) => (
+                      Object.values(activeExercise.objectives).slice(0, 3).map((obj, oIdx) => (
                         <div key={oIdx} className="flex gap-2 items-start text-[11px] font-medium text-on-surface-variant leading-relaxed">
                           <Icon icon="lucide:check-square" className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
                           <span>{obj}</span>

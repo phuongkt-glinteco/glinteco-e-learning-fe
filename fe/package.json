@@ -6,7 +6,8 @@
     "dev": "next dev -p 6336",
     "build": "next build",
     "start": "next start -p 6336",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "gen:api": "openapi-ts -i ../be/docs/openapi.yaml -o ./src/services/client"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.13.1",

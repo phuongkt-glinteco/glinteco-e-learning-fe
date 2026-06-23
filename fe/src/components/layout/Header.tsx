@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import NotificationIcon from './NotificationIcon';
 import UserProfileAvatar from './UserProfileAvatar';
 import { useTranslations } from 'next-intl';
-import LanguageToggle from '@/components/ui/LanguageToggle';
+import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { useAuth } from '@/providers/AuthProvider';
 
 export default function Header() {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/api';
-import SectionHead from '@/components/ui/SectionHead';
+import SectionHead from '@/components/ui/head/SectionHead';
 import HPBar from '@/components/ui/HPBar';
 import { StatusBadge, TimeBadge } from '@/components/ui/Badge';
 import { Icon } from '@iconify/react';

@@ -47,7 +47,7 @@ export default function AppShell({ children }: AppShellProps) {
         ) : (
           <Header />
         )}
-        <main className="flex-1 overflow-y-auto p-lg">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>

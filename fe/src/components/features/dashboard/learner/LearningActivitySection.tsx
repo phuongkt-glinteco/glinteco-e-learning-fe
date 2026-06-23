@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { getUsersMeStats } from '@/services/api-client';
 import type { UserDashboardStats } from '@/services/api-client';
-import Skeleton from '@/components/ui/Skeleton';
-import SectionHead from '@/components/ui/SectionHead';
+import Skeleton from '@/components/ui/loading/Skeleton';
+import SectionHead from '@/components/ui/head/SectionHead';
 import { ProgressBar } from '@/components/ui/HPBar';
 
 export default function LearningActivitySection() {

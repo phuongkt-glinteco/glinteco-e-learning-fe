@@ -64,3 +64,29 @@ export function TimeBadge({ time }: TimeBadgeProps) {
     </span>
   );
 }
+
+interface DraftBadgeProps {
+  text?: string;
+}
+
+export function DraftBadge({ text = 'Draft' }: DraftBadgeProps) {
+  return (
+    <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-full">
+      <Icon icon="lucide:eye" className="text-[16px]" />
+      <span className="label-sm">{text}</span>
+    </span>
+  );
+}
+
+interface CountBadgeProps {
+  count: number;
+  label?: string;
+}
+
+export function CountBadge({ count, label }: CountBadgeProps) {
+  return (
+    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-surface-variant text-on-surface-variant label-sm">
+      {count}{label ? ` ${label}` : ''}
+    </span>
+  );
+}

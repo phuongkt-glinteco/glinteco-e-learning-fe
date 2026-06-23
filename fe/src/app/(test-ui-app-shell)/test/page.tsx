@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import SectionHead from '@/components/ui/SectionHead';
+import SectionHead from '@/components/ui/head/SectionHead';
 import Avatar from '@/components/ui/Avatar';
-import LanguageToggle from '@/components/ui/LanguageToggle';
+import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import HPBar from '@/components/ui/HPBar';
 import Modal from '@/components/ui/Modal';
 import Stat from '@/components/ui/Stat';
 import CircleMeter from '@/components/ui/CircleMeter';
 import { StatusBadge, Tag, TimeBadge } from '@/components/ui/Badge';
-import { ApiErrorItem } from '@/components/ui/ApiErrorItem';
+import { ApiErrorItem } from '@/components/ui/list-items/ApiErrorItem';
 
 function ModalDemo() {
   const [open, setOpen] = useState(false);

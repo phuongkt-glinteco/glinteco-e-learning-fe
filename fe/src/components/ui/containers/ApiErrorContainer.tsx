@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useApiError } from '@/providers/ApiErrorProvider';
-import { ApiErrorItem } from './ApiErrorItem';
+import { ApiErrorItem } from '../list-items/ApiErrorItem';
 
 export function ApiErrorContainer() {
   const { errors, dismissError, clearAllErrors } = useApiError();

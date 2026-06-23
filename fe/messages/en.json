@@ -28,6 +28,159 @@
     "alertGoogleSuccess": "Google login successful!",
     "alertEmailSuccess": "Successfully signed in with: {email}"
   },
+
+  "LandingPage": {
+    "brandName": "RAMP UP",
+    "cta": {
+      "primary": "Start now",
+      "secondary": "View demo"
+    },
+    "header": {
+      "signIn": "Sign in"
+    },
+    "nav": {
+      "ariaLabel": "Landing navigation",
+      "mobileAriaLabel": "Mobile landing navigation",
+      "openMenuLabel": "Open landing menu",
+      "links": {
+        "product": "Product",
+        "howItWorks": "How it works",
+        "features": "Challenges",
+        "mentors": "For mentors",
+        "access": "Access"
+      }
+    },
+    "hero": {
+      "headline": "Help new engineers ramp\u00a0up with clear learning tracks, GitHub PR review, and measurable progress.",
+      "description": "RAMP UP turns engineering onboarding into a guided system: courses, docs, exercises, GitHub submissions, and mentor feedback."
+    },
+    "dashboardPreview": {
+      "ariaLabel": "Static preview of the RAMP UP learner dashboard",
+      "learnerName": "Minh Anh",
+      "learnerRole": "Frontend Engineer",
+      "activeTrack": "Frontend Fundamentals",
+      "activeTrackLabel": "Active learning track",
+      "xpLabel": "1,250",
+      "xpTitle": "XP",
+      "levelTitle": "Level",
+      "levelLabel": "Level 3",
+      "streakTitle": "Streak",
+      "streakLabel": "5 days",
+      "reviewItem": {
+        "title": "Component Library PR",
+        "subtitle": "Waiting for mentor review",
+        "statusLabel": "In review"
+      }
+    },
+    "curriculum": {
+      "eyebrow": "Curriculum preview",
+      "title": "Preview the journey from setup to PR review.",
+      "description": "Each stage groups docs, exercises, and completion criteria so a new engineer always knows the next step.",
+      "stages": {
+        "foundation": {
+          "eyebrow": "Stage 01",
+          "title": "Product foundation and environment",
+          "description": "Understand product context, repository structure, local setup, and the team's required conventions.",
+          "duration": "Week 1",
+          "statusLabel": "Start",
+          "modules": {
+            "productContext": "Product context",
+            "localSetup": "Local setup",
+            "codebaseTour": "Codebase tour"
+          }
+        },
+        "implementation": {
+          "eyebrow": "Stage 02",
+          "title": "Practice with tasks close to the real codebase",
+          "description": "Work through small frontend/backend exercises with clear acceptance criteria and real team workflow.",
+          "duration": "Weeks 2-3",
+          "statusLabel": "In progress",
+          "modules": {
+            "componentTask": "Component task",
+            "apiIntegration": "API integration",
+            "testChecklist": "Test checklist"
+          }
+        },
+        "review": {
+          "eyebrow": "Stage 03",
+          "title": "Review, feedback, and progress tracking",
+          "description": "Submit GitHub PRs, receive mentor feedback, complete rubrics, and track XP/level growth.",
+          "duration": "Week 4",
+          "statusLabel": "Review",
+          "modules": {
+            "prSubmission": "PR submission",
+            "mentorReview": "Mentor review",
+            "skillRubric": "Skill rubric"
+          }
+        }
+      }
+    },
+    "activity": {
+      "eyebrow": "How it works",
+      "title": "Give every engineer the same clear path from docs to reviewed work.",
+      "stepLabel": "Step {stepNumber}",
+      "steps": {
+        "learn": {
+          "title": "Learn curated internal docs",
+          "description": "Follow a focused path of product notes, architecture guides, and team runbooks."
+        },
+        "practice": {
+          "title": "Practice with realistic exercises",
+          "description": "Work on tasks close to the real codebase with clear acceptance criteria and context."
+        },
+        "submit": {
+          "title": "Submit a GitHub PR",
+          "description": "Send work through the same review rhythm the team uses for production changes."
+        },
+        "xp": {
+          "title": "Receive feedback and XP",
+          "description": "Get mentor review, close skill gaps, and make progress visible."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Turn engineering onboarding into a repeatable, measurable, practical workflow.",
+      "description": "Move beyond scattered old wiki pages. Build an onboarding system that can scale with the engineering team.",
+      "secondaryCta": "View dashboard demo"
+    },
+    "footer": {
+      "description": "A platform for onboarding developers with learning tracks, practical exercises, and structured mentorship.",
+      "columns": {
+        "product": {
+          "title": "Product",
+          "links": {
+            "features": "Features",
+            "learningPath": "Learning path",
+            "reviewFlow": "Review flow",
+            "updates": "Updates"
+          }
+        },
+        "resources": {
+          "title": "Resources",
+          "links": {
+            "docs": "Docs",
+            "articles": "Articles",
+            "engineeringGuides": "Engineering guides",
+            "support": "Support"
+          }
+        },
+        "company": {
+          "title": "Company",
+          "links": {
+            "about": "About",
+            "careers": "Careers",
+            "privacy": "Privacy policy",
+            "terms": "Terms of use"
+          }
+        }
+      },
+      "copyright": "Copyright 2026 RAMP UP Inc. All rights reserved.",
+      "socialLinks": {
+        "share": "Share",
+        "contact": "Contact"
+      }
+    }
+  },
   "LoadingPage": {
     "title": "Preparing your workspace...",
     "description": "Initializing course modules and documentation"
@@ -124,6 +277,121 @@
     "viewed": "Viewed {time}",
     "noRecentDocuments": "No recent documents yet"
   },
+  "CreateTrackPage": {
+    "title": "Create New Track",
+    "subtitle": "Configure the learning pathway and curriculum structure for your team.",
+    "basicInfo": "Basic Information",
+    "trackTitle": "Track Title",
+    "trackTitlePlaceholder": "e.g. Senior Leadership Fundamentals",
+    "description": "Description",
+    "descriptionPlaceholder": "Briefly describe the objectives and target audience for this track...",
+    "estimatedCompletionTime": "Estimated Completion Time",
+    "calculatedAutomatically": "Calculated automatically",
+    "curriculum": "Curriculum",
+    "lesson": "Lesson",
+    "lessons": "Lessons",
+    "addLesson": "Add Lesson",
+    "noLessonsYet": "No lessons added yet",
+    "noLessonsHint": "Start building your track by adding your first lesson module.",
+    "lessonTitle": "Lesson Title",
+    "lessonTitlePlaceholder": "e.g. Intro to HTML Semantic Tags",
+    "estimatedTime": "Estimated Time",
+    "display": "Display",
+    "cancel": "Cancel",
+    "previewTrack": "Preview Track",
+    "saving": "Saving...",
+    "createTrack": "Create Track",
+    "livePreview": "Live Preview",
+    "trackSummary": "Track Summary",
+    "untitledTrack": "Untitled Track",
+    "draft": "DRAFT",
+    "basicInfoPending": "Basic information pending",
+    "exercises": "Exercises",
+    "availableAfterCreation": "Available after creation",
+    "totalDuration": "Total Duration",
+    "lessonCount": "Lessons",
+    "lesson_one": "lesson",
+    "lesson_other": "lessons",
+    "instructionReady": "Your track is ready to be created. Review the summary and click \"Create Track\" to publish.",
+    "instructionPending": "Complete the basic info and add at least one lesson to enable the \"Create Track\" action.",
+    "included": "included",
+    "untitledLesson": "Untitled Lesson",
+    "markdownPlaceholder": "Type your Markdown here...",
+    "wordCount": "~{count} Words",
+    "saveLesson": "Save Lesson",
+    "unsavedChanges": "You have unsaved changes",
+    "editorToolbar": "Editor Toolbar",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "bold": "Bold",
+    "italic": "Italic",
+    "bulletList": "Bullet List",
+    "numberedList": "Numbered List",
+    "quote": "Quote",
+    "codeBlock": "Code Block",
+    "link": "Link",
+    "image": "Image",
+    "editor": "Editor",
+    "preview": "Preview",
+    "noPreviewContent": "Start typing Markdown to see the preview...",
+    "table": "Table",
+    "calloutInfo": "Info Callout",
+    "calloutObjective": "Objective",
+    "calloutChallenge": "Challenge",
+    "tabs": "Tabs",
+    "details": "Details"
+  },
+  "TimeUnit": {
+    "m": "m",
+    "min": "min",
+    "h": "h",
+    "hr": "h",
+    "d": "d",
+    "day": "day",
+    "days": "days",
+    "w": "w",
+    "week": "week",
+    "weeks": "weeks",
+    "M": "mo",
+    "month": "month",
+    "months": "months",
+    "minutes": "Minutes",
+    "hours": "Hours",
+    "days_label": "Days",
+    "weeks_label": "Weeks",
+    "months_label": "Months"
+  },
+  "CourseRoadmap": {
+    "title": "Course Roadmap",
+    "lesson": "Lesson",
+    "lessons": "Lessons",
+    "noLessons": "No lessons added to this track yet.",
+    "upNext": "Up Next",
+    "resources": "Resources"
+  },
+  "TrackPreview": {
+    "previewMessage": "You are in Preview Mode. This is how learners will see this track.",
+    "coreCurriculum": "Core Curriculum",
+    "untitledTrack": "Untitled Track",
+    "noDescription": "No description provided for this track.",
+    "trackProgress": "Track Progress",
+    "estTotalContent": "Est. {time} total content",
+    "startTrack": "Start Track",
+    "startTrackDisabled": "Starting track is disabled in preview mode.",
+    "exercisesTitle": "Track Exercises",
+    "exercisesTotal": "{count} Total",
+    "noExercises": "No exercises linked to this track yet.",
+    "prerequisitesTitle": "Prerequisites",
+    "verifiedCompleted": "Verified Completed",
+    "potentialRewardsTitle": "Potential Rewards",
+    "totalCompletionXp": "Total Completion XP",
+    "backToEdit": "Back to Edit",
+    "draftSaved": "All changes saved in draft mode",
+    "saveTrack": "Save Track",
+    "breadcrumbsTracks": "Tracks",
+    "noPrerequisites": "No prerequisites required for this track."
+  },
   "ApiErrors": {
     "titleVALIDATION_ERROR": "Validation Error",
     "contentVALIDATION_ERROR": "The data submitted was invalid. Please check and try again.",
@@ -141,6 +409,37 @@
     "contentNETWORK_ERROR": "Cannot connect to the server. Please check your connection and try again.",
     "titleUNKNOWN_ERROR": "Unexpected Error",
     "contentUNKNOWN_ERROR": "An unexpected error occurred. Please try again."
+  },
+  "RegisterPage": {
+    "brandSubtitle": "Join the next generation of engineers.",
+    "brandTagline": "Start your journey with RAMP UP today and gain access to premium tracks, documentation, and a global community of experts.",
+    "createAccount": "Create an account",
+    "signUpPrompt": "Enter your details to get started with RAMP UP.",
+    "googleButton": "Continue with Google",
+    "orRegisterWithEmail": "or register with email",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "e.g., Alex Chen",
+    "emailLabel": "Email",
+    "emailPlaceholder": "name@company.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "passwordsMustMatch": "Passwords must match",
+    "createAccountButton": "Create Account",
+    "loadingButton": "Creating account…",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign In",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "nameRequired": "Name is required",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email address",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "confirmPasswordRequired": "Please confirm your password",
+    "confirmPasswordMismatch": "Passwords do not match",
+    "registrationSuccess": "Account created successfully! Please sign in."
   }
 }
 

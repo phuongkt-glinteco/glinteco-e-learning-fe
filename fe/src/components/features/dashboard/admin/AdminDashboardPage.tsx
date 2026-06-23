@@ -14,7 +14,7 @@ import type {
 } from '@/services/api-client';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
-import Skeleton from '@/components/ui/Skeleton';
+import Skeleton from '@/components/ui/loading/Skeleton';
 import StatsCard from './StatsCard';
 import SubmissionFeed from './SubmissionFeed';
 import CohortVelocityChart from './CohortVelocityChart';
@@ -215,7 +215,7 @@ export default function AdminDashboardPage() {
     .sort((a, b) => new Date(a.submittedAt!).getTime() - new Date(b.submittedAt!).getTime())[0];
 
   return (
-    <div className="max-w-container-max mx-auto flex flex-col gap-lg">
+    <div className="max-w-container-max mx-auto flex flex-col gap-lg p-16">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-headline-lg-mobile md:text-headline-lg text-primary font-bold">

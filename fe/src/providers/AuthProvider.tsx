@@ -50,23 +50,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (nextAuthStatus === 'authenticated' && nextAuthSession?.accessToken) {
       const sessionToken = nextAuthSession.accessToken;
       const sessionRefreshToken = nextAuthSession.refreshToken;
-      const sessionUser = nextAuthSession.user as UserDetail | undefined;
-      if (sessionRefreshToken) {
-        saveTokens(sessionToken, sessionRefreshToken);
-      } else {
-        setClientToken(sessionToken);
-        localStorage.setItem('accessToken', sessionToken);
+
+      if (token === sessionToken) {
+        setLoading(false);
+        return;
       }
-      setAuthCookie(sessionUser?.role ?? 'learner');
-      setToken(sessionToken);
-      if (sessionUser) {
-        setUser(sessionUser);
-      }
-      setLoading(false);
+
+      setClientToken(sessionToken);
+      setLoading(true);
+
+      getAuthMe({ throwOnError: true })
+        .then((res) => {
+          const profile = res.data as UserDetail;
+          if (sessionRefreshToken) {
+            saveTokens(sessionToken, sessionRefreshToken);
+          } else {
+            localStorage.setItem('accessToken', sessionToken);
+          }
+          setAuthCookie(profile.role ?? 'learner');
+          setToken(sessionToken);
+          setUser(profile);
+        })
+        .catch(async (err) => {
+          console.error('Failed to fetch user profile after Google login:', err);
+          clearTokens();
+          clearAuthCookie();
+          setToken(null);
+          setUser(null);
+          await nextAuthSignOut({ redirect: false });
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     } else {
       // Fallback to localStorage token (email/password login)
       const savedToken = getAccessToken();
       if (savedToken) {
+        if (token === savedToken) {
+          setLoading(false);
+          return;
+        }
         setClientToken(savedToken);
         getAuthMe({ throwOnError: true })
           .then((res) => {
@@ -97,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }
-  }, [nextAuthStatus, nextAuthSession]);
+  }, [nextAuthStatus, nextAuthSession, token]);
 
   const login = useCallback(
     async (email: string, password: string) => {
@@ -107,17 +130,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       const { accessToken, refreshToken } = res.data ?? {};
       if (!accessToken) throw new Error('No access token returned');
-      if (refreshToken) {
-        saveTokens(accessToken, refreshToken);
-      } else {
-        setClientToken(accessToken);
-        localStorage.setItem('accessToken', accessToken);
+
+      setClientToken(accessToken);
+
+      try {
+        const profileRes = await getAuthMe({ throwOnError: true });
+        const profile = profileRes.data as UserDetail | undefined;
+
+        if (refreshToken) {
+          saveTokens(accessToken, refreshToken);
+        } else {
+          localStorage.setItem('accessToken', accessToken);
+        }
+        setAuthCookie(profile?.role ?? 'learner');
+        setToken(accessToken);
+        setUser(profile ?? null);
+      } catch (err) {
+        setClientToken('');
+        throw err;
       }
-      setToken(accessToken);
-      const profileRes = await getAuthMe({ throwOnError: true });
-      const profile = profileRes.data as UserDetail | undefined;
-      setAuthCookie(profile?.role ?? 'learner');
-      setUser(profile ?? null);
     },
     [],
   );

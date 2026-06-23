@@ -38,6 +38,7 @@ export default function CreateTrackPage() {
 
       const trackId = res.data?.id;
       if (!trackId) {
+        
         router.push('/admin/tracks');
         return;
       }
@@ -50,12 +51,14 @@ export default function CreateTrackPage() {
               title: lesson.title,
               order: i + 1,
               estimatedTime: lesson.estimatedTime,
-              body: '',
+              body: lesson.body,
             },
             throwOnError: true,
           })
         )
-      );
+      ).finally(() => {
+        reset();
+      });
 
       reset();
       router.push(`/admin/tracks/${trackId}`);

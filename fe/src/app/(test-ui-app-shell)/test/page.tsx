@@ -105,7 +105,7 @@ const components: Array<{ name: string; Component: React.ReactNode }> = [
   },
   {
     name: 'ApiErrorItem',
-    Component: <ApiErrorItem error_code="ERR001" onClose={() => {}} />,
+    Component: <ApiErrorItem message="Test error message" onClose={() => {}} />,
   },
 ];
 

@@ -11,6 +11,11 @@ import { PrerequisitesCard } from './PrerequisitesCard';
 import { PotentialRewardsCard } from './PotentialRewardsCard';
 import { PreviewFooter } from './PreviewFooter';
 
+interface TrackTrackStatusItem {
+  title: string;
+  status: 'completed' | 'in_progress' | 'locked';
+}
+
 interface TrackPreviewProps {
   title: string;
   description: string;
@@ -19,7 +24,9 @@ interface TrackPreviewProps {
   onBackToEdit: () => void;
   onSaveTrack?: () => void;
   isSaveDisabled?: boolean;
-  prerequisites?: string[];
+  prevTrack?: TrackTrackStatusItem;
+  nextTrack?: TrackTrackStatusItem;
+  progress?: number;
 }
 
 
@@ -29,16 +36,17 @@ export function TrackPreview({
   description,
   lessons = [],
   exercises,
-  prerequisites,
+  prevTrack,
+  nextTrack,
+  progress = 0,
   onBackToEdit,
   onSaveTrack,
   isSaveDisabled = true,
 }: TrackPreviewProps) {
   const t = useTranslations('TrackPreview');
   const estimatedTime = sumEstimatedTimes(lessons.map((l) => l.estimatedTime || '0m'));
-  const totalXP = lessons.length * 800; // 800 XP per lesson, matching the static UI example (3 lessons * 800 = 2400)
+  const totalXP = lessons.length * 800;
 
-  // Use passed exercises if provided (e.g. from existing track detail), otherwise fallback to default mock ones for draft preview
   const displayExercises = exercises;
 
   return (
@@ -74,7 +82,13 @@ export function TrackPreview({
           {/* Right Column (Sidebar Cards) */}
           <div className="lg:col-span-4 flex flex-col gap-md">
             <TrackExercisesCard exercises={displayExercises} />
-            <PrerequisitesCard prerequisites={prerequisites} />
+            <PrerequisitesCard
+              prevTrack={prevTrack}
+              nextTrack={nextTrack}
+              currentTitle={title || t('untitledTrack')}
+              progress={progress}
+              totalXP={totalXP || 2400}
+            />
             <PotentialRewardsCard xp={totalXP || 2400} />
           </div>
         </div>

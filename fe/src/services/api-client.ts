@@ -1,5 +1,6 @@
 import { client } from './client/client.gen';
-import { mapBackendError } from './error-mapper';
+import { classify, pipeline } from './error-mapper';
+import { UiShowError } from './errors';
 import { postAuthRefresh } from './client/sdk.gen';
 
 const DEFAULT_BASE_URL = 'https://api.glinteco-elearning.dev/api/v1';
@@ -11,12 +12,6 @@ if (typeof window !== 'undefined') {
   const token = localStorage.getItem('accessToken');
   if (token) {
     client.setConfig({ auth: token });
-  }
-}
-
-export function triggerApiError(code: string) {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('api-error', { detail: { code } }));
   }
 }
 
@@ -50,16 +45,13 @@ export function clearTokens() {
 }
 
 let refreshPromise: Promise<boolean> | null = null;
-let isLoggingOut = false;
 
 export async function attemptTokenRefresh(): Promise<boolean> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return false;
 
   try {
-    const res = await postAuthRefresh({
-      body: { refreshToken },
-    });
+    const res = await postAuthRefresh({ body: { refreshToken } });
     const { accessToken, refreshToken: newRefreshToken } = res.data ?? {};
     if (accessToken && newRefreshToken) {
       saveTokens(accessToken, newRefreshToken);
@@ -72,62 +64,49 @@ export async function attemptTokenRefresh(): Promise<boolean> {
   }
 }
 
+function dispatchErrorItems(items: UiShowError[]) {
+  if (typeof window !== 'undefined' && items.length > 0) {
+    window.dispatchEvent(new CustomEvent('api-error', { detail: items }));
+  }
+}
+
 client.interceptors.error.use(async (error, response, request) => {
-  if (response?.status !== 401 || !request) {
-    const mappedError = mapBackendError(error, response, request);
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('api-error', { detail: mappedError }));
+  if (response?.status === 401 && request) {
+    const url = new URL(request.url);
+    if (url.pathname.endsWith('/auth/refresh') || url.pathname.endsWith('/auth/logout')) {
+      return error;
     }
-    return mappedError;
-  }
 
-  const url = new URL(request.url);
-  if (url.pathname.endsWith('/auth/refresh') || url.pathname.endsWith('/auth/logout')) {
-    return error;
-  }
-
-  if (isLoggingOut) {
-    return error;
-  }
-
-  if (!refreshPromise) {
-    refreshPromise = attemptTokenRefresh().finally(() => {
-      refreshPromise = null;
-    });
-  }
-  const success = await refreshPromise;
-
-  if (success) {
-    const newToken = getAccessToken();
-    if (newToken) {
-      request.headers.set('Authorization', `Bearer ${newToken}`);
+    if (!refreshPromise) {
+      refreshPromise = attemptTokenRefresh().finally(() => { refreshPromise = null; });
     }
-    return fetch(request);
-  }
+    const success = await refreshPromise;
 
-  if (onSessionExpired) {
-    isLoggingOut = true;
-    onSessionExpired();
-  } else {
+    if (success) {
+      const newToken = getAccessToken();
+      if (newToken) request.headers.set('Authorization', `Bearer ${newToken}`);
+      return fetch(request);
+    }
+
     clearTokens();
   }
 
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('api-error', { detail: { code: 'SESSION_EXPIRED' } }));
-  }
+  const classified = classify(error, response, request);
 
-  const mappedError = mapBackendError(error, response, request);
-  return mappedError;
+  try {
+    const { errorItems } = pipeline.process(classified);
+    // ADD_TO_ITEMS: dispatch cho toast, không throw UiShowError
+    dispatchErrorItems(errorItems);
+    return classified;
+  } catch (e) {
+    if (e instanceof UiShowError) {
+      // FINAL_THROW: dispatch + throw để page bắt
+      dispatchErrorItems([e]);
+      throw e;
+    }
+    throw e;
+  }
 });
-
-let onSessionExpired: (() => void) | null = null;
-
-export function setOnSessionExpired(callback: (() => void) | null) {
-  onSessionExpired = callback;
-  if (!callback) {
-    isLoggingOut = false;
-  }
-}
 
 export { client };
 export * from './client';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +11,7 @@ import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { authRegisterRequestSchema } from '@/schemas';
 import { postAuthRegister } from '@/services/api-client';
 import { useAuth } from '@/providers/AuthProvider';
+import { UiShowError } from '@/services/errors';
 
 const registerFormSchema = authRegisterRequestSchema
   .extend({
@@ -46,6 +47,19 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setErrorMsg] = useState<string | null>(null);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+
+  // Countdown tự động redirect về login
+  useEffect(() => {
+    if (!isRegistered) return;
+    if (countdown <= 0) {
+      router.push('/login?registered=true');
+      return;
+    }
+    const timer = setTimeout(() => setCountdown((prev) => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [isRegistered, countdown, router]);
 
   const onSubmit = async (data: RegisterFormInput) => {
     setLoading(true);
@@ -60,9 +74,9 @@ export default function RegisterPage() {
         },
         throwOnError: true,
       });
-
-      router.push('/login?registered=true');
-    } catch {
+      setIsRegistered(true);
+    } catch (err) {
+      if (err instanceof UiShowError) setErrorMsg(err.errorCode);
     } finally {
       setLoading(false);
     }
@@ -73,11 +87,45 @@ export default function RegisterPage() {
     try {
       await loginWithGoogle();
     } catch {
-      // Error handled by global interceptor
     } finally {
       setLoading(false);
     }
   };
+
+  // Màn hình đăng ký thành công
+  if (isRegistered) {
+    return (
+      <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
+        <LanguageToggle size="md" className="hidden md:block absolute top-6 right-6 z-20 border-outline" />
+        <div className="flex w-full h-full min-h-screen items-center justify-center">
+          <div className="max-w-md w-full mx-auto p-8 text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <span className="material-symbols-outlined text-5xl text-green-600 dark:text-green-400">
+                  check_circle
+                </span>
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-on-surface mb-3">
+              {t('registrationSuccessTitle')}
+            </h2>
+            <p className="text-sm text-on-surface-variant mb-8">
+              {t('registrationSuccessDescription')}
+            </p>
+            <button
+              onClick={() => router.push('/login')}
+              className="w-full h-12 bg-primary text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors mb-4 cursor-pointer"
+            >
+              {t('goToLogin')}
+            </button>
+            <p className="text-xs text-outline">
+              {t('redirectCountdown', { seconds: countdown })}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
@@ -137,11 +185,11 @@ export default function RegisterPage() {
               <p className="text-[14px] text-on-surface-variant mt-1">{t('signUpPrompt')}</p>
             </div>
 
-            {/* Error */}
+            {/* Inline Error */}
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">error</span>
-                <span>{error}</span>
+                <span>{t(error)}</span>
               </div>
             )}
 

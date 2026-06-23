@@ -8,12 +8,10 @@ import {
   postAuthLogout,
   getAuthMe,
   getAccessToken,
-  getRefreshToken,
   setClientToken,
   saveTokens,
   clearTokens,
   attemptTokenRefresh,
-  setOnSessionExpired,
   type UserDetail,
 } from '@/services/api-client';
 
@@ -142,22 +140,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await nextAuthSignOut({ redirect: false });
     router.push('/login');
   }, [router]);
-
-  // Register session-expired callback so the API client can trigger full logout
-  // Skips postAuthLogout because the token is already expired/invalid.
-  const handleSessionExpired = useCallback(async () => {
-    clearTokens();
-    clearAuthCookie();
-    setToken(null);
-    setUser(null);
-    await nextAuthSignOut({ redirect: false });
-    router.push('/login');
-  }, [router]);
-
-  useEffect(() => {
-    setOnSessionExpired(handleSessionExpired);
-    return () => setOnSessionExpired(null);
-  }, [handleSessionExpired]);
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, logout }}>

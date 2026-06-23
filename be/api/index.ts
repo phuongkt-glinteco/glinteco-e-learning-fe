@@ -161,12 +161,29 @@ async function bootstrap() {
       SELECT 1784301321000, 'AddLeaderboardIndexes1784301321000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddLeaderboardIndexes1784301321000');
       INSERT INTO "migrations" ("timestamp", "name")
       SELECT 1784301322000, 'UpdateSubmissionHistorySchema1784301322000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'UpdateSubmissionHistorySchema1784301322000');
-      INSERT INTO "migrations" ("timestamp", "name")
-      SELECT 1784400000000, 'UpdateTracksAndLessonsSchema1784400000000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'UpdateTracksAndLessonsSchema1784400000000');
-      INSERT INTO "migrations" ("timestamp", "name")
-      SELECT 1784301323000, 'AddLastClaimedXpAtToUsers1784301323000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddLastClaimedXpAtToUsers1784301323000');
     `);
     console.log('✅ Baseline migrations check/insert completed.');
+
+    // Check if column 'title' exists on 'tracks' table
+    const tracksTitleCol = await dataSource.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'tracks' AND column_name = 'title'
+    `);
+    if (tracksTitleCol.length === 0) {
+      console.log('⚠️ Column "title" does not exist on "tracks" table. Removing UpdateTracksAndLessonsSchema from migrations to trigger it.');
+      await dataSource.query(`DELETE FROM "migrations" WHERE name = 'UpdateTracksAndLessonsSchema1784400000000'`);
+    }
+
+    // Check if column 'last_claimed_xp_at' exists on 'users' table
+    const usersXpCol = await dataSource.query(`
+      SELECT column_name FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name = 'last_claimed_xp_at'
+    `);
+    if (usersXpCol.length === 0) {
+      console.log('⚠️ Column "last_claimed_xp_at" does not exist on "users" table. Removing AddLastClaimedXpAtToUsers from migrations to trigger it.');
+      await dataSource.query(`DELETE FROM "migrations" WHERE name = 'AddLastClaimedXpAtToUsers1784301323000'`);
+    }
+
     console.log('Running any pending migrations...');
     await dataSource.runMigrations();
     console.log('✅ Migrations completed successfully.');

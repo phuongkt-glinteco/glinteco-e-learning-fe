@@ -409,6 +409,37 @@
     "contentNETWORK_ERROR": "Cannot connect to the server. Please check your connection and try again.",
     "titleUNKNOWN_ERROR": "Unexpected Error",
     "contentUNKNOWN_ERROR": "An unexpected error occurred. Please try again."
+  },
+  "RegisterPage": {
+    "brandSubtitle": "Join the next generation of engineers.",
+    "brandTagline": "Start your journey with RAMP UP today and gain access to premium tracks, documentation, and a global community of experts.",
+    "createAccount": "Create an account",
+    "signUpPrompt": "Enter your details to get started with RAMP UP.",
+    "googleButton": "Continue with Google",
+    "orRegisterWithEmail": "or register with email",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "e.g., Alex Chen",
+    "emailLabel": "Email",
+    "emailPlaceholder": "name@company.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "passwordsMustMatch": "Passwords must match",
+    "createAccountButton": "Create Account",
+    "loadingButton": "Creating account…",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign In",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "nameRequired": "Name is required",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email address",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "confirmPasswordRequired": "Please confirm your password",
+    "confirmPasswordMismatch": "Passwords do not match",
+    "registrationSuccess": "Account created successfully! Please sign in."
   }
 }
 

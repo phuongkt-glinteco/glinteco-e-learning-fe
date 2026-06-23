@@ -408,6 +408,37 @@
     "contentNETWORK_ERROR": "Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng.",
     "titleUNKNOWN_ERROR": "Lỗi Không Xác Định",
     "contentUNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+  },
+  "RegisterPage": {
+    "brandSubtitle": "Gia nhập thế hệ kỹ sư tiếp theo.",
+    "brandTagline": "Bắt đầu hành trình của bạn với RAMP UP ngay hôm nay để truy cập các lộ trình cao cấp, tài liệu và cộng đồng chuyên gia toàn cầu.",
+    "createAccount": "Tạo tài khoản",
+    "signUpPrompt": "Nhập thông tin của bạn để bắt đầu với RAMP UP.",
+    "googleButton": "Tiếp tục với Google",
+    "orRegisterWithEmail": "hoặc đăng ký bằng email",
+    "nameLabel": "Họ và tên",
+    "namePlaceholder": "VD: Nguyễn Văn A",
+    "emailLabel": "Email",
+    "emailPlaceholder": "ten@congty.com",
+    "passwordLabel": "Mật khẩu",
+    "passwordPlaceholder": "Tạo mật khẩu",
+    "confirmPasswordLabel": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Xác nhận mật khẩu của bạn",
+    "passwordsMustMatch": "Mật khẩu phải trùng khớp",
+    "createAccountButton": "Tạo Tài Khoản",
+    "loadingButton": "Đang tạo tài khoản…",
+    "alreadyHaveAccount": "Đã có tài khoản?",
+    "signIn": "Đăng Nhập",
+    "termsOfService": "Điều Khoản Dịch Vụ",
+    "privacyPolicy": "Chính Sách Bảo Mật",
+    "nameRequired": "Vui lòng nhập họ tên",
+    "emailRequired": "Vui lòng nhập email",
+    "emailInvalid": "Địa chỉ email không hợp lệ",
+    "passwordRequired": "Vui lòng nhập mật khẩu",
+    "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
+    "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+    "confirmPasswordMismatch": "Mật khẩu xác nhận không khớp",
+    "registrationSuccess": "Tạo tài khoản thành công! Vui lòng đăng nhập."
   }
 }
 

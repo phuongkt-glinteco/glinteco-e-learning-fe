@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { authLoginRequestSchema, type AuthLoginInput } from '@/schemas';
 import { useAuth } from '@/providers/AuthProvider';
+import Link from 'next/dist/client/link';
 
 export default function LoginPage() {
   const t = useTranslations('LoginPage');
@@ -42,7 +43,7 @@ export default function LoginPage() {
       await login(data.email, data.password);
     } catch {
       // Error handled by global interceptor
-
+      setError(t('invalidCredentials'));
     } finally {
       setLoading(false);
     }
@@ -54,6 +55,7 @@ export default function LoginPage() {
       await loginWithGoogle();
     } catch {
       // Error handled by global interceptor
+      setError(t('contentLOGIN_INVALID_CREDENTIALS'));
     } finally {
       setLoading(false);
     }
@@ -125,7 +127,7 @@ export default function LoginPage() {
                 {errors.email && (
                   <p className="text-error text-[12px] mt-1 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">error</span>
-                    {t(errors.email.message as any)}
+                    {t(errors.email.message as string)}
                   </p>
                 )}
               </div>
@@ -153,7 +155,7 @@ export default function LoginPage() {
                 {errors.password && (
                   <p className="text-error text-[12px] mt-1 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">error</span>
-                    {t(errors.password.message as any)}
+                    {t(errors.password.message as string)}
                   </p>
                 )}
               </div>
@@ -204,9 +206,11 @@ export default function LoginPage() {
             <div className="mt-8 text-center">
               <p className="text-[14px] text-on-surface-variant">
                 {t('noAccount')}{' '}
-                <a className="text-[14px] font-medium text-primary hover:underline" href="#">
+                <Link className="text-[14px] font-medium text-primary hover:underline"
+                  href="/register"
+                >
                   {t('requestAccess')}
-                </a>
+                </Link>
               </p>
             </div>
           </div>

@@ -62,7 +62,7 @@ import { MIGRATIONS } from './database/migrations-list';
           path.join(__dirname, 'database/entities', '*.entity{.ts,.js}'),
         ],
         migrations: MIGRATIONS,
-        migrationsRun: true,
+        migrationsRun: false,
         autoLoadEntities: true,
         // Schema is managed by migrations (src/database/migrations). Keep
         // synchronize off by default to avoid accidental schema drift.

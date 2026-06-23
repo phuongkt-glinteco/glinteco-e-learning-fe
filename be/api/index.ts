@@ -167,8 +167,11 @@ async function bootstrap() {
       SELECT 1784301323000, 'AddLastClaimedXpAtToUsers1784301323000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddLastClaimedXpAtToUsers1784301323000');
     `);
     console.log('✅ Baseline migrations check/insert completed.');
+    console.log('Running any pending migrations...');
+    await dataSource.runMigrations();
+    console.log('✅ Migrations completed successfully.');
   } catch (dbErr) {
-    console.error('❌ Failed to run baseline migrations check/insert:', dbErr);
+    console.error('❌ Failed to run baseline migrations check/insert or migrations:', dbErr);
   }
 
   expressApp = app.getHttpAdapter().getInstance();

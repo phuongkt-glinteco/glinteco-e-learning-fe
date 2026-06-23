@@ -10,12 +10,14 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -42,12 +44,20 @@ export class TracksController {
   constructor(private readonly tracksService: TracksService) {}
 
   @ApiOperation({
-    summary: 'Lấy tất cả các tracks kèm theo tiến độ học của learner hiện tại',
+    summary: 'Lấy danh sách các tracks kèm theo tiến độ học của learner hiện tại (có phân trang)',
   })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Số trang (mặc định: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Số bản ghi trên mỗi trang (mặc định: 20, tối đa: 50)' })
   @ApiResponse({ status: 200, description: 'Lấy danh sách tracks thành công.' })
   @Get()
-  async findAll(@Req() req: RequestWithUser) {
-    return this.tracksService.findAll(req.user.id);
+  async findAll(
+    @Req() req: RequestWithUser,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 20;
+    return this.tracksService.findAll(req.user.id, pageNum, limitNum);
   }
 
   @ApiOperation({ summary: 'Sắp xếp lại các tracks' })

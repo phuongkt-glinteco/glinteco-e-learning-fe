@@ -48,7 +48,7 @@ describe('SearchService', () => {
   describe('globalSearch', () => {
     it('should find tracks, documents, and exercises matching ILike search term', async () => {
       const query: SearchQueryDto = { q: 'react' };
-      const tracks = [{ id: 'track-1', name: 'React Track' }];
+      const tracks = [{ id: 'track-1', title: 'React Track' }];
       const documents = [
         { id: 'doc-1', title: 'React Documentation', kind: 'Guide' },
       ];
@@ -56,7 +56,7 @@ describe('SearchService', () => {
         {
           id: 'ex-1',
           title: 'React Basics Exercise',
-          track: { name: 'React Track' },
+          track: { title: 'React Track' },
         },
       ];
 

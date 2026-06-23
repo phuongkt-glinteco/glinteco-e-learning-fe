@@ -52,12 +52,21 @@ describe('Tracks and Lessons Controllers', () => {
   });
 
   describe('TracksController', () => {
-    it('should delegate findAll to service', async () => {
+    it('should delegate findAll to service with default pagination query params', async () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
       mockTracksService.findAll.mockResolvedValue({ data: [] });
 
       const result = await tracksController.findAll(req);
-      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1');
+      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 1, 20);
+      expect(result).toEqual({ data: [] });
+    });
+
+    it('should delegate findAll to service with custom pagination query params', async () => {
+      const req = { user: { id: 'user-1', role: 'learner' } };
+      mockTracksService.findAll.mockResolvedValue({ data: [] });
+
+      const result = await tracksController.findAll(req, '2', '10');
+      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 2, 10);
       expect(result).toEqual({ data: [] });
     });
 
@@ -85,7 +94,12 @@ describe('Tracks and Lessons Controllers', () => {
     });
 
     it('should delegate create to service', async () => {
-      const dto: CreateTrackDto = { name: 'New Track', order: 1 };
+      const dto: CreateTrackDto = {
+        title: 'New Track',
+        description: 'New Track Description',
+        estimatedTime: '2h',
+        lessonCount: 4,
+      };
       mockTracksService.create.mockResolvedValue({ id: 'track-1' });
 
       const result = await tracksController.create(dto);
@@ -94,7 +108,7 @@ describe('Tracks and Lessons Controllers', () => {
     });
 
     it('should delegate update to service', async () => {
-      const dto: UpdateTrackDto = { name: 'Updated Track' };
+      const dto: UpdateTrackDto = { title: 'Updated Track' };
       mockTracksService.update.mockResolvedValue({ id: 'track-1' });
 
       const result = await tracksController.update('track-1', dto);
@@ -142,9 +156,10 @@ describe('Tracks and Lessons Controllers', () => {
 
     it('should delegate createLesson to service', async () => {
       const dto: CreateLessonDto = {
-        name: 'Lesson 1',
+        title: 'Lesson 1',
         order: 1,
-        content: 'Text',
+        estimatedTime: '30m',
+        body: 'Text',
       };
       mockTracksService.createLesson.mockResolvedValue({ id: 'lesson-1' });
 
@@ -157,7 +172,7 @@ describe('Tracks and Lessons Controllers', () => {
     });
 
     it('should delegate updateLesson to service', async () => {
-      const dto: UpdateLessonDto = { name: 'New Lesson Name' };
+      const dto: UpdateLessonDto = { title: 'New Lesson Name' };
       mockTracksService.updateLesson.mockResolvedValue({ id: 'lesson-1' });
 
       const result = await lessonsController.updateLesson('lesson-1', dto);

@@ -803,12 +803,29 @@ paths:
     get:
       summary: Lấy danh sách lộ trình học (Authenticated)
       description: |
-        Lấy toàn bộ các Track bài học theo thứ tự sắp xếp.
+        Lấy danh sách các Track bài học theo thứ tự sắp xếp (có phân trang).
         Mỗi track sẽ kèm theo thông tin trạng thái học tập của người gọi API (`completed`, `in_progress`, `locked`).
       tags:
         - Tracks
       security:
         - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Trang hiện tại (mặc định 1)
+          required: false
+          schema:
+            type: integer
+            default: 1
+            example: 1
+        - name: limit
+          in: query
+          description: Số lượng chặng trên mỗi trang (mặc định 20, tối đa 50)
+          required: false
+          schema:
+            type: integer
+            default: 20
+            example: 10
       responses:
         '200':
           description: Thành công.
@@ -821,6 +838,21 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/TrackSummary'
+                  meta:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 5
+                      page:
+                        type: integer
+                        example: 1
+                      limit:
+                        type: integer
+                        example: 10
+                      lastPage:
+                        type: integer
+                        example: 1
         '401':
           $ref: '#/components/responses/UnauthorizedError'
     post:
@@ -2903,6 +2935,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LessonProgressItem'
+        prevTrack:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              example: t2
+            title:
+              type: string
+              example: Frontend Conventions
+        nextTrack:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              example: t4
+            title:
+              type: string
+              example: System Architecture
 
     LessonSummary:
       type: object
@@ -3133,7 +3185,7 @@ components:
           format: date-time
           example: 2026-06-15T11:25:00Z
 
-    Item:
+    SubmissionFeedItem:
       type: object
       properties:
         id:

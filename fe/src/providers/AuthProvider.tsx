@@ -8,6 +8,7 @@ import {
   postAuthLogout,
   getAuthMe,
   getAccessToken,
+  getRefreshToken,
   setClientToken,
   saveTokens,
   clearTokens,
@@ -71,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setClientToken(savedToken);
         getAuthMe({ throwOnError: true })
           .then((res) => {
-            setUser(res.data);
+            setUser(res.data as UserDetail);
             setToken(savedToken);
           })
           .catch(async () => {
@@ -83,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setClientToken(newToken);
                 try {
                   const res = await getAuthMe({ throwOnError: true });
-                  setUser(res.data);
+                  setUser(res.data as UserDetail);
                   setToken(newToken);
                   return;
                 } catch {
@@ -106,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: { email, password },
         throwOnError: true,
       });
-      const { accessToken, refreshToken } = res.data;
+      const { accessToken, refreshToken } = res.data ?? {};
       if (!accessToken) throw new Error('No access token returned');
       if (refreshToken) {
         saveTokens(accessToken, refreshToken);
@@ -116,8 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setToken(accessToken);
       const profileRes = await getAuthMe({ throwOnError: true });
-      setAuthCookie(profileRes.data?.role ?? 'learner');
-      setUser(profileRes.data);
+      const profile = profileRes.data as UserDetail | undefined;
+      setAuthCookie(profile?.role ?? 'learner');
+      setUser(profile ?? null);
     },
     [],
   );

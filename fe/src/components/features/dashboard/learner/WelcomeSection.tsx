@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
+import type { UserDetail } from '@/services/api-client';
 
 function truncateId(id: string): string {
   if (id.length <= 6) return id;
@@ -11,7 +12,7 @@ function truncateId(id: string): string {
 export default function WelcomeSection() {
   const t = useTranslations('LearnerDashboard');
   const { user } = useAuth();
-  const cohortDisplay = user?.cohortId ? truncateId(user.cohortId) : '';
+  const cohortDisplay = (user as UserDetail)?.cohortId ? truncateId((user as UserDetail).cohortId ?? '') : '';
 
   return (
     <section className="flex flex-col gap-1">
@@ -19,7 +20,7 @@ export default function WelcomeSection() {
         {t('welcomeTitle', { name: user?.name ?? 'Learner' })}
       </h2>
       <p className="text-body-md text-on-surface-variant">
-        {user?.title ?? 'Engineer'} &mdash; Cohort #{cohortDisplay}
+        {(user as UserDetail)?.title ?? 'Engineer'} &mdash; Cohort #{cohortDisplay}
       </p>
     </section>
   );

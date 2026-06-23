@@ -277,7 +277,7 @@ export const getCohortsByIdExport = <ThrowOnError extends boolean = false>(optio
 /**
  * Lấy danh sách lộ trình học (Authenticated)
  *
- * Lấy toàn bộ các Track bài học theo thứ tự sắp xếp.
+ * Lấy danh sách các Track bài học theo thứ tự sắp xếp (có phân trang).
  * Mỗi track sẽ kèm theo thông tin trạng thái học tập của người gọi API (`completed`, `in_progress`, `locked`).
  *
  */

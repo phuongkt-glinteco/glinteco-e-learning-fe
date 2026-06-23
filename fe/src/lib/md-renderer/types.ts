@@ -12,6 +12,12 @@ export interface ListItem {
   children: Inline[];
 }
 
+export interface NestedListItem {
+  checked: boolean | null;
+  children: Inline[];
+  sublist?: { ordered: boolean; items: NestedListItem[] };
+}
+
 export type CalloutVariant =
   | 'info'
   | 'objective'
@@ -35,7 +41,7 @@ export interface Metadata {
 export type Block =
   | { type: 'heading'; level: 1 | 2 | 3; children: Inline[] }
   | { type: 'paragraph'; children: Inline[] }
-  | { type: 'list'; ordered: boolean; items: ListItem[] }
+  | { type: 'list'; ordered: boolean; items: NestedListItem[] }
   | { type: 'table'; headers: string[]; rows: string[][] }
   | { type: 'blockquote'; children: Inline[] }
   | { type: 'code'; language: string; code: string; filename?: string }

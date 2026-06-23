@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { Block, Inline, ListItem, CalloutVariant } from './types';
+import type { Block, Inline, ListItem, NestedListItem, CalloutVariant } from './types';
 import { parseInline } from './parser';
 
 /* ───────── Inline Renderer ───────── */
@@ -166,13 +166,20 @@ function ParagraphBlock({ children }: { children: Inline[] }) {
   );
 }
 
-function ListBlock({ ordered, items }: { ordered: boolean; items: ListItem[] }) {
+function RecursiveList({ ordered, items, depth }: { ordered: boolean; items: NestedListItem[]; depth?: number }) {
+  const d = depth ?? 0;
+  const textSizes = ['text-body-base', 'text-body-sm', 'text-label-sm', 'text-label-xs'];
+  const opacities = ['', 'opacity-80', 'opacity-65', 'opacity-50'];
+  const size = textSizes[Math.min(d, textSizes.length - 1)];
+  const opacity = opacities[Math.min(d, opacities.length - 1)];
+
   if (ordered) {
     return (
-      <ol className="space-y-2 list-decimal list-inside text-body-base my-4">
+      <ol className={`space-y-1 ${d === 0 ? 'my-4' : 'mt-2'} list-decimal list-inside ${size} ${opacity}`}>
         {items.map((item, i) => (
-          <li key={i} className="pl-2">
+          <li key={i} className="pl-1">
             <InlineRender nodes={item.children} />
+            {item.sublist && <RecursiveList ordered={item.sublist.ordered} items={item.sublist.items} depth={d + 1} />}
           </li>
         ))}
       </ol>
@@ -180,27 +187,34 @@ function ListBlock({ ordered, items }: { ordered: boolean; items: ListItem[] }) 
   }
 
   return (
-    <ul className="space-y-2 list-none my-4">
+    <ul className={`space-y-1 ${d === 0 ? 'my-4' : 'mt-2'} list-none ${size} ${opacity}`}>
       {items.map((item, i) => (
-        <li key={i} className="flex items-start gap-3">
-          {item.checked !== null ? (
-            <span
-              className={`mt-1 w-4 h-4 rounded border-2 flex-shrink-0 ${item.checked ? 'bg-primary border-primary' : 'border-outline-variant'}`}
-            >
-              {item.checked && (
-                <span className="material-symbols-outlined text-[14px] text-on-primary block">check</span>
-              )}
-            </span>
-          ) : (
-            <span className="w-1.5 h-1.5 bg-primary rounded-full mt-2.5 flex-shrink-0" />
-          )}
-          <span>
-            <InlineRender nodes={item.children} />
-          </span>
+        <li key={i}>
+          <div className="flex items-start gap-2">
+            {item.checked !== null ? (
+              <span
+                className={`mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 ${item.checked ? 'bg-primary border-primary' : 'border-outline-variant'}`}
+              >
+                {item.checked && (
+                  <span className="material-symbols-outlined text-[14px] text-on-primary block">check</span>
+                )}
+              </span>
+            ) : (
+              <span className={`w-1.5 h-1.5 ${d === 0 ? 'bg-primary' : 'bg-secondary'} rounded-full mt-2 flex-shrink-0`} />
+            )}
+            <div className="min-w-0">
+              <InlineRender nodes={item.children} />
+              {item.sublist && <RecursiveList ordered={item.sublist.ordered} items={item.sublist.items} depth={d + 1} />}
+            </div>
+          </div>
         </li>
       ))}
     </ul>
   );
+}
+
+function ListBlock({ ordered, items }: { ordered: boolean; items: NestedListItem[] }) {
+  return <RecursiveList ordered={ordered} items={items} depth={0} />;
 }
 
 function TableBlock({ headers, rows }: { headers: string[]; rows: string[][] }) {
@@ -356,6 +370,9 @@ const CALLOUT_STYLES: Record<CalloutVariant, { container: string; icon: string; 
 
 function CalloutBlock({ variant, children, listItems }: { variant: CalloutVariant; children: Inline[]; listItems?: ListItem[] }) {
   const style = CALLOUT_STYLES[variant];
+  if (!style) {
+    return <div className="my-6 p-4 bg-[#f3f3f4] rounded-lg"><InlineRender nodes={children} /></div>;
+  }
   const hasList = listItems && listItems.length > 0;
 
   const textClass = variant === 'objective'
@@ -525,7 +542,7 @@ export function MarkdownRenderer({ content }: { content: string }) {
           case 'details':
             return <DetailsBlock key={i} summary={block.summary} children={block.children} />;
           default:
-            return null;
+            return <p key={i} className="text-body-sm text-on-surface-variant italic">Unsupported block</p>;
         }
       })}
     </div>

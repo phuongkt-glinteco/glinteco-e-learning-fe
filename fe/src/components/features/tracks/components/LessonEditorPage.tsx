@@ -112,7 +112,6 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
   const [unit, setUnit] = useState<TimeUnit>('m');
   const [body, setBody] = useState(existing?.body ?? '');
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
-  const [footerOpen, setFooterOpen] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -174,11 +173,6 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
   const estimatedTime = numValue && !isNaN(Number(numValue))
     ? buildTimeString(Number(numValue), unit)
     : '';
-  const previewLabel = estimatedTime ? formatEstimatedTime(estimatedTime, tu) : '';
-  const wordCount = body.split(/\s+/).filter(Boolean).length;
-  const hasChanges = title !== (existing?.title ?? '')
-    || body !== (existing?.body ?? '')
-    || estimatedTime !== (existing?.estimatedTime ?? '');
 
   const parsedFrontmatter = parseFrontmatter(body);
   const bodyMeta = parsedFrontmatter.metadata;
@@ -217,7 +211,7 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
   const toolbarButtons = useToolbarConfig();
 
   return (
-    <main className="flex-1 flex flex-col bg-background p-14 gap-6">
+    <main className="flex-1 flex flex-col bg-background px-0 xl:p-14 md:p-4 gap-6">
       {/* Metadata Header */}
       <header className=" bg-surface-container-lowest border-b border-outline-variant max-w-[1600px] w-full mx-auto px-8 py-5">
           <div className="flex flex-col sm:flex-row sm:justify-between gap-5">
@@ -292,7 +286,7 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
 
       {/* Workspace */}
       <section className="flex-1 flex bg-surface-container-lowest w-full max-w-[1600px] mx-auto md:rounded-sm border border-outline-variant
-      h-full max-h-[calc(100vh-14rem) md:max-h-[calc(100vh-8rem)] lg:max-h-[calc(100vh-4rem)]
+      h-full min-h-[70vh] max-h-[calc(100vh-4rem)]
       ">
         {/* Editor Panel */}
         <div
@@ -332,18 +326,7 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
               onKeyDown={handleTextareaKeyDown}
             />
           </div>
-          <div className="flex items-center gap-4 text-label-sm text-secondary ml-2">
-                <span className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px]">article</span>
-                  {t('wordCount', { count: wordCount })}
-                </span>
-                {hasChanges && (
-                  <span className="flex items-center gap-1.5 text-primary">
-                    <span className="material-symbols-outlined text-[16px]">edit_note</span>
-                    {t('unsavedChanges')}
-                  </span>
-                )}
-              </div>
+          
         </div>
 
         {/* Preview Panel */}
@@ -398,25 +381,16 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
       <footer className="
       justify-center items-center
       fixed bottom-0 left-0 md:left-[256px] right-0 z-40 bg-surface border-t border-outline-variant transition-all duration-200">
-        <div className="flex justify-center items-center px-4">
-          <button
-            onClick={() => setFooterOpen(!footerOpen)}
-            className="p-2  mr-auto hover:bg-surface-container-high rounded transition-colors cursor-pointer"
-            title={footerOpen ? 'Collapse' : 'Expand'}
-          >
-            <span className={`material-symbols-outlined text-secondary transition-transform duration-200 ${footerOpen ? '' : 'rotate-180'}`}>
-              keyboard_double_arrow_down
-            </span>
-          </button>
-
-          {footerOpen && (
-            <>
+        
               
 
               <div className="flex mx-2 justify-center items-center gap-2">
                 <SyntaxGuide />
                 <div className="w-px h-6 bg-outline-variant mx-1" />
-                <button
+                <div className="flex-1" />
+
+                <div className="flex-2 flex justify-center items-center gap-8">
+<button
                   onClick={() => router.back()}
                   className="px-4 py-1.5 border border-outline-variant rounded-lg label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
                 >
@@ -429,10 +403,9 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
                 >
                   {t('saveLesson')}
                 </button>
+                </div>
+                
               </div>
-            </>
-          )}
-        </div>
       </footer>
     </main>
   );

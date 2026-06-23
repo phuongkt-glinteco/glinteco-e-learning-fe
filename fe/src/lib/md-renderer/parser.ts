@@ -1,4 +1,4 @@
-import type { Block, Inline, ListItem, CalloutVariant, TabBlock, Metadata } from './types';
+import type { Block, Inline, ListItem, NestedListItem, CalloutVariant, TabBlock, Metadata } from './types';
 
 export function parseFrontmatter(md: string): { metadata: Metadata | null; body: string } {
   const lines = md.split('\n');
@@ -143,6 +143,14 @@ function parseContent(content: string): Inline[] {
   return parseInline(content.trim());
 }
 
+function isListItem(text: string): { ordered: boolean; content: string } | null {
+  const ulMatch = text.match(/^[-*+]\s+(.+)$/);
+  if (ulMatch) return { ordered: false, content: ulMatch[1] };
+  const olMatch = text.match(/^(\d+)\.\s+(.+)$/);
+  if (olMatch) return { ordered: true, content: olMatch[2] };
+  return null;
+}
+
 export function parseMarkdown(md: string): Block[] {
   const blocks: Block[] = [];
   const { body } = parseFrontmatter(md); // metadata is handled externally via export
@@ -173,6 +181,8 @@ export function parseMarkdown(md: string): Block[] {
       }
       if (i < lines.length) i++; // skip closing :::
 
+      const validVariants: CalloutVariant[] = ['info', 'objective', 'prerequisites', 'exercise', 'challenge', 'summary'];
+
       if (blockType === 'tabs') {
         const tabs: TabBlock[] = [];
         let currentLabel = '';
@@ -200,7 +210,7 @@ export function parseMarkdown(md: string): Block[] {
       } else if (blockType === 'details') {
         const innerContent = calloutLines.join('\n').trim();
         blocks.push({ type: 'details', summary: inlineTitle, children: parseInline(innerContent) });
-      } else {
+      } else if (validVariants.includes(blockType as CalloutVariant)) {
         const content = calloutLines.join('\n').trim();
         const rawLines = content.split('\n');
         const listItems: ListItem[] = [];
@@ -221,6 +231,12 @@ export function parseMarkdown(md: string): Block[] {
           blocks.push({ type: 'callout', variant: blockType as CalloutVariant, children: inlineChildren, listItems });
         } else {
           blocks.push({ type: 'callout', variant: blockType as CalloutVariant, children: inlineChildren });
+        }
+      } else {
+        // Unknown block type — render content as raw paragraphs
+        const fallbackLines = [trimmed, ...calloutLines];
+        for (const fl of fallbackLines) {
+          blocks.push({ type: 'paragraph', children: parseContent(fl) });
         }
       }
       continue;
@@ -297,29 +313,29 @@ export function parseMarkdown(md: string): Block[] {
       continue;
     }
 
-    // List (unordered or ordered)
-    const ulMatch = trimmed.match(/^[-*+]\s+(.+)$/);
-    const olMatch = trimmed.match(/^\d+\.\s+(.+)$/);
-    if (ulMatch || olMatch) {
-      const ordered = !!olMatch;
-      const items: ListItem[] = [];
+    // Nested list (stack-based, indent-sensitive)
+    const listInfo = isListItem(trimmed);
+    if (listInfo) {
+      const baseIndent = lines[i].search(/\S/);
+      const stack: { ordered: boolean; items: NestedListItem[]; indent: number }[] = [];
 
       while (i < lines.length) {
-        const currentLine = lines[i].trim();
-        const itemMatch = ordered
-          ? currentLine.match(/^\d+\.\s+(.+)$/)
-          : currentLine.match(/^[-*+]\s+(.+)$/);
+        const rawLine = lines[i];
+        const trimmedLine = rawLine.trim();
+        if (trimmedLine === '') break;
 
-        if (!itemMatch) {
-          // Check for continuation (indented next line)
-          if (lines[i].startsWith('  ') && lines[i].trim() !== '') {
-            const lastItem = items[items.length - 1];
-            if (lastItem) {
+        const info = isListItem(trimmedLine);
+        if (!info) {
+          // Continuation: non-list line that is indented deeper than base
+          if (rawLine.startsWith('  ') && trimmedLine !== '') {
+            const top = stack[stack.length - 1];
+            if (top && top.items.length > 0) {
+              const lastItem = top.items[top.items.length - 1];
               const lastChild = lastItem.children[lastItem.children.length - 1];
               if (lastChild?.type === 'text') {
-                lastChild.value += ' ' + lines[i].trim();
+                lastChild.value += ' ' + trimmedLine;
               } else {
-                lastItem.children.push({ type: 'text', value: lines[i].trim() });
+                lastItem.children.push({ type: 'text', value: trimmedLine });
               }
             }
             i++;
@@ -328,19 +344,41 @@ export function parseMarkdown(md: string): Block[] {
           break;
         }
 
-        let taskMatch = itemMatch[1].match(/^\[( |x|X)?\]\s+(.+)$/);
+        const indent = rawLine.search(/\S/);
+        const relativeIndent = indent - baseIndent;
+
+        let item: NestedListItem = { checked: null, children: parseContent(info.content) };
+        const taskMatch = info.content.match(/^\[( |x|X)?\]\s+(.+)$/);
         if (taskMatch) {
-          items.push({
-            checked: taskMatch[1] === 'x' || taskMatch[1] === 'X' ? true : false,
-            children: parseContent(taskMatch[2]),
-          });
+          item.checked = taskMatch[1] === 'x' || taskMatch[1] === 'X' ? true : false;
+          item.children = parseContent(taskMatch[2]);
+        }
+
+        if (stack.length === 0) {
+          stack.push({ ordered: info.ordered, items: [item], indent: relativeIndent });
         } else {
-          items.push({ checked: null, children: parseContent(itemMatch[1]) });
+          const top = stack[stack.length - 1];
+          if (relativeIndent === top.indent) {
+            top.items.push(item);
+          } else if (relativeIndent > top.indent) {
+            const parentItem = top.items[top.items.length - 1];
+            parentItem.sublist = { ordered: info.ordered, items: [item] };
+            stack.push({ ordered: info.ordered, items: parentItem.sublist.items, indent: relativeIndent });
+          } else {
+            while (stack.length > 0 && relativeIndent < stack[stack.length - 1].indent) {
+              stack.pop();
+            }
+            if (stack.length > 0) {
+              stack[stack.length - 1].items.push(item);
+            }
+          }
         }
         i++;
       }
 
-      blocks.push({ type: 'list', ordered, items });
+      if (stack.length > 0) {
+        blocks.push({ type: 'list', ordered: stack[0].ordered, items: stack[0].items });
+      }
       continue;
     }
 

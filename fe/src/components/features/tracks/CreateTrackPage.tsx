@@ -10,12 +10,14 @@ import { BasicInfoCard } from './components/BasicInfoCard';
 import { CurriculumSection } from './components/CurriculumSection';
 import { SummaryCard } from './components/SummaryCard';
 import { InstructionCard } from './components/InstructionCard';
+import { TrackPreview } from './detail/TrackPreview';
 
 export default function CreateTrackPage() {
   const t = useTranslations('CreateTrackPage');
   const router = useRouter();
   const { title, description, lessons, reset } = useTrackDraftStore();
   const [saving, setSaving] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
 
   const estimatedTime = sumEstimatedTimes(lessons.map((l) => l.estimatedTime));
 
@@ -62,9 +64,22 @@ export default function CreateTrackPage() {
     }
   }
 
+  if (isPreview) {
+    return (
+      <TrackPreview
+        title={title}
+        description={description}
+        lessons={lessons}
+        onBackToEdit={() => setIsPreview(false)}
+        onSaveTrack={handleSave}
+        isSaveDisabled={!title.trim() || lessons.length === 0 || saving}
+      />
+    );
+  }
+
   return (
-    <main className="flex-1 overflow-y-auto bg-background p-16 pb-32">
-      <div className="max-w-[1200px] mx-auto px-gutter py-stack-lg">
+    <main className="flex-1 overflow-y-auto bg-background px-2 pt-4 pb-24 lg:px-8 lg:pt-8 xl:pt-12 2xl:px-16">
+      <div className="lg:max-w-[1200px] mx-auto px-gutter py-stack-lg">
         <header className="mb-stack-lg flex justify-between items-end">
           <div>
             <h2 className="headline-lg text-on-surface mb-2">{t('title')}</h2>
@@ -72,13 +87,13 @@ export default function CreateTrackPage() {
           </div>
         </header>
 
-        <div className="grid grid-cols-12 gap-8">
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+        <div className="grid grid-cols-12 gap-8 mx-auto">
+          <div className="col-span-12 xl:col-span-7 2xl:col-span-8 space-y-6">
             <BasicInfoCard />
             <CurriculumSection />
           </div>
 
-          <div className="col-span-12 lg:col-span-4 space-y-6">
+          <div className="col-span-12 xl:col-span-5 2xl:col-span-4 space-y-6">
               <SummaryCard />
               <InstructionCard />
           </div>
@@ -87,13 +102,18 @@ export default function CreateTrackPage() {
         <footer className="fixed bottom-0 left-0 md:left-[256px] right-0 bg-surface-container-lowest border-t border-outline-variant px-gutter py-4 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <div className="max-w-[1200px] mx-auto flex justify-between items-center">
             <button
-              onClick={() => router.back()}
+              onClick={() => {
+                reset();
+                router.back();}}
               className="px-6 py-2 border border-outline-variant rounded-lg label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
             >
               {t('cancel')}
             </button>
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-6 py-2 border border-primary/20 text-primary rounded-lg label-md hover:bg-primary/10 transition-colors cursor-pointer">
+              <button
+                onClick={() => setIsPreview(true)}
+                className="flex items-center gap-2 px-6 py-2 border border-primary/20 text-primary rounded-lg label-md hover:bg-primary/10 transition-colors cursor-pointer"
+              >
                 <span className="material-symbols-outlined text-[20px]">visibility</span>
                 {t('previewTrack')}
               </button>

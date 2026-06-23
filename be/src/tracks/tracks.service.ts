@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, LessThan, MoreThan } from 'typeorm';
 import { Track } from '../database/entities/track.entity';
 import {
   TrackProgress,
@@ -42,7 +42,7 @@ export class TracksService {
   }
 
   // Find all tracks and calculate progress dynamically or from saved progress
-  async findAll(userId: string) {
+  async findAll(userId: string, page = 1, limit = 20) {
     const tracks = await this.trackRepository.find({
       order: { order: 'ASC' },
       relations: { lessons: true },
@@ -136,7 +136,21 @@ export class TracksService {
       });
     }
 
-    return { data: resolvedTracks };
+    const total = resolvedTracks.length;
+    const adjustedLimit = Math.min(limit, 50);
+    const skip = (page - 1) * adjustedLimit;
+    const pagedTracks = resolvedTracks.slice(skip, skip + adjustedLimit);
+    const lastPage = Math.ceil(total / adjustedLimit);
+
+    return {
+      data: pagedTracks,
+      meta: {
+        total,
+        page,
+        limit: adjustedLimit,
+        lastPage: lastPage || 1,
+      },
+    };
   }
 
   async findOne(id: string, userId?: string) {
@@ -200,6 +214,17 @@ export class TracksService {
       }
     }
 
+    const [prevTrack, nextTrack] = await Promise.all([
+      this.trackRepository.findOne({
+        where: { order: LessThan(track.order) },
+        order: { order: 'DESC' },
+      }),
+      this.trackRepository.findOne({
+        where: { order: MoreThan(track.order) },
+        order: { order: 'ASC' },
+      }),
+    ]);
+
     const resolvedLessons = lessonsInTrack
       .sort((a, b) => a.order - b.order)
       .map((lesson) => ({
@@ -219,6 +244,8 @@ export class TracksService {
       lessonsCompleted,
       description: track.description,
       lessons: resolvedLessons,
+      prevTrack: prevTrack ? { id: prevTrack.id, title: prevTrack.title } : null,
+      nextTrack: nextTrack ? { id: nextTrack.id, title: nextTrack.title } : null,
     };
   }
 

@@ -52,12 +52,21 @@ describe('Tracks and Lessons Controllers', () => {
   });
 
   describe('TracksController', () => {
-    it('should delegate findAll to service', async () => {
+    it('should delegate findAll to service with default pagination query params', async () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
       mockTracksService.findAll.mockResolvedValue({ data: [] });
 
       const result = await tracksController.findAll(req);
-      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1');
+      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 1, 20);
+      expect(result).toEqual({ data: [] });
+    });
+
+    it('should delegate findAll to service with custom pagination query params', async () => {
+      const req = { user: { id: 'user-1', role: 'learner' } };
+      mockTracksService.findAll.mockResolvedValue({ data: [] });
+
+      const result = await tracksController.findAll(req, '2', '10');
+      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 2, 10);
       expect(result).toEqual({ data: [] });
     });
 

@@ -126,7 +126,7 @@ describe('TracksService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all tracks with dynamic progress', async () => {
+    it('should return all tracks with dynamic progress and pagination meta', async () => {
       const tracks = [
         {
           id: 'track-1',
@@ -153,11 +153,38 @@ describe('TracksService', () => {
         { lessonId: 'lesson-1', completedAt: new Date() },
       ]);
 
-      const result = await service.findAll('user-1');
+      const result = await service.findAll('user-1', 1, 20);
 
       expect(result.data).toHaveLength(2);
       expect(result.data[0].status).toBe('completed');
       expect(result.data[1].status).toBe('in_progress');
+      expect(result.meta).toEqual({
+        total: 2,
+        page: 1,
+        limit: 20,
+        lastPage: 1,
+      });
+    });
+
+    it('should slice data correctly according to limit and page', async () => {
+      const tracks = [
+        { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
+        { id: 'track-2', title: 'Track 2', estimatedTime: '3h', description: 'Desc 2', order: 2, lessons: [] },
+      ];
+      mockTrackRepository.find.mockResolvedValue(tracks);
+      mockTrackProgressRepository.find.mockResolvedValue([]);
+      mockLessonProgressRepository.find.mockResolvedValue([]);
+
+      const result = await service.findAll('user-1', 2, 1);
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].id).toBe('track-2');
+      expect(result.meta).toEqual({
+        total: 2,
+        page: 2,
+        limit: 1,
+        lastPage: 2,
+      });
     });
   });
 
@@ -172,7 +199,12 @@ describe('TracksService', () => {
         order: 1,
         lessons: [],
       };
-      mockTrackRepository.findOne.mockResolvedValue(track);
+      mockTrackRepository.findOne.mockImplementation(async (options: any) => {
+        if (options?.where?.id === 'track-1') {
+          return track;
+        }
+        return null;
+      });
       mockTrackProgressRepository.findOne.mockResolvedValue({
         status: ProgressStatus.COMPLETED,
       });
@@ -181,6 +213,8 @@ describe('TracksService', () => {
       const result = await service.findOne('track-1', 'user-1');
       expect(result.id).toBe('track-1');
       expect(result.status).toBe('completed');
+      expect(result.prevTrack).toBeNull();
+      expect(result.nextTrack).toBeNull();
     });
 
     it('should resolve fallback dynamic status for non-first track if previous completed', async () => {
@@ -188,7 +222,19 @@ describe('TracksService', () => {
         { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
         { id: 'track-2', title: 'Track 2', estimatedTime: '3h', description: 'Desc 2', order: 2, lessons: [] },
       ];
-      mockTrackRepository.findOne.mockResolvedValue(allTracks[1]);
+      mockTrackRepository.findOne.mockImplementation(async (options: any) => {
+        if (options?.where?.id === 'track-2') {
+          return allTracks[1];
+        }
+        if (options?.where?.order) {
+          // Check LessThan / MoreThan operators using TypeORM structure
+          // Or just check if it's the LessThan query (order < 2)
+          if (options.where.order._value === 2 && options.where.order._type === 'lessThan') {
+            return allTracks[0]; // track-1
+          }
+        }
+        return null;
+      });
       mockTrackProgressRepository.findOne.mockResolvedValue(null);
       mockLessonProgressRepository.find.mockResolvedValue([]);
       mockTrackRepository.find.mockResolvedValue(allTracks);
@@ -199,6 +245,8 @@ describe('TracksService', () => {
 
       const result = await service.findOne('track-2', 'user-1');
       expect(result.status).toBe('in_progress');
+      expect(result.prevTrack).toEqual({ id: 'track-1', title: 'Track 1' });
+      expect(result.nextTrack).toBeNull();
     });
 
     it('should throw NotFoundException if track is not found', async () => {

@@ -28,6 +28,159 @@
     "alertGoogleSuccess": "Google login successful!",
     "alertEmailSuccess": "Successfully signed in with: {email}"
   },
+
+  "LandingPage": {
+    "brandName": "RAMP UP",
+    "cta": {
+      "primary": "Start now",
+      "secondary": "View demo"
+    },
+    "header": {
+      "signIn": "Sign in"
+    },
+    "nav": {
+      "ariaLabel": "Landing navigation",
+      "mobileAriaLabel": "Mobile landing navigation",
+      "openMenuLabel": "Open landing menu",
+      "links": {
+        "product": "Product",
+        "howItWorks": "How it works",
+        "features": "Challenges",
+        "mentors": "For mentors",
+        "access": "Access"
+      }
+    },
+    "hero": {
+      "headline": "Help new engineers ramp\u00a0up with clear learning tracks, GitHub PR review, and measurable progress.",
+      "description": "RAMP UP turns engineering onboarding into a guided system: courses, docs, exercises, GitHub submissions, and mentor feedback."
+    },
+    "dashboardPreview": {
+      "ariaLabel": "Static preview of the RAMP UP learner dashboard",
+      "learnerName": "Minh Anh",
+      "learnerRole": "Frontend Engineer",
+      "activeTrack": "Frontend Fundamentals",
+      "activeTrackLabel": "Active learning track",
+      "xpLabel": "1,250",
+      "xpTitle": "XP",
+      "levelTitle": "Level",
+      "levelLabel": "Level 3",
+      "streakTitle": "Streak",
+      "streakLabel": "5 days",
+      "reviewItem": {
+        "title": "Component Library PR",
+        "subtitle": "Waiting for mentor review",
+        "statusLabel": "In review"
+      }
+    },
+    "curriculum": {
+      "eyebrow": "Curriculum preview",
+      "title": "Preview the journey from setup to PR review.",
+      "description": "Each stage groups docs, exercises, and completion criteria so a new engineer always knows the next step.",
+      "stages": {
+        "foundation": {
+          "eyebrow": "Stage 01",
+          "title": "Product foundation and environment",
+          "description": "Understand product context, repository structure, local setup, and the team's required conventions.",
+          "duration": "Week 1",
+          "statusLabel": "Start",
+          "modules": {
+            "productContext": "Product context",
+            "localSetup": "Local setup",
+            "codebaseTour": "Codebase tour"
+          }
+        },
+        "implementation": {
+          "eyebrow": "Stage 02",
+          "title": "Practice with tasks close to the real codebase",
+          "description": "Work through small frontend/backend exercises with clear acceptance criteria and real team workflow.",
+          "duration": "Weeks 2-3",
+          "statusLabel": "In progress",
+          "modules": {
+            "componentTask": "Component task",
+            "apiIntegration": "API integration",
+            "testChecklist": "Test checklist"
+          }
+        },
+        "review": {
+          "eyebrow": "Stage 03",
+          "title": "Review, feedback, and progress tracking",
+          "description": "Submit GitHub PRs, receive mentor feedback, complete rubrics, and track XP/level growth.",
+          "duration": "Week 4",
+          "statusLabel": "Review",
+          "modules": {
+            "prSubmission": "PR submission",
+            "mentorReview": "Mentor review",
+            "skillRubric": "Skill rubric"
+          }
+        }
+      }
+    },
+    "activity": {
+      "eyebrow": "How it works",
+      "title": "Give every engineer the same clear path from docs to reviewed work.",
+      "stepLabel": "Step {stepNumber}",
+      "steps": {
+        "learn": {
+          "title": "Learn curated internal docs",
+          "description": "Follow a focused path of product notes, architecture guides, and team runbooks."
+        },
+        "practice": {
+          "title": "Practice with realistic exercises",
+          "description": "Work on tasks close to the real codebase with clear acceptance criteria and context."
+        },
+        "submit": {
+          "title": "Submit a GitHub PR",
+          "description": "Send work through the same review rhythm the team uses for production changes."
+        },
+        "xp": {
+          "title": "Receive feedback and XP",
+          "description": "Get mentor review, close skill gaps, and make progress visible."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Turn engineering onboarding into a repeatable, measurable, practical workflow.",
+      "description": "Move beyond scattered old wiki pages. Build an onboarding system that can scale with the engineering team.",
+      "secondaryCta": "View dashboard demo"
+    },
+    "footer": {
+      "description": "A platform for onboarding developers with learning tracks, practical exercises, and structured mentorship.",
+      "columns": {
+        "product": {
+          "title": "Product",
+          "links": {
+            "features": "Features",
+            "learningPath": "Learning path",
+            "reviewFlow": "Review flow",
+            "updates": "Updates"
+          }
+        },
+        "resources": {
+          "title": "Resources",
+          "links": {
+            "docs": "Docs",
+            "articles": "Articles",
+            "engineeringGuides": "Engineering guides",
+            "support": "Support"
+          }
+        },
+        "company": {
+          "title": "Company",
+          "links": {
+            "about": "About",
+            "careers": "Careers",
+            "privacy": "Privacy policy",
+            "terms": "Terms of use"
+          }
+        }
+      },
+      "copyright": "Copyright 2026 RAMP UP Inc. All rights reserved.",
+      "socialLinks": {
+        "share": "Share",
+        "contact": "Contact"
+      }
+    }
+  },
   "LoadingPage": {
     "title": "Preparing your workspace...",
     "description": "Initializing course modules and documentation"

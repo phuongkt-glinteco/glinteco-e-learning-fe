@@ -28,6 +28,158 @@
     "alertGoogleSuccess": "Đăng nhập qua Google thành công!",
     "alertEmailSuccess": "Đăng nhập thành công với: {email}"
   },
+  "LandingPage": {
+    "brandName": "RAMP UP",
+    "cta": {
+      "primary": "Bắt đầu ngay",
+      "secondary": "Xem demo"
+    },
+    "header": {
+      "signIn": "Đăng nhập"
+    },
+    "nav": {
+      "ariaLabel": "Điều hướng landing",
+      "mobileAriaLabel": "Điều hướng landing trên mobile",
+      "openMenuLabel": "Mở menu landing",
+      "links": {
+        "product": "Sản phẩm",
+        "howItWorks": "Cách hoạt động",
+        "features": "Vấn đề",
+        "mentors": "Cho mentor",
+        "access": "Truy cập"
+      }
+    },
+    "hero": {
+      "headline": "Giúp kỹ sư mới ramp\u00a0up bằng learning track rõ ràng, GitHub PR review và tiến độ đo lường được.",
+      "description": "RAMP UP biến onboarding kỹ thuật thành một hệ thống có định hướng: khóa học, tài liệu, bài tập, GitHub submission và feedback từ mentor."
+    },
+    "dashboardPreview": {
+      "ariaLabel": "Bản xem trước tĩnh của dashboard học viên RAMP UP",
+      "learnerName": "Minh Anh",
+      "learnerRole": "Kỹ sư Frontend",
+      "activeTrack": "Frontend Fundamentals",
+      "activeTrackLabel": "Learning track đang hoạt động",
+      "xpLabel": "1,250",
+      "xpTitle": "XP",
+      "levelTitle": "Cấp độ",
+      "levelLabel": "Level 3",
+      "streakTitle": "Chuỗi",
+      "streakLabel": "5 ngày",
+      "reviewItem": {
+        "title": "Component Library PR",
+        "subtitle": "Đang chờ mentor review",
+        "statusLabel": "Đang review"
+      }
+    },
+    "curriculum": {
+      "eyebrow": "Curriculum preview",
+      "title": "Xem trước các chặng học từ setup đến PR review.",
+      "description": "Mỗi chặng gom tài liệu, bài tập và tiêu chí hoàn thành để engineer mới biết rõ bước tiếp theo.",
+      "stages": {
+        "foundation": {
+          "eyebrow": "Chặng 01",
+          "title": "Nền tảng sản phẩm và môi trường",
+          "description": "Nắm bối cảnh sản phẩm, cấu trúc repository, quy trình local setup và những convention bắt buộc của team.",
+          "duration": "Tuần 1",
+          "statusLabel": "Bắt đầu",
+          "modules": {
+            "productContext": "Product context",
+            "localSetup": "Local setup",
+            "codebaseTour": "Codebase tour"
+          }
+        },
+        "implementation": {
+          "eyebrow": "Chặng 02",
+          "title": "Thực hành theo task gần codebase thật",
+          "description": "Làm các bài tập frontend/backend nhỏ, có acceptance criteria rõ ràng và được submit theo nhịp làm việc thật.",
+          "duration": "Tuần 2-3",
+          "statusLabel": "Đang học",
+          "modules": {
+            "componentTask": "Component task",
+            "apiIntegration": "API integration",
+            "testChecklist": "Test checklist"
+          }
+        },
+        "review": {
+          "eyebrow": "Chặng 03",
+          "title": "Review, feedback và đo tiến độ",
+          "description": "Submit GitHub PR, nhận mentor feedback, hoàn tất rubric và theo dõi XP/level để thấy năng lực tăng lên.",
+          "duration": "Tuần 4",
+          "statusLabel": "Review",
+          "modules": {
+            "prSubmission": "PR submission",
+            "mentorReview": "Mentor review",
+            "skillRubric": "Skill rubric"
+          }
+        }
+      }
+    },
+    "activity": {
+      "eyebrow": "How it works",
+      "title": "Mỗi engineer có cùng một đường đi rõ ràng từ docs đến work đã được review.",
+      "stepLabel": "Bước {stepNumber}",
+      "steps": {
+        "learn": {
+          "title": "Học tài liệu đã được curate",
+          "description": "Đi theo lộ trình tập trung gồm product notes, architecture guides và team runbooks."
+        },
+        "practice": {
+          "title": "Làm bài tập sát thực tế",
+          "description": "Thực hành với task gần codebase thật, có acceptance criteria và ngữ cảnh rõ ràng."
+        },
+        "submit": {
+          "title": "Submit GitHub PR",
+          "description": "Gửi bài làm theo đúng nhịp review mà team đang dùng cho thay đổi production."
+        },
+        "xp": {
+          "title": "Nhận feedback và XP",
+          "description": "Nhận mentor review, lấp khoảng trống kỹ năng và giúp tiến độ trở nên minh bạch."
+        }
+      }
+    },
+    "finalCta": {
+      "title": "Biến engineering onboarding thành một quy trình lặp lại được, đo được và thực tế.",
+      "description": "Không còn phụ thuộc vào wiki cũ rời rạc. Hãy xây một hệ thống onboarding có thể mở rộng cho engineering team.",
+      "secondaryCta": "Xem dashboard demo"
+    },
+    "footer": {
+      "description": "Nền tảng giúp onboarding developer bằng learning track, bài tập thực hành và mentorship có cấu trúc.",
+      "columns": {
+        "product": {
+          "title": "Sản phẩm",
+          "links": {
+            "features": "Tính năng",
+            "learningPath": "Lộ trình học",
+            "reviewFlow": "Quy trình review",
+            "updates": "Cập nhật"
+          }
+        },
+        "resources": {
+          "title": "Tài nguyên",
+          "links": {
+            "docs": "Tài liệu",
+            "articles": "Bài viết",
+            "engineeringGuides": "Engineering guides",
+            "support": "Hỗ trợ"
+          }
+        },
+        "company": {
+          "title": "Công ty",
+          "links": {
+            "about": "Giới thiệu",
+            "careers": "Tuyển dụng",
+            "privacy": "Chính sách bảo mật",
+            "terms": "Điều khoản sử dụng"
+          }
+        }
+      },
+      "copyright": "Copyright 2026 RAMP UP Inc. Đã đăng ký mọi quyền.",
+      "socialLinks": {
+        "share": "Chia sẻ",
+        "contact": "Liên hệ"
+      }
+    }
+  },
   "LoadingPage": {
     "title": "Đang chuẩn bị không gian làm việc...",
     "description": "Khởi tạo học phần và tài liệu khóa học"

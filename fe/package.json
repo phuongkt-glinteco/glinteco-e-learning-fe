@@ -6,7 +6,7 @@
     "dev": "next dev -p 6336",
     "build": "next build",
     "start": "next start -p 6336",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.13.1",

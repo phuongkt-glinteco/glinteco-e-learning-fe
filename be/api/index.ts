@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DataSource } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
@@ -124,6 +125,52 @@ async function bootstrap() {
   });
 
   await app.init();
+
+  // Run baseline SQL query to populate migrations table on production
+  try {
+    const dataSource = app.get(DataSource);
+    await dataSource.query(`CREATE TABLE IF NOT EXISTS "migrations" ("id" SERIAL PRIMARY KEY, "timestamp" bigint NOT NULL, "name" varchar NOT NULL)`);
+    await dataSource.query(`
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781611485949, 'InitialSchema1781611485949' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'InitialSchema1781611485949');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781616508023, 'AddGoogleIdToUsers1781616508023' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddGoogleIdToUsers1781616508023');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781700000000, 'AddAuthSchema1781700000000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddAuthSchema1781700000000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781615351400, 'UpdateUserAndLessonProgress1781615351400' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'UpdateUserAndLessonProgress1781615351400');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781617000000, 'UpdateSubmissionStatusEnum1781617000000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'UpdateSubmissionStatusEnum1781617000000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781617100000, 'AddTrackOrderIndex1781617100000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddTrackOrderIndex1781617100000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781617508000, 'AddKindToDocumentsAndSearchIndexes1781617508000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddKindToDocumentsAndSearchIndexes1781617508000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781622361007, 'AddExerciseDetails1781622361007' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddExerciseDetails1781622361007');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781623541186, 'AddUserBookmarks1781623541186' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddUserBookmarks1781623541186');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781624224625, 'AddIsActiveToCohorts1781624224625' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddIsActiveToCohorts1781624224625');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781628751000, 'AddLessonsCompletedToTrackProgress1781628751000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddLessonsCompletedToTrackProgress1781628751000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781700100000, 'AddResetPasswordFieldsToUser1781700100000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddResetPasswordFieldsToUser1781700100000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1781700200000, 'CreateNotificationsTable1781700200000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'CreateNotificationsTable1781700200000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1784301321000, 'AddLeaderboardIndexes1784301321000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddLeaderboardIndexes1784301321000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1784301322000, 'UpdateSubmissionHistorySchema1784301322000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'UpdateSubmissionHistorySchema1784301322000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1784400000000, 'UpdateTracksAndLessonsSchema1784400000000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'UpdateTracksAndLessonsSchema1784400000000');
+      INSERT INTO "migrations" ("timestamp", "name")
+      SELECT 1784301323000, 'AddLastClaimedXpAtToUsers1784301323000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddLastClaimedXpAtToUsers1784301323000');
+    `);
+    console.log('✅ Baseline migrations check/insert completed.');
+  } catch (dbErr) {
+    console.error('❌ Failed to run baseline migrations check/insert:', dbErr);
+  }
+
   expressApp = app.getHttpAdapter().getInstance();
 }
 

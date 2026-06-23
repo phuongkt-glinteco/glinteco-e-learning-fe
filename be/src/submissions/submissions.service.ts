@@ -138,7 +138,7 @@ export class SubmissionsService {
     event.exerciseId = exercise.id;
     event.exerciseTitle = exercise.title;
     event.trackId = exercise.trackId;
-    event.trackName = exercise.track?.name || '';
+    event.trackName = exercise.track?.title || '';
     event.prUrl = prUrl;
     event.submittedAt = savedSubmission.submittedAt;
     this.eventEmitter.emit('submission.created', event);
@@ -206,7 +206,7 @@ export class SubmissionsService {
       event.exerciseId = exercise.id;
       event.exerciseTitle = exercise.title;
       event.trackId = exercise.trackId;
-      event.trackName = exercise.track?.name || '';
+      event.trackName = exercise.track?.title || '';
       event.prUrl = prUrl;
       event.submittedAt = savedSubmission.submittedAt;
       event.previousComments = previousComments;

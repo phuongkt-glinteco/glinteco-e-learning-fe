@@ -3,14 +3,14 @@ import { IsString, IsNotEmpty, MaxLength, IsInt, Min } from 'class-validator';
 
 export class CreateLessonDto {
   @ApiProperty({
-    description: 'Tên bài học',
+    description: 'Tiêu đề bài học',
     example: 'Introduction to React',
     maxLength: 255,
   })
-  @IsString({ message: 'name phải là chuỗi' })
-  @IsNotEmpty({ message: 'name không được để trống' })
-  @MaxLength(255, { message: 'name không được vượt quá 255 ký tự' })
-  name: string;
+  @IsString({ message: 'title phải là chuỗi' })
+  @IsNotEmpty({ message: 'title không được để trống' })
+  @MaxLength(255, { message: 'title không được vượt quá 255 ký tự' })
+  title: string;
 
   @ApiProperty({
     description: 'Thứ tự của bài học trong lộ trình',
@@ -23,10 +23,18 @@ export class CreateLessonDto {
   order: number;
 
   @ApiProperty({
-    description: 'Nội dung bài học',
-    example: 'Lesson content here...',
+    description: 'Thời gian ước tính hoàn thành bài học',
+    example: '30m',
   })
-  @IsString({ message: 'content phải là chuỗi' })
-  @IsNotEmpty({ message: 'content không được để trống' })
-  content: string;
+  @IsString({ message: 'estimatedTime phải là chuỗi' })
+  @IsNotEmpty({ message: 'estimatedTime không được để trống' })
+  estimatedTime: string;
+
+  @ApiProperty({
+    description: 'Nội dung bài học',
+    example: 'Lesson body here...',
+  })
+  @IsString({ message: 'body phải là chuỗi' })
+  @IsNotEmpty({ message: 'body không được để trống' })
+  body: string;
 }

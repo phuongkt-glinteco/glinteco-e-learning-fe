@@ -126,17 +126,23 @@ describe('TracksService', () => {
   });
 
   describe('findAll', () => {
-    it('should return all tracks with dynamic progress', async () => {
+    it('should return all tracks with dynamic progress and pagination meta', async () => {
       const tracks = [
         {
           id: 'track-1',
-          name: 'Track 1',
+          title: 'Track 1',
+          estimatedTime: '2h',
+          description: 'Desc 1',
+          icon: 'flag',
           order: 1,
           lessons: [{ id: 'lesson-1' }],
         },
         {
           id: 'track-2',
-          name: 'Track 2',
+          title: 'Track 2',
+          estimatedTime: '3h',
+          description: 'Desc 2',
+          icon: 'server',
           order: 2,
           lessons: [{ id: 'lesson-2' }],
         },
@@ -147,18 +153,58 @@ describe('TracksService', () => {
         { lessonId: 'lesson-1', completedAt: new Date() },
       ]);
 
-      const result = await service.findAll('user-1');
+      const result = await service.findAll('user-1', 1, 20);
 
       expect(result.data).toHaveLength(2);
-      expect(result.data[0].progress.status).toBe('completed');
-      expect(result.data[1].progress.status).toBe('in_progress');
+      expect(result.data[0].status).toBe('completed');
+      expect(result.data[1].status).toBe('in_progress');
+      expect(result.meta).toEqual({
+        total: 2,
+        page: 1,
+        limit: 20,
+        lastPage: 1,
+      });
+    });
+
+    it('should slice data correctly according to limit and page', async () => {
+      const tracks = [
+        { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
+        { id: 'track-2', title: 'Track 2', estimatedTime: '3h', description: 'Desc 2', order: 2, lessons: [] },
+      ];
+      mockTrackRepository.find.mockResolvedValue(tracks);
+      mockTrackProgressRepository.find.mockResolvedValue([]);
+      mockLessonProgressRepository.find.mockResolvedValue([]);
+
+      const result = await service.findAll('user-1', 2, 1);
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].id).toBe('track-2');
+      expect(result.meta).toEqual({
+        total: 2,
+        page: 2,
+        limit: 1,
+        lastPage: 2,
+      });
     });
   });
 
   describe('findOne', () => {
     it('should return a single track details using existing progress record', async () => {
-      const track = { id: 'track-1', name: 'Track 1', order: 1, lessons: [] };
-      mockTrackRepository.findOne.mockResolvedValue(track);
+      const track = {
+        id: 'track-1',
+        title: 'Track 1',
+        estimatedTime: '2h',
+        description: 'Desc 1',
+        icon: 'flag',
+        order: 1,
+        lessons: [],
+      };
+      mockTrackRepository.findOne.mockImplementation(async (options: any) => {
+        if (options?.where?.id === 'track-1') {
+          return track;
+        }
+        return null;
+      });
       mockTrackProgressRepository.findOne.mockResolvedValue({
         status: ProgressStatus.COMPLETED,
       });
@@ -166,15 +212,29 @@ describe('TracksService', () => {
 
       const result = await service.findOne('track-1', 'user-1');
       expect(result.id).toBe('track-1');
-      expect(result.progress.status).toBe('completed');
+      expect(result.status).toBe('completed');
+      expect(result.prevTrack).toBeNull();
+      expect(result.nextTrack).toBeNull();
     });
 
     it('should resolve fallback dynamic status for non-first track if previous completed', async () => {
       const allTracks = [
-        { id: 'track-1', order: 1 },
-        { id: 'track-2', order: 2 },
+        { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
+        { id: 'track-2', title: 'Track 2', estimatedTime: '3h', description: 'Desc 2', order: 2, lessons: [] },
       ];
-      mockTrackRepository.findOne.mockResolvedValue(allTracks[1]);
+      mockTrackRepository.findOne.mockImplementation(async (options: any) => {
+        if (options?.where?.id === 'track-2') {
+          return allTracks[1];
+        }
+        if (options?.where?.order) {
+          // Check LessThan / MoreThan operators using TypeORM structure
+          // Or just check if it's the LessThan query (order < 2)
+          if (options.where.order._value === 2 && options.where.order._type === 'lessThan') {
+            return allTracks[0]; // track-1
+          }
+        }
+        return null;
+      });
       mockTrackProgressRepository.findOne.mockResolvedValue(null);
       mockLessonProgressRepository.find.mockResolvedValue([]);
       mockTrackRepository.find.mockResolvedValue(allTracks);
@@ -184,7 +244,9 @@ describe('TracksService', () => {
         .mockResolvedValueOnce({ status: ProgressStatus.COMPLETED }); // for track-1
 
       const result = await service.findOne('track-2', 'user-1');
-      expect(result.progress.status).toBe('in_progress');
+      expect(result.status).toBe('in_progress');
+      expect(result.prevTrack).toEqual({ id: 'track-1', title: 'Track 1' });
+      expect(result.nextTrack).toBeNull();
     });
 
     it('should throw NotFoundException if track is not found', async () => {
@@ -197,11 +259,20 @@ describe('TracksService', () => {
 
   describe('create', () => {
     it('should create and save a new track shifting orders if order is taken', async () => {
-      const dto: CreateTrackDto = { name: 'New Track', order: 3 };
+      const dto: CreateTrackDto = {
+        title: 'New Track',
+        description: 'Desc',
+        estimatedTime: '2h',
+        lessonCount: 4,
+        afterTrackId: 'existing-track-id',
+      };
       const createdTrack = {
         id: 'track-3',
-        name: 'New Track',
-        order: 3,
+        title: 'New Track',
+        description: 'Desc',
+        estimatedTime: '2h',
+        icon: 'flag',
+        order: 4,
         lessonsCount: 0,
       };
 
@@ -213,7 +284,8 @@ describe('TracksService', () => {
       mockTrackRepository.save.mockResolvedValue(createdTrack);
 
       const result = await service.create(dto);
-      expect(result).toEqual(createdTrack);
+      expect(result.id).toBe('track-3');
+      expect(result.title).toBe('New Track');
       expect(mockTrackRepository.manager.transaction).toHaveBeenCalled();
     });
   });
@@ -226,31 +298,14 @@ describe('TracksService', () => {
       );
     });
 
-    it('should update name only', async () => {
-      const track = { id: 'track-1', name: 'Old Name', order: 1 };
+    it('should update fields', async () => {
+      const track = { id: 'track-1', title: 'Old Title', description: 'Old Desc', estimatedTime: '1h', icon: 'flag', order: 1, lessons: [] };
       mockTrackRepository.findOne.mockResolvedValue(track);
       mockTrackRepository.save.mockImplementation((x) => Promise.resolve(x));
 
-      const result = await service.update('track-1', { name: 'New Name' });
-      expect(result.name).toBe('New Name');
-    });
-
-    it('should shift intermediate orders down if target order is greater', async () => {
-      const track = { id: 'track-1', name: 'Track 1', order: 1 };
-      mockTrackRepository.findOne.mockResolvedValue(track);
-      mockTrackRepository.save.mockImplementation((x) => Promise.resolve(x));
-
-      await service.update('track-1', { order: 3 });
-      expect(mockTrackRepository.manager.transaction).toHaveBeenCalled();
-    });
-
-    it('should shift intermediate orders up if target order is smaller', async () => {
-      const track = { id: 'track-1', name: 'Track 1', order: 3 };
-      mockTrackRepository.findOne.mockResolvedValue(track);
-      mockTrackRepository.save.mockImplementation((x) => Promise.resolve(x));
-
-      await service.update('track-1', { order: 1 });
-      expect(mockTrackRepository.manager.transaction).toHaveBeenCalled();
+      const result = await service.update('track-1', { title: 'New Title', description: 'New Desc' });
+      expect(result.title).toBe('New Title');
+      expect(result.description).toBe('New Desc');
     });
   });
 
@@ -263,7 +318,7 @@ describe('TracksService', () => {
     });
 
     it('should delete a track, its lessons/progress and shift order', async () => {
-      const track = { id: 'track-1', name: 'Track 1', order: 1 };
+      const track = { id: 'track-1', title: 'Track 1', order: 1 };
       mockTrackRepository.findOne.mockResolvedValue(track);
       mockEntityManager.find.mockResolvedValue([{ id: 'lesson-1' }]);
 
@@ -349,18 +404,16 @@ describe('TracksService', () => {
       );
     });
 
-    it('should return lessons belonging to track with isCompleted tags', async () => {
+    it('should return lessons belonging to track with estimatedTime tags', async () => {
       mockTrackRepository.findOne.mockResolvedValue({ id: 'track-1' });
       mockLessonRepository.find.mockResolvedValue([
-        { id: 'lesson-1', name: 'L1', order: 1, content: 'C' },
-      ]);
-      mockLessonProgressRepository.find.mockResolvedValue([
-        { lessonId: 'lesson-1', completedAt: new Date() },
+        { id: 'lesson-1', title: 'L1', order: 1, estimatedTime: '30m', body: 'B' },
       ]);
 
       const result = await service.findLessons('track-1', 'user-1');
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].isCompleted).toBe(true);
+      expect(result.data[0].title).toBe('L1');
+      expect(result.data[0].estimatedTime).toBe('30m');
     });
   });
 
@@ -368,22 +421,25 @@ describe('TracksService', () => {
     it('should throw NotFoundException if track not found', async () => {
       mockTrackRepository.findOne.mockResolvedValue(null);
       await expect(
-        service.createLesson('invalid', { name: 'L', order: 1, content: 'C' }),
+        service.createLesson('invalid', { title: 'L', order: 1, estimatedTime: '30m', body: 'C' }),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should shift lessons order if order is taken and create lesson', async () => {
       const track = { id: 'track-1', lessonsCount: 0 };
       const dto: CreateLessonDto = {
-        name: 'New Lesson',
+        title: 'New Lesson',
         order: 1,
-        content: 'Text',
+        estimatedTime: '30m',
+        body: 'Text',
       };
       const newLesson = {
         id: 'lesson-1',
         trackId: 'track-1',
-        name: 'New Lesson',
+        title: 'New Lesson',
         order: 1,
+        estimatedTime: '30m',
+        body: 'Text',
       };
 
       mockTrackRepository.findOne.mockResolvedValue(track);
@@ -409,17 +465,17 @@ describe('TracksService', () => {
       );
     });
 
-    it('should update name/content only', async () => {
-      const lesson = { id: 'lesson-1', name: 'Old L', content: 'Old C' };
+    it('should update title/body only', async () => {
+      const lesson = { id: 'lesson-1', title: 'Old L', body: 'Old C' };
       mockLessonRepository.findOne.mockResolvedValue(lesson);
       mockLessonRepository.save.mockImplementation((x) => Promise.resolve(x));
 
       const result = await service.updateLesson('lesson-1', {
-        name: 'New L',
-        content: 'New C',
+        title: 'New L',
+        body: 'New C',
       });
-      expect(result.name).toBe('New L');
-      expect(result.content).toBe('New C');
+      expect(result.title).toBe('New L');
+      expect(result.body).toBe('New C');
     });
 
     it('should shift intermediate orders down if target order is greater', async () => {

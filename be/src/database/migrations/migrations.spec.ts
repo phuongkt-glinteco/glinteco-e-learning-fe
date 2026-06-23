@@ -10,6 +10,7 @@ import { AddExerciseDetails1781622361007 } from './1781622361007-AddExerciseDeta
 import { AddUserBookmarks1781623541186 } from './1781623541186-AddUserBookmarks';
 import { AddIsActiveToCohorts1781624224625 } from './1781624224625-AddIsActiveToCohorts';
 import { AddLessonsCompletedToTrackProgress1781628751000 } from './1781628751000-AddLessonsCompletedToTrackProgress';
+import { UpdateTracksAndLessonsSchema1784400000000 } from './1784400000000-UpdateTracksAndLessonsSchema';
 
 describe('Database Migrations', () => {
   let pgClient: Client;
@@ -68,6 +69,7 @@ describe('Database Migrations', () => {
     const migration6 = new AddUserBookmarks1781623541186();
     const migration7 = new AddIsActiveToCohorts1781624224625();
     const migration8 = new AddLessonsCompletedToTrackProgress1781628751000();
+    const migration9 = new UpdateTracksAndLessonsSchema1784400000000();
 
     // Run UP 1
     await migration1.up(queryRunner);
@@ -126,6 +128,26 @@ describe('Database Migrations', () => {
     expect(
       await queryRunner.hasColumn('track_progresses', 'lessonsCompleted'),
     ).toBe(true);
+
+    // Run UP 9
+    await migration9.up(queryRunner);
+    expect(await queryRunner.hasColumn('tracks', 'title')).toBe(true);
+    expect(await queryRunner.hasColumn('tracks', 'name')).toBe(false);
+    expect(await queryRunner.hasColumn('tracks', 'description')).toBe(true);
+    expect(await queryRunner.hasColumn('tracks', 'estimatedTime')).toBe(true);
+    expect(await queryRunner.hasColumn('tracks', 'icon')).toBe(true);
+    expect(await queryRunner.hasColumn('lessons', 'title')).toBe(true);
+    expect(await queryRunner.hasColumn('lessons', 'name')).toBe(false);
+    expect(await queryRunner.hasColumn('lessons', 'body')).toBe(true);
+    expect(await queryRunner.hasColumn('lessons', 'content')).toBe(false);
+    expect(await queryRunner.hasColumn('lessons', 'estimatedTime')).toBe(true);
+
+    // Run DOWN 9
+    await migration9.down(queryRunner);
+    expect(await queryRunner.hasColumn('tracks', 'title')).toBe(false);
+    expect(await queryRunner.hasColumn('tracks', 'name')).toBe(true);
+    expect(await queryRunner.hasColumn('lessons', 'title')).toBe(false);
+    expect(await queryRunner.hasColumn('lessons', 'name')).toBe(true);
 
     // Run DOWN 8
     await migration8.down(queryRunner);

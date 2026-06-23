@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, LessThan, MoreThan } from 'typeorm';
 import { Track } from '../database/entities/track.entity';
 import {
   TrackProgress,
@@ -42,7 +42,7 @@ export class TracksService {
   }
 
   // Find all tracks and calculate progress dynamically or from saved progress
-  async findAll(userId: string) {
+  async findAll(userId: string, page = 1, limit = 20) {
     const tracks = await this.trackRepository.find({
       order: { order: 'ASC' },
       relations: { lessons: true },
@@ -68,13 +68,14 @@ export class TracksService {
 
     const resolvedTracks: Array<{
       id: string;
-      name: string;
+      title: string;
+      estimatedTime: string;
       order: number;
-      lessonsCount: number;
-      progress: {
-        lessonsCompleted: number;
-        status: string;
-      };
+      lessonCount: number;
+      icon: string;
+      status: 'completed' | 'in_progress' | 'locked';
+      lessonsCompleted: number;
+      description: string;
     }> = [];
     let previousCompleted = true; // First track is in_progress by default if unlocked
 
@@ -111,33 +112,48 @@ export class TracksService {
       previousCompleted = status === ProgressStatus.COMPLETED;
 
       // Translate status to the API expected string: "locked", "in_progress", "completed"
-      let apiStatus = 'locked';
+      let apiStatus: 'completed' | 'in_progress' | 'locked' = 'locked';
       if (status === ProgressStatus.COMPLETED) {
         apiStatus = 'completed';
       } else if (
         status === ProgressStatus.IN_PROGRESS ||
         i === 0 ||
-        (i > 0 && resolvedTracks[i - 1]?.progress?.status === 'completed')
+        (i > 0 && resolvedTracks[i - 1]?.status === 'completed')
       ) {
         apiStatus = 'in_progress';
       }
 
       resolvedTracks.push({
         id: track.id,
-        name: track.name,
+        title: track.title,
+        estimatedTime: track.estimatedTime,
         order: track.order,
-        lessonsCount: totalLessons,
-        progress: {
-          lessonsCompleted: completedCount,
-          status: apiStatus,
-        },
+        lessonCount: totalLessons,
+        icon: track.icon || 'flag',
+        status: apiStatus,
+        lessonsCompleted: completedCount,
+        description: track.description,
       });
     }
 
-    return { data: resolvedTracks };
+    const total = resolvedTracks.length;
+    const adjustedLimit = Math.min(limit, 50);
+    const skip = (page - 1) * adjustedLimit;
+    const pagedTracks = resolvedTracks.slice(skip, skip + adjustedLimit);
+    const lastPage = Math.ceil(total / adjustedLimit);
+
+    return {
+      data: pagedTracks,
+      meta: {
+        total,
+        page,
+        limit: adjustedLimit,
+        lastPage: lastPage || 1,
+      },
+    };
   }
 
-  async findOne(id: string, userId: string) {
+  async findOne(id: string, userId?: string) {
     const track = await this.trackRepository.findOne({
       where: { id },
       relations: { lessons: true },
@@ -146,89 +162,150 @@ export class TracksService {
       throw new NotFoundException(`Track with ID ${id} not found`);
     }
 
-    const progress = await this.trackProgressRepository.findOne({
-      where: { trackId: id, userId },
-    });
+    let lessonsCompleted = 0;
+    let apiStatus = 'locked';
 
     const lessonsInTrack = track.lessons || [];
     const totalLessons = lessonsInTrack.length;
 
-    const lessonProgresses = await this.lessonProgressRepository.find({
-      where: { userId },
-    });
-    const completedLessonIds = new Set(
-      lessonProgresses
-        .filter((lp) => lp.completedAt !== null)
-        .map((lp) => lp.lessonId),
-    );
+    let completedLessonIds = new Set<string>();
 
-    const completedCount = lessonsInTrack.filter((l) =>
-      completedLessonIds.has(l.id),
-    ).length;
-
-    let apiStatus = 'locked';
-    if (progress) {
-      if (progress.status === ProgressStatus.COMPLETED) {
-        apiStatus = 'completed';
-      } else if (progress.status === ProgressStatus.IN_PROGRESS) {
-        apiStatus = 'in_progress';
-      }
-    } else {
-      // Fallback dynamic status for individual track
-      const allTracks = await this.trackRepository.find({
-        order: { order: 'ASC' },
+    if (userId) {
+      const progress = await this.trackProgressRepository.findOne({
+        where: { trackId: id, userId },
       });
-      const trackIndex = allTracks.findIndex((t) => t.id === id);
-      if (trackIndex === 0) {
-        apiStatus = 'in_progress';
-      } else if (trackIndex > 0) {
-        const prevTrack = allTracks[trackIndex - 1];
-        const prevProgress = await this.trackProgressRepository.findOne({
-          where: { trackId: prevTrack.id, userId },
-        });
-        if (prevProgress && prevProgress.status === ProgressStatus.COMPLETED) {
+
+      const lessonProgresses = await this.lessonProgressRepository.find({
+        where: { userId },
+      });
+      completedLessonIds = new Set(
+        lessonProgresses
+          .filter((lp) => lp.completedAt !== null)
+          .map((lp) => lp.lessonId),
+      );
+
+      lessonsCompleted = lessonsInTrack.filter((l) =>
+        completedLessonIds.has(l.id),
+      ).length;
+
+      if (progress) {
+        if (progress.status === ProgressStatus.COMPLETED) {
+          apiStatus = 'completed';
+        } else if (progress.status === ProgressStatus.IN_PROGRESS) {
           apiStatus = 'in_progress';
+        }
+      } else {
+        // Fallback dynamic status for individual track
+        const allTracks = await this.trackRepository.find({
+          order: { order: 'ASC' },
+        });
+        const trackIndex = allTracks.findIndex((t) => t.id === id);
+        if (trackIndex === 0) {
+          apiStatus = 'in_progress';
+        } else if (trackIndex > 0) {
+          const prevTrack = allTracks[trackIndex - 1];
+          const prevProgress = await this.trackProgressRepository.findOne({
+            where: { trackId: prevTrack.id, userId },
+          });
+          if (prevProgress && prevProgress.status === ProgressStatus.COMPLETED) {
+            apiStatus = 'in_progress';
+          }
         }
       }
     }
 
+    const [prevTrack, nextTrack] = await Promise.all([
+      this.trackRepository.findOne({
+        where: { order: LessThan(track.order) },
+        order: { order: 'DESC' },
+      }),
+      this.trackRepository.findOne({
+        where: { order: MoreThan(track.order) },
+        order: { order: 'ASC' },
+      }),
+    ]);
+
+    const resolvedLessons = lessonsInTrack
+      .sort((a, b) => a.order - b.order)
+      .map((lesson) => ({
+        id: lesson.id,
+        title: lesson.title,
+        order: lesson.order,
+        completed: completedLessonIds.has(lesson.id),
+      }));
+
     return {
       id: track.id,
-      name: track.name,
+      title: track.title,
+      estimatedTime: track.estimatedTime,
       order: track.order,
-      lessonsCount: totalLessons,
-      progress: {
-        lessonsCompleted: completedCount,
-        status: apiStatus,
-      },
+      icon: track.icon || 'flag',
+      status: apiStatus as 'completed' | 'in_progress' | 'locked',
+      lessonsCompleted,
+      description: track.description,
+      lessons: resolvedLessons,
+      prevTrack: prevTrack ? { id: prevTrack.id, title: prevTrack.title } : null,
+      nextTrack: nextTrack ? { id: nextTrack.id, title: nextTrack.title } : null,
     };
   }
 
   async create(createTrackDto: CreateTrackDto) {
-    // Check if order is already taken
-    const existingTrack = await this.trackRepository.findOne({
-      where: { order: createTrackDto.order },
-    });
+    let order: number;
 
-    if (existingTrack) {
-      // Shift orders of subsequent tracks
-      await this.trackRepository.manager.transaction(async (entityManager) => {
-        await entityManager
-          .createQueryBuilder()
-          .update(Track)
-          .set({ order: () => 'track_order + 1' })
-          .where('track_order >= :order', { order: createTrackDto.order })
-          .execute();
+    if (createTrackDto.afterTrackId) {
+      const prevTrack = await this.trackRepository.findOne({
+        where: { id: createTrackDto.afterTrackId },
       });
+      if (prevTrack) {
+        order = prevTrack.order + 1;
+        // Shift orders of subsequent tracks
+        await this.trackRepository.manager.transaction(async (entityManager) => {
+          await entityManager
+            .createQueryBuilder()
+            .update(Track)
+            .set({ order: () => 'track_order + 1' })
+            .where('track_order >= :order', { order })
+            .execute();
+        });
+      } else {
+        // Fallback: put at the end
+        const maxOrderTrack = await this.trackRepository.findOne({
+          where: {},
+          order: { order: 'DESC' },
+        });
+        order = maxOrderTrack ? maxOrderTrack.order + 1 : 1;
+      }
+    } else {
+      // Put at the end
+      const maxOrderTrack = await this.trackRepository.findOne({
+        where: {},
+        order: { order: 'DESC' },
+      });
+      order = maxOrderTrack ? maxOrderTrack.order + 1 : 1;
     }
 
     const track = this.trackRepository.create({
-      name: createTrackDto.name,
-      order: createTrackDto.order,
+      title: createTrackDto.title,
+      description: createTrackDto.description,
+      estimatedTime: createTrackDto.estimatedTime,
+      icon: 'flag',
+      order,
       lessonsCount: 0,
     });
 
-    return await this.trackRepository.save(track);
+    const savedTrack = await this.trackRepository.save(track);
+
+    return {
+      id: savedTrack.id,
+      title: savedTrack.title,
+      estimatedTime: savedTrack.estimatedTime,
+      order: savedTrack.order,
+      icon: savedTrack.icon,
+      status: 'locked' as const,
+      lessonsCompleted: 0,
+      description: savedTrack.description,
+      lessons: [],
+    };
   }
 
   async update(id: string, updateTrackDto: UpdateTrackDto) {
@@ -237,50 +314,22 @@ export class TracksService {
       throw new NotFoundException(`Track with ID ${id} not found`);
     }
 
-    if (
-      updateTrackDto.order !== undefined &&
-      updateTrackDto.order !== track.order
-    ) {
-      const targetOrder = updateTrackDto.order;
-      await this.trackRepository.manager.transaction(async (entityManager) => {
-        if (targetOrder > track.order) {
-          // Shift intermediate tracks down
-          await entityManager
-            .createQueryBuilder()
-            .update(Track)
-            .set({ order: () => 'track_order - 1' })
-            .where(
-              'track_order > :currentOrder AND track_order <= :targetOrder',
-              {
-                currentOrder: track.order,
-                targetOrder,
-              },
-            )
-            .execute();
-        } else {
-          // Shift intermediate tracks up
-          await entityManager
-            .createQueryBuilder()
-            .update(Track)
-            .set({ order: () => 'track_order + 1' })
-            .where(
-              'track_order >= :targetOrder AND track_order < :currentOrder',
-              {
-                currentOrder: track.order,
-                targetOrder,
-              },
-            )
-            .execute();
-        }
-        track.order = targetOrder;
-      });
+    if (updateTrackDto.title !== undefined) {
+      track.title = updateTrackDto.title;
+    }
+    if (updateTrackDto.description !== undefined) {
+      track.description = updateTrackDto.description;
+    }
+    if (updateTrackDto.estimatedTime !== undefined) {
+      track.estimatedTime = updateTrackDto.estimatedTime;
+    }
+    if (updateTrackDto.icon !== undefined) {
+      track.icon = updateTrackDto.icon;
     }
 
-    if (updateTrackDto.name !== undefined) {
-      track.name = updateTrackDto.name;
-    }
+    await this.trackRepository.save(track);
 
-    return await this.trackRepository.save(track);
+    return this.findOne(id);
   }
 
   async delete(id: string) {
@@ -396,21 +445,11 @@ export class TracksService {
       order: { order: 'ASC' },
     });
 
-    const lessonProgresses = await this.lessonProgressRepository.find({
-      where: { userId },
-    });
-    const completedLessonIds = new Set(
-      lessonProgresses
-        .filter((lp) => lp.completedAt !== null)
-        .map((lp) => lp.lessonId),
-    );
-
     const data = lessons.map((lesson) => ({
       id: lesson.id,
-      name: lesson.name,
+      title: lesson.title,
       order: lesson.order,
-      content: lesson.content,
-      isCompleted: completedLessonIds.has(lesson.id),
+      estimatedTime: lesson.estimatedTime,
     }));
 
     return { data };
@@ -446,9 +485,10 @@ export class TracksService {
 
     const lesson = this.lessonRepository.create({
       trackId,
-      name: createLessonDto.name,
+      title: createLessonDto.title,
       order: createLessonDto.order,
-      content: createLessonDto.content,
+      estimatedTime: createLessonDto.estimatedTime,
+      body: createLessonDto.body,
     });
 
     const savedLesson = await this.lessonRepository.save(lesson);
@@ -511,11 +551,14 @@ export class TracksService {
       });
     }
 
-    if (updateLessonDto.name !== undefined) {
-      lesson.name = updateLessonDto.name;
+    if (updateLessonDto.title !== undefined) {
+      lesson.title = updateLessonDto.title;
     }
-    if (updateLessonDto.content !== undefined) {
-      lesson.content = updateLessonDto.content;
+    if (updateLessonDto.estimatedTime !== undefined) {
+      lesson.estimatedTime = updateLessonDto.estimatedTime;
+    }
+    if (updateLessonDto.body !== undefined) {
+      lesson.body = updateLessonDto.body;
     }
 
     return await this.lessonRepository.save(lesson);

@@ -145,29 +145,37 @@ describe('Database Entities', () => {
   it('should create and verify Track and Lesson entities', async () => {
     const trackRepo = dataSource.getRepository(Track);
     const track = trackRepo.create({
-      name: 'Test Track',
+      title: 'Test Track',
+      description: 'Test Description',
+      estimatedTime: '2h',
+      icon: 'flag',
       order: 1,
       lessonsCount: 10,
     });
     const savedTrack = await trackRepo.save(track);
     expect(savedTrack.id).toBeDefined();
-    expect(savedTrack.name).toBe('Test Track');
+    expect(savedTrack.title).toBe('Test Track');
+    expect(savedTrack.description).toBe('Test Description');
+    expect(savedTrack.estimatedTime).toBe('2h');
+    expect(savedTrack.icon).toBe('flag');
     expect(savedTrack.order).toBe(1);
     expect(savedTrack.lessonsCount).toBe(10);
 
     const lessonRepo = dataSource.getRepository(Lesson);
     const lesson = lessonRepo.create({
       trackId: savedTrack.id,
-      name: 'Test Lesson',
+      title: 'Test Lesson',
       order: 1,
-      content: 'Lesson content goes here.',
+      estimatedTime: '30m',
+      body: 'Lesson content goes here.',
     });
     const savedLesson = await lessonRepo.save(lesson);
     expect(savedLesson.id).toBeDefined();
     expect(savedLesson.trackId).toBe(savedTrack.id);
-    expect(savedLesson.name).toBe('Test Lesson');
+    expect(savedLesson.title).toBe('Test Lesson');
     expect(savedLesson.order).toBe(1);
-    expect(savedLesson.content).toBe('Lesson content goes here.');
+    expect(savedLesson.estimatedTime).toBe('30m');
+    expect(savedLesson.body).toBe('Lesson content goes here.');
 
     const foundTrack = await trackRepo.findOne({
       where: { id: savedTrack.id },
@@ -175,7 +183,7 @@ describe('Database Entities', () => {
     });
     expect(foundTrack).toBeDefined();
     expect(foundTrack?.lessons.length).toBe(1);
-    expect(foundTrack?.lessons[0].name).toBe('Test Lesson');
+    expect(foundTrack?.lessons[0].title).toBe('Test Lesson');
   });
 
   it('should create and verify TrackProgress entity', async () => {
@@ -187,7 +195,7 @@ describe('Database Entities', () => {
       userRepo.create({ email: 'progress@example.com', name: 'Progress User' }),
     );
     const track = await trackRepo.save(
-      trackRepo.create({ name: 'Progress Track', order: 2 }),
+      trackRepo.create({ title: 'Progress Track', description: 'Desc', estimatedTime: '1h', order: 2 }),
     );
 
     const progress = progressRepo.create({
@@ -235,7 +243,7 @@ describe('Database Entities', () => {
       }),
     );
     const track = await trackRepo.save(
-      trackRepo.create({ name: 'Submission Track', order: 3 }),
+      trackRepo.create({ title: 'Submission Track', description: 'Desc', estimatedTime: '1h', order: 3 }),
     );
 
     const exercise = exerciseRepo.create({

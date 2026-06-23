@@ -22,7 +22,7 @@ export class SearchService {
     const { q } = query;
 
     const tracks = await this.trackRepository.find({
-      where: { name: ILike(`%${q}%`) },
+      where: { title: ILike(`%${q}%`) },
       take: 10,
     });
 
@@ -40,7 +40,7 @@ export class SearchService {
     return {
       tracks: tracks.map((track) => ({
         id: track.id,
-        title: track.name,
+        title: track.title,
       })),
       documents: documents.map((doc) => ({
         id: doc.id,
@@ -50,7 +50,7 @@ export class SearchService {
       exercises: exercises.map((ex) => ({
         id: ex.id,
         title: ex.title,
-        tag: ex.track?.name || 'N/A',
+        tag: ex.track?.title || 'N/A',
       })),
     };
   }

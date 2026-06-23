@@ -131,13 +131,14 @@ Get all learning tracks with current learner's progress.
     "data": [
       {
         "id": "uuid",
-        "name": "Frontend Basics",
+        "title": "Frontend Basics",
+        "description": "Learn modern frontend development including HTML, CSS, React, and TypeScript.",
+        "estimatedTime": "10h",
         "order": 1,
-        "lessonsCount": 10,
-        "progress": {
-          "lessonsCompleted": 4,
-          "status": "in_progress" // "locked", "in_progress", "completed"
-        }
+        "lessonCount": 10,
+        "icon": "flag",
+        "status": "in_progress", // "locked", "in_progress", "completed"
+        "lessonsCompleted": 4
       }
     ]
   }
@@ -148,22 +149,31 @@ Create a new learning track.
 - **Request Body**:
   ```json
   {
-    "name": "Backend Basics",
-    "order": 2
+    "title": "Backend Basics",
+    "description": "Build robust APIs using NestJS framework.",
+    "estimatedTime": "4h",
+    "lessonCount": 0,
+    "afterTrackId": "optional-uuid-here"
   }
   ```
 - **Validation Rules**:
-  - `name`: IsString(), IsNotEmpty(), MaxLength(100)
-  - `order`: IsInt(), IsMin(1), IsNotEmpty()
+  - `title`: IsString(), IsNotEmpty(), MaxLength(100)
+  - `description`: IsString(), IsNotEmpty()
+  - `estimatedTime`: IsString(), IsNotEmpty()
+  - `lessonCount`: IsInt(), Min(0), IsNotEmpty()
+  - `afterTrackId`: IsString(), IsOptional()
 - **Response**: `201 Created`
   ```json
   {
     "id": "uuid",
-    "name": "Backend Basics",
+    "title": "Backend Basics",
+    "description": "Build robust APIs using NestJS framework.",
+    "estimatedTime": "4h",
     "order": 2,
-    "lessonsCount": 0,
-    "createdAt": "2026-06-16T15:12:34.000Z",
-    "updatedAt": "2026-06-16T15:12:34.000Z"
+    "icon": "flag",
+    "status": "locked",
+    "lessonsCompleted": 0,
+    "lessons": []
   }
   ```
 
@@ -173,13 +183,21 @@ Get a specific learning track details.
   ```json
   {
     "id": "uuid",
-    "name": "Frontend Basics",
+    "title": "Frontend Basics",
+    "description": "Learn modern frontend development including HTML, CSS, React, and TypeScript.",
+    "estimatedTime": "10h",
     "order": 1,
-    "lessonsCount": 10,
-    "progress": {
-      "lessonsCompleted": 4,
-      "status": "in_progress"
-    }
+    "icon": "flag",
+    "status": "in_progress",
+    "lessonsCompleted": 4,
+    "lessons": [
+      {
+        "id": "lesson-uuid-1",
+        "title": "Introduction to HTML",
+        "order": 1,
+        "completed": true
+      }
+    ]
   }
   ```
 
@@ -188,22 +206,36 @@ Update an existing learning track.
 - **Request Body**:
   ```json
   {
-    "name": "Advanced Frontend",
-    "order": 1
+    "title": "Advanced Frontend",
+    "description": "Deep dive into state management, performance, and Web APIs.",
+    "estimatedTime": "12h",
+    "icon": "code"
   }
   ```
 - **Validation Rules**:
-  - `name`: IsString(), IsOptional(), MaxLength(100)
-  - `order`: IsInt(), IsMin(1), IsOptional()
+  - `title`: IsString(), IsOptional(), MaxLength(100)
+  - `description`: IsString(), IsOptional()
+  - `estimatedTime`: IsString(), IsOptional()
+  - `icon`: IsString(), IsOptional()
 - **Response**: `200 OK`
   ```json
   {
     "id": "uuid",
-    "name": "Advanced Frontend",
+    "title": "Advanced Frontend",
+    "description": "Deep dive into state management, performance, and Web APIs.",
+    "estimatedTime": "12h",
     "order": 1,
-    "lessonsCount": 10,
-    "createdAt": "2026-06-16T15:12:34.000Z",
-    "updatedAt": "2026-06-16T15:12:35.000Z"
+    "icon": "code",
+    "status": "in_progress",
+    "lessonsCompleted": 4,
+    "lessons": [
+      {
+        "id": "lesson-uuid-1",
+        "title": "Introduction to HTML",
+        "order": 1,
+        "completed": true
+      }
+    ]
   }
   ```
 
@@ -219,9 +251,9 @@ Get lessons for a specific track.
     "data": [
       {
         "id": "uuid",
-        "name": "Introduction to React",
+        "title": "Setup môi trường phát triển",
         "order": 1,
-        "content": "Lesson content here..."
+        "estimatedTime": "30m"
       }
     ]
   }
@@ -477,7 +509,7 @@ Global quick search (⌘K) across tracks, documents, and exercises.
 
 #### `SearchTrackResultDto`
 - **id**: `string` (UUID)
-- **title**: `string` (Maps to Track `name`)
+- **title**: `string` (Maps to Track `title`)
 
 #### `SearchDocumentResultDto`
 - **id**: `string` (UUID)
@@ -487,5 +519,5 @@ Global quick search (⌘K) across tracks, documents, and exercises.
 #### `SearchExerciseResultDto`
 - **id**: `string` (UUID)
 - **title**: `string`
-- **tag**: `string` (Maps to Track `name`)
+- **tag**: `string` (Maps to Track `title`)
 

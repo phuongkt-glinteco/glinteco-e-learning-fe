@@ -163,9 +163,9 @@ async function bootstrap() {
       SELECT 1784301322000, 'UpdateSubmissionHistorySchema1784301322000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'UpdateSubmissionHistorySchema1784301322000');
       INSERT INTO "migrations" ("timestamp", "name")
       SELECT 1784400000000, 'UpdateTracksAndLessonsSchema1784400000000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'UpdateTracksAndLessonsSchema1784400000000');
-      INSERT INTO "migrations" ("timestamp", "name")
-      SELECT 1784301323000, 'AddLastClaimedXpAtToUsers1784301323000' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'AddLastClaimedXpAtToUsers1784301323000');
     `);
+    // Ensure any mistakenly baselined entry for AddLastClaimedXpAtToUsers is removed
+    await dataSource.query(`DELETE FROM "migrations" WHERE name = 'AddLastClaimedXpAtToUsers1784301323000';`);
     console.log('✅ Baseline migrations check/insert completed.');
     console.log('Running any pending migrations...');
     await dataSource.runMigrations();

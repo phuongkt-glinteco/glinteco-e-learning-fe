@@ -17,7 +17,7 @@ export default function ContinueLearningSection() {
     let cancelled = false;
     getTracks({ throwOnError: true })
       .then((res) => {
-        if (!cancelled) setTracks(res.data?.data ?? []);
+        if (!cancelled) setTracks((res.data as { data?: TrackSummary[] })?.data ?? []);
       })
       .catch(() => {})
       .finally(() => {

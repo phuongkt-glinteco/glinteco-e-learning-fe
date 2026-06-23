@@ -17,7 +17,7 @@ export default function LearningActivitySection() {
     let cancelled = false;
     getUsersMeStats({ throwOnError: true })
       .then((res) => {
-        if (!cancelled) setStats(res.data);
+        if (!cancelled) setStats(res.data as UserDashboardStats);
       })
       .catch(() => {})
       .finally(() => {

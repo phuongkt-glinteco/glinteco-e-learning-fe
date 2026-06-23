@@ -11,6 +11,7 @@ import type {
   CohortDashboardStats,
   SubmissionFeedItem,
   ExerciseDetail,
+  UserDetail,
 } from '@/services/api-client';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
@@ -78,8 +79,8 @@ export default function AdminDashboardPage() {
         setCohortList(list);
 
         // Default selection: user's cohort, or first cohort
-        const defaultId = user?.cohortId && list.some((c) => c.id === user.cohortId)
-          ? user.cohortId
+        const defaultId = (user as UserDetail)?.cohortId && list.some((c) => c.id === (user as UserDetail).cohortId)
+          ? (user as UserDetail).cohortId ?? null
           : list[0]?.id ?? null;
         setSelectedCohortId(defaultId);
       })
@@ -88,7 +89,7 @@ export default function AdminDashboardPage() {
       });
 
     return () => { cancelled = true; };
-  }, [mounted, authLoading, user?.cohortId]);
+  }, [mounted, authLoading, (user as UserDetail)?.cohortId]);
 
   // Fetch dashboard data when selected cohort changes
   useEffect(() => {
@@ -106,7 +107,7 @@ export default function AdminDashboardPage() {
           getCohortsByIdTrackCompletion({ path: { id: cid! }, throwOnError: true }),
         ]);
         if (cancelled) return;
-        setStats(overviewRes.data ?? null);
+        setStats(overviewRes.data as CohortDashboardStats);
         setSubmissions(submissionsRes.data?.data ?? []);
         setTrackCompletion(
           (trackRes.data?.data ?? []).map((t) => ({

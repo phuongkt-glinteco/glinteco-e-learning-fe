@@ -29,7 +29,7 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -43,7 +43,6 @@ export default function LoginPage() {
       await login(data.email, data.password);
     } catch {
       // Error handled by global interceptor
-      setError(t('invalidCredentials'));
     } finally {
       setLoading(false);
     }
@@ -55,7 +54,6 @@ export default function LoginPage() {
       await loginWithGoogle();
     } catch {
       // Error handled by global interceptor
-      setError(t('contentLOGIN_INVALID_CREDENTIALS'));
     } finally {
       setLoading(false);
     }

@@ -368,6 +368,14 @@ export class TracksService {
   async reorder(reorderTracksDto: ReorderTracksDto) {
     const { order } = reorderTracksDto;
 
+    // Check if the order array contains all tracks in the database
+    const totalTracks = await this.trackRepository.count();
+    if (order.length !== totalTracks) {
+      throw new BadRequestException(
+        `Danh sách sắp xếp phải chứa đầy đủ tất cả ${totalTracks} tracks hiện tại (nhận được: ${order.length})`,
+      );
+    }
+
     // Verify all IDs exist
     const tracks = await this.trackRepository.find({
       where: { id: In(order) },

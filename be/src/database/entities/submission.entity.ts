@@ -14,7 +14,8 @@ import { SubmissionHistory } from './submission-history.entity';
 
 export enum SubmissionStatus {
   PENDING = 'pending',
-  REVIEWED = 'reviewed',
+  SUBMITTED = 'submitted',
+  CHANGES = 'changes',
   APPROVED = 'approved',
   REJECTED = 'rejected',
 }
@@ -49,7 +50,7 @@ export class Submission {
   status: SubmissionStatus;
 
   @Column({ type: 'timestamp', nullable: true })
-  submittedAt: Date;
+  submittedAt: Date | null;
 
   @OneToMany(() => SubmissionHistory, (history) => history.submission)
   histories: SubmissionHistory[];

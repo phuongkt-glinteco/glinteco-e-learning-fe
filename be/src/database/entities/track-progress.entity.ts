@@ -42,11 +42,14 @@ export class TrackProgress {
   })
   status: ProgressStatus;
 
-  @Column({ type: 'timestamp', nullable: true })
-  startedAt: Date;
+  @Column({ default: 0 })
+  lessonsCompleted: number;
 
   @Column({ type: 'timestamp', nullable: true })
-  completedAt: Date;
+  startedAt: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  completedAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

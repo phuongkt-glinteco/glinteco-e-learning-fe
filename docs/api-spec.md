@@ -26,41 +26,222 @@ Retrieve the current authenticated user's profile.
 
 ## 2. Cohorts
 
-### `GET /cohorts`
-List cohorts (Admin only).
+### `POST /cohorts` (Admin only)
+Create a new cohort.
+- **Request Body**:
+  ```json
+  {
+    "name": "Summer 2026",
+    "targetRampDays": 14
+  }
+  ```
+- **Validation Rules**:
+  - `name`: IsString(), IsNotEmpty()
+  - `targetRampDays`: IsInt(), IsPositive(), IsNotEmpty()
+- **Response**: `201 Created`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Summer 2026",
+    "targetRampDays": 14,
+    "isActive": true,
+    "createdAt": "2026-06-16T22:00:00.000Z",
+    "updatedAt": "2026-06-16T22:00:00.000Z"
+  }
+  ```
+
+### `GET /cohorts` (Admin only)
+List cohorts with pagination.
+- **Query Params**: `?page=1&limit=20`
 - **Response**: `200 OK`
   ```json
   {
     "data": [
       {
         "id": "uuid",
-        "name": "Batch 1",
-        "targetRampDays": 30
+        "name": "Summer 2026",
+        "targetRampDays": 14,
+        "isActive": true,
+        "createdAt": "2026-06-16T22:00:00.000Z",
+        "updatedAt": "2026-06-16T22:00:00.000Z"
       }
     ],
-    "meta": { "total": 1, "page": 1 }
+    "meta": {
+      "total": 1,
+      "page": 1,
+      "limit": 20,
+      "lastPage": 1
+    }
   }
   ```
+
+### `GET /cohorts/:id` (Admin only)
+Get details of a cohort.
+- **Response**: `200 OK`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Summer 2026",
+    "targetRampDays": 14,
+    "isActive": true,
+    "createdAt": "2026-06-16T22:00:00.000Z",
+    "updatedAt": "2026-06-16T22:00:00.000Z"
+  }
+  ```
+
+### `PATCH /cohorts/:id` (Admin only)
+Update details of a cohort.
+- **Request Body**:
+  ```json
+  {
+    "name": "Summer 2026 - Revised",
+    "targetRampDays": 15,
+    "isActive": false
+  }
+  ```
+- **Validation Rules**:
+  - `name`: IsString(), IsOptional()
+  - `targetRampDays`: IsInt(), IsPositive(), IsOptional()
+  - `isActive`: IsBoolean(), IsOptional()
+- **Response**: `200 OK`
+  ```json
+  {
+    "id": "uuid",
+    "name": "Summer 2026 - Revised",
+    "targetRampDays": 15,
+    "isActive": false,
+    "createdAt": "2026-06-16T22:00:00.000Z",
+    "updatedAt": "2026-06-16T22:05:00.000Z"
+  }
+  ```
+
+### `DELETE /cohorts/:id` (Admin only)
+Delete a cohort. Will reject if there are users associated with the cohort.
+- **Response**: `200 OK` or `400 Bad Request` (if contains users)
 
 ---
 
 ## 3. Tracks & Lessons
 
 ### `GET /tracks`
-Get all learning tracks.
+Get all learning tracks with current learner's progress.
 - **Response**: `200 OK`
   ```json
   {
     "data": [
       {
         "id": "uuid",
-        "name": "Frontend Basics",
+        "title": "Frontend Basics",
+        "description": "Learn modern frontend development including HTML, CSS, React, and TypeScript.",
+        "estimatedTime": "10h",
         "order": 1,
-        "lessonsCount": 10
+        "lessonCount": 10,
+        "icon": "flag",
+        "status": "in_progress", // "locked", "in_progress", "completed"
+        "lessonsCompleted": 4
       }
     ]
   }
   ```
+
+### `POST /tracks` (Admin Only)
+Create a new learning track.
+- **Request Body**:
+  ```json
+  {
+    "title": "Backend Basics",
+    "description": "Build robust APIs using NestJS framework.",
+    "estimatedTime": "4h",
+    "lessonCount": 0,
+    "afterTrackId": "optional-uuid-here"
+  }
+  ```
+- **Validation Rules**:
+  - `title`: IsString(), IsNotEmpty(), MaxLength(100)
+  - `description`: IsString(), IsNotEmpty()
+  - `estimatedTime`: IsString(), IsNotEmpty()
+  - `lessonCount`: IsInt(), Min(0), IsNotEmpty()
+  - `afterTrackId`: IsString(), IsOptional()
+- **Response**: `201 Created`
+  ```json
+  {
+    "id": "uuid",
+    "title": "Backend Basics",
+    "description": "Build robust APIs using NestJS framework.",
+    "estimatedTime": "4h",
+    "order": 2,
+    "icon": "flag",
+    "status": "locked",
+    "lessonsCompleted": 0,
+    "lessons": []
+  }
+  ```
+
+### `GET /tracks/:id`
+Get a specific learning track details.
+- **Response**: `200 OK`
+  ```json
+  {
+    "id": "uuid",
+    "title": "Frontend Basics",
+    "description": "Learn modern frontend development including HTML, CSS, React, and TypeScript.",
+    "estimatedTime": "10h",
+    "order": 1,
+    "icon": "flag",
+    "status": "in_progress",
+    "lessonsCompleted": 4,
+    "lessons": [
+      {
+        "id": "lesson-uuid-1",
+        "title": "Introduction to HTML",
+        "order": 1,
+        "completed": true
+      }
+    ]
+  }
+  ```
+
+### `PATCH /tracks/:id` (Admin Only)
+Update an existing learning track.
+- **Request Body**:
+  ```json
+  {
+    "title": "Advanced Frontend",
+    "description": "Deep dive into state management, performance, and Web APIs.",
+    "estimatedTime": "12h",
+    "icon": "code"
+  }
+  ```
+- **Validation Rules**:
+  - `title`: IsString(), IsOptional(), MaxLength(100)
+  - `description`: IsString(), IsOptional()
+  - `estimatedTime`: IsString(), IsOptional()
+  - `icon`: IsString(), IsOptional()
+- **Response**: `200 OK`
+  ```json
+  {
+    "id": "uuid",
+    "title": "Advanced Frontend",
+    "description": "Deep dive into state management, performance, and Web APIs.",
+    "estimatedTime": "12h",
+    "order": 1,
+    "icon": "code",
+    "status": "in_progress",
+    "lessonsCompleted": 4,
+    "lessons": [
+      {
+        "id": "lesson-uuid-1",
+        "title": "Introduction to HTML",
+        "order": 1,
+        "completed": true
+      }
+    ]
+  }
+  ```
+
+### `DELETE /tracks/:id` (Admin Only)
+Delete a learning track.
+- **Response**: `204 No Content`
 
 ### `GET /tracks/:id/lessons`
 Get lessons for a specific track.
@@ -70,9 +251,9 @@ Get lessons for a specific track.
     "data": [
       {
         "id": "uuid",
-        "name": "Introduction to React",
+        "title": "Setup môi trường phát triển",
         "order": 1,
-        "content": "Lesson content here..."
+        "estimatedTime": "30m"
       }
     ]
   }
@@ -126,6 +307,52 @@ Submit a PR link for an exercise.
   - `prUrl`: IsUrl(), IsNotEmpty()
 - **Response**: `201 Created`
 
+### `GET /submissions` (Admin Only)
+Retrieve the grading queue (Admin Review Queue) containing all pending/submitted student submissions.
+- **Query Parameters**:
+  - `status`: string (optional, enum: `submitted`, `changes`, `approved`, `rejected`) - Lọc theo trạng thái bài nộp.
+  - `cohortId`: UUID (optional) - Lọc theo ID của khóa học.
+  - `userId`: UUID (optional) - Lọc theo ID của học viên.
+  - `exerciseId`: UUID (optional) - Lọc theo ID của bài tập.
+  - `page`: number (optional, default: 1) - Trang cần lấy dữ liệu.
+  - `limit`: number (optional, default: 10, max: 100) - Số lượng bài nộp trên mỗi trang.
+  - `sortBy`: string (optional, default: `submittedAt`) - Trường sắp xếp kết quả.
+  - `sortOrder`: string (optional, enum: `ASC` | `DESC`, default: `ASC`) - Thứ tự sắp xếp.
+- **Response**: `200 OK`
+  ```json
+  {
+    "data": [
+      {
+        "id": "uuid",
+        "userId": "uuid",
+        "user": {
+          "id": "uuid",
+          "name": "Alice Learner",
+          "email": "alice@example.com",
+          "cohortId": "uuid"
+        },
+        "exerciseId": "uuid",
+        "exercise": {
+          "id": "uuid",
+          "title": "Build a Todo App",
+          "trackId": "uuid"
+        },
+        "prUrl": "https://github.com/phuongkt-glinteco/glinteco-e-learning-fe/pull/42",
+        "status": "submitted",
+        "submittedAt": "2026-06-12T10:30:00.000Z",
+        "createdAt": "2026-06-12T10:30:00.000Z",
+        "updatedAt": "2026-06-12T10:30:00.000Z"
+      }
+    ],
+    "meta": {
+      "total": 1,
+      "page": 1,
+      "limit": 10,
+      "totalPages": 1
+    }
+  }
+  ```
+
 ### `POST /submissions/:id/review` (Admin Only)
 Review a submission and log history.
 - **Request Body**:
@@ -146,7 +373,12 @@ Review a submission and log history.
 
 ### `GET /documents`
 Search for documents.
-- **Query Params**: `?tags=react,hooks&search=state`
+- **Query Params**:
+  - `q`: Search keyword in title or content (optional).
+  - `tags`: Comma-separated list of tag names (e.g., `NestJS,Architecture`) (optional).
+  - `kind`: Filter by document kind (Guide, Reference, Runbook, Tutorial, Link) (optional).
+  - `limit`: Number of records to return (optional, default 20, max 50).
+  - `cursor`: Keyset pagination cursor (optional).
 - **Response**: `200 OK`
   ```json
   {
@@ -154,9 +386,138 @@ Search for documents.
       {
         "id": "uuid",
         "title": "React Hooks Cheatsheet",
+        "content": "Lesson content or document description...",
         "url": "https://reactjs.org/docs/hooks-intro.html",
-        "tags": [{ "id": "uuid", "name": "react" }]
+        "kind": "Guide",
+        "tags": [{ "id": "uuid", "name": "react" }],
+        "isBookmarked": true
+      }
+    ],
+    "nextCursor": "eyJpZCI6ImRiNmE2NzYzIn0=",
+    "hasMore": false
+  }
+  ```
+
+### `POST /documents/:id/bookmark`
+Bookmark a document for the current authenticated user.
+- **Path Params**:
+  - `id`: UUID of the document to bookmark.
+- **Response**: `200 OK`
+  ```json
+  {
+    "documentId": "uuid",
+    "bookmarked": true
+  }
+  ```
+
+### `DELETE /documents/:id/bookmark`
+Remove a bookmarked document for the current authenticated user.
+- **Path Params**:
+  - `id`: UUID of the document to unbookmark.
+- **Response**: `204 No Content`
+
+---
+
+## 7. Leaderboard
+
+### `GET /leaderboard`
+Retrieve leaderboard rankings for learners.
+- **Query Params**:
+  - `cohortId`: UUID (Optional) - Filter by a specific cohort.
+  - `scope`: `cohort` | `global` (Optional, default: `global`) - Scope of the leaderboard. If `cohort` and `cohortId` is omitted, the API defaults to the authenticated user's cohort.
+  - `limit`: Integer (Optional, default: 10, max: 100) - Number of entries to return.
+  - `cursor`: Base64 string (Optional) - Cursor for pagination, encoding `(level, xp, streakDays, createdAt, id)`.
+- **Validation Rules**:
+  - `cohortId`: IsUUID(), IsOptional()
+  - `scope`: IsEnum(['cohort', 'global']), IsOptional()
+  - `limit`: IsInt(), Min(1), Max(100), IsOptional()
+  - `cursor`: IsString(), IsOptional()
+- **Response**: `200 OK`
+  ```json
+  {
+    "data": [
+      {
+        "userId": "uuid",
+        "name": "Mina Okonkwo",
+        "level": 3,
+        "xp": 1240,
+        "streakDays": 6,
+        "rank": 1
+      },
+      {
+        "userId": "uuid",
+        "name": "Raj Patel",
+        "level": 2,
+        "xp": 720,
+        "streakDays": 2,
+        "rank": 2
+      }
+    ],
+    "nextCursor": "eyJsaW1pdCI6MTAsImN1cnNvciI6eyJsZXZlbCI6MiwidHAiOjcyMCwic3RyZWFrRGF5cyI6Miwid3JlYXRlZEF0IjoiMjAyNi0wNi0xNlQxMDoxNTowMFoiLCJpZCI6InV1aWQifX0=",
+    "hasMore": false
+  }
+  ```
+
+---
+
+## 7. Search & Notifications
+
+### `GET /search`
+Global quick search (⌘K) across tracks, documents, and exercises.
+- **Query Params**:
+  - `q`: String (Required, search query term)
+- **Validation Rules**:
+  - `q`: IsString(), IsNotEmpty(), MinLength(1)
+- **Response**: `200 OK`
+  ```json
+  {
+    "tracks": [
+      {
+        "id": "uuid",
+        "title": "NestJS Service Layer"
+      }
+    ],
+    "documents": [
+      {
+        "id": "uuid",
+        "title": "Service Auth & JWT Flow",
+        "kind": "Guide"
+      }
+    ],
+    "exercises": [
+      {
+        "id": "uuid",
+        "title": "Service Auth Middleware",
+        "tag": "NestJS"
       }
     ]
   }
   ```
+
+### Data Transfer Objects (DTO) and Validation
+
+#### `SearchQueryDto`
+- **q**: `string`
+  - `@IsString()`: Must be a string.
+  - `@IsNotEmpty()`: Must not be empty.
+  - `@MinLength(1)`: Must have at least 1 character.
+
+#### `SearchResponseDto`
+- **tracks**: `SearchTrackResultDto[]`
+- **documents**: `SearchDocumentResultDto[]`
+- **exercises**: `SearchExerciseResultDto[]`
+
+#### `SearchTrackResultDto`
+- **id**: `string` (UUID)
+- **title**: `string` (Maps to Track `title`)
+
+#### `SearchDocumentResultDto`
+- **id**: `string` (UUID)
+- **title**: `string`
+- **kind**: `string` (`'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link'`)
+
+#### `SearchExerciseResultDto`
+- **id**: `string` (UUID)
+- **title**: `string`
+- **tag**: `string` (Maps to Track `title`)
+

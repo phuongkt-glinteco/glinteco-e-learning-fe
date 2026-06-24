@@ -226,7 +226,7 @@ graph TD
 * **User & Cohort:** Mỗi người dùng thuộc về 1 Cohort (Khóa đào tạo) để Admin theo dõi thống kê theo nhóm.
 * **TrackProgress:** Bản ghi liên kết nhiều-nhiều giữa User và Track, lưu số bài học đã hoàn thành (`lessonsCompleted`) và trạng thái học tập của học viên đối với track đó.
 * **Submission:** Liên kết giữa User, Exercise và Reviewer (Admin). Lưu đường dẫn PR và trạng thái đánh giá hiện tại.
-* **SubmissionHistory (Lưu trữ lịch sử nộp bài):** Lưu tất cả các lần nộp bài (PR links) và nhận xét của từng lần review trước đó của bài tập cụ thể. Mỗi khi Learner cập nhật link PR hoặc Admin cập nhật đánh giá, một bản ghi lịch sử mới sẽ được ghi nhận. Trường bao gồm: `id`, `submissionId` (FK), `prUrl`, `status`, `reviewerId`, `reviewNote`, `submittedAt`, `reviewedAt`.
+* **SubmissionHistory (Lưu trữ lịch sử nộp bài):** Lưu tất cả các lần nộp bài (PR links) và nhận xét của từng lần review trước đó của bài tập cụ thể. Mỗi khi Learner nộp bài/cập nhật link PR hoặc Admin cập nhật đánh giá, một bản ghi lịch sử mới sẽ được ghi nhận. Trường bao gồm: `id`, `submissionId` (FK), `adminId` (FK, Nullable), `prUrl` (VARCHAR, Nullable), `action` (e.g. `submitted`, `resubmitted`, `approved`, `request-changes`, `rejected`), `comment` (TEXT, Nullable), `createdAt` (TIMESTAMP), `updatedAt` (TIMESTAMP). Giao diện của Admin và Learner sẽ sử dụng thông tin này để hiển thị dòng thời gian lịch sử bài nộp qua các phiên bản.
 
 ---
 

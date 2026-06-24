@@ -33,6 +33,7 @@ dist/
 .next/
 out/
 build/
+coverage/
 
 # Environment files (Secrets)
 .env
@@ -55,3 +56,6 @@ desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+mini-task/
+/mini-task

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+import { join } from 'path';
 import { Client } from 'pg';
 import { DataSource } from 'typeorm';
 import {
@@ -10,14 +11,16 @@ import {
   TrackProgress,
   ProgressStatus,
   Exercise,
+  ExerciseDifficulty,
   Submission,
   SubmissionStatus,
   SubmissionHistory,
   Tag,
   Document,
+  RefreshToken,
+  LessonProgress,
+  Notification,
 } from './index';
-import { InitialSchema1781611485949 } from '../migrations/1781611485949-InitialSchema';
-import { AddGoogleIdToUsers1781616508023 } from '../migrations/1781616508023-AddGoogleIdToUsers';
 
 describe('Database Entities', () => {
   let pgClient: Client;
@@ -58,20 +61,18 @@ describe('Database Entities', () => {
         SubmissionHistory,
         Tag,
         Document,
+        RefreshToken,
+        LessonProgress,
+        Notification,
       ],
+      migrations: [join(__dirname, '../migrations/[0-9]*.{ts,js}')],
       synchronize: false,
       logging: false,
     });
     await dataSource.initialize();
 
-    // Run migrations to setup schema
-    const queryRunner = dataSource.createQueryRunner();
-    await queryRunner.connect();
-    const migration1 = new InitialSchema1781611485949();
-    await migration1.up(queryRunner);
-    const migration2 = new AddGoogleIdToUsers1781616508023();
-    await migration2.up(queryRunner);
-    await queryRunner.release();
+    // Run all migrations to setup schema automatically
+    await dataSource.runMigrations();
   });
 
   afterAll(async () => {
@@ -94,12 +95,14 @@ describe('Database Entities', () => {
     expect(savedCohort.id).toBeDefined();
     expect(savedCohort.name).toBe('Test Cohort');
     expect(savedCohort.targetRampDays).toBe(60);
+    expect(savedCohort.isActive).toBe(true);
 
     const foundCohort = await cohortRepo.findOne({
       where: { id: savedCohort.id },
       relations: { users: true },
     });
     expect(foundCohort).toBeDefined();
+    expect(foundCohort?.isActive).toBe(true);
     expect(foundCohort?.users).toEqual([]);
   });
 
@@ -142,29 +145,37 @@ describe('Database Entities', () => {
   it('should create and verify Track and Lesson entities', async () => {
     const trackRepo = dataSource.getRepository(Track);
     const track = trackRepo.create({
-      name: 'Test Track',
+      title: 'Test Track',
+      description: 'Test Description',
+      estimatedTime: '2h',
+      icon: 'flag',
       order: 1,
       lessonsCount: 10,
     });
     const savedTrack = await trackRepo.save(track);
     expect(savedTrack.id).toBeDefined();
-    expect(savedTrack.name).toBe('Test Track');
+    expect(savedTrack.title).toBe('Test Track');
+    expect(savedTrack.description).toBe('Test Description');
+    expect(savedTrack.estimatedTime).toBe('2h');
+    expect(savedTrack.icon).toBe('flag');
     expect(savedTrack.order).toBe(1);
     expect(savedTrack.lessonsCount).toBe(10);
 
     const lessonRepo = dataSource.getRepository(Lesson);
     const lesson = lessonRepo.create({
       trackId: savedTrack.id,
-      name: 'Test Lesson',
+      title: 'Test Lesson',
       order: 1,
-      content: 'Lesson content goes here.',
+      estimatedTime: '30m',
+      body: 'Lesson content goes here.',
     });
     const savedLesson = await lessonRepo.save(lesson);
     expect(savedLesson.id).toBeDefined();
     expect(savedLesson.trackId).toBe(savedTrack.id);
-    expect(savedLesson.name).toBe('Test Lesson');
+    expect(savedLesson.title).toBe('Test Lesson');
     expect(savedLesson.order).toBe(1);
-    expect(savedLesson.content).toBe('Lesson content goes here.');
+    expect(savedLesson.estimatedTime).toBe('30m');
+    expect(savedLesson.body).toBe('Lesson content goes here.');
 
     const foundTrack = await trackRepo.findOne({
       where: { id: savedTrack.id },
@@ -172,7 +183,7 @@ describe('Database Entities', () => {
     });
     expect(foundTrack).toBeDefined();
     expect(foundTrack?.lessons.length).toBe(1);
-    expect(foundTrack?.lessons[0].name).toBe('Test Lesson');
+    expect(foundTrack?.lessons[0].title).toBe('Test Lesson');
   });
 
   it('should create and verify TrackProgress entity', async () => {
@@ -184,7 +195,7 @@ describe('Database Entities', () => {
       userRepo.create({ email: 'progress@example.com', name: 'Progress User' }),
     );
     const track = await trackRepo.save(
-      trackRepo.create({ name: 'Progress Track', order: 2 }),
+      trackRepo.create({ title: 'Progress Track', description: 'Desc', estimatedTime: '1h', order: 2 }),
     );
 
     const progress = progressRepo.create({
@@ -198,6 +209,7 @@ describe('Database Entities', () => {
     expect(savedProgress.userId).toBe(user.id);
     expect(savedProgress.trackId).toBe(track.id);
     expect(savedProgress.status).toBe(ProgressStatus.IN_PROGRESS);
+    expect(savedProgress.lessonsCompleted).toBe(0);
     expect(savedProgress.startedAt).toBeDefined();
     expect(savedProgress.completedAt).toBeNull();
 
@@ -231,12 +243,18 @@ describe('Database Entities', () => {
       }),
     );
     const track = await trackRepo.save(
-      trackRepo.create({ name: 'Submission Track', order: 3 }),
+      trackRepo.create({ title: 'Submission Track', description: 'Desc', estimatedTime: '1h', order: 3 }),
     );
 
     const exercise = exerciseRepo.create({
       trackId: track.id,
       title: 'Exercise 1',
+      tag: 'NestJS',
+      difficulty: ExerciseDifficulty.INTERMEDIATE,
+      estimatedTime: '2h',
+      xp: 100,
+      brief: 'Test brief',
+      overview: 'Test overview',
       objectives: { goal: 'Test objectives' },
       steps: { step1: 'First step' },
     });
@@ -244,6 +262,12 @@ describe('Database Entities', () => {
     expect(savedExercise.id).toBeDefined();
     expect(savedExercise.trackId).toBe(track.id);
     expect(savedExercise.title).toBe('Exercise 1');
+    expect(savedExercise.tag).toBe('NestJS');
+    expect(savedExercise.difficulty).toBe(ExerciseDifficulty.INTERMEDIATE);
+    expect(savedExercise.estimatedTime).toBe('2h');
+    expect(savedExercise.xp).toBe(100);
+    expect(savedExercise.brief).toBe('Test brief');
+    expect(savedExercise.overview).toBe('Test overview');
     expect(savedExercise.objectives).toEqual({ goal: 'Test objectives' });
     expect(savedExercise.steps).toEqual({ step1: 'First step' });
 
@@ -331,5 +355,79 @@ describe('Database Entities', () => {
     expect(foundTag).toBeDefined();
     expect(foundTag?.documents.length).toBe(1);
     expect(foundTag?.documents[0].title).toBe('Documentation Title');
+  });
+
+  it('should create and verify User bookmarking a Document (ManyToMany)', async () => {
+    const userRepo = dataSource.getRepository(User);
+    const docRepo = dataSource.getRepository(Document);
+
+    const user = await userRepo.save(
+      userRepo.create({
+        email: 'bookmark-test@example.com',
+        name: 'Bookmark Tester',
+      }),
+    );
+
+    const doc1 = await docRepo.save(
+      docRepo.create({
+        title: 'Bookmarked Document',
+        url: 'https://example.com/bookmarked',
+      }),
+    );
+
+    // Add bookmark
+    user.bookmarkedDocuments = [doc1];
+    await userRepo.save(user);
+
+    // Verify
+    const foundUser = await userRepo.findOne({
+      where: { id: user.id },
+      relations: { bookmarkedDocuments: true },
+    });
+    expect(foundUser).toBeDefined();
+    expect(foundUser?.bookmarkedDocuments.length).toBe(1);
+    expect(foundUser?.bookmarkedDocuments[0].title).toBe('Bookmarked Document');
+
+    const foundDoc1 = await docRepo.findOne({
+      where: { id: doc1.id },
+      relations: { bookmarkedBy: true },
+    });
+    expect(foundDoc1).toBeDefined();
+    expect(foundDoc1?.bookmarkedBy.length).toBe(1);
+    expect(foundDoc1?.bookmarkedBy[0].email).toBe('bookmark-test@example.com');
+  });
+
+  it('should create and verify Notification entity', async () => {
+    const userRepo = dataSource.getRepository(User);
+    const notificationRepo = dataSource.getRepository(Notification);
+
+    const user = await userRepo.save(
+      userRepo.create({
+        email: 'notify-test@example.com',
+        name: 'Notify Tester',
+      }),
+    );
+
+    const notification = notificationRepo.create({
+      userId: user.id,
+      type: 'track_unlocked',
+      title: 'New track unlocked',
+      body: 'System Architecture is now available',
+      read: false,
+    });
+    const savedNotification = await notificationRepo.save(notification);
+    expect(savedNotification.id).toBeDefined();
+    expect(savedNotification.userId).toBe(user.id);
+    expect(savedNotification.type).toBe('track_unlocked');
+    expect(savedNotification.title).toBe('New track unlocked');
+    expect(savedNotification.body).toBe('System Architecture is now available');
+    expect(savedNotification.read).toBe(false);
+
+    const foundNotification = await notificationRepo.findOne({
+      where: { id: savedNotification.id },
+      relations: { user: true },
+    });
+    expect(foundNotification).toBeDefined();
+    expect(foundNotification?.user.id).toBe(user.id);
   });
 });

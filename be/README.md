@@ -90,18 +90,22 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
-## Deployment
+## Online Deployment (Vercel)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Dự án đã được triển khai trực tuyến lên **Vercel** tích hợp với database **Supabase PostgreSQL**:
+* **Swagger Documentation URL:** [https://be-teal-tau.vercel.app/api/v1/docs](https://be-teal-tau.vercel.app/api/v1/docs)
+* **Base API URL:** [https://be-teal-tau.vercel.app](https://be-teal-tau.vercel.app)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+*Lưu ý: Môi trường trực tuyến tự động chuyển hướng các tệp tĩnh Swagger UI qua CDN để đảm bảo không bị lỗi trắng trang trên serverless lambdas.*
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+## Tài liệu Kiểm thử & Hướng dẫn sử dụng API (Testing & API Guides)
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Vui lòng tham khảo bộ tài liệu kiểm thử đặc tả chất lượng cao nằm trong thư mục `be/docs/`:
+* 🔑 **[Ma trận Phân quyền & Vai trò (roles.md)](docs/roles.md)**: Đặc tả luồng kiểm thử `LEARNER` và `ADMIN` kết hợp với kiểm thử `RolesGuard`.
+* 🔒 **[Đặc tả & Kiểm thử Xác thực (auth.md)](docs/auth.md)**: Chi tiết kiểm thử Google Login, Refresh Token và Unit Test.
+* 📝 **[Đặc tả & Kiểm thử Bài nộp (submissions.md)](docs/submissions.md)**: Luồng kiểm thử nộp bài tập và duyệt bài nộp của Admin.
+* 🏫 **[Đặc tả & Kiểm thử Lớp học (cohorts.md)](docs/cohorts.md)**: Luồng kiểm thử quản lý Cohorts của Admin.
+* 🚀 **[Hướng dẫn Sử dụng API & Tài khoản kiểm thử (api_usage_guide.md)](docs/api_usage_guide.md)**: Hướng dẫn cURL, Postman và danh sách tài khoản kiểm thử mặc định (password: `rampup123`).
 
 ## Resources
 

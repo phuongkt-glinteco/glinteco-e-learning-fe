@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Track } from './track.entity';
+import { LessonProgress } from './lesson-progress.entity';
 
 @Entity('lessons')
 export class Lesson {
@@ -22,13 +24,19 @@ export class Lesson {
   track: Track;
 
   @Column()
-  name: string;
+  title: string;
 
   @Column({ name: 'lesson_order' })
   order: number;
 
+  @Column()
+  estimatedTime: string;
+
   @Column({ type: 'text' })
-  content: string;
+  body: string;
+
+  @OneToMany(() => LessonProgress, (progress) => progress.lesson)
+  progresses: LessonProgress[];
 
   @CreateDateColumn()
   createdAt: Date;

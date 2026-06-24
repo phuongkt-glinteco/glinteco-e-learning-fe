@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { tracksControllerFindOne, exercisesControllerFindAll } from '@/services/api-client';
 import type { TrackDetailDto, ExerciseSummaryDto } from '@/services/api-client';
-import { useTrackCreatedStore } from '@/stores/trackCreatedStore';
+import { queryCache } from '@/lib/queryCache';
 import TrackOverviewCard from './TrackOverviewCard';
 import AdminCurriculumRoadmap from './AdminCurriculumRoadmap';
 import TrackStatusCard from './TrackStatusCard';
@@ -38,63 +38,111 @@ function determineLessonStatus(lessons: TrackDetailDto['lessons']): LessonItem[]
   });
 }
 
-export default function AdminTrackDetail({ trackId, isFromCreate }: { trackId: string; isFromCreate?: boolean }) {
+export default function AdminTrackDetail({ trackId }: { trackId: string }) {
   const t = useTranslations('TrackDetailPage');
-  const { trackData: createdTrack, clearTrackData } = useTrackCreatedStore();
 
-  const [track, setTrack] = useState<TrackDetailDto | null>(isFromCreate && createdTrack ? createdTrack : null);
-  const [exercises, setExercises] = useState<ExerciseSummaryDto[]>([]);
-  const [loading, setLoading] = useState(!isFromCreate);
+  const [track, setTrack] = useState<TrackDetailDto | null>(() => {
+    return queryCache.get<{ track: TrackDetailDto; exercises: ExerciseSummaryDto[] }>(
+      `track-detail-${trackId}`
+    )?.track ?? null;
+  });
+  const [exercises, setExercises] = useState<ExerciseSummaryDto[]>(() => {
+    return queryCache.get<{ track: TrackDetailDto; exercises: ExerciseSummaryDto[] }>(
+      `track-detail-${trackId}`
+    )?.exercises ?? [];
+  });
+  const [loading, setLoading] = useState(() => {
+    return !queryCache.get(`track-detail-${trackId}`);
+  });
   const [error, setError] = useState(false);
   const [previewing, setPreviewing] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (isBackground = false) => {
+    if (!isBackground) {
+      setLoading(true);
+    }
     setError(false);
     try {
       const [trackRes, exRes] = await Promise.all([
         tracksControllerFindOne({ path: { id: trackId }, throwOnError: true }),
         exercisesControllerFindAll({ query: { trackId }, throwOnError: true }).catch(() => null),
       ]);
-      setTrack(trackRes.data ?? null);
-      setExercises(exRes?.data?.data ?? []);
+      const fetchedTrack = trackRes.data ?? null;
+      const fetchedExercises = exRes?.data?.data ?? [];
+
+      setTrack(fetchedTrack);
+      setExercises(fetchedExercises);
+
+      if (fetchedTrack) {
+        queryCache.set(`track-detail-${trackId}`, {
+          track: fetchedTrack,
+          exercises: fetchedExercises,
+        });
+      }
     } catch {
-      setError(true);
+      if (!isBackground) {
+        setError(true);
+      }
     } finally {
       setLoading(false);
     }
   }, [trackId]);
 
   useEffect(() => {
-    if (isFromCreate) {
-      clearTrackData();
+    const cached = queryCache.get<{ track: TrackDetailDto; exercises: ExerciseSummaryDto[] }>(
+      `track-detail-${trackId}`
+    );
+    if (cached) {
+      setTrack(cached.track);
+      setExercises(cached.exercises);
       setLoading(false);
-      return;
+      fetchData(true);
+    } else {
+      setTrack(null);
+      setExercises([]);
+      setLoading(true);
+      fetchData(false);
     }
-    fetchData();
-  }, [fetchData, isFromCreate, clearTrackData]);
-
-  useEffect(() => {
-    if (!isFromCreate) return;
-    exercisesControllerFindAll({ query: { trackId }, throwOnError: true })
-      .then((res) => setExercises(res.data?.data ?? []))
-      .catch(() => {});
-  }, [isFromCreate, trackId]);
+  }, [trackId, fetchData]);
 
   const handleDeleteLesson = useCallback((lessonId: string) => {
     setTrack((prev) => {
       if (!prev) return prev;
-      return {
+      const updatedTrack = {
         ...prev,
         lessons: prev.lessons?.filter((l) => l.id !== lessonId),
       };
+
+      const cached = queryCache.get<{ track: TrackDetailDto; exercises: ExerciseSummaryDto[] }>(
+        `track-detail-${trackId}`
+      );
+      if (cached) {
+        queryCache.set(`track-detail-${trackId}`, {
+          ...cached,
+          track: updatedTrack,
+        });
+      }
+      return updatedTrack;
     });
-    fetchData();
-  }, [fetchData]);
+    fetchData(true);
+  }, [trackId, fetchData]);
 
   const handleDeleteExercise = useCallback((exerciseId: string) => {
-    setExercises((prev) => prev.filter((ex) => ex.id !== exerciseId));
-  }, []);
+    setExercises((prev) => {
+      const updatedExercises = prev.filter((ex) => ex.id !== exerciseId);
+
+      const cached = queryCache.get<{ track: TrackDetailDto; exercises: ExerciseSummaryDto[] }>(
+        `track-detail-${trackId}`
+      );
+      if (cached) {
+        queryCache.set(`track-detail-${trackId}`, {
+          ...cached,
+          exercises: updatedExercises,
+        });
+      }
+      return updatedExercises;
+    });
+  }, [trackId]);
 
   if (loading) {
     return (
@@ -114,7 +162,7 @@ export default function AdminTrackDetail({ trackId, isFromCreate }: { trackId: s
           <span className="material-symbols-outlined text-[48px] text-error">error</span>
           <p className="text-on-surface font-label-lg">{t('failedToLoad')}</p>
           <button
-            onClick={fetchData}
+            onClick={() => fetchData(false)}
             className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:opacity-90 transition-opacity cursor-pointer"
           >
             {t('retry')}

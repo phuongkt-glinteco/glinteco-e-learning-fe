@@ -9,6 +9,7 @@ import { LessonMetadata } from './LessonMetadata';
 import { buildTimeString, type TimeUnit } from '@/lib/time-utils';
 import { lessonsControllerCreateLesson, lessonsControllerUpdateLesson, lessonsControllerFindOneLesson, lessonsControllerFindLessons } from '@/services/api-client';
 import type { LessonDetailDto, LessonProgressItemDto } from '@/services/api-client';
+import { queryCache } from '@/lib/queryCache';
 
 interface LessonEditorPageProps {
   trackId?: string;
@@ -246,6 +247,30 @@ export function LessonEditorPage({ trackId, lessonId }: LessonEditorPageProps) {
           body: { title: title.trim(), description: description.trim() || null, estimatedTime: estimatedTime || '0m', body: body.trim() },
           throwOnError: true,
         });
+
+        // Update query cache optimistically for editing lesson
+        const cached = queryCache.get<{ track: any; exercises: any[] }>(`track-detail-${trackId}`);
+        if (cached && cached.track) {
+          const updatedLessons = cached.track.lessons?.map((l: any) => {
+            if (l.id === lessonId) {
+              return {
+                ...l,
+                title: title.trim(),
+                description: description.trim() || null,
+                estimatedTime: estimatedTime || '0m',
+                body: body.trim(),
+              };
+            }
+            return l;
+          }) ?? [];
+          queryCache.set(`track-detail-${trackId}`, {
+            ...cached,
+            track: {
+              ...cached.track,
+              lessons: updatedLessons,
+            },
+          });
+        }
       } else {
         await lessonsControllerCreateLesson({
           path: { id: trackId },

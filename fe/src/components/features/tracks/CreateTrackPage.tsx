@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { tracksControllerCreate } from '@/services/api-client';
 import type { TrackDetailDto, TrackSummaryDto } from '@/services/api-client';
-import { useTrackCreatedStore } from '@/stores/trackCreatedStore';
+import { queryCache } from '@/lib/queryCache';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { UiShowError } from '@/services/errors';
 import { BasicInfoCard } from './components/BasicInfoCard';
@@ -16,7 +16,6 @@ import { CreateTrackSummaryCard } from './components/CreateTrackSummaryCard';
 export default function CreateTrackPage() {
   const t = useTranslations('CreateTrackPage');
   const router = useRouter();
-  const { setTrackData } = useTrackCreatedStore();
   const resetDraft = useTrackDraftStore((state) => state.reset);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,26 +47,29 @@ export default function CreateTrackPage() {
         return;
       }
 
-      setTrackData({
-        id: created.id,
-        title: created.title ?? title.trim(),
-        description: created.description ?? description.trim(),
-        estimatedTime: created.estimatedTime ?? '0m',
-        order: created.order ?? 0,
-        icon: created.icon ?? 'school',
-        status: created.status ?? 'in_progress',
-        lessonsCompleted: created.lessonsCompleted ?? 0,
-        lessons: created.lessons ?? [],
-        level: created.level ?? '',
-        thumbnail: created.thumbnail ?? null,
-        accessStatus: created.accessStatus ?? 'unlocked',
-        lockedReason: created.lockedReason ?? null,
-        currentLessonId: created.currentLessonId ?? null,
-        prevTrack: created.prevTrack ?? null,
-        nextTrack: created.nextTrack ?? null,
+      queryCache.set(`track-detail-${created.id}`, {
+        track: {
+          id: created.id,
+          title: created.title ?? title.trim(),
+          description: created.description ?? description.trim(),
+          estimatedTime: created.estimatedTime ?? '0m',
+          order: created.order ?? 0,
+          icon: created.icon ?? 'school',
+          status: created.status ?? 'in_progress',
+          lessonsCompleted: created.lessonsCompleted ?? 0,
+          lessons: created.lessons ?? [],
+          level: created.level ?? '',
+          thumbnail: created.thumbnail ?? null,
+          accessStatus: created.accessStatus ?? 'unlocked',
+          lockedReason: created.lockedReason ?? null,
+          currentLessonId: created.currentLessonId ?? null,
+          prevTrack: created.prevTrack ?? null,
+          nextTrack: created.nextTrack ?? null,
+        },
+        exercises: [],
       });
       resetDraft();
-      router.push(`/admin/tracks/${created.id}?from=create`);
+      router.push(`/admin/tracks/${created.id}`);
     } catch (e) {
       setError(e instanceof UiShowError ? e.errorCode : t('createFailed'));
       setSaving(false);

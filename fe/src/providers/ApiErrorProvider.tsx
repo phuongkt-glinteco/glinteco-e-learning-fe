@@ -1,8 +1,9 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { UiShowError } from '@/services/errors';
+import { clearTokens } from '@/services/api-client';
 
 export interface StackedError {
   id: string;
@@ -22,6 +23,7 @@ const Ctx = createContext<ApiErrorContextType | null>(null);
 export function ApiErrorProvider({ children }: { children: ReactNode }) {
   const [errors, setErrors] = useState<StackedError[]>([]);
   const pathname = usePathname();
+  const router = useRouter();
 
   const dismiss = useCallback((id: string) => setErrors((p) => p.filter((e) => e.id !== id)), []);
   const clear = useCallback(() => setErrors([]), []);
@@ -35,6 +37,13 @@ export function ApiErrorProvider({ children }: { children: ReactNode }) {
 
       for (const item of items) {
         if (item instanceof UiShowError) {
+          if (item.errorCode === 'SESSION_EXPIRED') {
+            clearTokens();
+            router.push('/login?expired=true');
+            clear();
+            return;
+          }
+
           const id = Math.random().toString(36).substring(2, 9);
           setErrors((p) => [
             ...p,

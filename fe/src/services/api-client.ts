@@ -1,6 +1,6 @@
 import { client } from './client/client.gen';
 import { classify, pipeline } from './error-mapper';
-import { UiShowError } from './errors';
+import { ApiError, UiShowError } from './errors';
 import { postAuthRefresh } from './client/sdk.gen';
 
 const DEFAULT_BASE_URL = 'https://api.glinteco-elearning.dev/api/v1';
@@ -73,22 +73,25 @@ function dispatchErrorItems(items: UiShowError[]) {
 client.interceptors.error.use(async (error, response, request) => {
   if (response?.status === 401 && request) {
     const url = new URL(request.url);
-    if (url.pathname.endsWith('/auth/refresh') || url.pathname.endsWith('/auth/logout')) {
-      return error;
+
+    // Chặn refresh loop cho chính endpoint auth
+    const isAuthEndpoint = url.pathname.includes('/auth/');
+
+    if (!isAuthEndpoint) {
+      if (!refreshPromise) {
+        refreshPromise = attemptTokenRefresh().finally(() => { refreshPromise = null; });
+      }
+      const success = await refreshPromise;
+      if (success) {
+        const newToken = getAccessToken();
+        if (newToken) request.headers.set('Authorization', `Bearer ${newToken}`);
+        return fetch(request);
+      }
+      clearTokens();
     }
 
-    if (!refreshPromise) {
-      refreshPromise = attemptTokenRefresh().finally(() => { refreshPromise = null; });
-    }
-    const success = await refreshPromise;
-
-    if (success) {
-      const newToken = getAccessToken();
-      if (newToken) request.headers.set('Authorization', `Bearer ${newToken}`);
-      return fetch(request);
-    }
-
-    clearTokens();
+    // Biến đổi error thành SESSION_EXPIRED rồi cho pipeline xử lý
+    error = new ApiError('SESSION_EXPIRED', 'Session expired. Please log in again.', 401, '/auth/refresh');
   }
 
   const classified = classify(error, response, request);

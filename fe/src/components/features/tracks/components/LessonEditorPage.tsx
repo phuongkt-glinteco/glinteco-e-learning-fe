@@ -8,9 +8,13 @@ import { SyntaxGuide } from './SyntaxGuide';
 import { LessonMetadata } from './LessonMetadata';
 import { useTrackDraftStore, type DraftLesson } from '@/stores/trackDraftStore';
 import { buildTimeString, type TimeUnit } from '@/lib/time-utils';
+import { postTracksByIdLessons, patchLessonsById, getTracksByIdLessons } from '@/services/api-client';
+import type { LessonSummary } from '@/services/api-client';
 
 interface LessonEditorPageProps {
   editIndex?: number;
+  trackId?: string;
+  lessonId?: string;
 }
 
 type ToolbarAction =
@@ -99,30 +103,56 @@ const UNIT_OPTIONS: { value: TimeUnit; labelKey: string }[] = [
   { value: 'M', labelKey: 'months_label' },
 ];
 
-export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
+export function LessonEditorPage({ editIndex, trackId, lessonId }: LessonEditorPageProps) {
   const t = useTranslations('CreateTrackPage');
   const tu = useTranslations('TimeUnit');
   const router = useRouter();
   const { lessons, addLesson, updateLesson } = useTrackDraftStore();
+  const [saving, setSaving] = useState(false);
 
-  const existing = editIndex !== undefined ? lessons[editIndex] : null;
+  const isApiMode = !!trackId;
+  const existingDraft = !isApiMode && editIndex !== undefined ? lessons[editIndex] : null;
 
-  const [title, setTitle] = useState(existing?.title ?? '');
+  const [title, setTitle] = useState(existingDraft?.title ?? '');
   const [numValue, setNumValue] = useState('');
   const [unit, setUnit] = useState<TimeUnit>('m');
-  const [body, setBody] = useState(existing?.body ?? '');
+  const [body, setBody] = useState(existingDraft?.body ?? '');
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (existing?.estimatedTime) {
-      const match = existing.estimatedTime.match(/^(\d+(?:\.\d+)?)\s*(m|h|d|w|M)$/);
+    if (existingDraft?.estimatedTime && !isApiMode) {
+      const match = existingDraft.estimatedTime.match(/^(\d+(?:\.\d+)?)\s*(m|h|d|w|M)$/);
       if (match) {
         setNumValue(match[1]);
         setUnit(match[2] as TimeUnit);
       }
     }
-  }, [existing]);
+  }, [existingDraft, isApiMode]);
+
+  useEffect(() => {
+    if (!isApiMode || !lessonId) return;
+    async function fetchLesson() {
+      if (!trackId) return;
+      try {
+        const res = await getTracksByIdLessons({ path: { id: trackId }, throwOnError: true });
+        const found = res.data?.data?.find((l: LessonSummary) => l.id === lessonId);
+        if (found) {
+          setTitle(found.title ?? '');
+          if (found.estimatedTime) {
+            const match = found.estimatedTime.match(/^(\d+(?:\.\d+)?)\s*(m|h|d|w|M)$/);
+            if (match) {
+              setNumValue(match[1]);
+              setUnit(match[2] as TimeUnit);
+            }
+          }
+        }
+      } catch {
+        // silent
+      }
+    }
+    fetchLesson();
+  }, [isApiMode, lessonId, trackId]);
 
   const insertMarkdown = useCallback((action: ToolbarAction) => {
     const ta = textareaRef.current;
@@ -193,8 +223,34 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
     }
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!title.trim()) return;
+    if (isApiMode && trackId) {
+      setSaving(true);
+      try {
+        if (lessonId) {
+          await patchLessonsById({
+            path: { id: lessonId },
+            body: { title: title.trim(), estimatedTime: estimatedTime || '0m', body: body.trim() },
+            throwOnError: true,
+          });
+        } else {
+          const order = (editIndex ?? 0) + 1;
+          await postTracksByIdLessons({
+            path: { id: trackId },
+            body: { title: title.trim(), order, estimatedTime: estimatedTime || '0m', body: body.trim() },
+            throwOnError: true,
+          });
+        }
+      } catch {
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+      router.back();
+      return;
+    }
+
     const lesson: DraftLesson = {
       title: title.trim(),
       estimatedTime: estimatedTime || '0m',
@@ -398,10 +454,10 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
                 </button>
                 <button
                   onClick={handleSave}
-                  disabled={!title.trim()}
+                  disabled={!title.trim() || saving}
                   className="px-5 py-1.5 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 disabled:opacity-50 transition-all cursor-pointer"
                 >
-                  {t('saveLesson')}
+                  {saving ? t('saving') : t('saveLesson')}
                 </button>
                 </div>
                 

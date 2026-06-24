@@ -254,6 +254,18 @@
 @utility gap-y-gutter { row-gap: 24px; }
 @utility gap-y-margin-mobile { row-gap: 16px; }
 
+/* --- SPACE-Y- (KHOẢNG CÁCH DỌC GIỮA CÁC PHẦN TỬ TRONG FLEX/GRID COL) --- */
+@utility space-y-base { > :not([hidden]) ~ :not([hidden]) { margin-top: 4px; } }
+@utility space-y-xs   { > :not([hidden]) ~ :not([hidden]) { margin-top: 4px; } }
+@utility space-y-sm   { > :not([hidden]) ~ :not([hidden]) { margin-top: 8px; } }
+@utility space-y-md   { > :not([hidden]) ~ :not([hidden]) { margin-top: 16px; } }
+@utility space-y-lg   { > :not([hidden]) ~ :not([hidden]) { margin-top: 24px; } }
+@utility space-y-xl   { > :not([hidden]) ~ :not([hidden]) { margin-top: 32px; } }
+@utility space-y-2xl  { > :not([hidden]) ~ :not([hidden]) { margin-top: 48px; } }
+@utility space-y-3xl  { > :not([hidden]) ~ :not([hidden]) { margin-top: 64px; } }
+@utility space-y-gutter { > :not([hidden]) ~ :not([hidden]) { margin-top: 24px; } }
+@utility space-y-margin-mobile { > :not([hidden]) ~ :not([hidden]) { margin-top: 16px; } }
+
 @utility headline-lg {
   font-family: 'Inter', sans-serif;
   font-size: 32px;

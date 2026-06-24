@@ -26,7 +26,11 @@
     "passwordRequired": "Yêu cầu nhập mật khẩu",
     "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
     "alertGoogleSuccess": "Đăng nhập qua Google thành công!",
-    "alertEmailSuccess": "Đăng nhập thành công với: {email}"
+    "alertEmailSuccess": "Đăng nhập thành công với: {email}",
+    "registrationSuccessMessage": "Tạo tài khoản thành công! Vui lòng đăng nhập.",
+    "LOGIN_INVALID_CREDENTIALS": "Tên đăng nhập hoặc mật khẩu không chính xác.",
+    "GOOGLE_AUTH_CONFIGURATION": "Google OAuth chưa được cấu hình đúng. Vui lòng thêm AUTH_GOOGLE_SECRET hợp lệ vào fe/.env.local.",
+    "GOOGLE_AUTH_FAILED": "Đăng nhập Google không thành công. Vui lòng thử lại."
   },
   "LandingPage": {
     "brandName": "RAMP UP",
@@ -199,16 +203,6 @@
     "role": "Kỹ sư Backend",
     "subLogoTitle": "Cổng thông tin kỹ thuật",
     "logout": "Đăng xuất"
-  },
-  "Errors": {
-    "LOGIN_INVALID_CREDENTIALS": "Tên đăng nhập hoặc mật khẩu không chính xác.",
-    "UNAUTHORIZED": "Phiên làm việc hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.",
-    "FORBIDDEN": "Bạn không có quyền thực hiện hành động này.",
-    "NOT_FOUND": "Không tìm thấy tài nguyên yêu cầu.",
-    "VALIDATION_ERROR": "Dữ liệu gửi lên không hợp lệ.",
-    "NETWORK_ERROR": "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.",
-    "INTERNAL_SERVER_ERROR": "Lỗi hệ thống từ máy chủ. Vui lòng thử lại sau.",
-    "UNKNOWN_ERROR": "Đã xảy ra lỗi không xác định."
   },
   "AdminDashboardPage": {
     "title": "Tổng Quan Bảng Điều Khiển",
@@ -389,7 +383,16 @@
     "draftSaved": "Tất cả thay đổi đã được lưu ở bản nháp",
     "saveTrack": "Lưu Lộ Trình",
     "breadcrumbsTracks": "Lộ trình",
-    "noPrerequisites": "Không yêu cầu điều kiện tiên quyết cho lộ trình này."
+    "noPrerequisites": "Không yêu cầu điều kiện tiên quyết cho lộ trình này.",
+    "trackStatusTitle": "Trạng Thái Lộ Trình",
+    "previousLabel": "Trước",
+    "currentLabel": "Hiện Tại",
+    "nextLabel": "Tiếp Theo",
+    "noPrevNextTrack": "Không có lộ trình liền kề",
+    "statusCompleted": "Đã Hoàn Thành",
+    "statusLocked": "Đã Khóa",
+    "statusInProgress": "Đang Tiến Hành",
+    "potentialRewardLabel": "Phần Thưởng Tích Lũy"
   },
   "ApiErrors": {
     "titleVALIDATION_ERROR": "Lỗi Dữ Liệu",
@@ -398,16 +401,34 @@
     "contentLOGIN_INVALID_CREDENTIALS": "Tên đăng nhập hoặc mật khẩu không chính xác.",
     "titleUNAUTHORIZED": "Phiên Làm Việc Hết Hạn",
     "contentUNAUTHORIZED": "Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại.",
+    "titleSESSION_EXPIRED": "Phiên Làm Việc Hết Hạn",
+    "contentSESSION_EXPIRED": "Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại.",
     "titleFORBIDDEN": "Bị Từ Chối Truy Cập",
     "contentFORBIDDEN": "Bạn không có quyền thực hiện hành động này.",
     "titleNOT_FOUND": "Không Tìm Thấy",
     "contentNOT_FOUND": "Tài nguyên yêu cầu không tồn tại.",
     "titleINTERNAL_SERVER_ERROR": "Lỗi Hệ Thống",
     "contentINTERNAL_SERVER_ERROR": "Đã xảy ra lỗi hệ thống từ máy chủ. Vui lòng thử lại sau.",
+    "titleSYSTEM_ERROR": "Lỗi Hệ Thống",
+    "contentSYSTEM_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.",
     "titleNETWORK_ERROR": "Lỗi Kết Nối Mạng",
     "contentNETWORK_ERROR": "Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng.",
     "titleUNKNOWN_ERROR": "Lỗi Không Xác Định",
-    "contentUNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+    "contentUNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+    "titleCONFLICT": "Xung Đột",
+    "contentCONFLICT": "Yêu cầu không thể hoàn thành do xung đột dữ liệu.",
+    "titleRATE_LIMITED": "Quá Nhiều Yêu Cầu",
+    "contentRATE_LIMITED": "Bạn đã gửi quá nhiều yêu cầu. Vui lòng đợi và thử lại.",
+    "titleREGISTER_EMAIL_EXISTS": "Email Đã Được Đăng Ký",
+    "contentREGISTER_EMAIL_EXISTS": "Email này đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng email khác.",
+    "titleREGISTER_NAME_TAKEN": "Tên Đã Được Sử Dụng",
+    "contentREGISTER_NAME_TAKEN": "Tên này đã được sử dụng. Vui lòng chọn tên khác.",
+    "titleREGISTER_EMAIL_INVALID": "Email Không Hợp Lệ",
+    "contentREGISTER_EMAIL_INVALID": "Địa chỉ email được cung cấp không hợp lệ.",
+    "titleREGISTER_PASSWORD_INVALID": "Mật Khẩu Không Hợp Lệ",
+    "contentREGISTER_PASSWORD_INVALID": "Mật khẩu không đáp ứng yêu cầu.",
+    "titleREGISTER_NOT_ALLOWED": "Không Được Phép Đăng Ký",
+    "contentREGISTER_NOT_ALLOWED": "Việc đăng ký hiện không được phép."
   },
   "RegisterPage": {
     "brandSubtitle": "Gia nhập thế hệ kỹ sư tiếp theo.",
@@ -438,7 +459,19 @@
     "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
     "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
     "confirmPasswordMismatch": "Mật khẩu xác nhận không khớp",
-    "registrationSuccess": "Tạo tài khoản thành công! Vui lòng đăng nhập."
+    "registrationSuccess": "Tạo tài khoản thành công! Vui lòng đăng nhập.",
+    "registrationSuccessTitle": "Tạo tài khoản thành công!",
+    "registrationSuccessDescription": "Tài khoản của bạn đã được tạo. Bạn có thể đăng nhập để bắt đầu hành trình học tập.",
+    "goToLogin": "Đi đến Đăng Nhập",
+    "redirectCountdown": "Tự động chuyển hướng sau {seconds} giây...",
+    "REGISTER_EMAIL_EXISTS": "Email này đã được đăng ký. Vui lòng đăng nhập hoặc sử dụng email khác."
+  },
+  "ErrorPage": {
+    "title": "Đã xảy ra lỗi",
+    "defaultMessage": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+    "errorCode": "Mã lỗi",
+    "goHome": "Về Trang Chủ",
+    "goToLogin": "Đi đến Đăng Nhập"
   }
 }
 

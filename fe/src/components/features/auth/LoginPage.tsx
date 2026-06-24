@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
@@ -10,17 +10,39 @@ import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { authLoginRequestSchema, type AuthLoginInput } from '@/schemas';
 import { useAuth } from '@/providers/AuthProvider';
 import Link from 'next/dist/client/link';
+import { AppError } from '@/services/errors';
+
+function getDashboardPath(role?: string) {
+  return role === 'admin' ? '/dashboard/admin' : '/dashboard/learner';
+}
+
+function getSafeCallbackUrl(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/login')) {
+    return '/dashboard';
+  }
+
+  return value;
+}
+
+function getOAuthErrorKey(value: string | null) {
+  if (!value) return null;
+  if (value === 'Configuration') return 'GOOGLE_AUTH_CONFIGURATION';
+  return 'GOOGLE_AUTH_FAILED';
+}
 
 export default function LoginPage() {
   const t = useTranslations('LoginPage');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: authLoading, login, loginWithGoogle } = useAuth();
 
+  const isFromRegistration = searchParams.get('registered') === 'true';
+  const callbackUrl = getSafeCallbackUrl(searchParams.get('callbackUrl'));
+  const oauthError = getOAuthErrorKey(searchParams.get('error'));
 
   const { register, handleSubmit, formState: { errors } } = useForm<AuthLoginInput>({
     resolver: zodResolver(authLoginRequestSchema),
     defaultValues: {
-
       email: 'alice@glinteco.com',
       password: 'rampup123',
       rememberMe: true,
@@ -29,20 +51,25 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error] = useState<string | null>(null);
+  const [error, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace('/dashboard/learner');
+      router.replace(getDashboardPath(user.role));
     }
   }, [user, authLoading, router]);
 
   const onSubmit = async (data: AuthLoginInput) => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       await login(data.email, data.password);
-    } catch {
-      // Error handled by global interceptor
+    } catch (err) {
+      setErrorMsg(
+        err instanceof AppError && err.code !== 'LOGIN_INVALID_CREDENTIALS'
+          ? err.message
+          : t('LOGIN_INVALID_CREDENTIALS')
+      );
     } finally {
       setLoading(false);
     }
@@ -51,13 +78,15 @@ export default function LoginPage() {
   const onGoogleSignIn = async () => {
     setLoading(true);
     try {
-      await loginWithGoogle();
+      await loginWithGoogle(callbackUrl);
     } catch {
-      // Error handled by global interceptor
+      setErrorMsg('GOOGLE_AUTH_FAILED');
     } finally {
       setLoading(false);
     }
   };
+
+  const visibleError = error ?? (oauthError ? t(oauthError) : null);
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
@@ -105,10 +134,17 @@ export default function LoginPage() {
               <p className="text-[14px] text-on-surface-variant mt-1">{t('signInPrompt')}</p>
             </div>
 
-            {error && (
+            {isFromRegistration && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">check_circle</span>
+                <span>{t('registrationSuccessMessage')}</span>
+              </div>
+            )}
+
+            {visibleError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">error</span>
-                <span>{error}</span>
+                <span>{visibleError}</span>
               </div>
             )}
 

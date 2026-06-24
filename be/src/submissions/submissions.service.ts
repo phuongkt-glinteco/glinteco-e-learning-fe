@@ -140,7 +140,7 @@ export class SubmissionsService {
     event.trackId = exercise.trackId;
     event.trackName = exercise.track?.title || '';
     event.prUrl = prUrl;
-    event.submittedAt = savedSubmission.submittedAt;
+    event.submittedAt = savedSubmission.submittedAt ?? new Date();
     this.eventEmitter.emit('submission.created', event);
 
     // Trigger notification stub
@@ -208,7 +208,7 @@ export class SubmissionsService {
       event.trackId = exercise.trackId;
       event.trackName = exercise.track?.title || '';
       event.prUrl = prUrl;
-      event.submittedAt = savedSubmission.submittedAt;
+      event.submittedAt = savedSubmission.submittedAt ?? new Date();
       event.previousComments = previousComments;
       this.eventEmitter.emit('submission.resubmitted', event);
     }

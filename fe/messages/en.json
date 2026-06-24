@@ -26,7 +26,11 @@
     "passwordRequired": "Password is required",
     "passwordMinLength": "Password must be at least 6 characters",
     "alertGoogleSuccess": "Google login successful!",
-    "alertEmailSuccess": "Successfully signed in with: {email}"
+    "alertEmailSuccess": "Successfully signed in with: {email}",
+    "registrationSuccessMessage": "Account created successfully! Please sign in.",
+    "LOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "GOOGLE_AUTH_CONFIGURATION": "Google OAuth is not configured correctly. Add a valid AUTH_GOOGLE_SECRET to fe/.env.local.",
+    "GOOGLE_AUTH_FAILED": "Google sign-in did not complete. Please try again."
   },
 
   "LandingPage": {
@@ -200,16 +204,6 @@
     "role": "Backend Engineer",
     "subLogoTitle": "Engineering Portal",
     "logout": "Logout"
-  },
-  "Errors": {
-    "LOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",
-    "UNAUTHORIZED": "Session expired or invalid. Please sign in again.",
-    "FORBIDDEN": "You do not have permission to perform this action.",
-    "NOT_FOUND": "Requested resource not found.",
-    "VALIDATION_ERROR": "Invalid data submitted.",
-    "NETWORK_ERROR": "Cannot connect to server. Please check your network connection.",
-    "INTERNAL_SERVER_ERROR": "Internal server error. Please try again later.",
-    "UNKNOWN_ERROR": "An unexpected error occurred."
   },
   "AdminDashboardPage": {
     "title": "Dashboard Overview",
@@ -390,7 +384,16 @@
     "draftSaved": "All changes saved in draft mode",
     "saveTrack": "Save Track",
     "breadcrumbsTracks": "Tracks",
-    "noPrerequisites": "No prerequisites required for this track."
+    "noPrerequisites": "No prerequisites required for this track.",
+    "trackStatusTitle": "Track Status",
+    "previousLabel": "Previous",
+    "currentLabel": "Current",
+    "nextLabel": "Next",
+    "noPrevNextTrack": "No adjacent tracks",
+    "statusCompleted": "Completed",
+    "statusLocked": "Locked",
+    "statusInProgress": "In Progress",
+    "potentialRewardLabel": "Potential Reward"
   },
   "ApiErrors": {
     "titleVALIDATION_ERROR": "Validation Error",
@@ -399,16 +402,34 @@
     "contentLOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",
     "titleUNAUTHORIZED": "Session Expired",
     "contentUNAUTHORIZED": "Your session has expired. Please sign in again.",
+    "titleSESSION_EXPIRED": "Session Expired",
+    "contentSESSION_EXPIRED": "Your session has expired. Please sign in again.",
     "titleFORBIDDEN": "Access Denied",
     "contentFORBIDDEN": "You do not have permission to perform this action.",
     "titleNOT_FOUND": "Not Found",
     "contentNOT_FOUND": "The requested resource could not be found.",
     "titleINTERNAL_SERVER_ERROR": "Server Error",
     "contentINTERNAL_SERVER_ERROR": "An internal server error occurred. Please try again later.",
+    "titleSYSTEM_ERROR": "System Error",
+    "contentSYSTEM_ERROR": "An unexpected error occurred. Please try again later.",
     "titleNETWORK_ERROR": "Network Connection Error",
     "contentNETWORK_ERROR": "Cannot connect to the server. Please check your connection and try again.",
     "titleUNKNOWN_ERROR": "Unexpected Error",
-    "contentUNKNOWN_ERROR": "An unexpected error occurred. Please try again."
+    "contentUNKNOWN_ERROR": "An unexpected error occurred. Please try again.",
+    "titleCONFLICT": "Conflict",
+    "contentCONFLICT": "The request could not be completed due to a conflict.",
+    "titleRATE_LIMITED": "Too Many Requests",
+    "contentRATE_LIMITED": "You have made too many requests. Please wait and try again.",
+    "titleREGISTER_EMAIL_EXISTS": "Email Already Registered",
+    "contentREGISTER_EMAIL_EXISTS": "This email address is already registered. Please sign in or use a different email.",
+    "titleREGISTER_NAME_TAKEN": "Name Already Taken",
+    "contentREGISTER_NAME_TAKEN": "This name is already taken. Please choose a different name.",
+    "titleREGISTER_EMAIL_INVALID": "Invalid Email",
+    "contentREGISTER_EMAIL_INVALID": "The email address provided is not valid.",
+    "titleREGISTER_PASSWORD_INVALID": "Invalid Password",
+    "contentREGISTER_PASSWORD_INVALID": "The password does not meet the requirements.",
+    "titleREGISTER_NOT_ALLOWED": "Registration Not Allowed",
+    "contentREGISTER_NOT_ALLOWED": "Registration is not allowed at this time."
   },
   "RegisterPage": {
     "brandSubtitle": "Join the next generation of engineers.",
@@ -439,7 +460,19 @@
     "passwordMinLength": "Password must be at least 6 characters",
     "confirmPasswordRequired": "Please confirm your password",
     "confirmPasswordMismatch": "Passwords do not match",
-    "registrationSuccess": "Account created successfully! Please sign in."
+    "registrationSuccess": "Account created successfully! Please sign in.",
+    "registrationSuccessTitle": "Account created successfully!",
+    "registrationSuccessDescription": "Your account has been created. You can now sign in to start your learning journey.",
+    "goToLogin": "Go to Sign In",
+    "redirectCountdown": "Redirecting to sign in in {seconds} seconds...",
+    "REGISTER_EMAIL_EXISTS": "This email address is already registered. Please sign in or use a different email."
+  },
+  "ErrorPage": {
+    "title": "Something went wrong",
+    "defaultMessage": "An unexpected error occurred. Please try again.",
+    "errorCode": "Error code",
+    "goHome": "Go to Home",
+    "goToLogin": "Go to Sign In"
   }
 }
 

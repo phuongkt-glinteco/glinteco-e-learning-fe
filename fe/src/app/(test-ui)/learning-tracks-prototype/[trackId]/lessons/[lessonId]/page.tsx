@@ -1,43 +1,35 @@
 'use client';
 
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/utils/api';
 import CircleMeter from '@/components/ui/CircleMeter';
 import { TimeBadge } from '@/components/ui/Badge';
 import { Icon } from '@iconify/react';
+import type {
+  GetTracksByIdLessonsResponse,
+  LessonProgressItem,
+  LessonSummary,
+  PostLessonsByIdCompleteResponse,
+  TrackDetail,
+} from '@/services/api-client';
 
-interface Lesson {
-  id: string;
-  name: string;
-  order: number;
-  content: string;
-  isCompleted: boolean;
-}
-
-interface Track {
-  id: string;
-  name: string;
-  order: number;
-  lessonsCount: number;
-  progress: {
-    lessonsCompleted: number;
-    status: 'locked' | 'in_progress' | 'completed';
-  };
-}
+type Lesson = LessonProgressItem & Pick<LessonSummary, 'estimatedTime'> & {
+  body?: string;
+};
 
 interface ExerciseSubmission {
   id: string;
   prUrl: string;
-  status: 'pending' | 'approved' | 'changes';
-  submittedAt: string;
+  status: 'pending' | 'submitted' | 'approved' | 'changes' | 'rejected';
+  submittedAt?: string | null;
 }
 
 interface Exercise {
   id: string;
   title: string;
-  objectives: string[] | Record<string, string>;
-  steps: string[] | Record<string, string>;
+  objectives?: string[] | Record<string, string>;
+  steps?: string[] | Record<string, string>;
   submission: ExerciseSubmission | null;
   tag?: string;
   difficulty?: string;
@@ -48,18 +40,14 @@ interface Exercise {
   resources?: Array<{ id: string; title: string; url?: string }>;
 }
 
-interface LessonCompletionResponse {
-  xpAwarded?: number;
-  unlockedTrackId?: string;
-}
-
 interface ExerciseSubmissionResult {
   id?: string;
+  status?: ExerciseSubmission['status'];
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error) return error.message;
-  if (error && typeof error === 'object') {
+  if (typeof error === 'object' && error !== null && 'message' in error) {
     const message = (error as { message?: unknown }).message;
     if (typeof message === 'string') return message;
   }
@@ -72,7 +60,7 @@ export default function LessonDetailPage() {
   const trackId = params.trackId as string;
   const lessonId = params.lessonId as string;
 
-  const [track, setTrack] = useState<Track | null>(null);
+  const [track, setTrack] = useState<TrackDetail | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,12 +91,40 @@ export default function LessonDetailPage() {
       setError(null);
 
       // 1. Get track info
-      const trackRes = await apiClient.get<Track>(`/tracks/${trackId}`);
-      setTrack(trackRes);
+      const trackRes = await apiClient.get<TrackDetail>(`/tracks/${trackId}`);
 
       // 2. Get lessons in track
-      const lessonsRes = await apiClient.get<{ data: Lesson[] }>(`/tracks/${trackId}/lessons`);
-      const resolvedLessons = lessonsRes.data || [];
+      const lessonsRes = await apiClient.get<GetTracksByIdLessonsResponse>(`/tracks/${trackId}/lessons`);
+      const lessonSummaries = lessonsRes.data || [];
+      const summaryById = new Map<string, LessonSummary>();
+      for (const lesson of lessonSummaries) {
+        if (lesson.id) summaryById.set(lesson.id, lesson);
+      }
+
+      const detailLessons =
+        trackRes.lessons && trackRes.lessons.length > 0
+          ? trackRes.lessons
+          : lessonSummaries.map((lesson) => ({
+              id: lesson.id,
+              title: lesson.title,
+              order: lesson.order,
+              completed: false,
+            }));
+
+      const resolvedLessons = detailLessons
+        .map((lesson) => {
+          const summary = lesson.id ? summaryById.get(lesson.id) : undefined;
+          return {
+            ...lesson,
+            estimatedTime: summary?.estimatedTime,
+          };
+        })
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+      setTrack({
+        ...trackRes,
+        lessons: resolvedLessons,
+      });
       setLessons(resolvedLessons);
 
       // 3. Get exercises in track
@@ -136,12 +152,15 @@ export default function LessonDetailPage() {
 
   const activeLesson = lessons.find((l) => l.id === lessonId);
   const activeExercise = exercises[0]; // Usually 1 exercise per track
+  const activeLessonTitle = activeLesson?.title ?? 'Untitled lesson';
+  const activeLessonBody = activeLesson?.body ?? track?.description ?? '';
+  const activeLessonCompleted = activeLesson?.completed ?? false;
 
   // Determine variant dynamically
   const getLessonVariant = () => {
     if (!activeLesson) return 'reading';
-    const nameLower = activeLesson.name.toLowerCase();
-    const contentLower = activeLesson.content.toLowerCase();
+    const nameLower = activeLessonTitle.toLowerCase();
+    const contentLower = activeLessonBody.toLowerCase();
 
     // Last lesson in track + there is an exercise = exercise variant
     const isLastLesson = lessons.length > 0 && activeLesson.id === lessons[lessons.length - 1].id;
@@ -186,7 +205,7 @@ export default function LessonDetailPage() {
     if (!activeLesson) return;
     try {
       setCompletingLesson(true);
-      const res = await apiClient.post<LessonCompletionResponse>(`/lessons/${activeLesson.id}/complete`);
+      const res = await apiClient.post<PostLessonsByIdCompleteResponse>(`/lessons/${activeLesson.id}/complete`);
 
       setToastMessage(`Congratulations! +${res.xpAwarded || 40} XP Claimed.`);
 
@@ -197,17 +216,19 @@ export default function LessonDetailPage() {
 
       // Proactively update local state for snappy responsive UI
       setLessons((prev) =>
-        prev.map((l) => (l.id === activeLesson.id ? { ...l, isCompleted: true } : l))
+        prev.map((l) => (l.id === activeLesson.id ? { ...l, completed: true } : l))
       );
       if (track) {
-        const updatedCompletedCount = Math.min(track.progress.lessonsCompleted + 1, track.lessonsCount);
+        const totalLessons = track.lessons?.length ?? lessons.length;
+        const increment = activeLesson.completed ? 0 : 1;
+        const updatedCompletedCount = Math.min((track.lessonsCompleted ?? 0) + increment, totalLessons);
         setTrack({
           ...track,
-          progress: {
-            ...track.progress,
-            lessonsCompleted: updatedCompletedCount,
-            status: updatedCompletedCount === track.lessonsCount ? 'completed' : 'in_progress',
-          },
+          lessonsCompleted: updatedCompletedCount,
+          status: updatedCompletedCount === totalLessons ? 'completed' : 'in_progress',
+          lessons: track.lessons?.map((lesson) =>
+            lesson.id === activeLesson.id ? { ...lesson, completed: true } : lesson
+          ),
         });
       }
 
@@ -221,7 +242,7 @@ export default function LessonDetailPage() {
   };
 
   // Exercise Submission handler
-  const handleSubmitExercise = async (e: FormEvent) => {
+  const handleSubmitExercise = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeExercise || !prUrlInput.trim()) return;
     try {
@@ -251,7 +272,7 @@ export default function LessonDetailPage() {
                 submission: {
                   id: submissionResult.id || 'temp-id',
                   prUrl: prUrlInput,
-                  status: 'pending',
+                  status: submissionResult.status ?? 'submitted',
                   submittedAt: new Date().toISOString(),
                 },
               }
@@ -270,7 +291,7 @@ export default function LessonDetailPage() {
   // Interactive Quiz questions generator
   const quizQuestions = activeLesson ? [
     {
-      question: `What is the primary topic of the lesson "${activeLesson.name}"?`,
+      question: `What is the primary topic of the lesson "${activeLessonTitle}"?`,
       options: [
         'Running server-side build steps and dev container optimizations',
         'Implementing clean layered boundaries with inversion of control',
@@ -329,7 +350,7 @@ export default function LessonDetailPage() {
         </h3>
         <p className="text-sm mt-1">{error || 'The requested lesson or track was not found.'}</p>
         <button
-          onClick={() => router.push('/courses')}
+          onClick={() => router.push('/tracks')}
           className="mt-3 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-md transition-colors"
         >
           Back to Courses
@@ -338,7 +359,11 @@ export default function LessonDetailPage() {
     );
   }
 
-  const trackProgressPercent = track ? Math.round((track.progress.lessonsCompleted / track.lessonsCount) * 100) : 0;
+  const trackLessonCount = track?.lessons?.length ?? lessons.length;
+  const trackLessonsCompleted =
+    track?.lessonsCompleted ?? lessons.filter((lesson) => lesson.completed).length;
+  const trackProgressPercent =
+    trackLessonCount > 0 ? Math.round((trackLessonsCompleted / trackLessonCount) * 100) : 0;
 
   return (
     <div className="flex flex-col gap-6 max-w-[1280px] mx-auto py-2">
@@ -362,7 +387,7 @@ export default function LessonDetailPage() {
       <div className="bg-surface border border-outline-variant rounded-lg p-4 flex items-center justify-between gap-4 flex-wrap shadow-sm">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push('/courses')}
+            onClick={() => router.push('/tracks')}
             className="w-9 h-9 border border-outline-variant hover:bg-slate-50 rounded-lg flex items-center justify-center text-on-surface-variant transition-colors"
           >
             <Icon icon="lucide:arrow-left" className="w-4 h-4" />
@@ -371,7 +396,7 @@ export default function LessonDetailPage() {
             <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
               Milestone Track
             </span>
-            <h2 className="text-base font-bold text-on-surface">{track?.name}</h2>
+            <h2 className="text-base font-bold text-on-surface">{track?.title}</h2>
           </div>
         </div>
 
@@ -380,7 +405,7 @@ export default function LessonDetailPage() {
             <Icon icon="lucide:unlock" className="w-4 h-4 text-emerald-600 animate-pulse" />
             <span className="font-semibold">Next track unlocked!</span>
             <button
-              onClick={() => router.push('/courses')}
+              onClick={() => router.push('/tracks')}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-0.5 rounded text-[10px] transition-colors"
             >
               View dashboard
@@ -401,7 +426,7 @@ export default function LessonDetailPage() {
             <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 mt-1.5">
               <span>Progress</span>
               <span>
-                {track?.progress.lessonsCompleted}/{track?.lessonsCount} done
+                {trackLessonsCompleted}/{trackLessonCount} done
               </span>
             </div>
           </div>
@@ -409,7 +434,7 @@ export default function LessonDetailPage() {
           <div className="flex flex-col gap-1.5 max-h-[480px] overflow-y-auto pr-1">
             {lessons.map((l, i) => {
               const isActive = l.id === lessonId;
-              const isComp = l.isCompleted;
+              const isComp = l.completed;
 
               return (
                 <button
@@ -434,7 +459,7 @@ export default function LessonDetailPage() {
                     }`}
                   />
                   <span className="leading-normal flex-1 truncate">
-                    {String(i + 1).padStart(2, '0')}. {l.name}
+                    {String(i + 1).padStart(2, '0')}. {l.title}
                   </span>
                 </button>
               );
@@ -455,19 +480,19 @@ export default function LessonDetailPage() {
                 <Icon icon="lucide:zap" className="w-3.5 h-3.5 text-amber-500 fill-current" />
                 {variant === 'exercise' ? activeExercise?.xp || 120 : 40} XP
               </span>
-              {activeLesson.isCompleted && (
+              {activeLessonCompleted && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-green-50 text-green-700 border border-green-200">
                   <Icon icon="lucide:check" className="w-3 h-3" /> COMPLETED
                 </span>
               )}
             </div>
-            <h1 className="text-xl font-bold text-on-surface leading-snug">{activeLesson.name}</h1>
+            <h1 className="text-xl font-bold text-on-surface leading-snug">{activeLessonTitle}</h1>
           </div>
 
           {/* Render Markdown Content */}
           <div
             className="prose prose-sm max-w-none text-on-surface-variant"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(activeLesson.content) }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(activeLessonBody) }}
           />
 
           {/* ACTIVE CONTENT VARIANT PANEL */}
@@ -530,15 +555,15 @@ export default function LessonDetailPage() {
                 <div className="flex justify-end mt-4 pt-2">
                   <button
                     onClick={handleCompleteLesson}
-                    disabled={completingLesson || activeLesson.isCompleted}
+                    disabled={completingLesson || activeLessonCompleted}
                     className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer select-none ${
-                      activeLesson.isCompleted
+                      activeLessonCompleted
                         ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                         : 'bg-primary text-white hover:bg-blue-700 shadow-sm'
                     }`}
                   >
                     <Icon icon="lucide:check-circle" className="w-4 h-4" />
-                    {activeLesson.isCompleted ? 'Video Cleared' : 'Mark Video Complete'}
+                    {activeLessonCompleted ? 'Video Cleared' : 'Mark Video Complete'}
                   </button>
                 </div>
               </div>
@@ -607,15 +632,15 @@ export default function LessonDetailPage() {
                       )}
                       <button
                         onClick={handleCompleteLesson}
-                        disabled={completingLesson || !isQuizCorrect || activeLesson.isCompleted}
+                        disabled={completingLesson || !isQuizCorrect || activeLessonCompleted}
                         className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer select-none ${
-                          !isQuizCorrect || activeLesson.isCompleted
+                          !isQuizCorrect || activeLessonCompleted
                             ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                             : 'bg-primary text-white hover:bg-blue-700 shadow-sm'
                         }`}
                       >
                         <Icon icon="lucide:award" className="w-4 h-4" />
-                        {activeLesson.isCompleted ? 'Quiz Completed' : 'Submit Quiz Answers'}
+                        {activeLessonCompleted ? 'Quiz Completed' : 'Submit Quiz Answers'}
                       </button>
                     </>
                   ) : (
@@ -764,15 +789,15 @@ export default function LessonDetailPage() {
                 <div className="flex justify-end mt-4 pt-2">
                   <button
                     onClick={handleCompleteLesson}
-                    disabled={completingLesson || activeLesson.isCompleted}
+                    disabled={completingLesson || activeLessonCompleted}
                     className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold rounded-lg transition-colors cursor-pointer select-none ${
-                      activeLesson.isCompleted
+                      activeLessonCompleted
                         ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                         : 'bg-primary text-white hover:bg-blue-700 shadow-sm'
                     }`}
                   >
                     <Icon icon="lucide:check-circle" className="w-4 h-4" />
-                    {activeLesson.isCompleted ? 'Reading Cleared' : 'Completed Reading'}
+                    {activeLessonCompleted ? 'Reading Cleared' : 'Completed Reading'}
                   </button>
                 </div>
               </div>
@@ -793,10 +818,10 @@ export default function LessonDetailPage() {
 
                 <button
                   onClick={handleCompleteLesson}
-                  disabled={completingLesson || activeLesson.isCompleted}
+                  disabled={completingLesson || activeLessonCompleted}
                   className="px-6 py-3 bg-secondary text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs font-bold rounded-xl shadow-lg transition-colors cursor-pointer"
                 >
-                  {completingLesson ? 'Unlocking...' : activeLesson.isCompleted ? 'Track Complete!' : 'Unlock Next Track'}
+                  {completingLesson ? 'Unlocking...' : activeLessonCompleted ? 'Track Complete!' : 'Unlock Next Track'}
                 </button>
               </div>
             )}
@@ -856,7 +881,7 @@ export default function LessonDetailPage() {
                       Object.values(activeExercise.objectives).slice(0, 3).map((obj, oIdx) => (
                         <div key={oIdx} className="flex gap-2 items-start text-[11px] font-medium text-on-surface-variant leading-relaxed">
                           <Icon icon="lucide:check-square" className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-                          <span>{obj}</span>
+                          <span>{String(obj)}</span>
                         </div>
                       ))
                     )}

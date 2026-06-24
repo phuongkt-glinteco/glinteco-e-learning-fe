@@ -2,25 +2,32 @@ import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
 import { API_BASE_URL } from '@/services/api-config';
 
+const googleClientId = process.env.AUTH_GOOGLE_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.AUTH_GOOGLE_SECRET;
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [Google],
+  providers: [
+    Google({
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+    }),
+  ],
   callbacks: {
     async jwt({ token, account }) {
       if (account?.id_token) {
-        try {
-          const res = await fetch(`${API_BASE_URL}/auth/google`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken: account.id_token }),
-          });
-          if (!res.ok) throw new Error('Backend auth failed');
-          const data = await res.json();
-          token.accessToken = data.accessToken;
-          token.refreshToken = data.refreshToken;
-          token.user = data.user;
-        } catch (error) {
-          console.error('Failed to exchange Google idToken with backend:', error);
+        const res = await fetch(`${API_BASE_URL}/auth/google`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idToken: account.id_token }),
+        });
+        if (!res.ok) {
+          const message = await res.text();
+          throw new Error(`Backend auth failed: ${res.status} ${message}`);
         }
+        const data = await res.json();
+        token.accessToken = data.accessToken;
+        token.refreshToken = data.refreshToken;
+        token.user = data.user;
       }
       return token;
     },

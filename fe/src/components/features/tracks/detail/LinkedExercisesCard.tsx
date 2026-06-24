@@ -4,15 +4,21 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Modal } from '@/components/ui';
-import { deleteExercisesById } from '@/services/api-client';
+import { exercisesControllerRemove } from '@/services/api-client';
 import { UiShowError } from '@/services/errors';
-import type { ExerciseSummary } from '@/services/api-client';
+import type { ExerciseSummaryDto } from '@/services/api-client';
 
 interface LinkedExercisesCardProps {
   trackId: string;
-  exercises: ExerciseSummary[];
+  exercises: ExerciseSummaryDto[];
   onDeleteExercise: (exerciseId: string) => void;
 }
+
+const DIFFICULTY_COLORS: Record<string, string> = {
+  Beginner: 'text-tertiary bg-tertiary-fixed/20',
+  Intermediate: 'text-warning bg-warning/20',
+  Advanced: 'text-error bg-error-container',
+};
 
 export default function LinkedExercisesCard({ trackId, exercises, onDeleteExercise }: LinkedExercisesCardProps) {
   const t = useTranslations('TrackDetailPage');
@@ -45,6 +51,19 @@ export default function LinkedExercisesCard({ trackId, exercises, onDeleteExerci
                 <div className="min-w-0 flex-1">
                   <h5 className="font-label-md text-on-surface truncate">{ex.title}</h5>
                   <p className="text-label-sm text-outline truncate">{ex.brief || t('noExerciseDescription')}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {ex.difficulty && (
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${DIFFICULTY_COLORS[ex.difficulty] || ''}`}>
+                        {ex.difficulty}
+                      </span>
+                    )}
+                    {ex.xp != null && (
+                      <span className="flex items-center gap-0.5 text-outline text-label-sm">
+                        <span className="material-symbols-outlined text-[14px]">bolt</span>
+                        {t('xpValue', { count: ex.xp })}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={() => setDeletingId(ex.id!)}
@@ -99,7 +118,7 @@ export default function LinkedExercisesCard({ trackId, exercises, onDeleteExerci
                 setDeleting(true);
                 setDeleteError(null);
                 try {
-                  await deleteExercisesById({
+                  await exercisesControllerRemove({
                     path: { id: deletingId },
                     throwOnError: true,
                   });

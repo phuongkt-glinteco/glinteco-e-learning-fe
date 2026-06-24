@@ -3185,7 +3185,7 @@ components:
           format: date-time
           example: 2026-06-15T11:25:00Z
 
-    SubmissionFeedItem:
+    Item:
       type: object
       properties:
         id:

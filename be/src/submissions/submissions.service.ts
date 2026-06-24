@@ -135,9 +135,9 @@ export class SubmissionsService {
     event.exerciseId = exercise.id;
     event.exerciseTitle = exercise.title;
     event.trackId = exercise.trackId;
-    event.trackName = exercise.track?.name || '';
+    event.trackName = exercise.track?.title || '';
     event.prUrl = prUrl;
-    event.submittedAt = savedSubmission.submittedAt;
+    event.submittedAt = savedSubmission.submittedAt || new Date();
     this.eventEmitter.emit('submission.created', event);
 
     // Trigger notification stub
@@ -198,9 +198,9 @@ export class SubmissionsService {
       event.exerciseId = exercise.id;
       event.exerciseTitle = exercise.title;
       event.trackId = exercise.trackId;
-      event.trackName = exercise.track?.name || '';
+      event.trackName = exercise.track?.title || '';
       event.prUrl = prUrl;
-      event.submittedAt = savedSubmission.submittedAt;
+      event.submittedAt = savedSubmission.submittedAt || new Date();
       event.previousComments = previousComments;
       this.eventEmitter.emit('submission.resubmitted', event);
     }
@@ -291,7 +291,8 @@ export class SubmissionsService {
   async findOne(id: string, userId: string, userRole: string) {
     const submission = await this.submissionRepository.findOne({
       where: { id },
-      relations: { user: true, exercise: true },
+      relations: { user: true, exercise: true, histories: { admin: true } },
+      order: { histories: { createdAt: 'DESC' } },
     });
 
     if (!submission) {
@@ -316,7 +317,8 @@ export class SubmissionsService {
   ) {
     const submission = await this.submissionRepository.findOne({
       where: { id },
-      relations: { user: true, exercise: { track: true } },
+      relations: { user: true, exercise: { track: true }, histories: { admin: true } },
+      order: { histories: { createdAt: 'DESC' } },
     });
 
     if (!submission) {

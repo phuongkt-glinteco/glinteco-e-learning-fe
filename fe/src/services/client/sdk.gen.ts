@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteDocumentsByIdBookmarkData, DeleteDocumentsByIdBookmarkErrors, DeleteDocumentsByIdBookmarkResponses, DeleteDocumentsByIdData, DeleteDocumentsByIdErrors, DeleteDocumentsByIdResponses, DeleteExercisesByIdData, DeleteExercisesByIdErrors, DeleteExercisesByIdResponses, DeleteLessonsByIdData, DeleteLessonsByIdErrors, DeleteLessonsByIdResponses, DeleteTagsByIdData, DeleteTagsByIdErrors, DeleteTagsByIdResponses, DeleteTracksByIdData, DeleteTracksByIdErrors, DeleteTracksByIdResponses, GetAuthMeData, GetAuthMeErrors, GetAuthMeResponses, GetCohortsByIdData, GetCohortsByIdErrors, GetCohortsByIdExportData, GetCohortsByIdExportErrors, GetCohortsByIdExportResponses, GetCohortsByIdOverviewData, GetCohortsByIdOverviewErrors, GetCohortsByIdOverviewResponses, GetCohortsByIdResponses, GetCohortsByIdTrackCompletionData, GetCohortsByIdTrackCompletionErrors, GetCohortsByIdTrackCompletionResponses, GetCohortsData, GetCohortsErrors, GetCohortsResponses, GetDocumentsByIdData, GetDocumentsByIdErrors, GetDocumentsByIdResponses, GetDocumentsData, GetDocumentsErrors, GetDocumentsRecentData, GetDocumentsRecentErrors, GetDocumentsRecentResponses, GetDocumentsResponses, GetExercisesByIdData, GetExercisesByIdErrors, GetExercisesByIdResponses, GetExercisesData, GetExercisesErrors, GetExercisesResponses, GetLeaderboardData, GetLeaderboardErrors, GetLeaderboardResponses, GetNotificationsData, GetNotificationsErrors, GetNotificationsResponses, GetSearchData, GetSearchErrors, GetSearchResponses, GetSubmissionsByIdData, GetSubmissionsByIdErrors, GetSubmissionsByIdHistoryData, GetSubmissionsByIdHistoryErrors, GetSubmissionsByIdHistoryResponses, GetSubmissionsByIdResponses, GetSubmissionsData, GetSubmissionsErrors, GetSubmissionsMineData, GetSubmissionsMineErrors, GetSubmissionsMineResponses, GetSubmissionsResponses, GetTagsData, GetTagsErrors, GetTagsResponses, GetTracksByIdData, GetTracksByIdErrors, GetTracksByIdLessonsData, GetTracksByIdLessonsErrors, GetTracksByIdLessonsResponses, GetTracksByIdResponses, GetTracksData, GetTracksErrors, GetTracksResponses, GetUsersByIdData, GetUsersByIdErrors, GetUsersByIdResponses, GetUsersData, GetUsersErrors, GetUsersMeStatsData, GetUsersMeStatsErrors, GetUsersMeStatsResponses, GetUsersResponses, PatchCohortsByIdData, PatchCohortsByIdErrors, PatchCohortsByIdResponses, PatchDocumentsByIdData, PatchDocumentsByIdErrors, PatchDocumentsByIdResponses, PatchExercisesByIdData, PatchExercisesByIdErrors, PatchExercisesByIdResponses, PatchLessonsByIdData, PatchLessonsByIdErrors, PatchLessonsByIdResponses, PatchTracksByIdData, PatchTracksByIdErrors, PatchTracksByIdResponses, PatchTracksReorderData, PatchTracksReorderErrors, PatchTracksReorderResponses, PatchUsersMeData, PatchUsersMeErrors, PatchUsersMeResponses, PostAuthForgotPasswordData, PostAuthForgotPasswordResponses, PostAuthGoogleData, PostAuthGoogleErrors, PostAuthGoogleResponses, PostAuthLoginData, PostAuthLoginErrors, PostAuthLoginResponses, PostAuthLogoutData, PostAuthLogoutErrors, PostAuthLogoutResponses, PostAuthRefreshData, PostAuthRefreshErrors, PostAuthRefreshResponses, PostAuthRegisterData, PostAuthRegisterErrors, PostAuthRegisterResponses, PostAuthResetPasswordData, PostAuthResetPasswordErrors, PostAuthResetPasswordResponses, PostCohortsData, PostCohortsErrors, PostCohortsResponses, PostDocumentsByIdBookmarkData, PostDocumentsByIdBookmarkErrors, PostDocumentsByIdBookmarkResponses, PostDocumentsData, PostDocumentsErrors, PostDocumentsResponses, PostExercisesByIdSubmissionsData, PostExercisesByIdSubmissionsErrors, PostExercisesByIdSubmissionsResponses, PostExercisesData, PostExercisesErrors, PostExercisesResponses, PostLessonsByIdCompleteData, PostLessonsByIdCompleteErrors, PostLessonsByIdCompleteResponses, PostNotificationsByIdReadData, PostNotificationsByIdReadErrors, PostNotificationsByIdReadResponses, PostSubmissionsByIdApproveData, PostSubmissionsByIdApproveErrors, PostSubmissionsByIdApproveResponses, PostSubmissionsByIdRequestChangesData, PostSubmissionsByIdRequestChangesErrors, PostSubmissionsByIdRequestChangesResponses, PostTagsData, PostTagsErrors, PostTagsResponses, PostTracksByIdLessonsData, PostTracksByIdLessonsErrors, PostTracksByIdLessonsResponses, PostTracksData, PostTracksErrors, PostTracksResponses, PostUsersMeNotificationsSlackData, PostUsersMeNotificationsSlackErrors, PostUsersMeNotificationsSlackResponses, PutExercisesByIdSubmissionsData, PutExercisesByIdSubmissionsErrors, PutExercisesByIdSubmissionsResponses } from './types.gen';
+import type { AppControllerGetHelloData, AppControllerGetHelloResponses, AuthControllerForgotPasswordData, AuthControllerForgotPasswordErrors, AuthControllerForgotPasswordResponses, AuthControllerGoogleLoginData, AuthControllerGoogleLoginErrors, AuthControllerGoogleLoginResponses, AuthControllerLoginData, AuthControllerLoginErrors, AuthControllerLoginResponses, AuthControllerLogoutData, AuthControllerLogoutErrors, AuthControllerLogoutResponses, AuthControllerMeData, AuthControllerMeErrors, AuthControllerMeResponses, AuthControllerRefreshData, AuthControllerRefreshErrors, AuthControllerRefreshResponses, AuthControllerRegisterData, AuthControllerRegisterErrors, AuthControllerRegisterResponses, AuthControllerResetPasswordData, AuthControllerResetPasswordErrors, AuthControllerResetPasswordResponses, CohortControllerCreateData, CohortControllerCreateErrors, CohortControllerCreateResponses, CohortControllerExportReportData, CohortControllerExportReportErrors, CohortControllerExportReportResponses, CohortControllerFindAllData, CohortControllerFindAllErrors, CohortControllerFindAllResponses, CohortControllerFindOneData, CohortControllerFindOneErrors, CohortControllerFindOneResponses, CohortControllerGetOverviewData, CohortControllerGetOverviewErrors, CohortControllerGetOverviewResponses, CohortControllerGetTrackCompletionData, CohortControllerGetTrackCompletionErrors, CohortControllerGetTrackCompletionResponses, CohortControllerRemoveData, CohortControllerRemoveErrors, CohortControllerRemoveResponses, CohortControllerUpdateData, CohortControllerUpdateErrors, CohortControllerUpdateResponses, DocumentsControllerBookmarkData, DocumentsControllerBookmarkResponses, DocumentsControllerCreateData, DocumentsControllerCreateResponses, DocumentsControllerCreateTagData, DocumentsControllerCreateTagResponses, DocumentsControllerDeleteData, DocumentsControllerDeleteResponses, DocumentsControllerDeleteTagData, DocumentsControllerDeleteTagResponses, DocumentsControllerFindAllData, DocumentsControllerFindAllResponses, DocumentsControllerFindAllTagsData, DocumentsControllerFindAllTagsResponses, DocumentsControllerFindOneData, DocumentsControllerFindOneResponses, DocumentsControllerFindRecentData, DocumentsControllerFindRecentResponses, DocumentsControllerUnbookmarkData, DocumentsControllerUnbookmarkResponses, DocumentsControllerUpdateData, DocumentsControllerUpdateResponses, ExercisesControllerCreateData, ExercisesControllerCreateErrors, ExercisesControllerCreateResponses, ExercisesControllerFindAllData, ExercisesControllerFindAllResponses, ExercisesControllerFindOneData, ExercisesControllerFindOneErrors, ExercisesControllerFindOneResponses, ExercisesControllerRemoveData, ExercisesControllerRemoveErrors, ExercisesControllerRemoveResponses, ExercisesControllerUpdateData, ExercisesControllerUpdateErrors, ExercisesControllerUpdateResponses, LeaderboardControllerGetLeaderboardData, LeaderboardControllerGetLeaderboardResponses, LessonsControllerCompleteLessonData, LessonsControllerCompleteLessonResponses, LessonsControllerCreateLessonData, LessonsControllerCreateLessonResponses, LessonsControllerDeleteLessonData, LessonsControllerDeleteLessonResponses, LessonsControllerFindExercisesByLessonData, LessonsControllerFindExercisesByLessonResponses, LessonsControllerFindLessonsData, LessonsControllerFindLessonsResponses, LessonsControllerFindOneLessonData, LessonsControllerFindOneLessonResponses, LessonsControllerUpdateLessonData, LessonsControllerUpdateLessonResponses, NotificationsControllerFindAllData, NotificationsControllerFindAllResponses, NotificationsControllerMarkReadData, NotificationsControllerMarkReadErrors, NotificationsControllerMarkReadResponses, SearchControllerGlobalSearchData, SearchControllerGlobalSearchResponses, SubmissionsControllerApproveData, SubmissionsControllerApproveResponses, SubmissionsControllerFindAllData, SubmissionsControllerFindAllResponses, SubmissionsControllerFindExercisesData, SubmissionsControllerFindExercisesResponses, SubmissionsControllerFindHistoryData, SubmissionsControllerFindHistoryResponses, SubmissionsControllerFindMineData, SubmissionsControllerFindMineResponses, SubmissionsControllerFindOneData, SubmissionsControllerFindOneResponses, SubmissionsControllerRequestChangesData, SubmissionsControllerRequestChangesResponses, SubmissionsControllerResubmitData, SubmissionsControllerResubmitResponses, SubmissionsControllerReviewData, SubmissionsControllerReviewResponses, SubmissionsControllerSubmitData, SubmissionsControllerSubmitResponses, TracksControllerCreateData, TracksControllerCreateResponses, TracksControllerDeleteData, TracksControllerDeleteResponses, TracksControllerFindAllData, TracksControllerFindAllResponses, TracksControllerFindOneData, TracksControllerFindOneResponses, TracksControllerReorderData, TracksControllerReorderResponses, TracksControllerUpdateData, TracksControllerUpdateProgressData, TracksControllerUpdateProgressResponses, TracksControllerUpdateResponses, UsersControllerClaimDailyXpData, UsersControllerClaimDailyXpErrors, UsersControllerClaimDailyXpResponses, UsersControllerFindAllData, UsersControllerFindAllErrors, UsersControllerFindAllResponses, UsersControllerFindOneData, UsersControllerFindOneErrors, UsersControllerFindOneResponses, UsersControllerGetStatsData, UsersControllerGetStatsResponses, UsersControllerUpdateProfileData, UsersControllerUpdateProfileResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -18,13 +18,32 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
+export const appControllerGetHello = <ThrowOnError extends boolean = false>(options?: Options<AppControllerGetHelloData, ThrowOnError>): RequestResult<AppControllerGetHelloResponses, unknown, ThrowOnError> => (options?.client ?? client).get<AppControllerGetHelloResponses, unknown, ThrowOnError>({ url: '/api/v1', ...options });
+
 /**
- * Đăng ký tài khoản mới (Public)
- *
- * Tạo tài khoản learner mới với email, password và họ tên.
+ * Lấy danh sách người dùng (Admin only)
  */
-export const postAuthRegister = <ThrowOnError extends boolean = false>(options: Options<PostAuthRegisterData, ThrowOnError>): RequestResult<PostAuthRegisterResponses, PostAuthRegisterErrors, ThrowOnError> => (options.client ?? client).post<PostAuthRegisterResponses, PostAuthRegisterErrors, ThrowOnError>({
-    url: '/auth/register',
+export const usersControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<UsersControllerFindAllData, ThrowOnError>): RequestResult<UsersControllerFindAllResponses, UsersControllerFindAllErrors, ThrowOnError> => (options?.client ?? client).get<UsersControllerFindAllResponses, UsersControllerFindAllErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users',
+    ...options
+});
+
+/**
+ * Lấy thông tin chi tiết một người dùng (Admin hoặc chính chủ)
+ */
+export const usersControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<UsersControllerFindOneData, ThrowOnError>): RequestResult<UsersControllerFindOneResponses, UsersControllerFindOneErrors, ThrowOnError> => (options.client ?? client).get<UsersControllerFindOneResponses, UsersControllerFindOneErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/{id}',
+    ...options
+});
+
+/**
+ * Cập nhật thông tin cá nhân
+ */
+export const usersControllerUpdateProfile = <ThrowOnError extends boolean = false>(options: Options<UsersControllerUpdateProfileData, ThrowOnError>): RequestResult<UsersControllerUpdateProfileResponses, unknown, ThrowOnError> => (options.client ?? client).patch<UsersControllerUpdateProfileResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -33,12 +52,30 @@ export const postAuthRegister = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Đăng nhập bằng Email & Password (Public)
- *
- * Xác thực người dùng bằng email và mật khẩu để lấy access token và refresh token.
+ * Lấy chỉ số học tập để hiển thị trên Dashboard
  */
-export const postAuthLogin = <ThrowOnError extends boolean = false>(options: Options<PostAuthLoginData, ThrowOnError>): RequestResult<PostAuthLoginResponses, PostAuthLoginErrors, ThrowOnError> => (options.client ?? client).post<PostAuthLoginResponses, PostAuthLoginErrors, ThrowOnError>({
-    url: '/auth/login',
+export const usersControllerGetStats = <ThrowOnError extends boolean = false>(options?: Options<UsersControllerGetStatsData, ThrowOnError>): RequestResult<UsersControllerGetStatsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<UsersControllerGetStatsResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/stats',
+    ...options
+});
+
+/**
+ * Điểm danh hàng ngày nhận XP và tích streak
+ */
+export const usersControllerClaimDailyXp = <ThrowOnError extends boolean = false>(options?: Options<UsersControllerClaimDailyXpData, ThrowOnError>): RequestResult<UsersControllerClaimDailyXpResponses, UsersControllerClaimDailyXpErrors, ThrowOnError> => (options?.client ?? client).post<UsersControllerClaimDailyXpResponses, UsersControllerClaimDailyXpErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/claim-xp',
+    ...options
+});
+
+/**
+ * Đăng nhập / đăng ký bằng Google OAuth 2.0
+ *
+ * Xác thực Google ID Token, kiểm tra domain công ty, tạo user nếu chưa tồn tại và trả về cặp JWT token.
+ */
+export const authControllerGoogleLogin = <ThrowOnError extends boolean = false>(options: Options<AuthControllerGoogleLoginData, ThrowOnError>): RequestResult<AuthControllerGoogleLoginResponses, AuthControllerGoogleLoginErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerGoogleLoginResponses, AuthControllerGoogleLoginErrors, ThrowOnError>({
+    url: '/api/v1/auth/google',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -47,12 +84,10 @@ export const postAuthLogin = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
- * Đăng nhập / Đăng ký qua Google OAuth (Public)
- *
- * Sử dụng ID Token gửi từ client sau khi xác thực qua Google. Tài khoản mới sẽ được tự động kích hoạt vai trò `learner`.
+ * Đăng ký tài khoản mới (name, email, password).
  */
-export const postAuthGoogle = <ThrowOnError extends boolean = false>(options: Options<PostAuthGoogleData, ThrowOnError>): RequestResult<PostAuthGoogleResponses, PostAuthGoogleErrors, ThrowOnError> => (options.client ?? client).post<PostAuthGoogleResponses, PostAuthGoogleErrors, ThrowOnError>({
-    url: '/auth/google',
+export const authControllerRegister = <ThrowOnError extends boolean = false>(options: Options<AuthControllerRegisterData, ThrowOnError>): RequestResult<AuthControllerRegisterResponses, AuthControllerRegisterErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerRegisterResponses, AuthControllerRegisterErrors, ThrowOnError>({
+    url: '/api/v1/auth/register',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -61,12 +96,10 @@ export const postAuthGoogle = <ThrowOnError extends boolean = false>(options: Op
 });
 
 /**
- * Làm mới Access Token (Public)
- *
- * Gửi refresh token hiện tại để nhận access token mới cùng refresh token mới.
+ * Đăng nhập bằng email/password, trả về JWT tokens.
  */
-export const postAuthRefresh = <ThrowOnError extends boolean = false>(options: Options<PostAuthRefreshData, ThrowOnError>): RequestResult<PostAuthRefreshResponses, PostAuthRefreshErrors, ThrowOnError> => (options.client ?? client).post<PostAuthRefreshResponses, PostAuthRefreshErrors, ThrowOnError>({
-    url: '/auth/refresh',
+export const authControllerLogin = <ThrowOnError extends boolean = false>(options: Options<AuthControllerLoginData, ThrowOnError>): RequestResult<AuthControllerLoginResponses, AuthControllerLoginErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerLoginResponses, AuthControllerLoginErrors, ThrowOnError>({
+    url: '/api/v1/auth/login',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -75,23 +108,10 @@ export const postAuthRefresh = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Đăng xuất (Authenticated)
- *
- * Thu hồi refresh token hiện tại để hủy phiên làm việc.
+ * Đổi refresh token lấy cặp token mới (rotation).
  */
-export const postAuthLogout = <ThrowOnError extends boolean = false>(options?: Options<PostAuthLogoutData, ThrowOnError>): RequestResult<PostAuthLogoutResponses, PostAuthLogoutErrors, ThrowOnError> => (options?.client ?? client).post<PostAuthLogoutResponses, PostAuthLogoutErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/auth/logout',
-    ...options
-});
-
-/**
- * Yêu cầu đặt lại mật khẩu (Public)
- *
- * Gửi email liên kết đặt lại mật khẩu nếu tài khoản tồn tại trong hệ thống.
- */
-export const postAuthForgotPassword = <ThrowOnError extends boolean = false>(options: Options<PostAuthForgotPasswordData, ThrowOnError>): RequestResult<PostAuthForgotPasswordResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostAuthForgotPasswordResponses, unknown, ThrowOnError>({
-    url: '/auth/forgot-password',
+export const authControllerRefresh = <ThrowOnError extends boolean = false>(options: Options<AuthControllerRefreshData, ThrowOnError>): RequestResult<AuthControllerRefreshResponses, AuthControllerRefreshErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerRefreshResponses, AuthControllerRefreshErrors, ThrowOnError>({
+    url: '/api/v1/auth/refresh',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -100,12 +120,11 @@ export const postAuthForgotPassword = <ThrowOnError extends boolean = false>(opt
 });
 
 /**
- * Đặt lại mật khẩu mới (Public)
- *
- * Sử dụng token nhận được từ email để thiết lập mật khẩu mới.
+ * Vô hiệu hóa refresh token hiện tại.
  */
-export const postAuthResetPassword = <ThrowOnError extends boolean = false>(options: Options<PostAuthResetPasswordData, ThrowOnError>): RequestResult<PostAuthResetPasswordResponses, PostAuthResetPasswordErrors, ThrowOnError> => (options.client ?? client).post<PostAuthResetPasswordResponses, PostAuthResetPasswordErrors, ThrowOnError>({
-    url: '/auth/reset-password',
+export const authControllerLogout = <ThrowOnError extends boolean = false>(options: Options<AuthControllerLogoutData, ThrowOnError>): RequestResult<AuthControllerLogoutResponses, AuthControllerLogoutErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerLogoutResponses, AuthControllerLogoutErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/auth/logout',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -114,48 +133,19 @@ export const postAuthResetPassword = <ThrowOnError extends boolean = false>(opti
 });
 
 /**
- * Lấy thông tin tài khoản hiện tại (Authenticated)
- *
- * Lấy thông tin chi tiết của người dùng đang đăng nhập dựa trên JWT access token.
+ * Thông tin user đang đăng nhập.
  */
-export const getAuthMe = <ThrowOnError extends boolean = false>(options?: Options<GetAuthMeData, ThrowOnError>): RequestResult<GetAuthMeResponses, GetAuthMeErrors, ThrowOnError> => (options?.client ?? client).get<GetAuthMeResponses, GetAuthMeErrors, ThrowOnError>({
+export const authControllerMe = <ThrowOnError extends boolean = false>(options?: Options<AuthControllerMeData, ThrowOnError>): RequestResult<AuthControllerMeResponses, AuthControllerMeErrors, ThrowOnError> => (options?.client ?? client).get<AuthControllerMeResponses, AuthControllerMeErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/auth/me',
+    url: '/api/v1/auth/me',
     ...options
 });
 
 /**
- * Danh sách người dùng (Admin)
- *
- * Lấy danh sách người dùng trong hệ thống hỗ trợ tìm kiếm và lọc. Chỉ dành cho vai trò `admin`.
+ * Yêu cầu khôi phục mật khẩu qua email.
  */
-export const getUsers = <ThrowOnError extends boolean = false>(options?: Options<GetUsersData, ThrowOnError>): RequestResult<GetUsersResponses, GetUsersErrors, ThrowOnError> => (options?.client ?? client).get<GetUsersResponses, GetUsersErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/users',
-    ...options
-});
-
-/**
- * Lấy chi tiết thông tin một người dùng (Authenticated)
- *
- * Lấy thông tin profile chi tiết của một kỹ sư.
- * * Quy tắc phân quyền:* `learner` chỉ được phép lấy chính profile của họ, `admin` được phép lấy bất kỳ ai.
- *
- */
-export const getUsersById = <ThrowOnError extends boolean = false>(options: Options<GetUsersByIdData, ThrowOnError>): RequestResult<GetUsersByIdResponses, GetUsersByIdErrors, ThrowOnError> => (options.client ?? client).get<GetUsersByIdResponses, GetUsersByIdErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/users/{id}',
-    ...options
-});
-
-/**
- * Cập nhật thông tin profile cá nhân (Authenticated)
- *
- * Cho phép người dùng tự chỉnh sửa một số thuộc tính profile cá nhân như chức danh (title) hoặc màu đại diện (avatarHue).
- */
-export const patchUsersMe = <ThrowOnError extends boolean = false>(options: Options<PatchUsersMeData, ThrowOnError>): RequestResult<PatchUsersMeResponses, PatchUsersMeErrors, ThrowOnError> => (options.client ?? client).patch<PatchUsersMeResponses, PatchUsersMeErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/users/me',
+export const authControllerForgotPassword = <ThrowOnError extends boolean = false>(options: Options<AuthControllerForgotPasswordData, ThrowOnError>): RequestResult<AuthControllerForgotPasswordResponses, AuthControllerForgotPasswordErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerForgotPasswordResponses, AuthControllerForgotPasswordErrors, ThrowOnError>({
+    url: '/api/v1/auth/forgot-password',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -164,24 +154,10 @@ export const patchUsersMe = <ThrowOnError extends boolean = false>(options: Opti
 });
 
 /**
- * Thống kê tiến độ & Gamification cá nhân (Learner)
- *
- * Lấy bộ dữ liệu thống kê tổng hợp dùng để hiển thị trên màn hình dashboard của học viên (Level, XP, Streak, Tỷ lệ hoàn thành, số bài tập, bookmark).
+ * Đặt lại mật khẩu mới bằng token.
  */
-export const getUsersMeStats = <ThrowOnError extends boolean = false>(options?: Options<GetUsersMeStatsData, ThrowOnError>): RequestResult<GetUsersMeStatsResponses, GetUsersMeStatsErrors, ThrowOnError> => (options?.client ?? client).get<GetUsersMeStatsResponses, GetUsersMeStatsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/users/me/stats',
-    ...options
-});
-
-/**
- * Đăng ký nhận thông báo qua Slack (Proposed - Learner)
- *
- * Thiết lập liên kết tài khoản hệ thống với Slack Member ID để nhận thông báo thời gian thực về bài nộp và tiến độ.
- */
-export const postUsersMeNotificationsSlack = <ThrowOnError extends boolean = false>(options: Options<PostUsersMeNotificationsSlackData, ThrowOnError>): RequestResult<PostUsersMeNotificationsSlackResponses, PostUsersMeNotificationsSlackErrors, ThrowOnError> => (options.client ?? client).post<PostUsersMeNotificationsSlackResponses, PostUsersMeNotificationsSlackErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/users/me/notifications/slack',
+export const authControllerResetPassword = <ThrowOnError extends boolean = false>(options: Options<AuthControllerResetPasswordData, ThrowOnError>): RequestResult<AuthControllerResetPasswordResponses, AuthControllerResetPasswordErrors, ThrowOnError> => (options.client ?? client).post<AuthControllerResetPasswordResponses, AuthControllerResetPasswordErrors, ThrowOnError>({
+    url: '/api/v1/auth/reset-password',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -190,24 +166,20 @@ export const postUsersMeNotificationsSlack = <ThrowOnError extends boolean = fal
 });
 
 /**
- * Danh sách khóa học (Admin)
- *
- * Lấy danh sách các Cohort khóa học hiện có kèm thống kê sơ bộ về số lượng học viên và tỷ lệ hoàn thành trung bình.
+ * Lấy danh sách Cohort với phân trang (Admin only)
  */
-export const getCohorts = <ThrowOnError extends boolean = false>(options?: Options<GetCohortsData, ThrowOnError>): RequestResult<GetCohortsResponses, GetCohortsErrors, ThrowOnError> => (options?.client ?? client).get<GetCohortsResponses, GetCohortsErrors, ThrowOnError>({
+export const cohortControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<CohortControllerFindAllData, ThrowOnError>): RequestResult<CohortControllerFindAllResponses, CohortControllerFindAllErrors, ThrowOnError> => (options?.client ?? client).get<CohortControllerFindAllResponses, CohortControllerFindAllErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/cohorts',
+    url: '/api/v1/cohorts',
     ...options
 });
 
 /**
- * Khởi tạo khóa học mới (Proposed - Admin)
- *
- * Tạo mới một khóa học (Cohort) để quản lý luồng học viên.
+ * Khởi tạo một Cohort mới (Admin only)
  */
-export const postCohorts = <ThrowOnError extends boolean = false>(options: Options<PostCohortsData, ThrowOnError>): RequestResult<PostCohortsResponses, PostCohortsErrors, ThrowOnError> => (options.client ?? client).post<PostCohortsResponses, PostCohortsErrors, ThrowOnError>({
+export const cohortControllerCreate = <ThrowOnError extends boolean = false>(options: Options<CohortControllerCreateData, ThrowOnError>): RequestResult<CohortControllerCreateResponses, CohortControllerCreateErrors, ThrowOnError> => (options.client ?? client).post<CohortControllerCreateResponses, CohortControllerCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/cohorts',
+    url: '/api/v1/cohorts',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -216,24 +188,56 @@ export const postCohorts = <ThrowOnError extends boolean = false>(options: Optio
 });
 
 /**
- * Lấy chi tiết thông tin khóa học (Admin)
- *
- * Trả về thông tin cấu hình chi tiết cùng các chỉ số KPI trung bình của khóa học.
+ * Lấy thông tin tổng quan số liệu của Cohort (Admin only)
  */
-export const getCohortsById = <ThrowOnError extends boolean = false>(options: Options<GetCohortsByIdData, ThrowOnError>): RequestResult<GetCohortsByIdResponses, GetCohortsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetCohortsByIdResponses, GetCohortsByIdErrors, ThrowOnError>({
+export const cohortControllerGetOverview = <ThrowOnError extends boolean = false>(options: Options<CohortControllerGetOverviewData, ThrowOnError>): RequestResult<CohortControllerGetOverviewResponses, CohortControllerGetOverviewErrors, ThrowOnError> => (options.client ?? client).get<CohortControllerGetOverviewResponses, CohortControllerGetOverviewErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/cohorts/{id}',
+    url: '/api/v1/cohorts/{id}/overview',
     ...options
 });
 
 /**
- * Chỉnh sửa cấu hình khóa học (Proposed - Admin)
- *
- * Cập nhật các thông số của Cohort như tên khóa học hoặc số ngày target ramp-up.
+ * Lấy tỷ lệ hoàn thành các track của Cohort (Admin only)
  */
-export const patchCohortsById = <ThrowOnError extends boolean = false>(options: Options<PatchCohortsByIdData, ThrowOnError>): RequestResult<PatchCohortsByIdResponses, PatchCohortsByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchCohortsByIdResponses, PatchCohortsByIdErrors, ThrowOnError>({
+export const cohortControllerGetTrackCompletion = <ThrowOnError extends boolean = false>(options: Options<CohortControllerGetTrackCompletionData, ThrowOnError>): RequestResult<CohortControllerGetTrackCompletionResponses, CohortControllerGetTrackCompletionErrors, ThrowOnError> => (options.client ?? client).get<CohortControllerGetTrackCompletionResponses, CohortControllerGetTrackCompletionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/cohorts/{id}',
+    url: '/api/v1/cohorts/{id}/track-completion',
+    ...options
+});
+
+/**
+ * Xuất báo cáo tiến độ học viên của Cohort dưới dạng CSV (Admin only)
+ */
+export const cohortControllerExportReport = <ThrowOnError extends boolean = false>(options: Options<CohortControllerExportReportData, ThrowOnError>): RequestResult<CohortControllerExportReportResponses, CohortControllerExportReportErrors, ThrowOnError> => (options.client ?? client).get<CohortControllerExportReportResponses, CohortControllerExportReportErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/cohorts/{id}/export',
+    ...options
+});
+
+/**
+ * Xóa Cohort theo ID (Admin only)
+ */
+export const cohortControllerRemove = <ThrowOnError extends boolean = false>(options: Options<CohortControllerRemoveData, ThrowOnError>): RequestResult<CohortControllerRemoveResponses, CohortControllerRemoveErrors, ThrowOnError> => (options.client ?? client).delete<CohortControllerRemoveResponses, CohortControllerRemoveErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/cohorts/{id}',
+    ...options
+});
+
+/**
+ * Lấy thông tin chi tiết của Cohort theo ID (Admin only)
+ */
+export const cohortControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<CohortControllerFindOneData, ThrowOnError>): RequestResult<CohortControllerFindOneResponses, CohortControllerFindOneErrors, ThrowOnError> => (options.client ?? client).get<CohortControllerFindOneResponses, CohortControllerFindOneErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/cohorts/{id}',
+    ...options
+});
+
+/**
+ * Cập nhật thông tin Cohort (Admin only)
+ */
+export const cohortControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<CohortControllerUpdateData, ThrowOnError>): RequestResult<CohortControllerUpdateResponses, CohortControllerUpdateErrors, ThrowOnError> => (options.client ?? client).patch<CohortControllerUpdateResponses, CohortControllerUpdateErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/cohorts/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -242,59 +246,20 @@ export const patchCohortsById = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Thống kê Dashboard khóa học (Admin)
- *
- * Lấy dữ liệu KPI tổng hợp dạng thẻ số liệu phục vụ màn hình dashboard của Admin đối với một khóa học.
+ * Lấy danh sách các tracks kèm theo tiến độ học của learner hiện tại (có phân trang)
  */
-export const getCohortsByIdOverview = <ThrowOnError extends boolean = false>(options: Options<GetCohortsByIdOverviewData, ThrowOnError>): RequestResult<GetCohortsByIdOverviewResponses, GetCohortsByIdOverviewErrors, ThrowOnError> => (options.client ?? client).get<GetCohortsByIdOverviewResponses, GetCohortsByIdOverviewErrors, ThrowOnError>({
+export const tracksControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<TracksControllerFindAllData, ThrowOnError>): RequestResult<TracksControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<TracksControllerFindAllResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/cohorts/{id}/overview',
+    url: '/api/v1/tracks',
     ...options
 });
 
 /**
- * Biểu đồ tỷ lệ hoàn thành theo Milestone (Admin)
- *
- * Lấy tỷ lệ học viên đã hoàn thành của từng Track trong chương trình học đối với cohort này.
+ * Tạo track mới (Admin only)
  */
-export const getCohortsByIdTrackCompletion = <ThrowOnError extends boolean = false>(options: Options<GetCohortsByIdTrackCompletionData, ThrowOnError>): RequestResult<GetCohortsByIdTrackCompletionResponses, GetCohortsByIdTrackCompletionErrors, ThrowOnError> => (options.client ?? client).get<GetCohortsByIdTrackCompletionResponses, GetCohortsByIdTrackCompletionErrors, ThrowOnError>({
+export const tracksControllerCreate = <ThrowOnError extends boolean = false>(options: Options<TracksControllerCreateData, ThrowOnError>): RequestResult<TracksControllerCreateResponses, unknown, ThrowOnError> => (options.client ?? client).post<TracksControllerCreateResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/cohorts/{id}/track-completion',
-    ...options
-});
-
-/**
- * Xuất báo cáo tiến độ học viên dạng CSV (Admin)
- *
- * Tải xuống file CSV chứa chi tiết tiến độ học tập, XP, level và trạng thái bài tập của tất cả học viên trong khóa.
- */
-export const getCohortsByIdExport = <ThrowOnError extends boolean = false>(options: Options<GetCohortsByIdExportData, ThrowOnError>): RequestResult<GetCohortsByIdExportResponses, GetCohortsByIdExportErrors, ThrowOnError> => (options.client ?? client).get<GetCohortsByIdExportResponses, GetCohortsByIdExportErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/cohorts/{id}/export',
-    ...options
-});
-
-/**
- * Lấy danh sách lộ trình học (Authenticated)
- *
- * Lấy danh sách các Track bài học theo thứ tự sắp xếp (có phân trang).
- * Mỗi track sẽ kèm theo thông tin trạng thái học tập của người gọi API (`completed`, `in_progress`, `locked`).
- *
- */
-export const getTracks = <ThrowOnError extends boolean = false>(options?: Options<GetTracksData, ThrowOnError>): RequestResult<GetTracksResponses, GetTracksErrors, ThrowOnError> => (options?.client ?? client).get<GetTracksResponses, GetTracksErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tracks',
-    ...options
-});
-
-/**
- * Tạo mốc lộ trình mới (Admin)
- *
- * Thêm một Track bài học mới vào chương trình giảng dạy.
- */
-export const postTracks = <ThrowOnError extends boolean = false>(options: Options<PostTracksData, ThrowOnError>): RequestResult<PostTracksResponses, PostTracksErrors, ThrowOnError> => (options.client ?? client).post<PostTracksResponses, PostTracksErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tracks',
+    url: '/api/v1/tracks',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -303,13 +268,11 @@ export const postTracks = <ThrowOnError extends boolean = false>(options: Option
 });
 
 /**
- * Thay đổi hàng loạt thứ tự các Track (Admin)
- *
- * Sắp xếp lại danh sách các Track bài học bằng cách truyền mảng danh sách ID theo đúng thứ tự mới.
+ * Sắp xếp lại các tracks
  */
-export const patchTracksReorder = <ThrowOnError extends boolean = false>(options: Options<PatchTracksReorderData, ThrowOnError>): RequestResult<PatchTracksReorderResponses, PatchTracksReorderErrors, ThrowOnError> => (options.client ?? client).patch<PatchTracksReorderResponses, PatchTracksReorderErrors, ThrowOnError>({
+export const tracksControllerReorder = <ThrowOnError extends boolean = false>(options: Options<TracksControllerReorderData, ThrowOnError>): RequestResult<TracksControllerReorderResponses, unknown, ThrowOnError> => (options.client ?? client).patch<TracksControllerReorderResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tracks/reorder',
+    url: '/api/v1/tracks/reorder',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -318,35 +281,29 @@ export const patchTracksReorder = <ThrowOnError extends boolean = false>(options
 });
 
 /**
- * Xóa mốc lộ trình (Admin)
- *
- * Xóa hoàn toàn một Track và các bài học bên trong.
+ * Xóa track (Admin only)
  */
-export const deleteTracksById = <ThrowOnError extends boolean = false>(options: Options<DeleteTracksByIdData, ThrowOnError>): RequestResult<DeleteTracksByIdResponses, DeleteTracksByIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteTracksByIdResponses, DeleteTracksByIdErrors, ThrowOnError>({
+export const tracksControllerDelete = <ThrowOnError extends boolean = false>(options: Options<TracksControllerDeleteData, ThrowOnError>): RequestResult<TracksControllerDeleteResponses, unknown, ThrowOnError> => (options.client ?? client).delete<TracksControllerDeleteResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tracks/{id}',
+    url: '/api/v1/tracks/{id}',
     ...options
 });
 
 /**
- * Xem chi tiết lộ trình học (Authenticated)
- *
- * Lấy thông tin chi tiết một Track bao gồm danh sách các Lesson cấu thành bên trong và trạng thái hoàn thành của từng lesson.
+ * Lấy thông tin chi tiết một track
  */
-export const getTracksById = <ThrowOnError extends boolean = false>(options: Options<GetTracksByIdData, ThrowOnError>): RequestResult<GetTracksByIdResponses, GetTracksByIdErrors, ThrowOnError> => (options.client ?? client).get<GetTracksByIdResponses, GetTracksByIdErrors, ThrowOnError>({
+export const tracksControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<TracksControllerFindOneData, ThrowOnError>): RequestResult<TracksControllerFindOneResponses, unknown, ThrowOnError> => (options.client ?? client).get<TracksControllerFindOneResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tracks/{id}',
+    url: '/api/v1/tracks/{id}',
     ...options
 });
 
 /**
- * Chỉnh sửa thông tin mốc lộ trình (Admin)
- *
- * Chỉnh sửa các thông số mô tả, thời gian ước tính, hoặc icon của Track bài học.
+ * Cập nhật track (Admin only)
  */
-export const patchTracksById = <ThrowOnError extends boolean = false>(options: Options<PatchTracksByIdData, ThrowOnError>): RequestResult<PatchTracksByIdResponses, PatchTracksByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchTracksByIdResponses, PatchTracksByIdErrors, ThrowOnError>({
+export const tracksControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<TracksControllerUpdateData, ThrowOnError>): RequestResult<TracksControllerUpdateResponses, unknown, ThrowOnError> => (options.client ?? client).patch<TracksControllerUpdateResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tracks/{id}',
+    url: '/api/v1/tracks/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -355,24 +312,11 @@ export const patchTracksById = <ThrowOnError extends boolean = false>(options: O
 });
 
 /**
- * Danh sách bài học trong lộ trình (Authenticated)
- *
- * Lấy danh sách rút gọn các bài học thuộc một Track bài học cụ thể.
+ * Cập nhật trạng thái tiến độ học của track
  */
-export const getTracksByIdLessons = <ThrowOnError extends boolean = false>(options: Options<GetTracksByIdLessonsData, ThrowOnError>): RequestResult<GetTracksByIdLessonsResponses, GetTracksByIdLessonsErrors, ThrowOnError> => (options.client ?? client).get<GetTracksByIdLessonsResponses, GetTracksByIdLessonsErrors, ThrowOnError>({
+export const tracksControllerUpdateProgress = <ThrowOnError extends boolean = false>(options: Options<TracksControllerUpdateProgressData, ThrowOnError>): RequestResult<TracksControllerUpdateProgressResponses, unknown, ThrowOnError> => (options.client ?? client).patch<TracksControllerUpdateProgressResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tracks/{id}/lessons',
-    ...options
-});
-
-/**
- * Thêm bài học mới vào lộ trình (Admin)
- *
- * Tạo một bài học mới bên trong một Track bài học được chỉ định.
- */
-export const postTracksByIdLessons = <ThrowOnError extends boolean = false>(options: Options<PostTracksByIdLessonsData, ThrowOnError>): RequestResult<PostTracksByIdLessonsResponses, PostTracksByIdLessonsErrors, ThrowOnError> => (options.client ?? client).post<PostTracksByIdLessonsResponses, PostTracksByIdLessonsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tracks/{id}/lessons',
+    url: '/api/v1/tracks/{id}/progress',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -381,24 +325,20 @@ export const postTracksByIdLessons = <ThrowOnError extends boolean = false>(opti
 });
 
 /**
- * Xóa bài học (Admin)
- *
- * Xóa bài học cụ thể khỏi chương trình.
+ * Lấy danh sách các bài học thuộc track
  */
-export const deleteLessonsById = <ThrowOnError extends boolean = false>(options: Options<DeleteLessonsByIdData, ThrowOnError>): RequestResult<DeleteLessonsByIdResponses, DeleteLessonsByIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteLessonsByIdResponses, DeleteLessonsByIdErrors, ThrowOnError>({
+export const lessonsControllerFindLessons = <ThrowOnError extends boolean = false>(options: Options<LessonsControllerFindLessonsData, ThrowOnError>): RequestResult<LessonsControllerFindLessonsResponses, unknown, ThrowOnError> => (options.client ?? client).get<LessonsControllerFindLessonsResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/lessons/{id}',
+    url: '/api/v1/tracks/{id}/lessons',
     ...options
 });
 
 /**
- * Chỉnh sửa thông tin bài học (Admin)
- *
- * Chỉnh sửa nội dung, tiêu đề, hoặc thời gian học của bài học.
+ * Tạo bài học mới trong track (Admin only)
  */
-export const patchLessonsById = <ThrowOnError extends boolean = false>(options: Options<PatchLessonsByIdData, ThrowOnError>): RequestResult<PatchLessonsByIdResponses, PatchLessonsByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchLessonsByIdResponses, PatchLessonsByIdErrors, ThrowOnError>({
+export const lessonsControllerCreateLesson = <ThrowOnError extends boolean = false>(options: Options<LessonsControllerCreateLessonData, ThrowOnError>): RequestResult<LessonsControllerCreateLessonResponses, unknown, ThrowOnError> => (options.client ?? client).post<LessonsControllerCreateLessonResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/lessons/{id}',
+    url: '/api/v1/tracks/{id}/lessons',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -407,35 +347,29 @@ export const patchLessonsById = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
- * Đánh dấu hoàn thành bài học (Learner)
- *
- * Learner đánh dấu hoàn tất một bài học để ghi nhận tiến độ, nhận XP thưởng và mở khóa bài học/track kế tiếp nếu đủ điều kiện.
+ * Xóa bài học (Admin only)
  */
-export const postLessonsByIdComplete = <ThrowOnError extends boolean = false>(options: Options<PostLessonsByIdCompleteData, ThrowOnError>): RequestResult<PostLessonsByIdCompleteResponses, PostLessonsByIdCompleteErrors, ThrowOnError> => (options.client ?? client).post<PostLessonsByIdCompleteResponses, PostLessonsByIdCompleteErrors, ThrowOnError>({
+export const lessonsControllerDeleteLesson = <ThrowOnError extends boolean = false>(options: Options<LessonsControllerDeleteLessonData, ThrowOnError>): RequestResult<LessonsControllerDeleteLessonResponses, unknown, ThrowOnError> => (options.client ?? client).delete<LessonsControllerDeleteLessonResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/lessons/{id}/complete',
+    url: '/api/v1/lessons/{id}',
     ...options
 });
 
 /**
- * Danh sách / Tìm kiếm tài liệu kỹ thuật (Authenticated)
- *
- * Lấy danh sách tài liệu trong thư viện Wiki. Hỗ trợ tìm kiếm từ khóa, lọc theo tags và kind.
+ * Lấy thông tin chi tiết một bài học
  */
-export const getDocuments = <ThrowOnError extends boolean = false>(options?: Options<GetDocumentsData, ThrowOnError>): RequestResult<GetDocumentsResponses, GetDocumentsErrors, ThrowOnError> => (options?.client ?? client).get<GetDocumentsResponses, GetDocumentsErrors, ThrowOnError>({
+export const lessonsControllerFindOneLesson = <ThrowOnError extends boolean = false>(options: Options<LessonsControllerFindOneLessonData, ThrowOnError>): RequestResult<LessonsControllerFindOneLessonResponses, unknown, ThrowOnError> => (options.client ?? client).get<LessonsControllerFindOneLessonResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents',
+    url: '/api/v1/lessons/{id}',
     ...options
 });
 
 /**
- * Thêm tài liệu mới vào Wiki (Admin)
- *
- * Thêm mới một tài liệu kỹ thuật hoặc liên kết hướng dẫn.
+ * Cập nhật thông tin bài học (Admin only)
  */
-export const postDocuments = <ThrowOnError extends boolean = false>(options: Options<PostDocumentsData, ThrowOnError>): RequestResult<PostDocumentsResponses, PostDocumentsErrors, ThrowOnError> => (options.client ?? client).post<PostDocumentsResponses, PostDocumentsErrors, ThrowOnError>({
+export const lessonsControllerUpdateLesson = <ThrowOnError extends boolean = false>(options: Options<LessonsControllerUpdateLessonData, ThrowOnError>): RequestResult<LessonsControllerUpdateLessonResponses, unknown, ThrowOnError> => (options.client ?? client).patch<LessonsControllerUpdateLessonResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents',
+    url: '/api/v1/lessons/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -444,46 +378,38 @@ export const postDocuments = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
- * Lấy tài liệu đọc gần đây (Learner)
- *
- * Trả về danh sách rút gọn các tài liệu kỹ thuật học viên vừa xem gần nhất để đưa lên dashboard.
+ * Lấy danh sách các bài tập thuộc bài học
  */
-export const getDocumentsRecent = <ThrowOnError extends boolean = false>(options?: Options<GetDocumentsRecentData, ThrowOnError>): RequestResult<GetDocumentsRecentResponses, GetDocumentsRecentErrors, ThrowOnError> => (options?.client ?? client).get<GetDocumentsRecentResponses, GetDocumentsRecentErrors, ThrowOnError>({
+export const lessonsControllerFindExercisesByLesson = <ThrowOnError extends boolean = false>(options: Options<LessonsControllerFindExercisesByLessonData, ThrowOnError>): RequestResult<LessonsControllerFindExercisesByLessonResponses, unknown, ThrowOnError> => (options.client ?? client).get<LessonsControllerFindExercisesByLessonResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/recent',
+    url: '/api/v1/lessons/{id}/exercises',
     ...options
 });
 
 /**
- * Xóa tài liệu khỏi Wiki (Admin)
- *
- * Xóa bỏ tài liệu kỹ thuật.
+ * Đánh dấu hoàn thành bài học và nhận XP
  */
-export const deleteDocumentsById = <ThrowOnError extends boolean = false>(options: Options<DeleteDocumentsByIdData, ThrowOnError>): RequestResult<DeleteDocumentsByIdResponses, DeleteDocumentsByIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteDocumentsByIdResponses, DeleteDocumentsByIdErrors, ThrowOnError>({
+export const lessonsControllerCompleteLesson = <ThrowOnError extends boolean = false>(options: Options<LessonsControllerCompleteLessonData, ThrowOnError>): RequestResult<LessonsControllerCompleteLessonResponses, unknown, ThrowOnError> => (options.client ?? client).post<LessonsControllerCompleteLessonResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{id}',
+    url: '/api/v1/lessons/{id}/complete',
     ...options
 });
 
 /**
- * Xem chi tiết tài liệu (Authenticated)
- *
- * Xem thông tin đầy đủ của một tài liệu.
+ * Lấy danh sách bài tập thực hành kèm trạng thái bài nộp cá nhân
  */
-export const getDocumentsById = <ThrowOnError extends boolean = false>(options: Options<GetDocumentsByIdData, ThrowOnError>): RequestResult<GetDocumentsByIdResponses, GetDocumentsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetDocumentsByIdResponses, GetDocumentsByIdErrors, ThrowOnError>({
+export const exercisesControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<ExercisesControllerFindAllData, ThrowOnError>): RequestResult<ExercisesControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<ExercisesControllerFindAllResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{id}',
+    url: '/api/v1/exercises',
     ...options
 });
 
 /**
- * Sửa thông tin tài liệu (Admin)
- *
- * Cập nhật phân loại, tiêu đề, tags hoặc URL của tài liệu.
+ * Tạo mới một bài tập thực hành (Admin only)
  */
-export const patchDocumentsById = <ThrowOnError extends boolean = false>(options: Options<PatchDocumentsByIdData, ThrowOnError>): RequestResult<PatchDocumentsByIdResponses, PatchDocumentsByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchDocumentsByIdResponses, PatchDocumentsByIdErrors, ThrowOnError>({
+export const exercisesControllerCreate = <ThrowOnError extends boolean = false>(options: Options<ExercisesControllerCreateData, ThrowOnError>): RequestResult<ExercisesControllerCreateResponses, ExercisesControllerCreateErrors, ThrowOnError> => (options.client ?? client).post<ExercisesControllerCreateResponses, ExercisesControllerCreateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{id}',
+    url: '/api/v1/exercises',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -492,46 +418,29 @@ export const patchDocumentsById = <ThrowOnError extends boolean = false>(options
 });
 
 /**
- * Bỏ đánh dấu lưu tài liệu (Learner)
- *
- * Loại bỏ tài liệu khỏi danh mục lưu trữ cá nhân.
+ * Xóa bài tập theo ID (Admin only)
  */
-export const deleteDocumentsByIdBookmark = <ThrowOnError extends boolean = false>(options: Options<DeleteDocumentsByIdBookmarkData, ThrowOnError>): RequestResult<DeleteDocumentsByIdBookmarkResponses, DeleteDocumentsByIdBookmarkErrors, ThrowOnError> => (options.client ?? client).delete<DeleteDocumentsByIdBookmarkResponses, DeleteDocumentsByIdBookmarkErrors, ThrowOnError>({
+export const exercisesControllerRemove = <ThrowOnError extends boolean = false>(options: Options<ExercisesControllerRemoveData, ThrowOnError>): RequestResult<ExercisesControllerRemoveResponses, ExercisesControllerRemoveErrors, ThrowOnError> => (options.client ?? client).delete<ExercisesControllerRemoveResponses, ExercisesControllerRemoveErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{id}/bookmark',
+    url: '/api/v1/exercises/{id}',
     ...options
 });
 
 /**
- * Đánh dấu lưu tài liệu (Learner)
- *
- * Học viên lưu tài liệu kỹ thuật này để tiện xem lại sau.
+ * Lấy thông tin chi tiết bài tập theo ID
  */
-export const postDocumentsByIdBookmark = <ThrowOnError extends boolean = false>(options: Options<PostDocumentsByIdBookmarkData, ThrowOnError>): RequestResult<PostDocumentsByIdBookmarkResponses, PostDocumentsByIdBookmarkErrors, ThrowOnError> => (options.client ?? client).post<PostDocumentsByIdBookmarkResponses, PostDocumentsByIdBookmarkErrors, ThrowOnError>({
+export const exercisesControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<ExercisesControllerFindOneData, ThrowOnError>): RequestResult<ExercisesControllerFindOneResponses, ExercisesControllerFindOneErrors, ThrowOnError> => (options.client ?? client).get<ExercisesControllerFindOneResponses, ExercisesControllerFindOneErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/documents/{id}/bookmark',
+    url: '/api/v1/exercises/{id}',
     ...options
 });
 
 /**
- * Lấy danh sách tag (Authenticated)
- *
- * Lấy danh sách tất cả các tag chuyên môn dùng chung cho Tài liệu và Bài tập.
+ * Cập nhật thông tin bài tập (Admin only)
  */
-export const getTags = <ThrowOnError extends boolean = false>(options?: Options<GetTagsData, ThrowOnError>): RequestResult<GetTagsResponses, GetTagsErrors, ThrowOnError> => (options?.client ?? client).get<GetTagsResponses, GetTagsErrors, ThrowOnError>({
+export const exercisesControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<ExercisesControllerUpdateData, ThrowOnError>): RequestResult<ExercisesControllerUpdateResponses, ExercisesControllerUpdateErrors, ThrowOnError> => (options.client ?? client).patch<ExercisesControllerUpdateResponses, ExercisesControllerUpdateErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tags',
-    ...options
-});
-
-/**
- * Tạo tag mới (Admin)
- *
- * Admin tạo thêm một tag phân loại kiến thức mới (ví dụ GraphQL). Màu sắc sẽ được tự động gán.
- */
-export const postTags = <ThrowOnError extends boolean = false>(options: Options<PostTagsData, ThrowOnError>): RequestResult<PostTagsResponses, PostTagsErrors, ThrowOnError> => (options.client ?? client).post<PostTagsResponses, PostTagsErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tags',
+    url: '/api/v1/exercises/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -540,35 +449,20 @@ export const postTags = <ThrowOnError extends boolean = false>(options: Options<
 });
 
 /**
- * Xóa tag (Admin)
- *
- * Loại bỏ hoàn toàn một tag khỏi hệ thống.
+ * Tìm kiếm và liệt kê tài liệu kỹ thuật
  */
-export const deleteTagsById = <ThrowOnError extends boolean = false>(options: Options<DeleteTagsByIdData, ThrowOnError>): RequestResult<DeleteTagsByIdResponses, DeleteTagsByIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteTagsByIdResponses, DeleteTagsByIdErrors, ThrowOnError>({
+export const documentsControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<DocumentsControllerFindAllData, ThrowOnError>): RequestResult<DocumentsControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<DocumentsControllerFindAllResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/tags/{id}',
+    url: '/api/v1/documents',
     ...options
 });
 
 /**
- * Danh sách bài tập thực hành (Authenticated)
- *
- * Lấy danh sách các bài tập thực hành theo các bộ lọc trackId, độ khó và tag kiến thức. Mỗi bài tập trả về sẽ kèm theo trạng thái nộp bài của user gọi API.
+ * Thêm mới tài liệu kỹ thuật (Admin only)
  */
-export const getExercises = <ThrowOnError extends boolean = false>(options?: Options<GetExercisesData, ThrowOnError>): RequestResult<GetExercisesResponses, GetExercisesErrors, ThrowOnError> => (options?.client ?? client).get<GetExercisesResponses, GetExercisesErrors, ThrowOnError>({
+export const documentsControllerCreate = <ThrowOnError extends boolean = false>(options: Options<DocumentsControllerCreateData, ThrowOnError>): RequestResult<DocumentsControllerCreateResponses, unknown, ThrowOnError> => (options.client ?? client).post<DocumentsControllerCreateResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/exercises',
-    ...options
-});
-
-/**
- * Tạo bài tập thực hành mới (Admin)
- *
- * Tạo bài tập thực hành mới cho một lộ trình học cụ thể để kiểm tra năng lực của learner.
- */
-export const postExercises = <ThrowOnError extends boolean = false>(options: Options<PostExercisesData, ThrowOnError>): RequestResult<PostExercisesResponses, PostExercisesErrors, ThrowOnError> => (options.client ?? client).post<PostExercisesResponses, PostExercisesErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/exercises',
+    url: '/api/v1/documents',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -577,35 +471,38 @@ export const postExercises = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
- * Xóa bài tập (Admin)
- *
- * Xóa bỏ bài tập khỏi lộ trình học.
+ * Lấy danh sách tài liệu được lưu gần đây
  */
-export const deleteExercisesById = <ThrowOnError extends boolean = false>(options: Options<DeleteExercisesByIdData, ThrowOnError>): RequestResult<DeleteExercisesByIdResponses, DeleteExercisesByIdErrors, ThrowOnError> => (options.client ?? client).delete<DeleteExercisesByIdResponses, DeleteExercisesByIdErrors, ThrowOnError>({
+export const documentsControllerFindRecent = <ThrowOnError extends boolean = false>(options?: Options<DocumentsControllerFindRecentData, ThrowOnError>): RequestResult<DocumentsControllerFindRecentResponses, unknown, ThrowOnError> => (options?.client ?? client).get<DocumentsControllerFindRecentResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/exercises/{id}',
+    url: '/api/v1/documents/recent',
     ...options
 });
 
 /**
- * Xem chi tiết bài tập (Authenticated)
- *
- * Lấy thông tin chi tiết đầy đủ của một bài tập bao gồm mô tả, gợi ý, tài liệu tham khảo và danh sách bước làm chi tiết.
+ * Xóa tài liệu kỹ thuật (Admin only)
  */
-export const getExercisesById = <ThrowOnError extends boolean = false>(options: Options<GetExercisesByIdData, ThrowOnError>): RequestResult<GetExercisesByIdResponses, GetExercisesByIdErrors, ThrowOnError> => (options.client ?? client).get<GetExercisesByIdResponses, GetExercisesByIdErrors, ThrowOnError>({
+export const documentsControllerDelete = <ThrowOnError extends boolean = false>(options: Options<DocumentsControllerDeleteData, ThrowOnError>): RequestResult<DocumentsControllerDeleteResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DocumentsControllerDeleteResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/exercises/{id}',
+    url: '/api/v1/documents/{id}',
     ...options
 });
 
 /**
- * Chỉnh sửa thông tin bài tập (Admin)
- *
- * Chỉnh sửa các thông số XP, cấp độ khó, tiêu chuẩn nghiệm thu của bài tập.
+ * Lấy thông tin chi tiết tài liệu kỹ thuật
  */
-export const patchExercisesById = <ThrowOnError extends boolean = false>(options: Options<PatchExercisesByIdData, ThrowOnError>): RequestResult<PatchExercisesByIdResponses, PatchExercisesByIdErrors, ThrowOnError> => (options.client ?? client).patch<PatchExercisesByIdResponses, PatchExercisesByIdErrors, ThrowOnError>({
+export const documentsControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<DocumentsControllerFindOneData, ThrowOnError>): RequestResult<DocumentsControllerFindOneResponses, unknown, ThrowOnError> => (options.client ?? client).get<DocumentsControllerFindOneResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/exercises/{id}',
+    url: '/api/v1/documents/{id}',
+    ...options
+});
+
+/**
+ * Cập nhật tài liệu kỹ thuật (Admin only)
+ */
+export const documentsControllerUpdate = <ThrowOnError extends boolean = false>(options: Options<DocumentsControllerUpdateData, ThrowOnError>): RequestResult<DocumentsControllerUpdateResponses, unknown, ThrowOnError> => (options.client ?? client).patch<DocumentsControllerUpdateResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/documents/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -614,13 +511,38 @@ export const patchExercisesById = <ThrowOnError extends boolean = false>(options
 });
 
 /**
- * Nộp link bài làm PR lần đầu (Learner)
- *
- * Học viên nộp bài tập bằng cách gửi link PR GitHub. Bài nộp được khởi tạo ở trạng thái `submitted` để chờ Admin review.
+ * Bỏ lưu tài liệu
  */
-export const postExercisesByIdSubmissions = <ThrowOnError extends boolean = false>(options: Options<PostExercisesByIdSubmissionsData, ThrowOnError>): RequestResult<PostExercisesByIdSubmissionsResponses, PostExercisesByIdSubmissionsErrors, ThrowOnError> => (options.client ?? client).post<PostExercisesByIdSubmissionsResponses, PostExercisesByIdSubmissionsErrors, ThrowOnError>({
+export const documentsControllerUnbookmark = <ThrowOnError extends boolean = false>(options: Options<DocumentsControllerUnbookmarkData, ThrowOnError>): RequestResult<DocumentsControllerUnbookmarkResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DocumentsControllerUnbookmarkResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/exercises/{id}/submissions',
+    url: '/api/v1/documents/{id}/bookmark',
+    ...options
+});
+
+/**
+ * Đánh dấu lưu tài liệu để đọc sau
+ */
+export const documentsControllerBookmark = <ThrowOnError extends boolean = false>(options: Options<DocumentsControllerBookmarkData, ThrowOnError>): RequestResult<DocumentsControllerBookmarkResponses, unknown, ThrowOnError> => (options.client ?? client).post<DocumentsControllerBookmarkResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/documents/{id}/bookmark',
+    ...options
+});
+
+/**
+ * Lấy tất cả các thẻ phân loại (Tags)
+ */
+export const documentsControllerFindAllTags = <ThrowOnError extends boolean = false>(options?: Options<DocumentsControllerFindAllTagsData, ThrowOnError>): RequestResult<DocumentsControllerFindAllTagsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<DocumentsControllerFindAllTagsResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/tags',
+    ...options
+});
+
+/**
+ * Tạo thẻ phân loại mới (Admin only)
+ */
+export const documentsControllerCreateTag = <ThrowOnError extends boolean = false>(options: Options<DocumentsControllerCreateTagData, ThrowOnError>): RequestResult<DocumentsControllerCreateTagResponses, unknown, ThrowOnError> => (options.client ?? client).post<DocumentsControllerCreateTagResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/tags',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -629,13 +551,47 @@ export const postExercisesByIdSubmissions = <ThrowOnError extends boolean = fals
 });
 
 /**
- * Nộp lại / Cập nhật bài giải PR (Learner)
- *
- * Học viên cập nhật lại link PR khác hoặc cập nhật lại PR sau khi có yêu cầu sửa đổi từ Admin. Trạng thái sẽ đặt lại thành `submitted`.
+ * Xóa thẻ phân loại (Admin only)
  */
-export const putExercisesByIdSubmissions = <ThrowOnError extends boolean = false>(options: Options<PutExercisesByIdSubmissionsData, ThrowOnError>): RequestResult<PutExercisesByIdSubmissionsResponses, PutExercisesByIdSubmissionsErrors, ThrowOnError> => (options.client ?? client).put<PutExercisesByIdSubmissionsResponses, PutExercisesByIdSubmissionsErrors, ThrowOnError>({
+export const documentsControllerDeleteTag = <ThrowOnError extends boolean = false>(options: Options<DocumentsControllerDeleteTagData, ThrowOnError>): RequestResult<DocumentsControllerDeleteTagResponses, unknown, ThrowOnError> => (options.client ?? client).delete<DocumentsControllerDeleteTagResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/exercises/{id}/submissions',
+    url: '/api/v1/tags/{id}',
+    ...options
+});
+
+/**
+ * Tìm kiếm toàn cục (⌘K) trên tracks, documents, và exercises
+ */
+export const searchControllerGlobalSearch = <ThrowOnError extends boolean = false>(options: Options<SearchControllerGlobalSearchData, ThrowOnError>): RequestResult<SearchControllerGlobalSearchResponses, unknown, ThrowOnError> => (options.client ?? client).get<SearchControllerGlobalSearchResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/search',
+    ...options
+});
+
+/**
+ * Lấy bảng xếp hạng thi đua học viên
+ */
+export const leaderboardControllerGetLeaderboard = <ThrowOnError extends boolean = false>(options?: Options<LeaderboardControllerGetLeaderboardData, ThrowOnError>): RequestResult<LeaderboardControllerGetLeaderboardResponses, unknown, ThrowOnError> => (options?.client ?? client).get<LeaderboardControllerGetLeaderboardResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/leaderboard',
+    ...options
+});
+
+/**
+ * Lấy danh sách bài tập thuộc track kèm theo bài nộp
+ */
+export const submissionsControllerFindExercises = <ThrowOnError extends boolean = false>(options: Options<SubmissionsControllerFindExercisesData, ThrowOnError>): RequestResult<SubmissionsControllerFindExercisesResponses, unknown, ThrowOnError> => (options.client ?? client).get<SubmissionsControllerFindExercisesResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/tracks/{id}/exercises',
+    ...options
+});
+
+/**
+ * Nộp bài tập lần đầu (PR GitHub)
+ */
+export const submissionsControllerSubmit = <ThrowOnError extends boolean = false>(options: Options<SubmissionsControllerSubmitData, ThrowOnError>): RequestResult<SubmissionsControllerSubmitResponses, unknown, ThrowOnError> => (options.client ?? client).post<SubmissionsControllerSubmitResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/exercises/{id}/submissions',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -644,48 +600,11 @@ export const putExercisesByIdSubmissions = <ThrowOnError extends boolean = false
 });
 
 /**
- * Hàng đợi chấm bài / Lịch sử bài nộp (Admin)
- *
- * Lấy danh sách bài nộp phục vụ cho giao diện review chấm bài của Admin. Mặc định dùng để lấy danh sách bài đang chờ duyệt (`?status=submitted`).
+ * Nộp lại bài tập sau khi chỉnh sửa
  */
-export const getSubmissions = <ThrowOnError extends boolean = false>(options?: Options<GetSubmissionsData, ThrowOnError>): RequestResult<GetSubmissionsResponses, GetSubmissionsErrors, ThrowOnError> => (options?.client ?? client).get<GetSubmissionsResponses, GetSubmissionsErrors, ThrowOnError>({
+export const submissionsControllerResubmit = <ThrowOnError extends boolean = false>(options: Options<SubmissionsControllerResubmitData, ThrowOnError>): RequestResult<SubmissionsControllerResubmitResponses, unknown, ThrowOnError> => (options.client ?? client).put<SubmissionsControllerResubmitResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/submissions',
-    ...options
-});
-
-/**
- * Danh sách bài tập đã nộp của tôi (Learner)
- *
- * Trả về danh sách tất cả các bài nộp của chính learner đang đăng nhập.
- */
-export const getSubmissionsMine = <ThrowOnError extends boolean = false>(options?: Options<GetSubmissionsMineData, ThrowOnError>): RequestResult<GetSubmissionsMineResponses, GetSubmissionsMineErrors, ThrowOnError> => (options?.client ?? client).get<GetSubmissionsMineResponses, GetSubmissionsMineErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/submissions/mine',
-    ...options
-});
-
-/**
- * Xem chi tiết một bài nộp (Authenticated)
- *
- * Xem chi tiết một bản ghi bài nộp cùng trạng thái và nhận xét.
- * * Phân quyền:* Chủ nhân bài nộp (`learner`) hoặc bất kỳ `admin` nào được quyền truy cập.
- *
- */
-export const getSubmissionsById = <ThrowOnError extends boolean = false>(options: Options<GetSubmissionsByIdData, ThrowOnError>): RequestResult<GetSubmissionsByIdResponses, GetSubmissionsByIdErrors, ThrowOnError> => (options.client ?? client).get<GetSubmissionsByIdResponses, GetSubmissionsByIdErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/submissions/{id}',
-    ...options
-});
-
-/**
- * Phê duyệt bài nộp (Admin)
- *
- * Admin phê duyệt bài giải PR của học viên. Bài tập sẽ chuyển sang trạng thái `approved`, học viên nhận được XP thưởng của bài tập và tổng XP của họ được cập nhật.
- */
-export const postSubmissionsByIdApprove = <ThrowOnError extends boolean = false>(options: Options<PostSubmissionsByIdApproveData, ThrowOnError>): RequestResult<PostSubmissionsByIdApproveResponses, PostSubmissionsByIdApproveErrors, ThrowOnError> => (options.client ?? client).post<PostSubmissionsByIdApproveResponses, PostSubmissionsByIdApproveErrors, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/submissions/{id}/approve',
+    url: '/api/v1/exercises/{id}/submissions',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -694,13 +613,38 @@ export const postSubmissionsByIdApprove = <ThrowOnError extends boolean = false>
 });
 
 /**
- * Yêu cầu sửa đổi bài nộp (Admin)
- *
- * Admin từ chối phê duyệt và yêu cầu học viên sửa lại bài làm kèm theo ghi chú nhận xét cụ thể. Bài nộp sẽ chuyển sang trạng thái `changes`.
+ * Hàng chờ chấm điểm bài tập (Admin only)
  */
-export const postSubmissionsByIdRequestChanges = <ThrowOnError extends boolean = false>(options: Options<PostSubmissionsByIdRequestChangesData, ThrowOnError>): RequestResult<PostSubmissionsByIdRequestChangesResponses, PostSubmissionsByIdRequestChangesErrors, ThrowOnError> => (options.client ?? client).post<PostSubmissionsByIdRequestChangesResponses, PostSubmissionsByIdRequestChangesErrors, ThrowOnError>({
+export const submissionsControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<SubmissionsControllerFindAllData, ThrowOnError>): RequestResult<SubmissionsControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<SubmissionsControllerFindAllResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/submissions/{id}/request-changes',
+    url: '/api/v1/submissions',
+    ...options
+});
+
+/**
+ * Lấy danh sách các bài nộp của learner hiện tại
+ */
+export const submissionsControllerFindMine = <ThrowOnError extends boolean = false>(options?: Options<SubmissionsControllerFindMineData, ThrowOnError>): RequestResult<SubmissionsControllerFindMineResponses, unknown, ThrowOnError> => (options?.client ?? client).get<SubmissionsControllerFindMineResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/submissions/mine',
+    ...options
+});
+
+/**
+ * Lấy chi tiết một bài nộp
+ */
+export const submissionsControllerFindOne = <ThrowOnError extends boolean = false>(options: Options<SubmissionsControllerFindOneData, ThrowOnError>): RequestResult<SubmissionsControllerFindOneResponses, unknown, ThrowOnError> => (options.client ?? client).get<SubmissionsControllerFindOneResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/submissions/{id}',
+    ...options
+});
+
+/**
+ * Đánh giá bài nộp (Admin only)
+ */
+export const submissionsControllerReview = <ThrowOnError extends boolean = false>(options: Options<SubmissionsControllerReviewData, ThrowOnError>): RequestResult<SubmissionsControllerReviewResponses, unknown, ThrowOnError> => (options.client ?? client).post<SubmissionsControllerReviewResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/submissions/{id}/review',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -709,56 +653,46 @@ export const postSubmissionsByIdRequestChanges = <ThrowOnError extends boolean =
 });
 
 /**
- * Tra cứu lịch sử các lần nộp của bài tập (Proposed - Authenticated)
- *
- * Lấy nhật ký tất cả các phiên bản nộp bài (các link PR cũ) và nội dung nhận xét tương ứng qua các vòng review chấm bài của bài tập này.
+ * Phê duyệt bài tập (Admin only)
  */
-export const getSubmissionsByIdHistory = <ThrowOnError extends boolean = false>(options: Options<GetSubmissionsByIdHistoryData, ThrowOnError>): RequestResult<GetSubmissionsByIdHistoryResponses, GetSubmissionsByIdHistoryErrors, ThrowOnError> => (options.client ?? client).get<GetSubmissionsByIdHistoryResponses, GetSubmissionsByIdHistoryErrors, ThrowOnError>({
+export const submissionsControllerApprove = <ThrowOnError extends boolean = false>(options: Options<SubmissionsControllerApproveData, ThrowOnError>): RequestResult<SubmissionsControllerApproveResponses, unknown, ThrowOnError> => (options.client ?? client).post<SubmissionsControllerApproveResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/submissions/{id}/history',
+    url: '/api/v1/submissions/{id}/approve',
     ...options
 });
 
 /**
- * Tìm kiếm nhanh toàn hệ thống (Authenticated)
- *
- * Hỗ trợ tính năng Quick Search (Ctrl+K / Cmd+K) trên giao diện để tìm kiếm đồng thời trên cả Tracks, Documents, và Exercises.
+ * Yêu cầu sửa đổi bài tập (Admin only)
  */
-export const getSearch = <ThrowOnError extends boolean = false>(options: Options<GetSearchData, ThrowOnError>): RequestResult<GetSearchResponses, GetSearchErrors, ThrowOnError> => (options.client ?? client).get<GetSearchResponses, GetSearchErrors, ThrowOnError>({
+export const submissionsControllerRequestChanges = <ThrowOnError extends boolean = false>(options: Options<SubmissionsControllerRequestChangesData, ThrowOnError>): RequestResult<SubmissionsControllerRequestChangesResponses, unknown, ThrowOnError> => (options.client ?? client).post<SubmissionsControllerRequestChangesResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/search',
+    url: '/api/v1/submissions/{id}/request-changes',
     ...options
 });
 
 /**
- * Lấy danh sách thông báo cá nhân (Authenticated)
- *
- * Lấy danh sách các thông báo trong trung tâm thông báo của người dùng đăng nhập hiện tại (ví dụ bài tập được duyệt, track mới mở khóa).
+ * Lấy lịch sử chấm bài và nhận xét
  */
-export const getNotifications = <ThrowOnError extends boolean = false>(options?: Options<GetNotificationsData, ThrowOnError>): RequestResult<GetNotificationsResponses, GetNotificationsErrors, ThrowOnError> => (options?.client ?? client).get<GetNotificationsResponses, GetNotificationsErrors, ThrowOnError>({
+export const submissionsControllerFindHistory = <ThrowOnError extends boolean = false>(options: Options<SubmissionsControllerFindHistoryData, ThrowOnError>): RequestResult<SubmissionsControllerFindHistoryResponses, unknown, ThrowOnError> => (options.client ?? client).get<SubmissionsControllerFindHistoryResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/notifications',
+    url: '/api/v1/submissions/{id}/history',
     ...options
 });
 
 /**
- * Đánh dấu đã đọc thông báo (Authenticated)
- *
- * Cập nhật trạng thái một thông báo thành đã đọc (`read = true`).
+ * Lấy danh sách thông báo của người dùng hiện tại
  */
-export const postNotificationsByIdRead = <ThrowOnError extends boolean = false>(options: Options<PostNotificationsByIdReadData, ThrowOnError>): RequestResult<PostNotificationsByIdReadResponses, PostNotificationsByIdReadErrors, ThrowOnError> => (options.client ?? client).post<PostNotificationsByIdReadResponses, PostNotificationsByIdReadErrors, ThrowOnError>({
+export const notificationsControllerFindAll = <ThrowOnError extends boolean = false>(options?: Options<NotificationsControllerFindAllData, ThrowOnError>): RequestResult<NotificationsControllerFindAllResponses, unknown, ThrowOnError> => (options?.client ?? client).get<NotificationsControllerFindAllResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/notifications/{id}/read',
+    url: '/api/v1/notifications',
     ...options
 });
 
 /**
- * Bảng xếp hạng thi đua học tập (Proposed - Authenticated)
- *
- * Lấy bảng xếp hạng học viên sắp xếp theo XP giảm dần trong phạm vi Cohort hoặc toàn công ty để thúc đẩy học tập.
+ * Đánh dấu thông báo đã đọc theo ID
  */
-export const getLeaderboard = <ThrowOnError extends boolean = false>(options?: Options<GetLeaderboardData, ThrowOnError>): RequestResult<GetLeaderboardResponses, GetLeaderboardErrors, ThrowOnError> => (options?.client ?? client).get<GetLeaderboardResponses, GetLeaderboardErrors, ThrowOnError>({
+export const notificationsControllerMarkRead = <ThrowOnError extends boolean = false>(options: Options<NotificationsControllerMarkReadData, ThrowOnError>): RequestResult<NotificationsControllerMarkReadResponses, NotificationsControllerMarkReadErrors, ThrowOnError> => (options.client ?? client).post<NotificationsControllerMarkReadResponses, NotificationsControllerMarkReadErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/leaderboard',
+    url: '/api/v1/notifications/{id}/read',
     ...options
 });

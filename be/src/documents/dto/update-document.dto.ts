@@ -7,6 +7,7 @@ import {
   IsUUID,
   MaxLength,
 } from 'class-validator';
+import { DocumentKind } from '../../database/entities/document.entity';
 
 export class UpdateDocumentDto {
   @ApiPropertyOptional({
@@ -37,15 +38,14 @@ export class UpdateDocumentDto {
 
   @ApiPropertyOptional({
     description: 'Phân loại tài liệu',
-    enum: ['Guide', 'Reference', 'Runbook', 'Tutorial', 'Link'],
-    example: 'Guide',
+    enum: DocumentKind,
+    example: DocumentKind.GUIDE,
   })
-  @IsEnum(['Guide', 'Reference', 'Runbook', 'Tutorial', 'Link'], {
-    message:
-      'kind phải là một trong các giá trị: Guide, Reference, Runbook, Tutorial, Link',
+  @IsEnum(DocumentKind, {
+    message: `kind phải là một trong các giá trị: ${Object.values(DocumentKind).join(', ')}`,
   })
   @IsOptional()
-  kind?: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+  kind?: DocumentKind;
 
   @ApiPropertyOptional({
     description: 'Danh sách các ID của thẻ phân loại (Tags) liên kết',

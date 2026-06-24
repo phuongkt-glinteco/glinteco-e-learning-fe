@@ -8,6 +8,7 @@ interface TrackOverviewCardProps {
   title: string;
   estimatedTime?: string;
   description?: string;
+  onPreview: () => void;
 }
 
 export default function TrackOverviewCard({
@@ -15,6 +16,7 @@ export default function TrackOverviewCard({
   title,
   estimatedTime,
   description,
+  onPreview,
 }: TrackOverviewCardProps) {
   const t = useTranslations('TrackDetailPage');
 
@@ -45,6 +47,14 @@ export default function TrackOverviewCard({
           <span className="material-symbols-outlined text-[18px]">edit</span>
           {t('editTrack')}
         </Link>
+        <button
+          type="button"
+          onClick={onPreview}
+          className="flex items-center gap-2 px-4 py-2 border border-primary text-primary font-label-md rounded-lg hover:bg-primary/5 transition-colors cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">visibility</span>
+          {t('previewTrack')}
+        </button>
         <Link
           href={`/admin/tracks/${trackId}/lessons/new`}
           className="flex items-center gap-2 px-4 py-2 border border-primary text-primary font-label-md rounded-lg hover:bg-primary/5 transition-colors"

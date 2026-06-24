@@ -14,6 +14,15 @@ export class UserProfileDto {
   @ApiProperty({ enum: UserRole })
   role: UserRole;
 
+  @ApiProperty({ type: String, nullable: true })
+  title: string | null;
+
+  @ApiProperty()
+  avatarHue: number;
+
+  @ApiProperty({ type: String, nullable: true })
+  cohortId: string | null;
+
   @ApiProperty()
   level: number;
 
@@ -22,6 +31,9 @@ export class UserProfileDto {
 
   @ApiProperty({ description: 'Số ngày streak hiện tại của user.' })
   streakDays: number;
+
+  @ApiProperty()
+  joinedAt: Date;
 }
 
 export class AuthResponseDto {

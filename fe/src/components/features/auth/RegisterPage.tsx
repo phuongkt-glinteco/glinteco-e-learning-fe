@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 import { z } from 'zod';
 import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { authRegisterRequestSchema } from '@/schemas';
-import { postAuthRegister } from '@/services/api-client';
+import { authControllerRegister } from '@/services/api-client';
 import { useAuth } from '@/providers/AuthProvider';
 import { UiShowError } from '@/services/errors';
 
@@ -66,7 +66,7 @@ export default function RegisterPage() {
     setErrorMsg(null);
 
     try {
-      await postAuthRegister({
+      await authControllerRegister({
         body: {
           name: data.name,
           email: data.email,

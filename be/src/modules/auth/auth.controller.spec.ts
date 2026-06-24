@@ -154,7 +154,19 @@ describe('AuthController', () => {
   describe('me', () => {
     it('should return current user information', () => {
       const result = controller.me(mockUser);
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual({
+        id: mockUser.id,
+        email: mockUser.email,
+        name: mockUser.name,
+        role: mockUser.role,
+        title: null,
+        avatarHue: 0,
+        cohortId: mockUser.cohortId,
+        level: mockUser.level,
+        xp: mockUser.xp,
+        streakDays: mockUser.streakDays,
+        joinedAt: mockUser.createdAt,
+      });
     });
   });
 

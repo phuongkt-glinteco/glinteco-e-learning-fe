@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Modal } from '@/components/ui';
-import { deleteLessonsById } from '@/services/api-client';
+import { lessonsControllerDeleteLesson } from '@/services/api-client';
 
 type LessonStatus = 'completed' | 'in_progress' | 'locked';
 
@@ -13,6 +13,8 @@ interface LessonItem {
   title: string;
   order: number;
   status: LessonStatus;
+  type?: 'video' | 'reading' | 'quiz' | 'coding' | 'assignment';
+  description?: string | null;
 }
 
 interface AdminCurriculumRoadmapProps {
@@ -20,6 +22,14 @@ interface AdminCurriculumRoadmapProps {
   lessons: LessonItem[];
   onDeleteLesson: (lessonId: string) => void;
 }
+
+const TYPE_ICON: Record<string, string> = {
+  video: 'play_circle',
+  reading: 'menu_book',
+  quiz: 'quiz',
+  coding: 'code',
+  assignment: 'assignment',
+};
 
 function StatusBadge({ status, t }: { status: LessonStatus; t: (key: string) => string }) {
   if (status === 'completed') {
@@ -89,7 +99,7 @@ export default function AdminCurriculumRoadmap({
             return (
               <div
                 key={lesson.id}
-                className={`p-lg flex items-center gap-4 transition-colors group ${
+                className={`p-lg flex items-start gap-4 transition-colors group ${
                   isInProgress ? 'bg-primary-container/[0.03] border-l-4 border-primary' : ''
                 } ${isLocked ? 'opacity-60 grayscale' : ''}`}
               >
@@ -108,16 +118,26 @@ export default function AdminCurriculumRoadmap({
                 </div>
 
                 <div className="flex-grow min-w-0">
-                  <h4
-                    className={`font-label-md truncate ${
-                      isInProgress ? 'text-primary' : 'text-on-surface'
-                    }`}
-                  >
-                    {lesson.order}. {lesson.title}
-                  </h4>
+                  <div className="flex items-center gap-2 mb-1">
+                    {lesson.type && (
+                      <span className="material-symbols-outlined text-[16px] text-outline" title={t(`type${lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1)}`)}>
+                        {TYPE_ICON[lesson.type] || 'help_outline'}
+                      </span>
+                    )}
+                    <h4
+                      className={`font-label-md truncate ${
+                        isInProgress ? 'text-primary' : 'text-on-surface'
+                      }`}
+                    >
+                      {lesson.order}. {lesson.title}
+                    </h4>
+                  </div>
+                  {lesson.description && (
+                    <p className="text-label-sm text-outline mt-1 line-clamp-2">{lesson.description}</p>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 mt-1">
                   <StatusBadge status={lesson.status} t={t} />
                   <button
                     onClick={() =>
@@ -163,7 +183,7 @@ export default function AdminCurriculumRoadmap({
               onClick={async () => {
                 if (!deletingId) return;
                 try {
-                  await deleteLessonsById({
+                  await lessonsControllerDeleteLesson({
                     path: { id: deletingId },
                     throwOnError: true,
                   });

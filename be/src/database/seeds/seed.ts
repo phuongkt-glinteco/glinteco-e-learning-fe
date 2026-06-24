@@ -3,9 +3,11 @@ import AppDataSource from '../data-source';
 import {
   Cohort,
   Document,
+  DocumentKind,
   Exercise,
   ExerciseDifficulty,
   Lesson,
+  LessonType,
   ProgressStatus,
   Submission,
   SubmissionHistory,
@@ -109,6 +111,8 @@ async function seed(): Promise<void> {
         icon: 'flag',
         order: 1,
         lessonsCount: 4,
+        level: 'Beginner',
+        thumbnail: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?q=80&w=300&auto=format&fit=crop',
       }),
     );
     const t2 = await trackRepo.save(
@@ -119,6 +123,8 @@ async function seed(): Promise<void> {
         icon: 'code',
         order: 2,
         lessonsCount: 6,
+        level: 'Beginner',
+        thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=300&auto=format&fit=crop',
       }),
     );
     const t3 = await trackRepo.save(
@@ -129,6 +135,8 @@ async function seed(): Promise<void> {
         icon: 'server',
         order: 3,
         lessonsCount: 5,
+        level: 'Intermediate',
+        thumbnail: 'https://images.unsplash.com/photo-1555066932-5f284c7873c1?q=80&w=300&auto=format&fit=crop',
       }),
     );
     const t4 = await trackRepo.save(
@@ -139,6 +147,8 @@ async function seed(): Promise<void> {
         icon: 'sitemap',
         order: 4,
         lessonsCount: 4,
+        level: 'Intermediate',
+        thumbnail: 'https://images.unsplash.com/photo-1507721999472-8ed4421c4b2e?q=80&w=300&auto=format&fit=crop',
       }),
     );
     const t5 = await trackRepo.save(
@@ -149,11 +159,13 @@ async function seed(): Promise<void> {
         icon: 'shield',
         order: 5,
         lessonsCount: 3,
+        level: 'Advanced',
+        thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=300&auto=format&fit=crop',
       }),
     );
 
     // Seed Lessons
-    await lessonRepo.save([
+    const seededLessons = await lessonRepo.save([
       // T1
       lessonRepo.create({
         trackId: t1.id,
@@ -161,6 +173,7 @@ async function seed(): Promise<void> {
         order: 1,
         estimatedTime: '15m',
         body: 'Clone the git monorepo locally and checkout your branch.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t1.id,
@@ -168,6 +181,7 @@ async function seed(): Promise<void> {
         order: 2,
         estimatedTime: '20m',
         body: 'Install node, pnpm and configure workspace dependencies.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t1.id,
@@ -175,6 +189,7 @@ async function seed(): Promise<void> {
         order: 3,
         estimatedTime: '25m',
         body: 'Run postgres and redis containers locally via compose.',
+        type: LessonType.VIDEO,
       }),
       lessonRepo.create({
         trackId: t1.id,
@@ -182,6 +197,7 @@ async function seed(): Promise<void> {
         order: 4,
         estimatedTime: '15m',
         body: 'Verify all services are up and you can load the app locally.',
+        type: LessonType.CODING,
       }),
 
       // T2
@@ -191,6 +207,7 @@ async function seed(): Promise<void> {
         order: 1,
         estimatedTime: '30m',
         body: 'Learn layouts, pages, loading states, and parallel routing.',
+        type: LessonType.VIDEO,
       }),
       lessonRepo.create({
         trackId: t2.id,
@@ -198,6 +215,7 @@ async function seed(): Promise<void> {
         order: 2,
         estimatedTime: '30m',
         body: 'Configure config, utilities, and custom spacing systems.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t2.id,
@@ -205,6 +223,7 @@ async function seed(): Promise<void> {
         order: 3,
         estimatedTime: '30m',
         body: 'Import and configure global design tokens and assets.',
+        type: LessonType.VIDEO,
       }),
       lessonRepo.create({
         trackId: t2.id,
@@ -212,6 +231,7 @@ async function seed(): Promise<void> {
         order: 4,
         estimatedTime: '30m',
         body: 'ARIA landmarks, screen readers, contrast, and focus states.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t2.id,
@@ -219,6 +239,7 @@ async function seed(): Promise<void> {
         order: 5,
         estimatedTime: '30m',
         body: 'Apply premium margins, sizing constraints, and dynamic tokens.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t2.id,
@@ -226,6 +247,7 @@ async function seed(): Promise<void> {
         order: 6,
         estimatedTime: '30m',
         body: 'Implement composite widgets using premium clean design codes.',
+        type: LessonType.CODING,
       }),
 
       // T3
@@ -235,6 +257,7 @@ async function seed(): Promise<void> {
         order: 1,
         estimatedTime: '30m',
         body: 'Configure dependency injection, module boundaries and imports.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t3.id,
@@ -242,6 +265,7 @@ async function seed(): Promise<void> {
         order: 2,
         estimatedTime: '30m',
         body: 'Write REST endpoints with Swagger docs and HTTP status codes.',
+        type: LessonType.VIDEO,
       }),
       lessonRepo.create({
         trackId: t3.id,
@@ -249,6 +273,7 @@ async function seed(): Promise<void> {
         order: 3,
         estimatedTime: '30m',
         body: 'Apply class-validator constraints and DTO validation rules.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t3.id,
@@ -256,6 +281,7 @@ async function seed(): Promise<void> {
         order: 4,
         estimatedTime: '30m',
         body: 'Map relations, specify repositories and create entity migrations.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t3.id,
@@ -263,6 +289,7 @@ async function seed(): Promise<void> {
         order: 5,
         estimatedTime: '30m',
         body: 'Implement keyset cursor pagination to deliver stable feeds.',
+        type: LessonType.CODING,
       }),
 
       // T4
@@ -272,6 +299,7 @@ async function seed(): Promise<void> {
         order: 1,
         estimatedTime: '30m',
         body: 'Implement event-emitters to decouple notification pipelines.',
+        type: LessonType.VIDEO,
       }),
       lessonRepo.create({
         trackId: t4.id,
@@ -279,6 +307,7 @@ async function seed(): Promise<void> {
         order: 2,
         estimatedTime: '30m',
         body: 'Structure clean API proxies with reverse proxy services.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t4.id,
@@ -286,6 +315,7 @@ async function seed(): Promise<void> {
         order: 3,
         estimatedTime: '30m',
         body: 'Establish type contracts for events and service pipelines.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t4.id,
@@ -293,6 +323,7 @@ async function seed(): Promise<void> {
         order: 4,
         estimatedTime: '30m',
         body: 'Map events from checkout up to package fulfillment.',
+        type: LessonType.ASSIGNMENT,
       }),
 
       // T5
@@ -302,6 +333,7 @@ async function seed(): Promise<void> {
         order: 1,
         estimatedTime: '30m',
         body: 'Mock repositories and verify service method logic.',
+        type: LessonType.READING,
       }),
       lessonRepo.create({
         trackId: t5.id,
@@ -309,6 +341,7 @@ async function seed(): Promise<void> {
         order: 2,
         estimatedTime: '30m',
         body: 'Write supertest specifications targeting controller routes.',
+        type: LessonType.VIDEO,
       }),
       lessonRepo.create({
         trackId: t5.id,
@@ -316,13 +349,20 @@ async function seed(): Promise<void> {
         order: 3,
         estimatedTime: '30m',
         body: 'Automate browser tests and check status gate thresholds.',
+        type: LessonType.CODING,
       }),
     ]);
+
+    // Find specific lessons to link with exercises
+    const lessonForE1 = seededLessons.find((l) => l.title === 'Building Reusable React Components');
+    const lessonForE2 = seededLessons.find((l) => l.title === 'Pagination & Service Methods');
+    const lessonForE3 = seededLessons.find((l) => l.title === 'Order Flow Sequence');
 
     // Seed Exercises
     const e1 = await exerciseRepo.save(
       exerciseRepo.create({
         trackId: t2.id,
+        lessonId: lessonForE1?.id || null,
         title: 'Build a Profile Card Component',
         tag: 'Frontend',
         difficulty: ExerciseDifficulty.BEGINNER,
@@ -348,6 +388,7 @@ async function seed(): Promise<void> {
     const e2 = await exerciseRepo.save(
       exerciseRepo.create({
         trackId: t3.id,
+        lessonId: lessonForE2?.id || null,
         title: 'Add a Paginated Users Endpoint',
         tag: 'NestJS',
         difficulty: ExerciseDifficulty.INTERMEDIATE,
@@ -373,6 +414,7 @@ async function seed(): Promise<void> {
     const e3 = await exerciseRepo.save(
       exerciseRepo.create({
         trackId: t4.id,
+        lessonId: lessonForE3?.id || null,
         title: 'Diagram the Order Flow',
         tag: 'Architecture',
         difficulty: ExerciseDifficulty.ADVANCED,
@@ -494,35 +536,35 @@ async function seed(): Promise<void> {
         content: 'Learn layouts, pages, loading states, and parallel routing.',
         url: 'wiki/frontend/app-router',
         tags: [feTag, archTag],
-        kind: 'Guide',
+        kind: DocumentKind.GUIDE,
       }),
       documentRepo.create({
         title: 'Component Library Storybook',
         content: 'Check our design tokens and global widget assets.',
         url: 'storybook.internal.dev',
         tags: [feTag],
-        kind: 'Reference',
+        kind: DocumentKind.REFERENCE,
       }),
       documentRepo.create({
         title: 'NestJS Module Boundaries',
         content: 'Guidelines on module decoupling and dependency injection.',
         url: 'wiki/backend/modules',
         tags: [nestjsTag, archTag],
-        kind: 'Guide',
+        kind: DocumentKind.GUIDE,
       }),
       documentRepo.create({
         title: 'Database Migration Playbook',
         content: 'Writing safe TypeORM entity migrations for live databases.',
         url: 'wiki/data/migrations',
         tags: [dbTag],
-        kind: 'Runbook',
+        kind: DocumentKind.RUNBOOK,
       }),
       documentRepo.create({
         title: 'Service Auth & JWT Flow',
         content: 'Authentication logic, session management, and Guard structures.',
         url: 'wiki/backend/auth',
         tags: [nestjsTag, archTag],
-        kind: 'Guide',
+        kind: DocumentKind.GUIDE,
       }),
     ]);
 

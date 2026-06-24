@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getDocuments } from '@/services/api-client';
-import type { Document } from '@/services/api-client';
+import { documentsControllerFindAll, documentsControllerFindAllTags } from '@/services/api-client';
+import type { DocumentResponseDto, TagResponseDto } from '@/services/api-client';
 
 interface ResourceDocumentPickerDialogProps {
   open: boolean;
   selectedIds: string[];
   onClose: () => void;
-  onConfirm: (ids: string[]) => void;
+  onConfirm: (ids: string[], documents?: DocumentResponseDto[]) => void;
 }
 
 export default function ResourceDocumentPickerDialog({
@@ -17,10 +17,12 @@ export default function ResourceDocumentPickerDialog({
   onClose,
   onConfirm,
 }: ResourceDocumentPickerDialogProps) {
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentResponseDto[]>([]);
   const [loading, setLoading] = useState(false);
+  const [tags, setTags] = useState<TagResponseDto[]>([]);
   const [search, setSearch] = useState('');
   const [kindFilter, setKindFilter] = useState('');
+  const [tagFilter, setTagFilter] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set(selectedIds));
 
   useEffect(() => {
@@ -32,10 +34,11 @@ export default function ResourceDocumentPickerDialog({
   const fetchDocs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getDocuments({
+      const res = await documentsControllerFindAll({
         query: {
           q: search || undefined,
-          kind: (kindFilter as Document['kind']) || undefined,
+          kind: (kindFilter as DocumentResponseDto['kind']) || undefined,
+          tags: tagFilter || undefined,
           limit: 50,
         },
         throwOnError: true,
@@ -46,11 +49,18 @@ export default function ResourceDocumentPickerDialog({
     } finally {
       setLoading(false);
     }
-  }, [search, kindFilter]);
+  }, [search, kindFilter, tagFilter]);
 
   useEffect(() => {
     if (open) fetchDocs();
   }, [open, fetchDocs]);
+
+  useEffect(() => {
+    if (!open) return;
+    documentsControllerFindAllTags({ throwOnError: true })
+      .then((res) => setTags((res.data as TagResponseDto[] | undefined) ?? []))
+      .catch(() => setTags([]));
+  }, [open]);
 
   function toggleDoc(id: string) {
     setSelected((prev) => {
@@ -62,7 +72,8 @@ export default function ResourceDocumentPickerDialog({
   }
 
   function handleConfirm() {
-    onConfirm(Array.from(selected));
+    const ids = Array.from(selected);
+    onConfirm(ids, documents.filter((doc) => doc.id && selected.has(doc.id)));
     onClose();
   }
 
@@ -98,7 +109,7 @@ export default function ResourceDocumentPickerDialog({
           </div>
 
           {/* Filters */}
-          <div className="grid grid-cols-3 gap-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
             <div className="space-y-xs">
               <label className="text-label-sm text-on-surface-variant">Kind</label>
               <select
@@ -112,6 +123,21 @@ export default function ResourceDocumentPickerDialog({
                 <option value="Runbook">Runbook</option>
                 <option value="Tutorial">Tutorial</option>
                 <option value="Link">Link</option>
+              </select>
+            </div>
+            <div className="space-y-xs">
+              <label className="text-label-sm text-on-surface-variant">Tag</label>
+              <select
+                className="w-full border border-outline-variant rounded-lg p-sm text-body-base bg-surface-container-lowest outline-none focus:border-primary"
+                value={tagFilter}
+                onChange={(e) => setTagFilter(e.target.value)}
+              >
+                <option value="">All Tags</option>
+                {tags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -146,7 +172,7 @@ export default function ResourceDocumentPickerDialog({
                       <div className="flex-1 min-w-0">
                         <p className="font-body-md text-on-surface truncate">{doc.title}</p>
                         <p className="text-label-sm text-on-surface-variant">
-                          {doc.tags?.join(', ') || 'Untagged'} &middot; {doc.kind || 'Unknown'}
+                          {doc.tags?.map((t) => t.name).join(', ') || 'Untagged'} &middot; {doc.kind || 'Unknown'}
                         </p>
                       </div>
                     </label>

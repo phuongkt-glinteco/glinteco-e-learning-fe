@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { getDocumentsRecent } from '@/services/api-client';
+import { documentsControllerFindRecent } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 
@@ -56,7 +56,7 @@ export default function RecentDocumentsSection() {
 
   useEffect(() => {
     let cancelled = false;
-    getDocumentsRecent({ throwOnError: true })
+    documentsControllerFindRecent({ throwOnError: true })
       .then((res) => {
         if (cancelled) return;
         const rawData = Array.isArray(res.data)

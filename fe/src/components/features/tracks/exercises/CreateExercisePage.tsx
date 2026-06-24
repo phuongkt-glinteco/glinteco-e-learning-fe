@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { postExercises } from '@/services/api-client';
+import { exercisesControllerCreate } from '@/services/api-client';
+import type { DocumentResponseDto } from '@/services/api-client';
 import { UiShowError } from '@/services/errors';
 import { createExerciseFormSchema, type CreateExerciseFormInput } from '@/schemas';
 import ExerciseBasicInfo from './ExerciseBasicInfo';
@@ -14,12 +15,13 @@ import ExerciseListEditor from './ExerciseListEditor';
 import ExerciseHint from './ExerciseHint';
 import ResourceDocumentPickerDialog from './ResourceDocumentPickerDialog';
 
-export default function CreateExercisePage({ trackId }: { trackId: string }) {
+export default function CreateExercisePage({ trackId, lessonId }: { trackId: string; lessonId?: string }) {
   const t = useTranslations('CreateExercisePage');
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [resourceDocIds, setResourceDocIds] = useState<string[]>([]);
+  const [resourceDocs, setResourceDocs] = useState<DocumentResponseDto[]>([]);
   const [showResourcePicker, setShowResourcePicker] = useState(false);
 
   const {
@@ -50,10 +52,11 @@ export default function CreateExercisePage({ trackId }: { trackId: string }) {
     setSaving(true);
     setServerError(null);
     try {
-      await postExercises({
+      await exercisesControllerCreate({
         body: {
           title: data.title.trim(),
           trackId,
+          lessonId,
           tag: data.tag.trim(),
           difficulty: data.difficulty,
           estimatedTime: data.estimatedTime.trim(),
@@ -67,7 +70,7 @@ export default function CreateExercisePage({ trackId }: { trackId: string }) {
         },
         throwOnError: true,
       });
-      router.push(`/admin/tracks/${trackId}`);
+      router.push(lessonId ? `/admin/tracks/${trackId}/lessons/${lessonId}` : `/admin/tracks/${trackId}`);
     } catch (e) {
       if (e instanceof UiShowError) {
         setServerError(e.errorCode);
@@ -102,6 +105,12 @@ export default function CreateExercisePage({ trackId }: { trackId: string }) {
       </nav>
 
       <h1 className="font-headline-lg text-headline-lg text-on-surface mb-8">{t('title')}</h1>
+      {lessonId && (
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary-container/30 px-4 py-3 text-primary font-label-sm">
+          <span className="material-symbols-outlined text-[18px]">link</span>
+          {t('linkedToLesson')}
+        </div>
+      )}
 
       {serverError && (
         <div className="mb-6 p-4 bg-error/10 border border-error rounded-lg flex items-center gap-3">
@@ -174,10 +183,15 @@ export default function CreateExercisePage({ trackId }: { trackId: string }) {
                       className="flex items-center gap-2 px-3 py-2 bg-surface-container-low rounded-lg border border-outline-variant"
                     >
                       <span className="material-symbols-outlined text-primary text-[18px]">description</span>
-                      <span className="text-label-sm text-on-surface flex-1 truncate">{id}</span>
+                      <span className="text-label-sm text-on-surface flex-1 truncate">
+                        {resourceDocs.find((doc) => doc.id === id)?.title ?? t('selectedDocument')}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => setResourceDocIds((prev) => prev.filter((i) => i !== id))}
+                        onClick={() => {
+                          setResourceDocIds((prev) => prev.filter((i) => i !== id));
+                          setResourceDocs((prev) => prev.filter((doc) => doc.id !== id));
+                        }}
                         className="material-symbols-outlined text-[16px] text-outline hover:text-error cursor-pointer"
                       >
                         close
@@ -217,7 +231,10 @@ export default function CreateExercisePage({ trackId }: { trackId: string }) {
         open={showResourcePicker}
         selectedIds={resourceDocIds}
         onClose={() => setShowResourcePicker(false)}
-        onConfirm={(ids) => setResourceDocIds(ids)}
+        onConfirm={(ids, docs) => {
+          setResourceDocIds(ids);
+          setResourceDocs(docs ?? []);
+        }}
       />
     </div>
   );

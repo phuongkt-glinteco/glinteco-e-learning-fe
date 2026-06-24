@@ -4,19 +4,20 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { useRouter } from 'next/navigation';
 import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 import {
-  postAuthLogin,
-  postAuthLogout,
-  getAuthMe,
+    authControllerLogin,
+  authControllerLogout,
+  authControllerMe,
   getAccessToken,
+  getRefreshToken,
   setClientToken,
   saveTokens,
   clearTokens,
   attemptTokenRefresh,
-  type UserDetail,
+  type UserProfileDto,
 } from '@/services/api-client';
 
 interface AuthContextValue {
-  user: UserDetail | null;
+  user: UserProfileDto | null;
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -39,7 +40,7 @@ function clearAuthCookie() {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { data: nextAuthSession, status: nextAuthStatus } = useSession();
-  const [user, setUser] = useState<UserDetail | null>(null);
+  const [user, setUser] = useState<UserProfileDto | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -59,9 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setClientToken(sessionToken);
       setLoading(true);
 
-      getAuthMe({ throwOnError: true })
+      authControllerMe({ throwOnError: true })
         .then((res) => {
-          const profile = res.data as UserDetail;
+          const profile = res.data as UserProfileDto;
           if (sessionRefreshToken) {
             saveTokens(sessionToken, sessionRefreshToken);
           } else {
@@ -91,9 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         setClientToken(savedToken);
-        getAuthMe({ throwOnError: true })
+        authControllerMe({ throwOnError: true })
           .then((res) => {
-            setUser(res.data as UserDetail);
+            setUser(res.data as UserProfileDto);
             setToken(savedToken);
           })
           .catch(async () => {
@@ -104,8 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               if (newToken) {
                 setClientToken(newToken);
                 try {
-                  const res = await getAuthMe({ throwOnError: true });
-                  setUser(res.data as UserDetail);
+                  const res = await authControllerMe({ throwOnError: true });
+                  setUser(res.data as UserProfileDto);
                   setToken(newToken);
                   return;
                 } catch {
@@ -124,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const res = await postAuthLogin({
+      const res = await authControllerLogin({
         body: { email, password },
         throwOnError: true,
       });
@@ -134,8 +135,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setClientToken(accessToken);
 
       try {
-        const profileRes = await getAuthMe({ throwOnError: true });
-        const profile = profileRes.data as UserDetail | undefined;
+        const profileRes = await authControllerMe({ throwOnError: true });
+        const profile = profileRes.data as UserProfileDto | undefined;
 
         if (refreshToken) {
           saveTokens(accessToken, refreshToken);
@@ -160,7 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     // Revoke the refresh token on the server (best-effort, needs auth header)
     try {
-      await postAuthLogout();
+      await authControllerLogout({ body: { refreshToken: getRefreshToken() ?? '' } });
     } catch {
       // server revocation is best-effort during logout
     }

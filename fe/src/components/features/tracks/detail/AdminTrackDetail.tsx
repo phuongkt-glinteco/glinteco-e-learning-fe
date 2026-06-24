@@ -3,12 +3,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { getTracksById, getExercises } from '@/services/api-client';
-import type { TrackDetail, ExerciseSummary } from '@/services/api-client';
+import { tracksControllerFindOne, exercisesControllerFindAll } from '@/services/api-client';
+import type { TrackDetailDto, ExerciseSummaryDto } from '@/services/api-client';
+import { useTrackCreatedStore } from '@/stores/trackCreatedStore';
 import TrackOverviewCard from './TrackOverviewCard';
 import AdminCurriculumRoadmap from './AdminCurriculumRoadmap';
 import TrackStatusCard from './TrackStatusCard';
 import LinkedExercisesCard from './LinkedExercisesCard';
+import AdminTrackPreview from './AdminTrackPreview';
 
 type LessonStatus = 'completed' | 'in_progress' | 'locked';
 
@@ -17,36 +19,42 @@ interface LessonItem {
   title: string;
   order: number;
   status: LessonStatus;
+  type?: 'video' | 'reading' | 'quiz' | 'coding' | 'assignment';
+  description?: string | null;
 }
 
-function determineLessonStatus(lessons: TrackDetail['lessons']): LessonItem[] {
+function determineLessonStatus(lessons: TrackDetailDto['lessons']): LessonItem[] {
   if (!lessons) return [];
   const sorted = [...lessons].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   let foundActive = false;
   return sorted.map((l) => {
-    if (l.completed) return { id: l.id!, title: l.title!, order: l.order!, status: 'completed' as const };
+    const base = { id: l.id!, title: l.title!, order: l.order!, type: l.type, description: l.description };
+    if (l.completed) return { ...base, status: 'completed' as const };
     if (!foundActive) {
       foundActive = true;
-      return { id: l.id!, title: l.title!, order: l.order!, status: 'in_progress' as const };
+      return { ...base, status: 'in_progress' as const };
     }
-    return { id: l.id!, title: l.title!, order: l.order!, status: 'locked' as const };
+    return { ...base, status: 'locked' as const };
   });
 }
 
-export default function AdminTrackDetail({ trackId }: { trackId: string }) {
+export default function AdminTrackDetail({ trackId, isFromCreate }: { trackId: string; isFromCreate?: boolean }) {
   const t = useTranslations('TrackDetailPage');
-  const [track, setTrack] = useState<TrackDetail | null>(null);
-  const [exercises, setExercises] = useState<ExerciseSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { trackData: createdTrack, clearTrackData } = useTrackCreatedStore();
+
+  const [track, setTrack] = useState<TrackDetailDto | null>(isFromCreate && createdTrack ? createdTrack : null);
+  const [exercises, setExercises] = useState<ExerciseSummaryDto[]>([]);
+  const [loading, setLoading] = useState(!isFromCreate);
   const [error, setError] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(false);
     try {
       const [trackRes, exRes] = await Promise.all([
-        getTracksById({ path: { id: trackId }, throwOnError: true }),
-        getExercises({ query: { trackId }, throwOnError: true }).catch(() => null),
+        tracksControllerFindOne({ path: { id: trackId }, throwOnError: true }),
+        exercisesControllerFindAll({ query: { trackId }, throwOnError: true }).catch(() => null),
       ]);
       setTrack(trackRes.data ?? null);
       setExercises(exRes?.data?.data ?? []);
@@ -58,8 +66,20 @@ export default function AdminTrackDetail({ trackId }: { trackId: string }) {
   }, [trackId]);
 
   useEffect(() => {
+    if (isFromCreate) {
+      clearTrackData();
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, [fetchData]);
+  }, [fetchData, isFromCreate, clearTrackData]);
+
+  useEffect(() => {
+    if (!isFromCreate) return;
+    exercisesControllerFindAll({ query: { trackId }, throwOnError: true })
+      .then((res) => setExercises(res.data?.data ?? []))
+      .catch(() => {});
+  }, [isFromCreate, trackId]);
 
   const handleDeleteLesson = useCallback((lessonId: string) => {
     setTrack((prev) => {
@@ -109,6 +129,16 @@ export default function AdminTrackDetail({ trackId }: { trackId: string }) {
   const completedLessons = lessonsWithStatus.filter((l) => l.status === 'completed').length;
   const completionPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
+  if (previewing) {
+    return (
+      <AdminTrackPreview
+        track={track}
+        exercises={exercises}
+        onBack={() => setPreviewing(false)}
+      />
+    );
+  }
+
   return (
     <div className="px-gutter py-6 max-w-[1440px] mx-auto w-full">
       <nav className="flex items-center gap-2 text-outline font-label-sm mb-6">
@@ -126,6 +156,7 @@ export default function AdminTrackDetail({ trackId }: { trackId: string }) {
             title={track.title ?? ''}
             estimatedTime={track.estimatedTime}
             description={track.description}
+            onPreview={() => setPreviewing(true)}
           />
 
           <AdminCurriculumRoadmap

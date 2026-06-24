@@ -2,22 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { getTracks } from '@/services/api-client';
-import type { TrackSummary } from '@/services/api-client';
+import { tracksControllerFindAll } from '@/services/api-client';
+import type { TrackSummaryDto } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 import { ProgressBar } from '@/components/ui/HPBar';
 
 export default function ContinueLearningSection() {
   const t = useTranslations('LearnerDashboard');
-  const [tracks, setTracks] = useState<TrackSummary[]>([]);
+  const [tracks, setTracks] = useState<TrackSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    getTracks({ throwOnError: true })
+    tracksControllerFindAll({ throwOnError: true })
       .then((res) => {
-        if (!cancelled) setTracks((res.data as { data?: TrackSummary[] })?.data ?? []);
+        if (!cancelled) setTracks((res.data as { data?: TrackSummaryDto[] })?.data ?? []);
       })
       .catch(() => {})
       .finally(() => {

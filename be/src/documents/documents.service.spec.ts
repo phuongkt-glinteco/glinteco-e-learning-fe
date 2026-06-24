@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DocumentsService } from './documents.service';
-import { Document } from '../database/entities/document.entity';
+import { Document, DocumentKind } from '../database/entities/document.entity';
 import { Tag } from '../database/entities/tag.entity';
 import { User } from '../database/entities/user.entity';
 import { SearchDocumentsDto } from './dto/search-documents.dto';
@@ -80,7 +80,7 @@ describe('DocumentsService', () => {
     it('should search documents with filters and cursor pagination', async () => {
       const queryDto: SearchDocumentsDto = {
         q: 'react',
-        kind: 'Guide',
+        kind: DocumentKind.GUIDE,
         tags: 'tech, react',
         limit: 2,
         cursor:
@@ -91,7 +91,7 @@ describe('DocumentsService', () => {
           id: 'doc-1',
           title: 'React Guide',
           content: 'Intro to react',
-          kind: 'Guide',
+          kind: DocumentKind.GUIDE,
           tags: [],
           createdAt: new Date(),
         },
@@ -99,7 +99,7 @@ describe('DocumentsService', () => {
           id: 'doc-2',
           title: 'React Hooks',
           content: 'Intro to hooks',
-          kind: 'Guide',
+          kind: DocumentKind.GUIDE,
           tags: [],
           createdAt: new Date(),
         },
@@ -149,7 +149,7 @@ describe('DocumentsService', () => {
           title: 'React Doc',
           content: 'Guide',
           url: 'http',
-          kind: 'Guide',
+          kind: DocumentKind.GUIDE,
           tags: [],
         },
       ];
@@ -191,13 +191,13 @@ describe('DocumentsService', () => {
     it('should create and save a document with tag ids', async () => {
       const dto: CreateDocumentDto = {
         title: 'New Doc',
-        kind: 'Guide',
+        kind: DocumentKind.GUIDE,
         tagIds: ['tag-1'],
       };
       const savedDoc = {
         id: 'doc-new',
         title: 'New Doc',
-        kind: 'Guide',
+        kind: DocumentKind.GUIDE,
         tags: [{ id: 'tag-1', name: 'React' }],
       };
 

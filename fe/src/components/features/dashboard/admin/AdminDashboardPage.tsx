@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import {
-  getCohorts,
-  getCohortsByIdOverview,
-  getSubmissions,
-  getCohortsByIdTrackCompletion,
+  cohortControllerFindAll,
+  cohortControllerGetOverview,
+  submissionsControllerFindAll,
+  cohortControllerGetTrackCompletion,
 } from '@/services/api-client';
 import type {
-  CohortDashboardStats,
-  SubmissionFeedItem,
-  ExerciseDetail,
-  UserDetail,
+  CohortDashboardStatsDto,
+  SubmissionFeedItemDto,
+  ExerciseDetailDto,
+  UserProfileDto,
 } from '@/services/api-client';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
@@ -23,7 +23,7 @@ import QuickLinksCard from './QuickLinksCard';
 import CohortSelector from './CohortSelector';
 import { ProgressBar } from '@/components/ui/HPBar';
 
-function extractExerciseName(exercise: ExerciseDetail | undefined): string {
+function extractExerciseName(exercise: ExerciseDetailDto | undefined): string {
   return exercise?.title ?? '';
 }
 
@@ -43,8 +43,8 @@ export default function AdminDashboardPage() {
   const [cohortList, setCohortList] = useState<{ id: string; name: string }[]>([]);
   const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
 
-  const [stats, setStats] = useState<CohortDashboardStats | null>(null);
-  const [submissions, setSubmissions] = useState<SubmissionFeedItem[]>([]);
+  const [stats, setStats] = useState<CohortDashboardStatsDto | null>(null);
+  const [submissions, setSubmissions] = useState<SubmissionFeedItemDto[]>([]);
   const [trackCompletion, setTrackCompletion] = useState<{ label: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -69,7 +69,7 @@ export default function AdminDashboardPage() {
     if (!mounted || authLoading) return;
     let cancelled = false;
 
-    getCohorts({ throwOnError: true })
+    cohortControllerFindAll({ throwOnError: true })
       .then((res) => {
         if (cancelled) return;
         const list = (res.data?.data ?? []).map((c) => ({
@@ -79,8 +79,8 @@ export default function AdminDashboardPage() {
         setCohortList(list);
 
         // Default selection: user's cohort, or first cohort
-        const defaultId = (user as UserDetail)?.cohortId && list.some((c) => c.id === (user as UserDetail).cohortId)
-          ? (user as UserDetail).cohortId ?? null
+        const defaultId = (user as UserProfileDto)?.cohortId && list.some((c) => c.id === (user as UserProfileDto).cohortId)
+          ? (user as UserProfileDto).cohortId ?? null
           : list[0]?.id ?? null;
         setSelectedCohortId(defaultId);
       })
@@ -89,7 +89,7 @@ export default function AdminDashboardPage() {
       });
 
     return () => { cancelled = true; };
-  }, [mounted, authLoading, (user as UserDetail)?.cohortId]);
+  }, [mounted, authLoading, (user as UserProfileDto)?.cohortId]);
 
   // Fetch dashboard data when selected cohort changes
   useEffect(() => {
@@ -102,12 +102,12 @@ export default function AdminDashboardPage() {
     async function fetchData() {
       try {
         const [overviewRes, submissionsRes, trackRes] = await Promise.all([
-          getCohortsByIdOverview({ path: { id: cid! }, throwOnError: true }),
-          getSubmissions({ query: { cohortId: cid! }, throwOnError: true }),
-          getCohortsByIdTrackCompletion({ path: { id: cid! }, throwOnError: true }),
+          cohortControllerGetOverview({ path: { id: cid! }, throwOnError: true }),
+          submissionsControllerFindAll({ query: { cohortId: cid! }, throwOnError: true }),
+          cohortControllerGetTrackCompletion({ path: { id: cid! }, throwOnError: true }),
         ]);
         if (cancelled) return;
-        setStats(overviewRes.data as CohortDashboardStats);
+        setStats(overviewRes.data as CohortDashboardStatsDto);
         setSubmissions(submissionsRes.data?.data ?? []);
         setTrackCompletion(
           (trackRes.data?.data ?? []).map((t) => ({
@@ -199,7 +199,7 @@ export default function AdminDashboardPage() {
       name: s.user?.name ?? '',
       avatarHue: s.user?.avatarHue,
     },
-    exercise: extractExerciseName(s.exercise as ExerciseDetail | undefined),
+    exercise: extractExerciseName(s.exercise as ExerciseDetailDto | undefined),
     prUrl: s.prUrl ?? '#',
     status: mapStatus(s.status ?? ''),
     timeAgo: s.submittedAt ? timeAgo(s.submittedAt) : '',

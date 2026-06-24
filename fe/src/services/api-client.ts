@@ -1,7 +1,7 @@
 import { client } from './client/client.gen';
 import { classify, pipeline } from './error-mapper';
 import { ApiError, UiShowError } from './errors';
-import { postAuthRefresh } from './client/sdk.gen';
+import { authControllerRefresh } from './client/sdk.gen';
 
 const DEFAULT_BASE_URL = 'https://api.glinteco-elearning.dev/api/v1';
 client.setConfig({
@@ -51,7 +51,7 @@ export async function attemptTokenRefresh(): Promise<boolean> {
   if (!refreshToken) return false;
 
   try {
-    const res = await postAuthRefresh({ body: { refreshToken } });
+    const res = await authControllerRefresh({ body: { refreshToken } });
     const { accessToken, refreshToken: newRefreshToken } = res.data ?? {};
     if (accessToken && newRefreshToken) {
       saveTokens(accessToken, newRefreshToken);

@@ -1,6 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { FieldErrors, UseFormRegister } from 'react-hook-form';
+import { documentsControllerFindAllTags } from '@/services/api-client';
+import type { TagResponseDto } from '@/services/api-client';
 import type { CreateExerciseFormInput } from '@/schemas';
 
 interface ExerciseBasicInfoProps {
@@ -10,6 +13,17 @@ interface ExerciseBasicInfoProps {
 }
 
 export default function ExerciseBasicInfo({ register, errors, t }: ExerciseBasicInfoProps) {
+  const [tags, setTags] = useState<TagResponseDto[]>([]);
+  const [loadingTags, setLoadingTags] = useState(false);
+
+  useEffect(() => {
+    setLoadingTags(true);
+    documentsControllerFindAllTags({ throwOnError: true })
+      .then((res) => setTags((res.data as TagResponseDto[] | undefined) ?? []))
+      .catch(() => setTags([]))
+      .finally(() => setLoadingTags(false));
+  }, []);
+
   return (
     <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
       <div className="flex items-center gap-2 mb-6">
@@ -37,13 +51,20 @@ export default function ExerciseBasicInfo({ register, errors, t }: ExerciseBasic
 
         <div>
           <label className="block text-label-sm text-on-surface-variant mb-1.5">{t('tagLabel')}</label>
-          <input
+          <select
             className={`w-full border rounded-lg px-md py-sm text-body-base focus:ring-0 transition-colors outline-none bg-surface-container-lowest ${
               errors.tag ? 'border-error' : 'border-outline-variant focus:border-primary'
             }`}
-            placeholder={t('tagPlaceholder')}
+            disabled={loadingTags}
             {...register('tag')}
-          />
+          >
+            <option value="">{loadingTags ? t('tagsLoading') : t('tagPlaceholder')}</option>
+            {tags.map((tag) => (
+              <option key={tag.id} value={tag.name}>
+                {tag.name}
+              </option>
+            ))}
+          </select>
           {errors.tag && (
             <p className="text-error text-[12px] mt-1 flex items-center gap-1">
               <span className="material-symbols-outlined text-[14px]">error</span>

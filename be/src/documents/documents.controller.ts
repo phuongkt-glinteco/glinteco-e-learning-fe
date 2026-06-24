@@ -24,6 +24,11 @@ import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { BookmarkResponseDto } from './dto/bookmark-response.dto';
+import {
+  DocumentResponseDto,
+  DocumentListResponseDto,
+  RecentDocumentsResponseDto,
+} from './dto/document-response.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { Roles } from '../modules/auth/decorators/roles.decorator';
@@ -46,6 +51,7 @@ export class DocumentsController {
   @ApiOperation({ summary: 'Tìm kiếm và liệt kê tài liệu kỹ thuật' })
   @ApiResponse({
     status: 200,
+    type: DocumentListResponseDto,
     description: 'Lấy danh sách tài liệu thành công.',
   })
   @Get('documents')
@@ -57,7 +63,7 @@ export class DocumentsController {
   }
 
   @ApiOperation({ summary: 'Lấy danh sách tài liệu được lưu gần đây' })
-  @ApiResponse({ status: 200, description: 'Lấy tài liệu gần đây thành công.' })
+  @ApiResponse({ status: 200, type: RecentDocumentsResponseDto, description: 'Lấy tài liệu gần đây thành công.' })
   @Get('documents/recent')
   async findRecent(@Req() req: RequestWithUser) {
     return this.documentsService.findRecent(req.user.id);
@@ -66,6 +72,7 @@ export class DocumentsController {
   @ApiOperation({ summary: 'Lấy thông tin chi tiết tài liệu kỹ thuật' })
   @ApiResponse({
     status: 200,
+    type: DocumentResponseDto,
     description: 'Lấy chi tiết tài liệu thành công.',
   })
   @Get('documents/:id')

@@ -10,7 +10,7 @@ import {
   TrackProgress,
   ProgressStatus,
 } from '../database/entities/track-progress.entity';
-import { Lesson } from '../database/entities/lesson.entity';
+import { Lesson, LessonType } from '../database/entities/lesson.entity';
 import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { User } from '../database/entities/user.entity';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -42,7 +42,7 @@ export class TracksService {
   }
 
   // Find all tracks and calculate progress dynamically or from saved progress
-  async findAll(userId: string, page = 1, limit = 20) {
+  async findAll(userId: string, page = 1, limit = 20, status?: string) {
     const tracks = await this.trackRepository.find({
       order: { order: 'ASC' },
       relations: { lessons: true },
@@ -76,6 +76,11 @@ export class TracksService {
       status: 'completed' | 'in_progress' | 'locked';
       lessonsCompleted: number;
       description: string;
+      level: string;
+      thumbnail: string | null;
+      accessStatus: 'unlocked' | 'locked';
+      lockedReason: string | null;
+      currentLessonId: string | null;
     }> = [];
     let previousCompleted = true; // First track is in_progress by default if unlocked
 
@@ -90,38 +95,45 @@ export class TracksService {
       ).length;
 
       const savedProgress = progressMap.get(track.id);
-      let status: ProgressStatus = ProgressStatus.NOT_STARTED;
+      let trackProgressStatus: ProgressStatus = ProgressStatus.NOT_STARTED;
 
       if (savedProgress) {
-        status = savedProgress.status;
+        trackProgressStatus = savedProgress.status;
       } else {
         // Dynamic status resolution
         if (i === 0 || previousCompleted) {
-          status = ProgressStatus.IN_PROGRESS;
+          trackProgressStatus = ProgressStatus.IN_PROGRESS;
         } else {
-          status = ProgressStatus.NOT_STARTED; // essentially "locked" in API view
+          trackProgressStatus = ProgressStatus.NOT_STARTED; // essentially "locked" in API view
         }
       }
 
       // Safeguard status based on completion
       if (totalLessons > 0 && completedCount === totalLessons) {
-        status = ProgressStatus.COMPLETED;
+        trackProgressStatus = ProgressStatus.COMPLETED;
       }
 
       // Update previous track completion status for the next iteration
-      previousCompleted = status === ProgressStatus.COMPLETED;
+      previousCompleted = trackProgressStatus === ProgressStatus.COMPLETED;
 
       // Translate status to the API expected string: "locked", "in_progress", "completed"
       let apiStatus: 'completed' | 'in_progress' | 'locked' = 'locked';
-      if (status === ProgressStatus.COMPLETED) {
+      if (trackProgressStatus === ProgressStatus.COMPLETED) {
         apiStatus = 'completed';
       } else if (
-        status === ProgressStatus.IN_PROGRESS ||
+        trackProgressStatus === ProgressStatus.IN_PROGRESS ||
         i === 0 ||
         (i > 0 && resolvedTracks[i - 1]?.status === 'completed')
       ) {
         apiStatus = 'in_progress';
       }
+
+      const sortedLessons = [...lessonsInTrack].sort((a, b) => a.order - b.order);
+      const currentLesson = sortedLessons.find((l) => !completedLessonIds.has(l.id));
+      const currentLessonId = completedCount === totalLessons ? null : (currentLesson ? currentLesson.id : (sortedLessons[0]?.id || null));
+
+      const accessStatus = apiStatus === 'locked' ? ('locked' as const) : ('unlocked' as const);
+      const lockedReason = apiStatus === 'locked' ? 'Hoàn thành track trước để mở khóa' : null;
 
       resolvedTracks.push({
         id: track.id,
@@ -133,13 +145,23 @@ export class TracksService {
         status: apiStatus,
         lessonsCompleted: completedCount,
         description: track.description,
+        level: track.level || 'Beginner',
+        thumbnail: track.thumbnail || null,
+        accessStatus,
+        lockedReason,
+        currentLessonId,
       });
     }
 
-    const total = resolvedTracks.length;
+    let filteredTracks = resolvedTracks;
+    if (status) {
+      filteredTracks = resolvedTracks.filter((t) => t.status === status);
+    }
+
+    const total = filteredTracks.length;
     const adjustedLimit = Math.min(limit, 50);
     const skip = (page - 1) * adjustedLimit;
-    const pagedTracks = resolvedTracks.slice(skip, skip + adjustedLimit);
+    const pagedTracks = filteredTracks.slice(skip, skip + adjustedLimit);
     const lastPage = Math.ceil(total / adjustedLimit);
 
     return {
@@ -230,9 +252,19 @@ export class TracksService {
       .map((lesson) => ({
         id: lesson.id,
         title: lesson.title,
+        description: lesson.description,
         order: lesson.order,
         completed: completedLessonIds.has(lesson.id),
+        type: lesson.type,
+        estimatedTime: lesson.estimatedTime,
       }));
+
+    const sortedLessons = [...lessonsInTrack].sort((a, b) => a.order - b.order);
+    const currentLesson = sortedLessons.find((l) => !completedLessonIds.has(l.id));
+    const currentLessonId = lessonsCompleted === totalLessons ? null : (currentLesson ? currentLesson.id : (sortedLessons[0]?.id || null));
+
+    const accessStatus = apiStatus === 'locked' ? ('locked' as const) : ('unlocked' as const);
+    const lockedReason = apiStatus === 'locked' ? 'Hoàn thành track trước để mở khóa' : null;
 
     return {
       id: track.id,
@@ -244,6 +276,11 @@ export class TracksService {
       lessonsCompleted,
       description: track.description,
       lessons: resolvedLessons,
+      level: track.level || 'Beginner',
+      thumbnail: track.thumbnail || null,
+      accessStatus,
+      lockedReason,
+      currentLessonId,
       prevTrack: prevTrack ? { id: prevTrack.id, title: prevTrack.title } : null,
       nextTrack: nextTrack ? { id: nextTrack.id, title: nextTrack.title } : null,
     };
@@ -368,6 +405,14 @@ export class TracksService {
   async reorder(reorderTracksDto: ReorderTracksDto) {
     const { order } = reorderTracksDto;
 
+    // Check if the order array contains all tracks in the database
+    const totalTracks = await this.trackRepository.count();
+    if (order.length !== totalTracks) {
+      throw new BadRequestException(
+        `Danh sách sắp xếp phải chứa đầy đủ tất cả ${totalTracks} tracks hiện tại (nhận được: ${order.length})`,
+      );
+    }
+
     // Verify all IDs exist
     const tracks = await this.trackRepository.find({
       where: { id: In(order) },
@@ -445,14 +490,53 @@ export class TracksService {
       order: { order: 'ASC' },
     });
 
+    const lessonProgresses = await this.lessonProgressRepository.find({
+      where: { userId },
+    });
+    const completedLessonIds = new Set(
+      lessonProgresses
+        .filter((lp) => lp.completedAt !== null)
+        .map((lp) => lp.lessonId),
+    );
+
     const data = lessons.map((lesson) => ({
       id: lesson.id,
       title: lesson.title,
+      description: lesson.description,
       order: lesson.order,
       estimatedTime: lesson.estimatedTime,
+      type: lesson.type,
+      completed: completedLessonIds.has(lesson.id),
     }));
 
     return { data };
+  }
+
+  async findOneLesson(lessonId: string, userId: string) {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+      relations: { relatedDocs: { tags: true } },
+    });
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
+    }
+
+    const progress = await this.lessonProgressRepository.findOne({
+      where: { lessonId, userId },
+    });
+
+    return {
+      id: lesson.id,
+      trackId: lesson.trackId,
+      title: lesson.title,
+      description: lesson.description,
+      order: lesson.order,
+      estimatedTime: lesson.estimatedTime,
+      body: lesson.body,
+      type: lesson.type,
+      completed: !!progress?.completedAt,
+      relatedDocs: lesson.relatedDocs || [],
+    };
   }
 
   async createLesson(trackId: string, createLessonDto: CreateLessonDto) {
@@ -486,6 +570,7 @@ export class TracksService {
     const lesson = this.lessonRepository.create({
       trackId,
       title: createLessonDto.title,
+      description: createLessonDto.description,
       order: createLessonDto.order,
       estimatedTime: createLessonDto.estimatedTime,
       body: createLessonDto.body,
@@ -560,6 +645,9 @@ export class TracksService {
     if (updateLessonDto.body !== undefined) {
       lesson.body = updateLessonDto.body;
     }
+    if (updateLessonDto.description !== undefined) {
+      lesson.description = updateLessonDto.description;
+    }
 
     return await this.lessonRepository.save(lesson);
   }
@@ -609,6 +697,8 @@ export class TracksService {
       throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
     }
 
+    const trackId = lesson.trackId;
+
     let lessonProgress = await this.lessonProgressRepository.findOne({
       where: { lessonId, userId },
     });
@@ -616,11 +706,28 @@ export class TracksService {
     if (lessonProgress && lessonProgress.completedAt) {
       // Already completed, return early
       const user = await this.userRepository.findOne({ where: { id: userId } });
+      const trackProgress = await this.trackProgressRepository.findOne({
+        where: { trackId, userId },
+      });
+      let apiTrackStatus: 'completed' | 'in_progress' | 'locked' = 'in_progress';
+      if (trackProgress) {
+        if (trackProgress.status === ProgressStatus.COMPLETED) {
+          apiTrackStatus = 'completed';
+        } else if (trackProgress.status === ProgressStatus.NOT_STARTED) {
+          apiTrackStatus = 'locked';
+        }
+      }
+
       return {
-        message: 'Lesson already completed',
+        lessonId,
+        trackId,
+        lessonsCompleted: trackProgress?.lessonsCompleted ?? 0,
+        trackStatus: apiTrackStatus,
         xpAwarded: 0,
         totalXp: user?.xp ?? 0,
         level: user?.level ?? 1,
+        unlockedTrackId: null,
+        message: 'Lesson already completed',
       };
     }
 
@@ -637,7 +744,6 @@ export class TracksService {
     await this.lessonProgressRepository.save(lessonProgress);
 
     // Update track progress
-    const trackId = lesson.trackId;
     const totalTrackLessons = await this.lessonRepository.count({
       where: { trackId },
     });
@@ -723,12 +829,23 @@ export class TracksService {
       await this.userRepository.save(user);
     }
 
+    let apiTrackStatus: 'completed' | 'in_progress' | 'locked' = 'in_progress';
+    if (trackProgress.status === ProgressStatus.COMPLETED) {
+      apiTrackStatus = 'completed';
+    } else if (trackProgress.status === ProgressStatus.NOT_STARTED) {
+      apiTrackStatus = 'locked';
+    }
+
     return {
-      message: 'Lesson completed',
+      lessonId,
+      trackId,
+      lessonsCompleted: completedInTrack,
+      trackStatus: apiTrackStatus,
       xpAwarded: 40,
       totalXp: user?.xp ?? 0,
       level: user?.level ?? 1,
       unlockedTrackId,
+      message: 'Lesson completed',
     };
   }
 }

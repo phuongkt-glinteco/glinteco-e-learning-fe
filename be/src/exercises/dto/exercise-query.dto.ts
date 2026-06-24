@@ -20,6 +20,14 @@ export class ExerciseQueryDto {
   trackId?: string;
 
   @ApiPropertyOptional({
+    description: 'Lọc bài tập thuộc Lesson cụ thể.',
+    example: 'l1',
+  })
+  @IsOptional()
+  @IsString({ message: 'lessonId phải là một chuỗi ký tự' })
+  lessonId?: string;
+
+  @ApiPropertyOptional({
     description: 'Lọc theo nhãn chuyên môn.',
     example: 'NestJS',
   })

@@ -41,6 +41,39 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+
+  // Customize operationIds to match frontend client conventions and strip prefix from path keys
+  if (document.paths) {
+    const newPaths: any = {};
+    for (const pathKey of Object.keys(document.paths)) {
+      const pathItem = document.paths[pathKey];
+      let relativePath = pathKey;
+      const prefix = `/${apiPrefix}`;
+      if (relativePath.startsWith(prefix)) {
+        relativePath = relativePath.slice(prefix.length);
+      }
+      for (const method of Object.keys(pathItem)) {
+        const operation = pathItem[method];
+        if (operation && typeof operation === 'object') {
+          const segments = relativePath.split('/').filter(Boolean);
+          const cleanSegments = segments.map((segment) => {
+            if (segment.startsWith('{') && segment.endsWith('}')) {
+              return 'ById';
+            }
+            return segment
+              .split('-')
+              .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+              .join('');
+          });
+          const cleanOperationId = method.toLowerCase() + cleanSegments.join('');
+          operation.operationId = cleanOperationId;
+        }
+      }
+      newPaths[relativePath || '/'] = pathItem;
+    }
+    document.paths = newPaths;
+  }
+
   const yamlContent = yaml.dump(document);
 
   // Redirect Swagger UI static assets to CDN and serve raw/JSON OpenAPI doc directly

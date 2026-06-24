@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TracksController } from './tracks.controller';
 import { LessonsController } from './lessons.controller';
 import { TracksService } from './tracks.service';
+import { ExercisesService } from '../exercises/exercises.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { ReorderTracksDto } from './dto/reorder-tracks.dto';
@@ -26,16 +27,24 @@ describe('Tracks and Lessons Controllers', () => {
     delete: jest.fn(),
     updateTrackProgress: jest.fn(),
     findLessons: jest.fn(),
+    findOneLesson: jest.fn(),
     createLesson: jest.fn(),
     updateLesson: jest.fn(),
     deleteLesson: jest.fn(),
     completeLesson: jest.fn(),
   };
 
+  const mockExercisesService = {
+    findAll: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TracksController, LessonsController],
-      providers: [{ provide: TracksService, useValue: mockTracksService }],
+      providers: [
+        { provide: TracksService, useValue: mockTracksService },
+        { provide: ExercisesService, useValue: mockExercisesService },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -218,6 +227,24 @@ describe('Tracks and Lessons Controllers', () => {
         'user-1',
       );
       expect(result).toEqual({ message: 'Lesson completed' });
+    });
+
+    it('should delegate findOneLesson to service', async () => {
+      const req = { user: { id: 'user-1', role: 'learner' } };
+      mockTracksService.findOneLesson.mockResolvedValue({ id: 'lesson-1', title: 'Lesson 1' });
+
+      const result = await lessonsController.findOneLesson('lesson-1', req);
+      expect(mockTracksService.findOneLesson).toHaveBeenCalledWith('lesson-1', 'user-1');
+      expect(result).toEqual({ id: 'lesson-1', title: 'Lesson 1' });
+    });
+
+    it('should delegate findExercisesByLesson to exercisesService', async () => {
+      const req = { user: { id: 'user-1', role: 'learner' } };
+      mockExercisesService.findAll.mockResolvedValue({ data: [] });
+
+      const result = await lessonsController.findExercisesByLesson('lesson-1', req);
+      expect(mockExercisesService.findAll).toHaveBeenCalledWith({ lessonId: 'lesson-1' }, req.user);
+      expect(result).toEqual({ data: [] });
     });
   });
 });

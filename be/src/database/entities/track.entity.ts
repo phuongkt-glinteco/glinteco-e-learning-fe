@@ -27,6 +27,12 @@ export class Track {
   @Column({ type: 'text' })
   description: string;
 
+  @Column({ default: 'Beginner' })
+  level: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  thumbnail: string | null;
+
   @Column()
   estimatedTime: string;
 

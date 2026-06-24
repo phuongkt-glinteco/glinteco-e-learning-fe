@@ -11,6 +11,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Track } from './track.entity';
+import { Lesson } from './lesson.entity';
 import { Submission } from './submission.entity';
 import { Document } from './document.entity';
 
@@ -31,6 +32,13 @@ export class Exercise {
   @ManyToOne(() => Track, (track) => track.exercises)
   @JoinColumn({ name: 'trackId' })
   track: Track;
+
+  @Column({ type: 'uuid', nullable: true })
+  lessonId: string | null;
+
+  @ManyToOne(() => Lesson, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'lessonId' })
+  lesson: Lesson | null;
 
   @Column()
   title: string;

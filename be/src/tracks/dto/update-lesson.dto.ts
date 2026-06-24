@@ -13,6 +13,16 @@ export class UpdateLessonDto {
   title?: string;
 
   @ApiPropertyOptional({
+    type: String,
+    description: 'Mô tả ngắn của bài học',
+    example: 'Advanced state management',
+    nullable: true,
+  })
+  @IsString({ message: 'description phải là chuỗi' })
+  @IsOptional()
+  description?: string | null;
+
+  @ApiPropertyOptional({
     description: 'Thứ tự của bài học trong lộ trình',
     example: 1,
     minimum: 1,

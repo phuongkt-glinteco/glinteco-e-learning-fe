@@ -19,12 +19,14 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { ReorderTracksDto } from './dto/reorder-tracks.dto';
 import { UpdateTrackProgressDto } from './dto/update-track-progress.dto';
+import { TrackListResponseDto, TrackDetailDto, TrackStatus } from './dto/track-response.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { Roles } from '../modules/auth/decorators/roles.decorator';
@@ -49,8 +51,8 @@ export class TracksController {
   })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Số trang (mặc định: 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Số bản ghi trên mỗi trang (mặc định: 20, tối đa: 50)' })
-  @ApiQuery({ name: 'status', required: false, type: String, enum: ['completed', 'in_progress', 'locked'], description: 'Lọc danh sách tracks theo trạng thái' })
-  @ApiResponse({ status: 200, description: 'Lấy danh sách tracks thành công.' })
+  @ApiQuery({ name: 'status', required: false, type: String, enum: TrackStatus, description: 'Lọc danh sách tracks theo trạng thái' })
+  @ApiOkResponse({ type: TrackListResponseDto, description: 'Lấy danh sách tracks thành công.' })
   @Get()
   async findAll(
     @Req() req: RequestWithUser,
@@ -58,9 +60,9 @@ export class TracksController {
     @Query('limit') limit?: string,
     @Query('status') status?: string,
   ) {
-    if (status && !['completed', 'in_progress', 'locked'].includes(status)) {
+    if (status && !Object.values(TrackStatus).includes(status as TrackStatus)) {
       throw new BadRequestException(
-        'status must be one of completed, in_progress, locked',
+        `status must be one of ${Object.values(TrackStatus).join(', ')}`,
       );
     }
     const pageNum = page ? parseInt(page, 10) : 1;
@@ -80,7 +82,7 @@ export class TracksController {
   }
 
   @ApiOperation({ summary: 'Lấy thông tin chi tiết một track' })
-  @ApiResponse({ status: 200, description: 'Lấy chi tiết track thành công.' })
+  @ApiOkResponse({ type: TrackDetailDto, description: 'Lấy chi tiết track thành công.' })
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.tracksService.findOne(id, req.user.id);

@@ -587,9 +587,13 @@ describe('AuthService', () => {
         email: 'user@company.com',
         name: 'Test Name',
         role: UserRole.LEARNER,
+        title: null,
+        avatarHue: 0,
+        cohortId: null,
         level: 1,
         xp: 0,
         streakDays: 0,
+        joinedAt: undefined,
       });
     });
 
@@ -643,9 +647,13 @@ describe('AuthService', () => {
         email: 'user@company.com',
         name: 'Existing Name',
         role: UserRole.LEARNER,
+        title: null,
+        avatarHue: 0,
+        cohortId: null,
         level: 5,
         xp: 120,
         streakDays: 3,
+        joinedAt: existingUser.createdAt,
       });
     });
 

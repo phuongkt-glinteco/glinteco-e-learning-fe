@@ -21,6 +21,7 @@ import {
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserQueryDto } from './dto/user-query.dto';
+import { UserDashboardStatsDto } from './dto/user-dashboard-stats.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -79,8 +80,12 @@ export class UsersController {
 
   @Get('me/stats')
   @ApiOperation({ summary: 'Lấy chỉ số học tập để hiển thị trên Dashboard' })
-  @ApiResponse({ status: 200, description: 'Lấy chỉ số thành công.' })
-  async getStats(@CurrentUser() currentUser: User) {
+  @ApiResponse({
+    status: 200,
+    type: UserDashboardStatsDto,
+    description: 'Lấy chỉ số thành công.',
+  })
+  async getStats(@CurrentUser() currentUser: User): Promise<UserDashboardStatsDto> {
     return this.usersService.getStats(currentUser.id);
   }
 

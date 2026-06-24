@@ -15,6 +15,8 @@ import { AddLeaderboardIndexes1784301321000 } from './migrations/1784301321000-A
 import { UpdateSubmissionHistorySchema1784301322000 } from './migrations/1784301322000-UpdateSubmissionHistorySchema';
 import { AddLastClaimedXpAtToUsers1784301323000 } from './migrations/1784301323000-AddLastClaimedXpAtToUsers';
 import { UpdateTracksAndLessonsSchema1784400000000 } from './migrations/1784400000000-UpdateTracksAndLessonsSchema';
+import { UpdateEntitiesForFeAudit1784500000000 } from './migrations/1784500000000-UpdateEntitiesForFeAudit';
+import { AddDescriptionToLessons1784600000000 } from './migrations/1784600000000-AddDescriptionToLessons';
 
 export const MIGRATIONS = [
   InitialSchema1781611485949,
@@ -34,4 +36,6 @@ export const MIGRATIONS = [
   UpdateSubmissionHistorySchema1784301322000,
   AddLastClaimedXpAtToUsers1784301323000,
   UpdateTracksAndLessonsSchema1784400000000,
+  UpdateEntitiesForFeAudit1784500000000,
+  AddDescriptionToLessons1784600000000,
 ];

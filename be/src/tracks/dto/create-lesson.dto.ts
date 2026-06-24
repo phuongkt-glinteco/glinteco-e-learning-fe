@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, MaxLength, IsInt, Min } from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsInt, Min, IsOptional } from 'class-validator';
 
 export class CreateLessonDto {
   @ApiProperty({
@@ -11,6 +11,17 @@ export class CreateLessonDto {
   @IsNotEmpty({ message: 'title không được để trống' })
   @MaxLength(255, { message: 'title không được vượt quá 255 ký tự' })
   title: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Mô tả ngắn của bài học',
+    example: 'Introduction to React concepts',
+    required: false,
+    nullable: true,
+  })
+  @IsString({ message: 'description phải là chuỗi' })
+  @IsOptional()
+  description?: string | null;
 
   @ApiProperty({
     description: 'Thứ tự của bài học trong lộ trình',

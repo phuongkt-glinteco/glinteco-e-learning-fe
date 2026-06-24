@@ -166,6 +166,41 @@ describe('TracksService', () => {
       });
     });
 
+    it('should filter tracks by status', async () => {
+      const tracks = [
+        {
+          id: 'track-1',
+          title: 'Track 1',
+          estimatedTime: '2h',
+          description: 'Desc 1',
+          icon: 'flag',
+          order: 1,
+          lessons: [{ id: 'lesson-1' }],
+        },
+        {
+          id: 'track-2',
+          title: 'Track 2',
+          estimatedTime: '3h',
+          description: 'Desc 2',
+          icon: 'server',
+          order: 2,
+          lessons: [{ id: 'lesson-2' }],
+        },
+      ];
+      mockTrackRepository.find.mockResolvedValue(tracks);
+      mockTrackProgressRepository.find.mockResolvedValue([]);
+      mockLessonProgressRepository.find.mockResolvedValue([
+        { lessonId: 'lesson-1', completedAt: new Date() },
+      ]);
+
+      const result = await service.findAll('user-1', 1, 20, 'completed');
+
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].id).toBe('track-1');
+      expect(result.data[0].status).toBe('completed');
+      expect(result.meta.total).toBe(1);
+    });
+
     it('should slice data correctly according to limit and page', async () => {
       const tracks = [
         { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
@@ -330,6 +365,7 @@ describe('TracksService', () => {
   describe('reorder', () => {
     it('should update order for tracks', async () => {
       const dto: ReorderTracksDto = { order: ['id-1', 'id-2'] };
+      mockTrackRepository.count.mockResolvedValue(2);
       mockTrackRepository.find.mockResolvedValue([
         { id: 'id-1' },
         { id: 'id-2' },

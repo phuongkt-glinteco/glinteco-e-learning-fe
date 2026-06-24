@@ -11,6 +11,7 @@ import { UpdateLessonDto } from './dto/update-lesson.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { ProgressStatus } from '../database/entities/track-progress.entity';
+import { BadRequestException } from '@nestjs/common';
 
 describe('Tracks and Lessons Controllers', () => {
   let tracksController: TracksController;
@@ -57,7 +58,7 @@ describe('Tracks and Lessons Controllers', () => {
       mockTracksService.findAll.mockResolvedValue({ data: [] });
 
       const result = await tracksController.findAll(req);
-      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 1, 20);
+      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 1, 20, undefined);
       expect(result).toEqual({ data: [] });
     });
 
@@ -66,8 +67,24 @@ describe('Tracks and Lessons Controllers', () => {
       mockTracksService.findAll.mockResolvedValue({ data: [] });
 
       const result = await tracksController.findAll(req, '2', '10');
-      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 2, 10);
+      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 2, 10, undefined);
       expect(result).toEqual({ data: [] });
+    });
+
+    it('should delegate findAll to service with status query param', async () => {
+      const req = { user: { id: 'user-1', role: 'learner' } };
+      mockTracksService.findAll.mockResolvedValue({ data: [] });
+
+      const result = await tracksController.findAll(req, '1', '20', 'completed');
+      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 1, 20, 'completed');
+      expect(result).toEqual({ data: [] });
+    });
+
+    it('should throw BadRequestException for invalid status query param', async () => {
+      const req = { user: { id: 'user-1', role: 'learner' } };
+      await expect(tracksController.findAll(req, '1', '20', 'invalid_status')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should delegate reorder to service', async () => {

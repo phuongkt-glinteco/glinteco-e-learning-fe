@@ -136,6 +136,14 @@ export type TrackDetail = {
     lessonsCompleted?: number;
     description?: string;
     lessons?: Array<LessonProgressItem>;
+    prevTrack?: {
+        id?: string;
+        title?: string;
+    } | null;
+    nextTrack?: {
+        id?: string;
+        title?: string;
+    } | null;
 };
 
 export type LessonSummary = {
@@ -223,7 +231,7 @@ export type Submission = {
     submittedAt?: string;
 };
 
-export type SubmissionFeedItem = {
+export type Item = {
     id?: string;
     user?: {
         id?: string;
@@ -255,7 +263,7 @@ export type SubmissionDetail = {
 export type SubmissionHistoryResponse = {
     submissionId?: string;
     exerciseId?: string;
-    history?: Array<SubmissionHistoryItem>;
+    history?: unknown;
 };
 
 export type SubmissionHistoryItem = {
@@ -1064,7 +1072,20 @@ export type GetCohortsByIdExportResponse = GetCohortsByIdExportResponses[keyof G
 export type GetTracksData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Trang hiện tại (mặc định 1)
+         */
+        page?: number;
+        /**
+         * Số lượng chặng trên mỗi trang (mặc định 20, tối đa 50)
+         */
+        limit?: number;
+        /**
+         * Lọc danh sách tracks theo trạng thái (completed, in_progress, locked)
+         */
+        status?: 'completed' | 'in_progress' | 'locked';
+    };
     url: '/tracks';
 };
 
@@ -1087,6 +1108,12 @@ export type GetTracksResponses = {
      */
     200: {
         data?: Array<TrackSummary>;
+        meta?: {
+            total?: number;
+            page?: number;
+            limit?: number;
+            lastPage?: number;
+        };
     };
 };
 
@@ -2439,7 +2466,7 @@ export type GetSubmissionsResponses = {
      * Thành công.
      */
     200: {
-        data?: Array<SubmissionFeedItem>;
+        data?: Array<unknown>;
         nextCursor?: string | null;
         hasMore?: boolean;
     };

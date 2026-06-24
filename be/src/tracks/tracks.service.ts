@@ -42,7 +42,7 @@ export class TracksService {
   }
 
   // Find all tracks and calculate progress dynamically or from saved progress
-  async findAll(userId: string, page = 1, limit = 20) {
+  async findAll(userId: string, page = 1, limit = 20, status?: string) {
     const tracks = await this.trackRepository.find({
       order: { order: 'ASC' },
       relations: { lessons: true },
@@ -136,10 +136,15 @@ export class TracksService {
       });
     }
 
-    const total = resolvedTracks.length;
+    let filteredTracks = resolvedTracks;
+    if (status) {
+      filteredTracks = resolvedTracks.filter((t) => t.status === status);
+    }
+
+    const total = filteredTracks.length;
     const adjustedLimit = Math.min(limit, 50);
     const skip = (page - 1) * adjustedLimit;
-    const pagedTracks = resolvedTracks.slice(skip, skip + adjustedLimit);
+    const pagedTracks = filteredTracks.slice(skip, skip + adjustedLimit);
     const lastPage = Math.ceil(total / adjustedLimit);
 
     return {

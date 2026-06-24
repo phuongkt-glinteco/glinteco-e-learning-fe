@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -48,16 +49,23 @@ export class TracksController {
   })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Số trang (mặc định: 1)' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Số bản ghi trên mỗi trang (mặc định: 20, tối đa: 50)' })
+  @ApiQuery({ name: 'status', required: false, type: String, enum: ['completed', 'in_progress', 'locked'], description: 'Lọc danh sách tracks theo trạng thái' })
   @ApiResponse({ status: 200, description: 'Lấy danh sách tracks thành công.' })
   @Get()
   async findAll(
     @Req() req: RequestWithUser,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('status') status?: string,
   ) {
+    if (status && !['completed', 'in_progress', 'locked'].includes(status)) {
+      throw new BadRequestException(
+        'status must be one of completed, in_progress, locked',
+      );
+    }
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 20;
-    return this.tracksService.findAll(req.user.id, pageNum, limitNum);
+    return this.tracksService.findAll(req.user.id, pageNum, limitNum, status);
   }
 
   @ApiOperation({ summary: 'Sắp xếp lại các tracks' })

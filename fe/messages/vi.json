@@ -28,7 +28,9 @@
     "alertGoogleSuccess": "Đăng nhập qua Google thành công!",
     "alertEmailSuccess": "Đăng nhập thành công với: {email}",
     "registrationSuccessMessage": "Tạo tài khoản thành công! Vui lòng đăng nhập.",
-    "LOGIN_INVALID_CREDENTIALS": "Tên đăng nhập hoặc mật khẩu không chính xác."
+    "LOGIN_INVALID_CREDENTIALS": "Tên đăng nhập hoặc mật khẩu không chính xác.",
+    "GOOGLE_AUTH_CONFIGURATION": "Google OAuth chưa được cấu hình đúng. Vui lòng thêm AUTH_GOOGLE_SECRET hợp lệ vào fe/.env.local.",
+    "GOOGLE_AUTH_FAILED": "Đăng nhập Google không thành công. Vui lòng thử lại."
   },
   "LandingPage": {
     "brandName": "RAMP UP",

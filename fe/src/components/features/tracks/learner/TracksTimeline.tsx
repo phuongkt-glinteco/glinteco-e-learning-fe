@@ -1,108 +1,100 @@
-import { Icon } from '@iconify/react';
-import HPBar from '@/components/ui/HPBar';
-import SectionHead from '@/components/ui/head/SectionHead';
 import type { LearnerTrack } from './types';
 import { TrackStepCard } from './TrackStepCard';
 
 interface TracksTimelineProps {
   tracks: LearnerTrack[];
   openingTrackId: string | null;
-  isUsingMockData: boolean;
-  fallbackMessage: string | null;
   onOpenTrack: (track: LearnerTrack) => void;
+}
+
+function getOverallProgress(tracks: LearnerTrack[]) {
+  if (tracks.length === 0) return 0;
+  const completed = tracks.filter((track) => track.status === 'completed').length;
+  return Math.round((completed / tracks.length) * 100);
 }
 
 export function TracksTimeline({
   tracks,
   openingTrackId,
-  isUsingMockData,
-  fallbackMessage,
   onOpenTrack,
 }: TracksTimelineProps) {
-  const completedTracksCount = tracks.filter((t) => t.status === 'completed').length;
-  const progressPercent = tracks.length > 0
-    ? Math.round((completedTracksCount / tracks.length) * 100)
-    : 0;
+  const completedTracks = tracks.filter((track) => track.status === 'completed').length;
+  const progress = getOverallProgress(tracks);
 
   return (
-    <div className="max-w-[720px] mx-auto py-4">
-      <SectionHead kicker="Core Knowledge" title="Learning Tracks">
-        <div className="flex items-center gap-2 flex-wrap">
-          {isUsingMockData && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-              <Icon icon="lucide:flask-conical" className="w-3.5 h-3.5" />
-              Sample data
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-secondary/15 text-secondary border border-secondary/20 shadow-sm">
-            <Icon icon="lucide:trophy" className="w-3.5 h-3.5" />
-            {completedTracksCount}/{tracks.length} cleared
+    <section className="mx-auto flex max-w-[920px] flex-col gap-6 px-gutter py-8">
+      <header>
+        <h1 className="headline-lg text-primary">Learning Tracks</h1>
+        <p className="mt-2 body-md text-on-surface-variant">
+          Follow each milestone in order, continue active lessons, and unlock the next track as you progress.
+        </p>
+      </header>
+
+      <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="label-sm uppercase text-on-surface-variant">
+              Track Path Progress
+            </p>
+            <p className="mt-1 headline-sm text-on-surface">
+              {completedTracks}/{tracks.length} milestones cleared
+            </p>
+          </div>
+          <span className="inline-flex w-fit items-center gap-1 rounded-full bg-primary-fixed px-3 py-1 label-sm text-primary">
+            <span className="material-symbols-outlined text-[16px]">trophy</span>
+            {progress}% complete
           </span>
         </div>
-      </SectionHead>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-surface-container">
+          <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
 
-      {fallbackMessage && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
-          {fallbackMessage}
+      {tracks.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-10 text-center">
+          <h2 className="headline-sm text-on-surface">No learning tracks found</h2>
+          <p className="mt-2 body-sm text-on-surface-variant">
+            Your learning path has not been published yet.
+          </p>
+        </div>
+      ) : (
+        <div>
+          <div className="grid grid-cols-[56px_1fr] gap-4 pb-5">
+            <div className="flex flex-col items-center">
+              <span className="rounded bg-secondary px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                Start
+              </span>
+              <div className="mt-2 min-h-8 w-1 flex-1 rounded-full bg-outline-variant" />
+            </div>
+            <p className="body-sm text-on-surface-variant">
+              Begin with the first available milestone and keep moving through the track sequence.
+            </p>
+          </div>
+
+          {tracks.map((track, index) => (
+            <TrackStepCard
+              key={track.id}
+              track={track}
+              index={index}
+              isLast={index === tracks.length - 1}
+              isOpening={openingTrackId === track.id}
+              onOpenTrack={onOpenTrack}
+            />
+          ))}
+
+          <div className="grid grid-cols-[56px_1fr] gap-4 pt-1">
+            <div className="flex h-14 w-14 items-center justify-center rounded-lg border-2 border-outline-variant bg-surface-container text-outline">
+              <span className="material-symbols-outlined text-[26px]">workspace_premium</span>
+            </div>
+            <div className="pt-2">
+              <h2 className="headline-sm text-on-surface">Production Ready</h2>
+              <p className="mt-1 body-sm text-on-surface-variant">
+                Complete all milestones to finish this onboarding path.
+              </p>
+            </div>
+          </div>
         </div>
       )}
-
-      <div className="bg-surface border border-outline-variant shadow-sm rounded-lg p-md mb-lg flex items-center gap-md flex-wrap">
-        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-          <Icon icon="lucide:map" className="w-5 h-5" />
-        </div>
-        <div className="flex-1 min-w-[200px]">
-          <div className="text-xs font-semibold text-on-surface-variant mb-1.5">
-            Track Path Progress
-          </div>
-          <HPBar value={progressPercent} segments={Math.max(tracks.length * 4, 12)} />
-        </div>
-        <div className="text-xs font-black text-primary uppercase select-none">
-          {progressPercent}% COMPLETE
-        </div>
-      </div>
-
-      <div className="space-y-0 relative">
-        {/* Start Node */}
-        <div className="flex gap-4 items-start relative pb-6">
-          <div className="flex flex-col items-center w-14 shrink-0">
-            <span className="px-2.5 py-1 text-[10px] font-black tracking-wider bg-secondary text-white rounded shadow-sm">
-              START
-            </span>
-            <div className="w-1 flex-1 bg-slate-200 border-dashed border-l border-slate-300 min-h-[24px] mt-2" />
-          </div>
-          <div className="pt-0.5">
-            <p className="text-sm font-semibold text-on-surface-variant">
-              Your journey to production-ready, one milestone at a time.
-            </p>
-          </div>
-        </div>
-
-        {/* Track Nodes */}
-        {tracks.map((track, idx) => (
-          <TrackStepCard
-            key={track.id}
-            track={track}
-            index={idx}
-            isLast={idx === tracks.length - 1}
-            isOpening={openingTrackId === track.id}
-            onOpenTrack={onOpenTrack}
-          />
-        ))}
-
-        {/* Finish Node */}
-        <div className="flex gap-4 items-start pt-2">
-          <div className="flex items-center justify-center w-14 h-14 shrink-0 rounded-xl bg-slate-100 border-2 border-slate-300 text-slate-400">
-            <Icon icon="lucide:award" className="w-6 h-6" />
-          </div>
-          <div className="pt-2">
-            <h4 className="font-bold text-on-surface">Production Ready</h4>
-            <p className="text-xs font-semibold text-on-surface-variant mt-0.5">
-              Ship your first feature to main
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 }

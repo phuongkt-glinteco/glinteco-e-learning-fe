@@ -1,14 +1,13 @@
-import { Icon } from '@iconify/react';
-import HPBar from '@/components/ui/HPBar';
-import { StatusBadge, TimeBadge } from '@/components/ui/Badge';
-import type { LearnerLesson, LearnerTrack } from './types';
+import { StatusBadge, TimeBadge } from '@/components/ui';
+import CircleMeter from '@/components/ui/CircleMeter';
+import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 
 interface LessonDetailViewProps {
   track: LearnerTrack;
   lessons: LearnerLesson[];
   activeLesson: LearnerLesson;
-  isUsingMockData: boolean;
-  fallbackMessage: string | null;
+  activeLessonIndex: number;
+  exercises: LearnerExercise[];
   completing: boolean;
   completionMessage: string | null;
   completionError: string | null;
@@ -21,8 +20,8 @@ export function LessonDetailView({
   track,
   lessons,
   activeLesson,
-  isUsingMockData,
-  fallbackMessage,
+  activeLessonIndex,
+  exercises,
   completing,
   completionMessage,
   completionError,
@@ -33,11 +32,19 @@ export function LessonDetailView({
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
+  const previousLesson = activeLessonIndex > 0 ? lessons[activeLessonIndex - 1] : null;
+  const nextLesson = activeLessonIndex >= 0 ? lessons[activeLessonIndex + 1] : null;
 
   return (
-    <div className="max-w-[960px] mx-auto py-4">
-      {/* Header */}
-      <header className="bg-surface border border-outline-variant rounded-lg p-4 shadow-sm flex items-center justify-between gap-3 flex-wrap mb-4">
+    <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
+      {completionMessage && (
+        <div className="rounded-lg border border-tertiary-container bg-tertiary-fixed/40 p-4 text-tertiary label-sm flex items-center gap-2">
+          <span className="material-symbols-outlined text-[18px]">bolt</span>
+          {completionMessage}
+        </div>
+      )}
+
+      <header className="bg-surface border border-outline-variant rounded-lg p-4 flex items-center justify-between gap-4 flex-wrap shadow-sm">
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
@@ -45,48 +52,25 @@ export function LessonDetailView({
             className="w-9 h-9 border border-outline-variant hover:bg-surface-container-low rounded-lg flex items-center justify-center text-on-surface-variant transition-colors cursor-pointer"
             aria-label="Back to course"
           >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4" />
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           </button>
           <div className="min-w-0">
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">
-              {track.title}
+            <span className="label-sm text-primary uppercase">
+              Course Lesson
             </span>
-            <h1 className="text-base font-bold text-on-surface truncate">Lesson Detail</h1>
+            <h1 className="headline-sm text-on-surface truncate">{track.title}</h1>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {isUsingMockData && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-              <Icon icon="lucide:flask-conical" className="w-3.5 h-3.5" />
-              Sample data
-            </span>
-          )}
-          <StatusBadge status={track.status} />
-        </div>
+        <StatusBadge status={track.status} />
       </header>
 
-      {fallbackMessage && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
-          {fallbackMessage}
-        </div>
-      )}
-
-      {/* XP banner */}
-      {completionMessage && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-green-700 text-sm font-semibold flex items-center gap-2 mb-4">
-          <Icon icon="lucide:zap" className="w-4 h-4" />
-          {completionMessage}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_240px] gap-4 items-start">
-        {/* Lesson Playlist */}
-        <aside className="bg-surface border border-outline-variant rounded-lg p-3 shadow-sm flex flex-col gap-3">
-          <div className="border-b border-outline-variant pb-2">
-            <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-              Lessons
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        <aside className="lg:col-span-1 bg-surface border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col gap-4">
+          <div className="border-b border-outline-variant pb-3">
+            <h2 className="label-sm text-on-surface-variant uppercase">
+              Lessons Playlist
             </h2>
-            <div className="flex items-center justify-between text-xs font-semibold text-outline mt-1">
+            <div className="flex items-center justify-between label-sm text-outline mt-1.5">
               <span>Progress</span>
               <span>
                 {track.lessonsCompleted}/{track.lessonCount} done
@@ -94,36 +78,32 @@ export function LessonDetailView({
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 max-h-[480px] overflow-y-auto pr-1">
+          <div className="flex flex-col gap-1.5 max-h-[520px] overflow-y-auto pr-1">
             {lessons.map((lesson, index) => {
               const isActive = lesson.id === activeLesson.id;
+
               return (
                 <button
                   key={lesson.id}
                   type="button"
                   onClick={() => onSelectLesson(lesson.id)}
-                  className={`w-full text-left px-2.5 py-2 rounded-md flex items-start gap-2 text-xs font-semibold border transition-all cursor-pointer ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg flex items-start gap-2.5 label-sm border transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-primary/5 text-primary border-primary/20'
+                      ? 'bg-primary/5 text-primary border-primary/20 shadow-sm'
                       : 'border-transparent text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
                   }`}
                 >
-                  <Icon
-                    icon={
+                  <span
+                    className={`material-symbols-outlined text-[18px] shrink-0 mt-0.5 ${
                       lesson.completed
-                        ? 'lucide:check-circle'
-                        : isActive
-                          ? 'lucide:play-circle'
-                          : 'lucide:circle'
-                    }
-                    className={`w-4 h-4 shrink-0 mt-0.5 ${
-                      lesson.completed
-                        ? 'text-green-600'
+                        ? 'text-tertiary'
                         : isActive
                           ? 'text-primary'
                           : 'text-outline'
                     }`}
-                  />
+                  >
+                    {lesson.completed ? 'check_circle' : isActive ? 'play_circle' : 'radio_button_unchecked'}
+                  </span>
                   <span className="leading-normal flex-1 truncate">
                     {String(index + 1).padStart(2, '0')}. {lesson.title}
                   </span>
@@ -133,61 +113,133 @@ export function LessonDetailView({
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col gap-4">
-          <div className="border-b border-outline-variant pb-3">
+        <main className="lg:col-span-2 bg-surface border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col gap-6">
+          <div className="border-b border-outline-variant pb-4">
             <div className="flex items-center gap-2 flex-wrap mb-2">
-              <span className="px-2 py-0.5 text-[10px] font-bold tracking-wider rounded uppercase bg-primary/10 text-primary border border-primary/20">
+              <span className="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-primary-container/20 text-primary border border-primary-container/30">
                 Lesson {activeLesson.order}
               </span>
+              <span className="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-surface-container text-on-surface-variant border border-outline-variant">
+                {activeLesson.type}
+              </span>
               <TimeBadge time={activeLesson.estimatedTime} />
-              {activeLesson.bodySource === 'fallback' && (
-                <span className="px-2 py-0.5 text-xs font-semibold rounded bg-slate-50 text-slate-600 border border-slate-200">
-                  Draft notes
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                <Icon icon="lucide:zap" className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md label-sm bg-surface-container-low text-on-surface-variant border border-outline-variant">
+                <span className="material-symbols-outlined text-[16px] text-amber-500">bolt</span>
                 {activeLesson.xp} XP
               </span>
               {activeLesson.completed && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
-                  <Icon icon="lucide:check" className="w-3 h-3" />
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded label-sm bg-green-50 text-green-700 border border-green-200">
+                  <span className="material-symbols-outlined text-[14px]">check</span>
                   Completed
                 </span>
               )}
             </div>
-            <h2 className="text-lg font-bold text-on-surface leading-snug">
-              {activeLesson.title}
-            </h2>
+            <h2 className="headline-md text-on-surface leading-snug">{activeLesson.title}</h2>
+            {activeLesson.description && (
+              <p className="mt-2 body-sm text-on-surface-variant">{activeLesson.description}</p>
+            )}
           </div>
 
-          {/* Lesson body — API chưa có GET /lessons/:id nên body rỗng */}
-          <article className="text-sm text-on-surface-variant leading-relaxed whitespace-pre-line">
-            {activeLesson.body}
-          </article>
+          {activeLesson.body.trim() ? (
+            <article className="body-md text-on-surface-variant leading-relaxed whitespace-pre-line">
+              {activeLesson.body}
+            </article>
+          ) : (
+            <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-6">
+              <h3 className="headline-sm text-on-surface">Lesson content is not available yet</h3>
+              <p className="mt-2 body-sm text-on-surface-variant">
+                You can still review the lesson order and mark progress when the API provides content.
+              </p>
+            </div>
+          )}
+
+          <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="headline-sm text-on-surface">Exercises</h3>
+              <span className="rounded-full bg-primary-fixed px-3 py-1 label-sm text-primary">
+                {exercises.length}
+              </span>
+            </div>
+
+            {exercises.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {exercises.map((exercise) => (
+                  <article
+                    key={exercise.id}
+                    className="rounded-lg border border-outline-variant bg-surface p-4"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
+                        {exercise.difficulty}
+                      </span>
+                      <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
+                        {exercise.tag}
+                      </span>
+                      <span className="inline-flex items-center gap-1 label-sm text-on-surface-variant">
+                        <span className="material-symbols-outlined text-[15px]">schedule</span>
+                        {exercise.estimatedTime}
+                      </span>
+                      <span className="inline-flex items-center gap-1 label-sm text-on-surface-variant">
+                        <span className="material-symbols-outlined text-[15px]">bolt</span>
+                        {exercise.xp} XP
+                      </span>
+                    </div>
+                    <h4 className="mt-2 headline-sm text-on-surface">{exercise.title}</h4>
+                    <p className="mt-1 body-sm text-on-surface-variant">{exercise.brief}</p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-outline-variant bg-surface p-5">
+                <h4 className="headline-sm text-on-surface">No exercises yet</h4>
+                <p className="mt-2 body-sm text-on-surface-variant">
+                  This lesson does not have linked exercises yet.
+                </p>
+              </div>
+            )}
+          </section>
 
           {completionError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-red-700 text-xs font-semibold">
+            <div className="rounded-lg border border-error-container bg-error-container/40 p-4 text-error label-sm">
               {completionError}
             </div>
           )}
 
-          <div className="flex justify-end pt-1">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => previousLesson && onSelectLesson(previousLesson.id)}
+                disabled={!previousLesson}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
+              >
+                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                Previous
+              </button>
+              <button
+                type="button"
+                onClick={() => nextLesson && onSelectLesson(nextLesson.id)}
+                disabled={!nextLesson}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
+              >
+                Next
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+            </div>
+
             <button
               type="button"
               onClick={onCompleteLesson}
               disabled={completing || activeLesson.completed}
-              className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-bold rounded-lg transition-colors select-none ${
+              className={`inline-flex items-center gap-1.5 px-5 py-2.5 label-sm rounded-lg transition-colors select-none ${
                 activeLesson.completed
                   ? 'bg-surface-container text-outline border border-outline-variant cursor-not-allowed'
-                  : 'bg-primary text-white hover:opacity-90 shadow-sm cursor-pointer'
+                  : 'bg-primary text-on-primary hover:opacity-90 shadow-sm cursor-pointer'
               } disabled:opacity-60 disabled:cursor-not-allowed`}
             >
-              <Icon
-                icon={completing ? 'lucide:loader-2' : 'lucide:check-circle'}
-                className={`w-4 h-4 ${completing ? 'animate-spin' : ''}`}
-              />
+              <span className="material-symbols-outlined text-[18px]">
+                {completing ? 'progress_activity' : 'check_circle'}
+              </span>
               {activeLesson.completed
                 ? 'Lesson Completed'
                 : completing
@@ -197,34 +249,27 @@ export function LessonDetailView({
           </div>
         </main>
 
-        {/* Track Progress Sidebar */}
-        <aside className="flex flex-col gap-3">
-          <div className="bg-surface border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col items-center gap-2">
-            <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-wider text-center border-b border-outline-variant w-full pb-2">
+        <aside className="lg:col-span-1 flex flex-col gap-6">
+          <div className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col items-center gap-3">
+            <h2 className="label-sm text-on-surface-variant uppercase text-center border-b border-outline-variant w-full pb-2">
               Track Progress
             </h2>
-            <div className="w-full py-1">
-              <div className="flex justify-between text-xs font-semibold mb-1.5">
-                <span className="text-on-surface-variant">{progressPercent}%</span>
-                <span className="text-on-surface">
-                  {track.lessonsCompleted}/{track.lessonCount}
-                </span>
-              </div>
-              <HPBar value={progressPercent} segments={Math.max(track.lessonCount, 4)} />
+            <div className="py-2">
+              <CircleMeter value={progressPercent} size={144} label="Completed" />
             </div>
-            <p className="text-xs text-outline text-center leading-normal">
+            <p className="label-sm text-outline text-center leading-normal">
               Finish lessons to unlock the next milestone and claim XP.
             </p>
           </div>
 
-          <div className="bg-surface border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col gap-2">
-            <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-wider border-b border-outline-variant pb-2">
+          <div className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col gap-3">
+            <h2 className="label-sm text-on-surface-variant uppercase border-b border-outline-variant pb-2">
               Track Summary
             </h2>
-            <p className="text-xs text-on-surface-variant leading-relaxed">
+            <p className="body-sm text-on-surface-variant leading-relaxed">
               {track.description}
             </p>
-            <div className="flex items-center justify-between text-xs font-semibold text-on-surface-variant">
+            <div className="flex items-center justify-between label-sm text-on-surface-variant">
               <span>Estimated time</span>
               <span className="text-on-surface">{track.estimatedTime}</span>
             </div>

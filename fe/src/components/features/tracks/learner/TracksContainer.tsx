@@ -2,56 +2,60 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAccessToken, getTracks } from '@/services/api-client';
-import type { TrackSummary } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { TracksTimeline } from './TracksTimeline';
-import { mockLearnerTracks } from './mockData';
 import type { LearnerTrack } from './types';
-import { getErrorMessage, normalizeTrackSummaries } from './utils';
+import { fetchCourses } from './courseLearningApi';
+import { getErrorMessage } from './utils';
 
 function TracksLoadingState() {
   return (
-    <div className="max-w-[720px] mx-auto py-4">
-      <Skeleton height={48} className="mb-4" />
-      <Skeleton height={80} className="mb-6" />
-      <div className="space-y-4">
-        <Skeleton height={120} />
-        <Skeleton height={120} />
-        <Skeleton height={120} />
+    <section className="mx-auto flex max-w-[920px] flex-col gap-6 px-gutter py-8">
+      <div className="space-y-2">
+        <Skeleton width={240} height={32} rounded="rounded" />
+        <Skeleton width={460} height={20} rounded="rounded" />
       </div>
-    </div>
+      <Skeleton height={112} />
+      <div className="space-y-5">
+        <div className="grid grid-cols-[56px_1fr] gap-4">
+          <Skeleton width={56} height={56} rounded="rounded-lg" />
+          <Skeleton height={184} />
+        </div>
+        <div className="grid grid-cols-[56px_1fr] gap-4">
+          <Skeleton width={56} height={56} rounded="rounded-lg" />
+          <Skeleton height={184} />
+        </div>
+        <div className="grid grid-cols-[56px_1fr] gap-4">
+          <Skeleton width={56} height={56} rounded="rounded-lg" />
+          <Skeleton height={184} />
+        </div>
+      </div>
+    </section>
   );
 }
 
-function TracksErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function TracksErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
   return (
-    <div className="max-w-2xl mx-auto my-8">
-      <div className="p-lg bg-red-50 border border-red-200 rounded-lg text-red-700">
-        <h3 className="font-bold">Error loading tracks</h3>
-        <p className="text-sm mt-1">{message}</p>
+    <section className="mx-auto max-w-container-max px-gutter py-8">
+      <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
+        <h2 className="headline-sm">Error loading tracks</h2>
+        <p className="body-sm mt-2">{message}</p>
         <button
           type="button"
           onClick={onRetry}
-          className="mt-3 px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-md hover:bg-red-700 transition-colors cursor-pointer"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
         >
+          <span className="material-symbols-outlined text-[16px]">refresh</span>
           Retry
         </button>
       </div>
-    </div>
-  );
-}
-
-function TracksEmptyState() {
-  return (
-    <div className="max-w-2xl mx-auto my-8">
-      <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-10 text-center">
-        <h3 className="headline-sm text-on-surface">No learning tracks found</h3>
-        <p className="mt-2 body-sm text-on-surface-variant">
-          Your learning journey has not been set up yet. Please check back later or contact your mentor.
-        </p>
-      </div>
-    </div>
+    </section>
   );
 }
 
@@ -60,41 +64,32 @@ export default function TracksContainer() {
   const [tracks, setTracks] = useState<LearnerTrack[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [fallbackMessage, setFallbackMessage] = useState<string | null>(null);
   const [openingTrackId, setOpeningTrackId] = useState<string | null>(null);
-  const [isUsingMockData, setIsUsingMockData] = useState(false);
 
-  const useMockTracks = useCallback((message?: string) => {
-    setTracks(mockLearnerTracks);
-    setIsUsingMockData(true);
-    setFallbackMessage(message ?? null);
-    setError(null);
-  }, []);
-
-  const loadTracks = useCallback(async () => {
+  const loadTracks = useCallback(async (isActive: () => boolean = () => true) => {
     setLoading(true);
     setError(null);
-    setFallbackMessage(null);
 
     try {
-      if (!getAccessToken()) {
-        useMockTracks('Showing sample tracks because you are not connected to the API yet.');
-        return;
-      }
-
-      const response = await getTracks({ throwOnError: true });
-      const rawTracks: TrackSummary[] = response.data?.data ?? [];
-      setTracks(normalizeTrackSummaries(rawTracks));
-      setIsUsingMockData(false);
+      const courses = await fetchCourses();
+      if (isActive()) setTracks(courses);
     } catch (loadError: unknown) {
-      useMockTracks(getErrorMessage(loadError, 'Showing sample tracks because the API is not available.'));
+      if (isActive()) {
+        setError(getErrorMessage(loadError, 'Failed to fetch learning tracks.'));
+      }
     } finally {
-      setLoading(false);
+      if (isActive()) setLoading(false);
     }
-  }, [useMockTracks]);
+  }, []);
 
   useEffect(() => {
-    void loadTracks();
+    let active = true;
+
+    loadTracks(() => active);
+
+    return () => {
+      active = false;
+    };
   }, [loadTracks]);
 
   function handleOpenTrack(track: LearnerTrack) {
@@ -107,17 +102,18 @@ export default function TracksContainer() {
   if (loading) return <TracksLoadingState />;
 
   if (error) {
-    return <TracksErrorState message={error} onRetry={loadTracks} />;
+    return (
+      <TracksErrorState
+        message={error}
+        onRetry={loadTracks}
+      />
+    );
   }
-
-  if (tracks.length === 0) return <TracksEmptyState />;
 
   return (
     <TracksTimeline
       tracks={tracks}
       openingTrackId={openingTrackId}
-      isUsingMockData={isUsingMockData}
-      fallbackMessage={fallbackMessage}
       onOpenTrack={handleOpenTrack}
     />
   );

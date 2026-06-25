@@ -51,7 +51,7 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
         if (cancelled) return;
 
         const track = trackRes.data as TrackDetail | undefined;
-        const lessonList = lessonsRes.data?.data ?? [];
+        const lessonList = (lessonsRes.data?.data ?? []) as LessonSummary[];
 
         const store = useTrackDraftStore.getState();
         store.setTitle(track?.title?.trim() ?? '');
@@ -177,6 +177,9 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
           order: i + 1,
           estimatedTime: l.estimatedTime,
           body: l.body,
+          completed: false,
+          type: 'reading',
+          description: l.body || null,
         }))}
         onBackToEdit={() => setIsPreview(false)}
         onSaveTrack={handleSave}
@@ -197,13 +200,18 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
 
         <div className="grid grid-cols-12 gap-8 mx-auto">
           <div className="col-span-12 xl:col-span-7 2xl:col-span-8 space-y-6">
-            <BasicInfoCard />
+            <BasicInfoCard
+              title={title}
+              description={description}
+              onTitleChange={useTrackDraftStore.getState().setTitle}
+              onDescriptionChange={useTrackDraftStore.getState().setDescription}
+            />
             <CurriculumSection />
           </div>
 
           <div className="col-span-12 xl:col-span-5 2xl:col-span-4 space-y-6">
             <SummaryCard />
-            <InstructionCard />
+            <InstructionCard ready={Boolean(title.trim())} />
           </div>
         </div>
 

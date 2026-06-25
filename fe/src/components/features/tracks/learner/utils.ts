@@ -115,6 +115,25 @@ function normalizeThumbnail(value: NullableUnknown): string | null {
   return normalizeNullableString(thumbnail.url) ?? normalizeNullableString(thumbnail.src);
 }
 
+function normalizeTag(value: NullableUnknown): string {
+  if (typeof value === 'string') return value.trim() || 'Practice';
+  if (typeof value !== 'object' || value === null) return 'Practice';
+
+  const tag = value as { name?: unknown; title?: unknown; id?: unknown };
+  return normalizeNullableString(tag.name)
+    ?? normalizeNullableString(tag.title)
+    ?? normalizeNullableString(tag.id)
+    ?? 'Practice';
+}
+
+function normalizeUrl(value: NullableUnknown): string | null {
+  if (typeof value === 'string') return value.trim() || null;
+  if (typeof value !== 'object' || value === null) return null;
+
+  const link = value as { url?: unknown; href?: unknown };
+  return normalizeNullableString(link.url) ?? normalizeNullableString(link.href);
+}
+
 function normalizeLessonType(value: LessonType | null | undefined): LessonType {
   return value ?? DEFAULT_LESSON_TYPE;
 }
@@ -291,8 +310,8 @@ export function normalizeExerciseSummary(exercise: ExerciseSummaryContract): Lea
     estimatedTime: exercise.estimatedTime?.trim() || 'TBD',
     xp: exercise.xp ?? 0,
     status: exercise.status ?? 'pending',
-    tag: exercise.tag?.trim() || 'Practice',
-    prUrl: exercise.prUrl ?? null,
+    tag: normalizeTag(exercise.tag),
+    prUrl: normalizeUrl(exercise.prUrl),
   };
 }
 

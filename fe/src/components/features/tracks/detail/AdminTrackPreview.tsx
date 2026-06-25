@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { sumEstimatedTimes } from '@/lib/time-utils';
-import type { ExerciseSummaryDto, TrackDetailDto } from '@/services/api-client';
+import type { ExerciseSummaryDto, TrackDetail } from '@/services/api-client';
 import { TrackHero } from './TrackHero';
 import { CourseRoadmap } from './CourseRoadmap';
 import { TrackExercisesCard } from './TrackExercisesCard';
@@ -10,9 +10,16 @@ import { PrerequisitesCard } from './PrerequisitesCard';
 import { PotentialRewardsCard } from './PotentialRewardsCard';
 
 interface AdminTrackPreviewProps {
-  track: TrackDetailDto;
+  track: TrackDetail;
   exercises: ExerciseSummaryDto[];
   onBack: () => void;
+}
+
+function getAdjacentTrackTitle(track: TrackDetail['prevTrack'] | TrackDetail['nextTrack']) {
+  if (track && typeof track === 'object' && 'title' in track && typeof track.title === 'string') {
+    return track.title;
+  }
+  return '';
 }
 
 export default function AdminTrackPreview({ track, exercises, onBack }: AdminTrackPreviewProps) {
@@ -25,14 +32,14 @@ export default function AdminTrackPreview({ track, exercises, onBack }: AdminTra
 
   const prevTrackMapped = track.prevTrack
     ? {
-        title: (track.prevTrack as any).title || '',
+        title: getAdjacentTrackTitle(track.prevTrack),
         status: 'completed' as const,
       }
     : undefined;
 
   const nextTrackMapped = track.nextTrack
     ? {
-        title: (track.nextTrack as any).title || '',
+        title: getAdjacentTrackTitle(track.nextTrack),
         status: 'locked' as const,
       }
     : undefined;

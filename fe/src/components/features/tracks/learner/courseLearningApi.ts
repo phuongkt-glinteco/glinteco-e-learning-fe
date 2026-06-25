@@ -187,7 +187,7 @@ export async function fetchLessonPage(
         description: courseDetail.course.description,
         estimatedTime: courseDetail.course.estimatedTime,
         order: courseDetail.course.order,
-        icon: courseDetail.course.icon,
+        icon: courseDetail.course.icon ?? 'route',
         status: courseDetail.course.status,
         lessonsCompleted: courseDetail.course.lessonsCompleted,
         currentLessonId: courseDetail.course.currentLessonId,
@@ -211,5 +211,11 @@ export async function completeLesson(lessonId: string): Promise<CompleteLessonRe
     throwOnError: true,
   });
 
-  return response.data ?? {};
+  const data = response.data;
+  if (!data) return {};
+
+  return {
+    ...data,
+    unlockedTrackId: typeof data.unlockedTrackId === 'string' ? data.unlockedTrackId : null,
+  };
 }

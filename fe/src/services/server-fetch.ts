@@ -5,8 +5,7 @@ import type { Client } from '@/services/client/client';
 import { authControllerRefresh } from '@/services/client';
 import { classify, pipeline } from '@/services/error-mapper';
 import { ApiError, UiShowError } from '@/services/errors';
-
-const DEFAULT_BASE_URL = 'https://api.glinteco-elearning.dev/api/v1';
+import { getApiClientBaseUrl } from '@/services/api-base';
 
 export type ServerResult<T> =
   | { success: true; data: T }
@@ -14,7 +13,7 @@ export type ServerResult<T> =
 
 async function attemptServerRefresh(refreshTokenValue: string): Promise<string | null> {
   const tempClient = createClient(createConfig({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || DEFAULT_BASE_URL,
+    baseUrl: getApiClientBaseUrl(),
   }));
   try {
     const res = await authControllerRefresh({
@@ -43,7 +42,7 @@ export async function serverFetch<T>(
     }
 
     const serverClient = createClient(createConfig({
-      baseUrl: process.env.NEXT_PUBLIC_API_URL || DEFAULT_BASE_URL,
+      baseUrl: getApiClientBaseUrl(),
       auth: token,
     }));
 
@@ -56,7 +55,7 @@ export async function serverFetch<T>(
       const newToken = await attemptServerRefresh(refreshTokenValue);
       if (newToken) {
         const refreshedClient = createClient(createConfig({
-          baseUrl: process.env.NEXT_PUBLIC_API_URL || DEFAULT_BASE_URL,
+          baseUrl: getApiClientBaseUrl(),
           auth: newToken,
         }));
         const data = await fn(refreshedClient);

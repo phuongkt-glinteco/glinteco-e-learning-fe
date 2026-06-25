@@ -2,10 +2,10 @@ import { client } from './client/client.gen';
 import { classify, pipeline } from './error-mapper';
 import { ApiError, UiShowError } from './errors';
 import { authControllerRefresh } from './client/sdk.gen';
+import { getApiClientBaseUrl } from './api-base';
 
-const DEFAULT_BASE_URL = 'https://api.glinteco-elearning.dev/api/v1';
 client.setConfig({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || DEFAULT_BASE_URL,
+  baseUrl: getApiClientBaseUrl(),
 });
 
 if (typeof window !== 'undefined') {
@@ -118,10 +118,10 @@ client.interceptors.error.use(async (error, response, request) => {
         return fetch(request);
       }
       clearTokens();
+      error = new ApiError('SESSION_EXPIRED', 'Session expired. Please log in again.', 401, '/auth/refresh');
     }
 
     // Biến đổi error thành SESSION_EXPIRED rồi cho pipeline xử lý
-    error = new ApiError('SESSION_EXPIRED', 'Session expired. Please log in again.', 401, '/auth/refresh');
   }
 
   const classified = classify(error, response, request);

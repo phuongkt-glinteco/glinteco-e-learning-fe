@@ -8,6 +8,10 @@ import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 
 function DocCard({ title, tags, kind }: Pick<Document, 'title' | 'tags' | 'kind'>) {
+  const tagLabels = (tags ?? []).map((tag) => (
+    typeof tag === 'string' ? tag : tag.name ?? tag.id ?? ''
+  )).filter(Boolean);
+
   return (
     <div className="group flex flex-col gap-4 p-lg rounded-xl bg-white border border-outline-variant hover:border-primary hover:bg-primary-container/5 transition-all cursor-pointer h-full shadow-sm">
       <div className="flex items-start justify-between">
@@ -21,7 +25,7 @@ function DocCard({ title, tags, kind }: Pick<Document, 'title' | 'tags' | 'kind'
       <div>
         <h4 className="font-headline-sm text-headline-sm mb-2 group-hover:text-primary transition-colors">{title ?? 'Untitled document'}</h4>
         <div className="flex flex-wrap gap-2">
-          {(tags ?? []).map((tag) => (
+          {tagLabels.map((tag) => (
             <span
               key={tag}
               className="px-2 py-0.5 bg-surface-container text-on-surface-variant text-[11px] font-bold uppercase rounded border border-outline-variant"

@@ -1,22 +1,20 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
-  cohortControllerFindAll,
-  cohortControllerGetOverview,
-  submissionsControllerFindAll,
-  cohortControllerGetTrackCompletion,
+  getCohorts,
+  getCohortsByIdOverview,
+  getSubmissions,
+  getCohortsByIdTrackCompletion,
 } from '@/services/api-client';
 import type {
-  CohortDashboardStatsDto,
-  SubmissionFeedItemDto,
-  ExerciseDetailDto,
-  UserProfileDto,
+  CohortDashboardStats,
+  SubmissionFeedItem,
+  ExerciseDetail,
+  UserDetail,
 } from '@/services/api-client';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
-import { FallbackUiSimple } from '@/components/ui/fallback';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import StatsCard from './StatsCard';
 import SubmissionFeed from './SubmissionFeed';
@@ -25,7 +23,7 @@ import QuickLinksCard from './QuickLinksCard';
 import CohortSelector from './CohortSelector';
 import { ProgressBar } from '@/components/ui/HPBar';
 
-function extractExerciseName(exercise: ExerciseDetailDto | undefined): string {
+function extractExerciseName(exercise: ExerciseDetail | undefined): string {
   return exercise?.title ?? '';
 }
 
@@ -38,47 +36,19 @@ function mapStatus(apiStatus: string): 'pending_review' | 'changes_requested' | 
   }
 }
 
-interface AdminDashboardPageProps {
-  cohorts?: { id: string; name: string }[];
-  selectedCohortId?: string | null;
-  initialStats?: CohortDashboardStatsDto | null;
-  initialSubmissions?: SubmissionFeedItemDto[];
-  initialTrackCompletion?: { label: string; value: number }[];
-}
-
-export default function AdminDashboardPage({
-  cohorts: serverCohorts,
-  selectedCohortId: serverCohortId,
-  initialStats: serverStats,
-  initialSubmissions: serverSubmissions = [],
-  initialTrackCompletion: serverTrackCompletion = [],
-}: AdminDashboardPageProps) {
-  const isServerRendered = !!serverCohorts;
+export default function AdminDashboardPage() {
   const t = useTranslations('AdminDashboardPage');
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const cohortIdFromUrl = searchParams.get('cohortId');
 
-  // Client-mode state (only used when isServerRendered === false)
-  const [clientCohortList, setClientCohortList] = useState<{ id: string; name: string }[]>([]);
-  const [clientSelectedCohortId, setClientSelectedCohortId] = useState<string | null>(cohortIdFromUrl);
-  const [clientStats, setClientStats] = useState<CohortDashboardStatsDto | null>(null);
-  const [clientSubmissions, setClientSubmissions] = useState<SubmissionFeedItemDto[]>([]);
-  const [clientTrackCompletion, setClientTrackCompletion] = useState<{ label: string; value: number }[]>([]);
-  const [clientLoading, setClientLoading] = useState(true);
-  const [clientError, setClientError] = useState(false);
+  const [cohortList, setCohortList] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
+
+  const [stats, setStats] = useState<CohortDashboardStats | null>(null);
+  const [submissions, setSubmissions] = useState<SubmissionFeedItem[]>([]);
+  const [trackCompletion, setTrackCompletion] = useState<{ label: string; value: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [mounted, setMounted] = useState(false);
-
-  // Derived values — use server props in server mode, client state otherwise
-  const cohortList = isServerRendered ? serverCohorts! : clientCohortList;
-  const selectedCohortId = isServerRendered ? (serverCohortId ?? null) : clientSelectedCohortId;
-  const stats = isServerRendered ? (serverStats ?? null) : clientStats;
-  const submissions = isServerRendered ? serverSubmissions : clientSubmissions;
-  const trackCompletion = isServerRendered ? serverTrackCompletion : clientTrackCompletion;
-  const loading = isServerRendered ? false : clientLoading;
-  const error = isServerRendered ? false : clientError;
 
   function timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime();
@@ -94,100 +64,82 @@ export default function AdminDashboardPage({
     setMounted(true);
   }, []);
 
-  // Client-mode: sync URL back to state (browser back/forward)
+  // Fetch cohorts list once
   useEffect(() => {
-    if (isServerRendered) return;
-    if (cohortIdFromUrl && cohortIdFromUrl !== clientSelectedCohortId) {
-      setClientSelectedCohortId(cohortIdFromUrl);
-    }
-  }, [isServerRendered, cohortIdFromUrl]);
-
-  // Client-mode: fetch cohorts list then determine default
-  useEffect(() => {
-    if (isServerRendered) return;
     if (!mounted || authLoading) return;
     let cancelled = false;
 
-    cohortControllerFindAll({ throwOnError: true })
+    getCohorts({ throwOnError: true })
       .then((res) => {
         if (cancelled) return;
         const list = (res.data?.data ?? []).map((c) => ({
           id: c.id ?? '',
           name: c.name ?? '',
         }));
-        setClientCohortList(list);
+        setCohortList(list);
 
-        if (!cohortIdFromUrl) {
-          const defaultId = (user as UserProfileDto)?.cohortId && list.some((c) => c.id === (user as UserProfileDto).cohortId)
-            ? (user as UserProfileDto).cohortId ?? null
-            : list[0]?.id ?? null;
-          if (defaultId) {
-            setClientSelectedCohortId(defaultId);
-            const params = new URLSearchParams(searchParams.toString());
-            params.set('cohortId', defaultId);
-            router.replace(pathname + '?' + params.toString());
-          }
-        }
+        // Default selection: user's cohort, or first cohort
+        const defaultId = (user as UserDetail)?.cohortId && list.some((c) => c.id === (user as UserDetail).cohortId)
+          ? (user as UserDetail).cohortId ?? null
+          : list[0]?.id ?? null;
+        setSelectedCohortId(defaultId);
       })
       .catch(() => {
-        if (!cancelled) setClientError(true);
+        if (!cancelled) setError(true);
       });
 
     return () => { cancelled = true; };
-  }, [isServerRendered, mounted, authLoading, cohortIdFromUrl, (user as UserProfileDto)?.cohortId]);
+  }, [mounted, authLoading, (user as UserDetail)?.cohortId]);
 
-  // Client-mode: fetch dashboard data when cohort changes
+  // Fetch dashboard data when selected cohort changes
   useEffect(() => {
-    if (isServerRendered) return;
-    const cid = clientSelectedCohortId;
+    const cid = selectedCohortId;
     if (!cid) return;
-    setClientLoading(true);
-    setClientError(false);
+    setLoading(true);
+    setError(false);
     let cancelled = false;
 
     async function fetchData() {
       try {
         const [overviewRes, submissionsRes, trackRes] = await Promise.all([
-          cohortControllerGetOverview({ path: { id: cid! }, throwOnError: true }),
-          submissionsControllerFindAll({ query: { cohortId: cid! }, throwOnError: true }),
-          cohortControllerGetTrackCompletion({ path: { id: cid! }, throwOnError: true }),
+          getCohortsByIdOverview({ path: { id: cid! }, throwOnError: true }),
+          getSubmissions({ query: { cohortId: cid! }, throwOnError: true }),
+          getCohortsByIdTrackCompletion({ path: { id: cid! }, throwOnError: true }),
         ]);
         if (cancelled) return;
-        setClientStats(overviewRes.data as CohortDashboardStatsDto);
-        setClientSubmissions(submissionsRes.data?.data ?? []);
-        setClientTrackCompletion(
+        setStats(overviewRes.data as CohortDashboardStats);
+        setSubmissions(submissionsRes.data?.data ?? []);
+        setTrackCompletion(
           (trackRes.data?.data ?? []).map((t) => ({
             label: t.title ?? '',
             value: t.completionPct ?? 0,
           }))
         );
       } catch {
-        if (!cancelled) setClientError(true);
+        if (!cancelled) setError(true);
       } finally {
-        if (!cancelled) setClientLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     fetchData();
 
     return () => { cancelled = true; };
-  }, [isServerRendered, clientSelectedCohortId]);
-
-  // Update URL when user changes cohort (Rule 2)
-  const handleCohortChange = useCallback((id: string) => {
-    if (!isServerRendered) {
-      setClientSelectedCohortId(id);
-    }
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('cohortId', id);
-    router.push(pathname + '?' + params.toString());
-  }, [isServerRendered, router, pathname, searchParams]);
+  }, [selectedCohortId]);
 
   if (authLoading || !mounted) return null;
   if (error && !cohortList.length) {
-    return <FallbackUiSimple mainContentLabel={t('loadError')} />;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">{t('loadError')}</p>
+      </div>
+    );
   }
   if (!selectedCohortId) {
-    return <FallbackUiSimple mainContentLabel={t('noCohort')} />;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">{t('noCohort')}</p>
+      </div>
+    );
   }
 
   const statCards = [
@@ -247,7 +199,7 @@ export default function AdminDashboardPage({
       name: s.user?.name ?? '',
       avatarHue: s.user?.avatarHue,
     },
-    exercise: extractExerciseName(s.exercise as ExerciseDetailDto | undefined),
+    exercise: extractExerciseName(s.exercise as ExerciseDetail | undefined),
     prUrl: s.prUrl ?? '#',
     status: mapStatus(s.status ?? ''),
     timeAgo: s.submittedAt ? timeAgo(s.submittedAt) : '',
@@ -274,7 +226,7 @@ export default function AdminDashboardPage({
             <CohortSelector
               cohorts={cohortList}
               selectedId={selectedCohortId}
-              onChange={handleCohortChange}
+              onChange={setSelectedCohortId}
             />
           </div>
         </div>
@@ -321,7 +273,6 @@ export default function AdminDashboardPage({
                 icon="edit_note"
                 links={[
                   { label: t('trackEditor'), href: '/admin/tracks' },
-                  { label: t('lessonPlanner'), href: '/admin/tracks', icon: 'chevron_right' },
                 ]}
               />
               <QuickLinksCard

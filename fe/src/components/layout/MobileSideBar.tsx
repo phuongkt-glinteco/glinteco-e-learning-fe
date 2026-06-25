@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import UserProfileAvatar from './UserProfileAvatar';
 import NavMenu from './NavMenu';
-import { mainNav, footerNav } from './Sidebar';
+import { getMainNav, footerNav } from './Sidebar';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface MobileSideBarProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ interface MobileSideBarProps {
 
 export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const mainNav = getMainNav(user?.role);
   const isNotificationsActive = pathname.startsWith('/notifications');
 
   return (

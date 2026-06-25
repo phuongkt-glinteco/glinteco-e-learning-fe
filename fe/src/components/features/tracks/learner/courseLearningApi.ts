@@ -5,6 +5,7 @@ import {
   getTracksById,
   getTracksByIdLessons,
   postLessonsByIdComplete,
+  withAuthRetry,
   type ErrorResponse,
 } from '@/services/api-client';
 import type { LearnerExercise, LearnerLesson, LearnerTrack, TrackLessonPreview } from './types';
@@ -59,7 +60,7 @@ export interface CompleteLessonResult {
 }
 
 export async function fetchCourses(): Promise<LearnerTrack[]> {
-  const response = await getTracks({ throwOnError: true });
+  const response = await withAuthRetry(() => getTracks({ throwOnError: true }));
   return normalizeTrackSummaries(
     extractDataArray<TrackSummaryContract>(response.data as unknown as TrackSummaryContract[] | { data?: TrackSummaryContract[] })
   );

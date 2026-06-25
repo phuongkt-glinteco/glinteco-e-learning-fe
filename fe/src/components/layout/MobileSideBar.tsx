@@ -1,11 +1,9 @@
 'use client';
 
-import React from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import UserProfileAvatar from './UserProfileAvatar';
 import NavMenu from './NavMenu';
 import { getMainNav, footerNav } from './Sidebar';
-import { useAuth } from '@/providers/AuthProvider';
 
 interface MobileSideBarProps {
   isOpen: boolean;
@@ -13,10 +11,8 @@ interface MobileSideBarProps {
 }
 
 export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
-  const pathname = usePathname();
   const { user } = useAuth();
   const mainNav = getMainNav(user?.role);
-  const isNotificationsActive = pathname.startsWith('/notifications');
 
   return (
     <div
@@ -49,8 +45,7 @@ export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
 
           {/* Menu Items */}
           <div className="flex flex-col gap-2">
-            
-            <NavMenu items={navItems} variant="mobile" onItemClick={onClose} />
+            <NavMenu items={mainNav} variant="mobile" onItemClick={onClose} />
 
             <div className="my-2 border-t border-outline-variant"></div>
 

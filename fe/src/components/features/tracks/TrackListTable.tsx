@@ -279,7 +279,7 @@ export default function TrackListTable() {
                   <td className="px-lg py-md text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Link
-                        href={`/admin/tracks/${track.id}`}
+                        href={`/admin/tracks/${track.id}/edit`}
                         className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors duration-200"
                         aria-label={t('actions.edit')}
                       >

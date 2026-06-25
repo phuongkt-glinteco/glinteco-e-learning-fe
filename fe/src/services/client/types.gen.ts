@@ -4,2723 +4,2893 @@ export type ClientOptions = {
     baseUrl: 'https://be-teal-tau.vercel.app/api/v1' | (string & {});
 };
 
-export type UpdateProfileDto = {
-    /**
-     * The name of the user
-     */
+export type ErrorResponse = {
+    statusCode?: number;
+    message?: string;
+    error?: string;
+};
+
+export type User = {
+    id?: string;
     name?: string;
+    email?: string;
+    role?: 'learner' | 'admin';
+    level?: number;
+    xp?: number;
+    cohortId?: string | null;
+};
+
+export type UserSummary = {
+    id?: string;
+    name?: string;
+    role?: string;
+    level?: number;
+    xp?: number;
     /**
-     * The title of the user
+     * Tỷ lệ hoàn thành toàn bộ lộ trình (%)
      */
-    title?: string;
+    completion?: number;
     /**
-     * The avatar hue of the user (0-360)
+     * Mã màu HSL Hue đại diện đại diện
      */
     avatarHue?: number;
 };
 
-export type SubStatsDto = {
-    completed: number;
-    total: number;
-};
-
-export type ExerciseStatsDto = {
-    approved: number;
-    total: number;
-    awaitingReview: number;
-};
-
-export type SavedDocsStatsDto = {
-    total: number;
-    unread: number;
-};
-
-export type UserDashboardStatsDto = {
-    level: number;
-    xp: number;
-    xpThisWeek: number;
-    streakDays: number;
-    overallCompletion: number;
-    tracks: SubStatsDto;
-    exercises: ExerciseStatsDto;
-    savedDocs: SavedDocsStatsDto;
-};
-
-export type GoogleLoginDto = {
-    /**
-     * ID Token nhận được từ Google OAuth Client phía frontend.
-     */
-    idToken: string;
-};
-
-export type UserProfileDto = {
-    id: string;
-    email: string;
-    name: string;
-    role: 'learner' | 'admin';
-    title: string | null;
-    avatarHue: number;
-    cohortId: string | null;
-    level: number;
-    xp: number;
-    /**
-     * Số ngày streak hiện tại của user.
-     */
-    streakDays: number;
-    joinedAt: string;
-};
-
-export type AuthResponseDto = {
-    accessToken: string;
-    refreshToken: string;
-    user: UserProfileDto;
-};
-
-export type RegisterDto = {
-    name: string;
-    email: string;
-    password: string;
-};
-
-export type LoginDto = {
-    email: string;
-    password: string;
-    rememberMe?: boolean;
-};
-
-export type AuthTokensDto = {
-    accessToken: string;
-    refreshToken: string;
-    /**
-     * Access token lifetime in seconds.
-     */
-    expiresIn: number;
-};
-
-export type RefreshTokenDto = {
-    /**
-     * A valid, previously issued refresh token (JWT).
-     */
-    refreshToken: string;
-};
-
-export type ForgotPasswordDto = {
-    /**
-     * Email cần khôi phục mật khẩu.
-     */
-    email: string;
-};
-
-export type ResetPasswordDto = {
-    /**
-     * Mã token khôi phục mật khẩu nhận được từ email.
-     */
-    token: string;
-    /**
-     * Mật khẩu mới.
-     */
-    password: string;
-};
-
-export type CreateCohortDto = {
-    /**
-     * Tên của khóa học viên (Cohort).
-     */
-    name: string;
-    /**
-     * Số ngày mục tiêu để hoàn thành lộ trình onboarding.
-     */
-    targetRampDays: number;
-};
-
-export type CohortDetailDto = {
-    /**
-     * ID của Cohort
-     */
-    id: string;
-    /**
-     * Tên của Cohort
-     */
-    name: string;
-    /**
-     * Mục tiêu số ngày hoàn thành
-     */
-    targetRampDays: number;
-    /**
-     * Thời gian khởi tạo Cohort
-     */
-    createdAt: string;
-};
-
-export type CohortSummaryDto = {
-    /**
-     * ID của Cohort
-     */
-    id: string;
-    /**
-     * Tên của Cohort
-     */
-    name: string;
-    /**
-     * Số lượng học viên trong Cohort
-     */
-    learnerCount: number;
-    /**
-     * Tỷ lệ hoàn thành trung bình của Cohort
-     */
-    avgCompletion: number;
-};
-
-export type CohortMetaDto = {
-    /**
-     * Tổng số
-     */
-    total: number;
-    /**
-     * Trang hiện tại
-     */
-    page: number;
-    /**
-     * Giới hạn số phần tử
-     */
-    limit: number;
-    /**
-     * Trang cuối
-     */
-    lastPage: number;
-};
-
-export type CohortListResponseDto = {
-    data: Array<CohortSummaryDto>;
-    meta: CohortMetaDto;
-};
-
-export type CohortDashboardStatsDto = {
-    /**
-     * Số lượng học viên đang hoạt động
-     */
-    activeLearners: number;
-    /**
-     * Học viên mới trong tuần này
-     */
-    newThisWeek: number;
-    /**
-     * Tỷ lệ hoàn thành trung bình (phần trăm)
-     */
-    avgCompletion: number;
-    /**
-     * Độ lệch tỷ lệ hoàn thành trung bình so với tuần trước
-     */
-    avgCompletionDelta: number;
-    /**
-     * Số lượng bài tập đang chờ chấm
-     */
-    pendingReview: number;
-    /**
-     * Thời gian bài nộp chờ lâu nhất
-     */
-    oldestPendingAgo: string;
-    /**
-     * Số ngày hoàn thành trung bình (ramp days)
-     */
-    avgRampDays: number;
-    /**
-     * Mục tiêu hoàn thành của Cohort (ramp days)
-     */
-    targetRampDays: number;
-};
-
-export type CohortTrackCompletionItemDto = {
-    /**
-     * ID của Track
-     */
-    trackId: string;
-    /**
-     * Tiêu đề Track
-     */
-    title: string;
-    /**
-     * Tỷ lệ hoàn thành track của Cohort
-     */
-    completionPct: number;
-};
-
-export type CohortTrackCompletionResponseDto = {
-    data: Array<CohortTrackCompletionItemDto>;
-};
-
-export type UpdateCohortDto = {
-    /**
-     * Tên của khóa học viên (Cohort).
-     */
+export type UserDetail = {
+    id?: string;
     name?: string;
+    email?: string;
+    role?: string;
+    title?: string;
+    avatarHue?: number;
+    level?: number;
+    xp?: number;
+    streakDays?: number;
+    cohortId?: string;
+    joinedAt?: string;
+};
+
+export type UserDashboardStats = {
+    level?: number;
+    xp?: number;
+    xpThisWeek?: number;
+    streakDays?: number;
+    overallCompletion?: number;
+    tracks?: {
+        completed?: number;
+        total?: number;
+    };
+    exercises?: {
+        approved?: number;
+        total?: number;
+        awaitingReview?: number;
+    };
+    savedDocs?: {
+        total?: number;
+        unread?: number;
+    };
+};
+
+export type CohortSummary = {
+    id?: string;
+    name?: string;
+    learnerCount?: number;
+    avgCompletion?: number;
+};
+
+export type CohortDetail = {
+    id?: string;
+    name?: string;
+    learnerCount?: number;
+    avgCompletion?: number;
     /**
-     * Số ngày mục tiêu để hoàn thành lộ trình onboarding.
+     * Số ngày hoàn thành trung bình thực tế
+     */
+    avgRampDays?: number;
+    /**
+     * Số ngày mục tiêu đặt ra
      */
     targetRampDays?: number;
-    /**
-     * Trạng thái hoạt động của Cohort.
-     */
-    isActive?: boolean;
+    createdAt?: string;
 };
 
-export type TrackSummaryDto = {
+export type CohortDashboardStats = {
+    activeLearners?: number;
+    newThisWeek?: number;
+    avgCompletion?: number;
     /**
-     * ID của Track
+     * Mức tăng trưởng % hoàn thành so với tuần trước
      */
-    id: string;
+    avgCompletionDelta?: number;
     /**
-     * Tiêu đề Track
+     * Số bài tập đang chờ chấm trong hàng đợi
      */
-    title: string;
+    pendingReview?: number;
     /**
-     * Thời gian ước tính hoàn thành track
+     * Thời gian chờ của bài nộp cũ nhất
      */
-    estimatedTime: string;
-    /**
-     * Thứ tự sắp xếp của track
-     */
-    order: number;
-    /**
-     * Tổng số bài học trong track
-     */
-    lessonCount: number;
-    /**
-     * Icon hiển thị của track
-     */
-    icon: string;
-    /**
-     * Trạng thái học tập của track đối với user
-     */
-    status: 'completed' | 'in_progress' | 'locked';
-    /**
-     * Số lượng bài học đã hoàn thành trong track
-     */
-    lessonsCompleted: number;
-    /**
-     * Mô tả chi tiết nội dung track
-     */
-    description: string;
-    /**
-     * Cấp độ khó của Track/Course
-     */
-    level: string;
-    /**
-     * Đường dẫn ảnh thumbnail của Track
-     */
-    thumbnail: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Trạng thái truy cập của user đối với track
-     */
-    accessStatus: 'unlocked' | 'locked';
-    /**
-     * Lý do track bị khóa (nếu có)
-     */
-    lockedReason: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * ID của bài học tiếp theo cần học trong track
-     */
-    currentLessonId: {
-        [key: string]: unknown;
-    } | null;
+    oldestPendingAgo?: string;
+    avgRampDays?: number;
+    targetRampDays?: number;
 };
 
-export type TrackMetaDto = {
-    /**
-     * Tổng số tracks
-     */
-    total: number;
-    /**
-     * Trang hiện tại
-     */
-    page: number;
-    /**
-     * Số lượng phần tử trên mỗi trang
-     */
-    limit: number;
-    /**
-     * Tổng số trang
-     */
-    lastPage: number;
-};
-
-export type TrackListResponseDto = {
-    data: Array<TrackSummaryDto>;
-    meta: TrackMetaDto;
-};
-
-export type ReorderTracksDto = {
-    /**
-     * Danh sách ID (UUID) của các tracks được sắp xếp lại theo thứ tự mới.
-     */
-    order: Array<string>;
-};
-
-export type LessonProgressItemDto = {
-    /**
-     * ID của bài học
-     */
-    id: string;
-    /**
-     * Tiêu đề bài học
-     */
-    title: string;
-    /**
-     * Số thứ tự bài học trong track
-     */
-    order: number;
-    /**
-     * Trạng thái hoàn thành bài học
-     */
-    completed: boolean;
-    /**
-     * Phân loại bài học
-     */
-    type: 'video' | 'reading' | 'quiz' | 'coding' | 'assignment';
-    /**
-     * Mô tả ngắn của bài học
-     */
-    description: string | null;
-    /**
-     * Thời gian ước tính hoàn thành
-     */
-    estimatedTime: string;
-};
-
-export type TrackDetailDto = {
-    /**
-     * ID của Track
-     */
-    id: string;
-    /**
-     * Tiêu đề Track
-     */
-    title: string;
-    /**
-     * Thời gian ước tính hoàn thành track
-     */
-    estimatedTime: string;
-    /**
-     * Thứ tự sắp xếp của track
-     */
-    order: number;
-    /**
-     * Icon hiển thị của track
-     */
-    icon: string;
-    /**
-     * Trạng thái học tập của track đối với user
-     */
-    status: 'completed' | 'in_progress' | 'locked';
-    /**
-     * Số lượng bài học đã hoàn thành trong track
-     */
-    lessonsCompleted: number;
-    /**
-     * Mô tả chi tiết nội dung track
-     */
-    description: string;
-    /**
-     * Danh sách bài học trong track kèm trạng thái hoàn thành
-     */
-    lessons: Array<LessonProgressItemDto>;
-    /**
-     * Cấp độ khó của Track/Course
-     */
-    level: string;
-    /**
-     * Đường dẫn ảnh thumbnail của Track
-     */
-    thumbnail: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Trạng thái truy cập của user đối với track
-     */
-    accessStatus: 'unlocked' | 'locked';
-    /**
-     * Lý do track bị khóa (nếu có)
-     */
-    lockedReason: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * ID của bài học tiếp theo cần học trong track
-     */
-    currentLessonId: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Thông tin track phía trước
-     */
-    prevTrack: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Thông tin track kế tiếp
-     */
-    nextTrack: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type CreateTrackDto = {
-    /**
-     * Tên lộ trình học (tiêu đề)
-     */
-    title: string;
-    /**
-     * Mô tả lộ trình học
-     */
-    description: string;
-    /**
-     * Thời gian ước tính
-     */
-    estimatedTime: string;
-    /**
-     * Số lượng bài học
-     */
-    lessonCount: number;
-    /**
-     * Chèn sau Track có ID này (để tự động tính toán order). Nếu bỏ trống sẽ chèn cuối cùng.
-     */
-    afterTrackId?: string;
-};
-
-export type UpdateTrackDto = {
-    /**
-     * Tên lộ trình học (tiêu đề)
-     */
+export type TrackSummary = {
+    id?: string;
     title?: string;
-    /**
-     * Mô tả lộ trình học
-     */
-    description?: string;
-    /**
-     * Thời gian ước tính
-     */
     estimatedTime?: string;
-    /**
-     * Icon đại diện
-     */
-    icon?: string;
-};
-
-export type UpdateTrackProgressDto = {
-    /**
-     * Trạng thái tiến độ học của Track
-     */
-    status: 'not_started' | 'in_progress' | 'completed';
-};
-
-export type LessonListResponseDto = {
-    data: Array<LessonProgressItemDto>;
-};
-
-export type TagResponseDto = {
-    /**
-     * ID của tag
-     */
-    id: string;
-    /**
-     * Tên của tag
-     */
-    name: string;
-};
-
-export type DocumentResponseDto = {
-    /**
-     * ID của tài liệu kỹ thuật
-     */
-    id: string;
-    /**
-     * Tiêu đề tài liệu
-     */
-    title: string;
-    /**
-     * Nội dung chi tiết tài liệu (nếu có)
-     */
-    content: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Đường dẫn liên kết tài liệu (nếu có)
-     */
-    url: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Phân loại tài liệu
-     */
-    kind: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
-    /**
-     * Danh sách các tag của tài liệu
-     */
-    tags: Array<TagResponseDto>;
-    /**
-     * Trạng thái bookmark của user
-     */
-    isBookmarked: boolean;
-};
-
-export type LessonDetailDto = {
-    /**
-     * ID của bài học
-     */
-    id: string;
-    /**
-     * ID của track chứa bài học
-     */
-    trackId: string;
-    /**
-     * Tiêu đề bài học
-     */
-    title: string;
-    /**
-     * Số thứ tự bài học trong track
-     */
-    order: number;
-    /**
-     * Thời gian ước tính hoàn thành
-     */
-    estimatedTime: string;
-    /**
-     * Nội dung chi tiết bài học (Markdown)
-     */
-    body: string;
-    /**
-     * Mô tả ngắn của bài học
-     */
-    description: string | null;
-    /**
-     * Phân loại bài học
-     */
-    type: 'video' | 'reading' | 'quiz' | 'coding' | 'assignment';
-    /**
-     * Trạng thái hoàn thành bài học của user
-     */
-    completed: boolean;
-    /**
-     * Danh sách tài liệu liên quan đến bài học
-     */
-    relatedDocs: Array<DocumentResponseDto>;
-};
-
-export type ExerciseSummaryDto = {
-    /**
-     * ID của bài tập
-     */
-    id: string;
-    /**
-     * Tiêu đề bài tập
-     */
-    title: string;
-    /**
-     * ID của Track chứa bài tập
-     */
-    trackId: string;
-    /**
-     * Tiêu đề Track chứa bài tập
-     */
-    track: string;
-    /**
-     * Nhãn chuyên môn
-     */
-    tag: string;
-    /**
-     * Cấp độ khó
-     */
-    difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-    /**
-     * Thời gian ước tính hoàn thành
-     */
-    estimatedTime: string;
-    /**
-     * Số điểm XP thưởng khi hoàn thành
-     */
-    xp: number;
-    /**
-     * Tóm tắt yêu cầu bài tập
-     */
-    brief: string;
-    /**
-     * Số lượng mục tiêu cần hoàn thành
-     */
-    objectiveCount: number;
-    /**
-     * Trạng thái bài nộp cá nhân của user
-     */
-    status: 'pending' | 'submitted' | 'approved' | 'changes';
-    /**
-     * Đường dẫn PR nộp bài tập
-     */
-    prUrl: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * ID của bài học liên kết với bài tập (nếu có)
-     */
-    lessonId: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type ExerciseListResponseDto = {
-    data: Array<ExerciseSummaryDto>;
-};
-
-export type CreateLessonDto = {
-    /**
-     * Tiêu đề bài học
-     */
-    title: string;
-    /**
-     * Mô tả ngắn của bài học
-     */
-    description?: string | null;
-    /**
-     * Thứ tự của bài học trong lộ trình
-     */
-    order: number;
-    /**
-     * Thời gian ước tính hoàn thành bài học
-     */
-    estimatedTime: string;
-    /**
-     * Nội dung bài học
-     */
-    body: string;
-};
-
-export type UpdateLessonDto = {
-    /**
-     * Tiêu đề bài học
-     */
-    title?: string;
-    /**
-     * Mô tả ngắn của bài học
-     */
-    description?: string | null;
-    /**
-     * Thứ tự của bài học trong lộ trình
-     */
     order?: number;
-    /**
-     * Thời gian ước tính hoàn thành bài học
-     */
+    lessonCount?: number;
+    icon?: string;
+    status?: 'completed' | 'in_progress' | 'locked';
+    lessonsCompleted?: number;
+    description?: string;
+};
+
+export type TrackDetail = {
+    id?: string;
+    title?: string;
     estimatedTime?: string;
-    /**
-     * Nội dung bài học
-     */
+    order?: number;
+    icon?: string;
+    status?: 'completed' | 'in_progress' | 'locked';
+    lessonsCompleted?: number;
+    description?: string;
+    lessons?: Array<LessonProgressItem>;
+    prevTrack?: {
+        id?: string;
+        title?: string;
+    } | null;
+    nextTrack?: {
+        id?: string;
+        title?: string;
+    } | null;
+};
+
+export type LessonSummary = {
+    id?: string;
+    title?: string;
+    order?: number;
+    estimatedTime?: string;
+};
+
+export type LessonDetail = {
+    id?: string;
+    trackId?: string;
+    title?: string;
+    order?: number;
+    estimatedTime?: string;
     body?: string;
 };
 
-export type CompleteLessonResponseDto = {
-    /**
-     * ID của bài học vừa hoàn thành
-     */
-    lessonId: string;
-    /**
-     * ID của track chứa bài học
-     */
-    trackId: string;
-    /**
-     * Số lượng bài học đã hoàn thành trong track
-     */
-    lessonsCompleted: number;
-    /**
-     * Trạng thái học tập của track sau khi hoàn thành bài học
-     */
-    trackStatus: 'completed' | 'in_progress' | 'locked';
-    /**
-     * XP được thưởng từ bài học này
-     */
-    xpAwarded: number;
-    /**
-     * Tổng điểm XP hiện tại của user
-     */
-    totalXp: number;
-    /**
-     * Cấp độ hiện tại của user
-     */
-    level: number;
-    /**
-     * ID của track tiếp theo vừa được mở khóa (nếu có)
-     */
-    unlockedTrackId: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Thông báo kết quả
-     */
-    message: string;
-};
-
-export type CreateExerciseDto = {
-    /**
-     * Tiêu đề bài tập thực hành.
-     */
-    title: string;
-    /**
-     * ID của Track (UUID) chứa bài tập này.
-     */
-    trackId: string;
-    /**
-     * ID của Lesson (UUID) chứa bài tập này (nếu có).
-     */
-    lessonId?: string;
-    /**
-     * Nhãn phân loại chuyên môn.
-     */
-    tag: string;
-    /**
-     * Cấp độ khó của bài tập.
-     */
-    difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-    /**
-     * Thời gian ước tính hoàn thành bài tập.
-     */
-    estimatedTime: string;
-    /**
-     * Điểm kinh nghiệm nhận được sau khi hoàn thành bài tập.
-     */
-    xp: number;
-    /**
-     * Mô tả ngắn gọn về yêu cầu bài tập.
-     */
-    brief: string;
-    /**
-     * Tổng quan chi tiết về bối cảnh và hướng đi.
-     */
-    overview: string;
-    /**
-     * Danh sách tiêu chí nghiệm thu (Acceptance Criteria).
-     */
-    objectives: Array<string>;
-    /**
-     * Các bước gợi ý để thực hiện bài tập.
-     */
-    steps: Array<string>;
-    /**
-     * Danh sách ID tài liệu tham khảo (Document UUIDs).
-     */
-    resourceDocIds?: Array<string>;
-    /**
-     * Gợi ý hoặc lưu ý đặc biệt cho bài tập.
-     */
-    hint?: string;
-};
-
-export type ExerciseDetailDto = {
-    /**
-     * ID của bài tập
-     */
-    id: string;
-    /**
-     * Tiêu đề bài tập
-     */
-    title: string;
-    /**
-     * ID của Track chứa bài tập
-     */
-    trackId: string;
-    /**
-     * Tiêu đề Track chứa bài tập
-     */
-    track: string;
-    /**
-     * Nhãn chuyên môn
-     */
-    tag: string;
-    /**
-     * Cấp độ khó
-     */
-    difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-    /**
-     * Thời gian ước tính hoàn thành
-     */
-    estimatedTime: string;
-    /**
-     * Số điểm XP thưởng khi hoàn thành
-     */
-    xp: number;
-    /**
-     * Tóm tắt yêu cầu bài tập
-     */
-    brief: string;
-    /**
-     * Mô tả tổng quan chi tiết bài tập
-     */
-    overview: string;
-    /**
-     * Các mục tiêu cần đạt được
-     */
-    objectives: {
-        [key: string]: unknown;
-    };
-    /**
-     * Các bước hướng dẫn thực hiện
-     */
-    steps: {
-        [key: string]: unknown;
-    };
-    /**
-     * Tài liệu hướng dẫn liên kết
-     */
-    resources: Array<DocumentResponseDto>;
-    /**
-     * Gợi ý giải bài tập
-     */
-    hint: string | null;
-    /**
-     * Trạng thái bài nộp cá nhân của user
-     */
-    status: 'pending' | 'submitted' | 'approved' | 'changes';
-    /**
-     * Đường dẫn PR nộp bài tập
-     */
-    prUrl: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * ID của bài học liên kết với bài tập (nếu có)
-     */
-    lessonId: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type UpdateExerciseDto = {
-    /**
-     * Tiêu đề bài tập thực hành.
-     */
+export type LessonProgressItem = {
+    id?: string;
     title?: string;
-    /**
-     * ID của Track (UUID) chứa bài tập này.
-     */
-    trackId?: string;
-    /**
-     * ID của Lesson (UUID) chứa bài tập này (nếu có).
-     */
-    lessonId?: string;
-    /**
-     * Nhãn phân loại chuyên môn.
-     */
-    tag?: string;
-    /**
-     * Cấp độ khó của bài tập.
-     */
-    difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
-    /**
-     * Thời gian ước tính hoàn thành bài tập.
-     */
-    estimatedTime?: string;
-    /**
-     * Điểm kinh nghiệm nhận được sau khi hoàn thành bài tập.
-     */
-    xp?: number;
-    /**
-     * Mô tả ngắn gọn về yêu cầu bài tập.
-     */
-    brief?: string;
-    /**
-     * Tổng quan chi tiết về bối cảnh và hướng đi.
-     */
-    overview?: string;
-    /**
-     * Danh sách tiêu chí nghiệm thu (Acceptance Criteria).
-     */
-    objectives?: Array<string>;
-    /**
-     * Các bước gợi ý để thực hiện bài tập.
-     */
-    steps?: Array<string>;
-    /**
-     * Danh sách ID tài liệu tham khảo (Document UUIDs).
-     */
-    resourceDocIds?: Array<string>;
-    /**
-     * Gợi ý hoặc lưu ý đặc biệt cho bài tập.
-     */
-    hint?: string;
+    order?: number;
+    completed?: boolean;
 };
 
-export type DocumentListResponseDto = {
-    data: Array<DocumentResponseDto>;
-    /**
-     * Con trỏ trang tiếp theo
-     */
-    nextCursor: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Còn dữ liệu trang kế tiếp không
-     */
-    hasMore: boolean;
-};
-
-export type RecentDocumentsResponseDto = {
-    data: Array<DocumentResponseDto>;
-};
-
-export type CreateDocumentDto = {
-    /**
-     * Tiêu đề tài liệu
-     */
-    title: string;
-    /**
-     * Nội dung tài liệu hoặc mô tả ngắn
-     */
-    content?: string;
-    /**
-     * Đường dẫn liên kết bên ngoài (nếu có)
-     */
-    url?: string;
-    /**
-     * Phân loại tài liệu
-     */
-    kind: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
-    /**
-     * Danh sách các ID của thẻ phân loại (Tags) liên kết
-     */
-    tagIds?: Array<string>;
-};
-
-export type UpdateDocumentDto = {
-    /**
-     * Tiêu đề tài liệu
-     */
+export type Document = {
+    id?: string;
     title?: string;
-    /**
-     * Nội dung tài liệu hoặc mô tả ngắn
-     */
-    content?: string;
-    /**
-     * Đường dẫn liên kết bên ngoài (nếu có)
-     */
     url?: string;
-    /**
-     * Phân loại tài liệu
-     */
     kind?: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
-    /**
-     * Danh sách các ID của thẻ phân loại (Tags) liên kết
-     */
-    tagIds?: Array<string>;
+    tags?: Array<string>;
+    updatedAt?: string;
+    bookmarked?: boolean;
 };
 
-export type BookmarkResponseDto = {
-    /**
-     * ID của tài liệu kỹ thuật
-     */
-    documentId: string;
-    /**
-     * Trạng thái bookmark hiện tại của tài liệu đối với người dùng
-     */
-    bookmarked: boolean;
+export type Tag = {
+    id?: string;
+    name?: string;
+    color?: 'accent' | 'info' | 'warn' | 'danger' | 'muted';
 };
 
-export type CreateTagDto = {
-    /**
-     * Tên thẻ phân loại
-     */
-    name: string;
+export type ExerciseSummary = {
+    id?: string;
+    title?: string;
+    trackId?: string;
+    track?: string;
+    tag?: string;
+    difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+    estimatedTime?: string;
+    xp?: number;
+    brief?: string;
+    objectiveCount?: number;
+    status?: 'pending' | 'submitted' | 'approved' | 'changes';
+    prUrl?: string | null;
 };
 
-export type SearchTrackResultDto = {
-    /**
-     * ID của Track
-     */
-    id: string;
-    /**
-     * Tên của Track
-     */
-    title: string;
+export type ExerciseDetail = {
+    id?: string;
+    title?: string;
+    trackId?: string;
+    track?: string;
+    tag?: string;
+    difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+    estimatedTime?: string;
+    xp?: number;
+    brief?: string;
+    overview?: string;
+    objectives?: Array<string>;
+    steps?: Array<string>;
+    resources?: Array<{
+        id?: string;
+        title?: string;
+    }>;
+    hint?: string;
+    status?: string;
+    prUrl?: string;
 };
 
-export type SearchDocumentResultDto = {
-    /**
-     * ID của Document
-     */
-    id: string;
-    /**
-     * Tiêu đề Document
-     */
-    title: string;
-    /**
-     * Loại tài liệu
-     */
-    kind: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+export type Submission = {
+    id?: string;
+    exerciseId?: string;
+    userId?: string;
+    prUrl?: string;
+    status?: 'submitted' | 'approved' | 'changes';
+    submittedAt?: string;
 };
 
-export type SearchExerciseResultDto = {
-    /**
-     * ID của Exercise
-     */
-    id: string;
-    /**
-     * Tiêu đề bài tập
-     */
-    title: string;
-    /**
-     * Tên của Track chứa bài tập này
-     */
-    tag: string;
-};
-
-export type SearchResponseDto = {
-    /**
-     * Danh sách Tracks tìm thấy
-     */
-    tracks: Array<SearchTrackResultDto>;
-    /**
-     * Danh sách Documents tìm thấy
-     */
-    documents: Array<SearchDocumentResultDto>;
-    /**
-     * Danh sách Exercises tìm thấy
-     */
-    exercises: Array<SearchExerciseResultDto>;
-};
-
-export type LeaderboardEntryDto = {
-    /**
-     * ID của học viên.
-     */
-    userId: string;
-    /**
-     * Họ tên của học viên.
-     */
-    name: string;
-    /**
-     * Cấp độ hiện tại của học viên.
-     */
-    level: number;
-    /**
-     * Tổng điểm kinh nghiệm tích lũy.
-     */
-    xp: number;
-    /**
-     * Số ngày streak liên tục hiện tại.
-     */
-    streakDays: number;
-    /**
-     * Thứ hạng của học viên trên bảng xếp hạng.
-     */
-    rank: number;
-};
-
-export type LeaderboardResponseDto = {
-    /**
-     * Danh sách học viên trên bảng xếp hạng.
-     */
-    data: Array<LeaderboardEntryDto>;
-    /**
-     * Con trỏ base64 cho trang tiếp theo (null nếu không còn trang kế).
-     */
-    nextCursor: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Có còn trang kế tiếp hay không.
-     */
-    hasMore: boolean;
-};
-
-export type CreateSubmissionDto = {
-    /**
-     * Đường dẫn GitHub PR của bài nộp
-     */
-    prUrl: string;
-};
-
-export type SubmissionDetailUserDto = {
-    /**
-     * ID của người dùng
-     */
-    id: string;
-    /**
-     * Họ tên của người dùng
-     */
-    name: string;
-};
-
-export type SubmissionDetailDto = {
-    /**
-     * ID của bài nộp
-     */
-    id: string;
-    /**
-     * ID của bài tập
-     */
-    exerciseId: string;
-    /**
-     * Tiêu đề bài tập
-     */
-    exercise: string;
-    user: SubmissionDetailUserDto;
-    /**
-     * Đường dẫn Pull Request
-     */
-    prUrl: string;
-    /**
-     * Trạng thái bài nộp
-     */
-    status: 'pending' | 'submitted' | 'changes' | 'approved' | 'rejected';
-    /**
-     * ID của người chấm bài
-     */
-    reviewerId: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Nhận xét của người chấm bài
-     */
-    reviewNote: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Thời gian nộp bài
-     */
-    submittedAt: string;
-    /**
-     * Thời gian chấm bài
-     */
-    reviewedAt: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type SubmissionUserDto = {
-    /**
-     * ID của người dùng
-     */
-    id: string;
-    /**
-     * Họ tên của người dùng
-     */
-    name: string;
-    /**
-     * Màu đại diện avatar
-     */
-    avatarHue?: number;
-};
-
-export type SubmissionFeedItemDto = {
-    /**
-     * ID của bài nộp
-     */
-    id: string;
-    user: SubmissionUserDto;
-    exercise: ExerciseDetailDto;
-    /**
-     * Đường dẫn Pull Request
-     */
-    prUrl: string;
-    /**
-     * Trạng thái bài nộp
-     */
-    status: 'pending' | 'submitted' | 'changes' | 'approved' | 'rejected';
-    /**
-     * Thời gian nộp bài
-     */
-    submittedAt: string;
-};
-
-export type SubmissionListResponseDto = {
-    data: Array<SubmissionFeedItemDto>;
-    /**
-     * Con trỏ trang tiếp theo
-     */
-    nextCursor: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Còn dữ liệu trang kế tiếp không
-     */
-    hasMore: boolean;
-};
-
-export type ReviewSubmissionDto = {
-    /**
-     * Trạng thái đánh giá bài nộp
-     */
-    status: 'approved' | 'rejected' | 'changes';
-    /**
-     * Nhận xét/góp ý của người chấm
-     */
-    comment?: string;
-};
-
-export type SubmissionHistoryItemDto = {
-    /**
-     * ID của bản ghi lịch sử
-     */
-    id: string;
-    /**
-     * Đường dẫn Pull Request tại thời điểm nộp
-     */
-    prUrl: string;
-    /**
-     * Trạng thái bài nộp sau hoạt động
-     */
-    status: 'pending' | 'submitted' | 'changes' | 'approved' | 'rejected';
-    /**
-     * Thời gian thực hiện hoạt động
-     */
-    submittedAt: string;
-    /**
-     * ID của admin thực hiện hoạt động
-     */
-    reviewerId: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Ghi chú đánh giá của admin
-     */
-    reviewNote: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * Thời gian đánh giá
-     */
-    reviewedAt: {
-        [key: string]: unknown;
-    } | null;
-};
-
-export type SubmissionHistoryResponseDto = {
-    /**
-     * ID của bài nộp chính
-     */
-    submissionId: string;
-    /**
-     * ID của bài tập
-     */
-    exerciseId: string;
-    history: Array<SubmissionHistoryItemDto>;
-};
-
-export type AppControllerGetHelloData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1';
-};
-
-export type AppControllerGetHelloResponses = {
-    200: unknown;
-};
-
-export type UsersControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Lọc theo Cohort ID (UUID).
-         */
-        cohortId?: string;
-        /**
-         * Lọc theo vai trò (learner / admin).
-         */
-        role?: string;
-        /**
-         * Tìm kiếm theo tên hoặc email.
-         */
-        q?: string;
-        /**
-         * Số trang.
-         */
-        page?: number;
-        /**
-         * Số lượng phần tử mỗi trang.
-         */
-        limit?: number;
+export type Item = {
+    id?: string;
+    user?: {
+        id?: string;
+        name?: string;
+        avatarHue?: number;
     };
-    url: '/api/v1/users';
+    exercise?: string;
+    prUrl?: string;
+    status?: string;
+    submittedAt?: string;
 };
 
-export type UsersControllerFindAllErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-};
-
-export type UsersControllerFindAllResponses = {
-    /**
-     * Lấy danh sách thành công.
-     */
-    200: unknown;
-};
-
-export type UsersControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
+export type SubmissionFeedItem = {
+    id?: string;
+    user?: {
+        id?: string;
+        name?: string;
+        avatarHue?: number;
     };
-    query?: never;
-    url: '/api/v1/users/{id}';
+    exercise?: string;
+    prUrl?: string;
+    status?: string;
+    submittedAt?: string;
 };
 
-export type UsersControllerFindOneErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy người dùng.
-     */
-    404: unknown;
+export type SubmissionDetail = {
+    id?: string;
+    exerciseId?: string;
+    exercise?: string;
+    user?: {
+        id?: string;
+        name?: string;
+    };
+    prUrl?: string;
+    status?: string;
+    reviewerId?: string | null;
+    reviewNote?: string | null;
+    submittedAt?: string;
+    reviewedAt?: string | null;
 };
 
-export type UsersControllerFindOneResponses = {
-    /**
-     * Lấy chi tiết thành công.
-     */
-    200: unknown;
+export type SubmissionHistoryResponse = {
+    submissionId?: string;
+    exerciseId?: string;
+    history?: Array<SubmissionHistoryItem>;
 };
 
-export type UsersControllerUpdateProfileData = {
-    body: UpdateProfileDto;
+export type SubmissionHistoryItem = {
+    id?: string;
+    prUrl?: string;
+    status?: 'submitted' | 'approved' | 'changes';
+    submittedAt?: string;
+    reviewerId?: string | null;
+    reviewNote?: string | null;
+    reviewedAt?: string | null;
+};
+
+export type Notification = {
+    id?: string;
+    type?: 'submission_reviewed' | 'track_unlocked';
+    title?: string;
+    body?: string;
+    read?: boolean;
+    createdAt?: string;
+};
+
+export type LeaderboardEntry = {
+    userId?: string;
+    name?: string;
+    level?: number;
+    xp?: number;
+    streakDays?: number;
+    rank?: number;
+};
+
+export type PostAuthRegisterData = {
+    body: {
+        name: string;
+        email: string;
+        password: string;
+    };
     path?: never;
     query?: never;
-    url: '/api/v1/users/me';
+    url: '/auth/register';
 };
 
-export type UsersControllerUpdateProfileResponses = {
+export type PostAuthRegisterErrors = {
     /**
-     * Cập nhật thành công.
+     * Dữ liệu đầu vào không hợp lệ (lỗi validate DTO).
      */
-    200: unknown;
+    400: {
+        statusCode?: number;
+        message?: Array<string>;
+        error?: string;
+    };
+    /**
+     * Email đã được sử dụng.
+     */
+    409: ErrorResponse;
 };
 
-export type UsersControllerGetStatsData = {
-    body?: never;
+export type PostAuthRegisterError = PostAuthRegisterErrors[keyof PostAuthRegisterErrors];
+
+export type PostAuthRegisterResponses = {
+    /**
+     * Đăng ký thành công và tự động tạo phiên đăng nhập.
+     */
+    201: {
+        user?: User;
+        accessToken?: string;
+        refreshToken?: string;
+        /**
+         * Thời hạn token tính bằng giây (ví dụ 900 = 15 phút).
+         */
+        expiresIn?: number;
+    };
+};
+
+export type PostAuthRegisterResponse = PostAuthRegisterResponses[keyof PostAuthRegisterResponses];
+
+export type PostAuthLoginData = {
+    body: {
+        email: string;
+        password: string;
+        rememberMe?: boolean;
+    };
     path?: never;
     query?: never;
-    url: '/api/v1/users/me/stats';
+    url: '/auth/login';
 };
 
-export type UsersControllerGetStatsResponses = {
+export type PostAuthLoginErrors = {
     /**
-     * Lấy chỉ số thành công.
+     * Sai thông tin đăng nhập.
      */
-    200: UserDashboardStatsDto;
+    401: ErrorResponse;
 };
 
-export type UsersControllerGetStatsResponse = UsersControllerGetStatsResponses[keyof UsersControllerGetStatsResponses];
+export type PostAuthLoginError = PostAuthLoginErrors[keyof PostAuthLoginErrors];
 
-export type UsersControllerClaimDailyXpData = {
-    body?: never;
+export type PostAuthLoginResponses = {
+    /**
+     * Đăng nhập thành công.
+     */
+    200: {
+        user?: User;
+        accessToken?: string;
+        refreshToken?: string;
+        expiresIn?: number;
+    };
+};
+
+export type PostAuthLoginResponse = PostAuthLoginResponses[keyof PostAuthLoginResponses];
+
+export type PostAuthGoogleData = {
+    body: {
+        idToken: string;
+    };
     path?: never;
     query?: never;
-    url: '/api/v1/users/me/claim-xp';
+    url: '/auth/google';
 };
 
-export type UsersControllerClaimDailyXpErrors = {
+export type PostAuthGoogleErrors = {
     /**
-     * Bạn đã nhận XP ngày hôm nay rồi.
+     * Dữ liệu đầu vào không hợp lệ (lỗi validate DTO).
      */
-    400: unknown;
+    400: {
+        statusCode?: number;
+        message?: Array<string>;
+        error?: string;
+    };
 };
 
-export type UsersControllerClaimDailyXpResponses = {
+export type PostAuthGoogleError = PostAuthGoogleErrors[keyof PostAuthGoogleErrors];
+
+export type PostAuthGoogleResponses = {
     /**
-     * Điểm danh nhận XP thành công.
+     * Xác thực Google thành công. Trả về thông tin phiên giống như `/auth/login`.
      */
-    200: unknown;
+    200: {
+        user?: User;
+        accessToken?: string;
+        refreshToken?: string;
+        expiresIn?: number;
+    };
 };
 
-export type AuthControllerGoogleLoginData = {
-    body: GoogleLoginDto;
+export type PostAuthGoogleResponse = PostAuthGoogleResponses[keyof PostAuthGoogleResponses];
+
+export type PostAuthRefreshData = {
+    body: {
+        refreshToken: string;
+    };
     path?: never;
     query?: never;
-    url: '/api/v1/auth/google';
+    url: '/auth/refresh';
 };
 
-export type AuthControllerGoogleLoginErrors = {
-    /**
-     * ID Token không hợp lệ.
-     */
-    401: unknown;
-    /**
-     * Email ngoài domain công ty.
-     */
-    403: unknown;
-};
-
-export type AuthControllerGoogleLoginResponses = {
-    200: AuthResponseDto;
-};
-
-export type AuthControllerGoogleLoginResponse = AuthControllerGoogleLoginResponses[keyof AuthControllerGoogleLoginResponses];
-
-export type AuthControllerRegisterData = {
-    body: RegisterDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/auth/register';
-};
-
-export type AuthControllerRegisterErrors = {
-    /**
-     * Dữ liệu không hợp lệ hoặc email đã tồn tại.
-     */
-    400: unknown;
-};
-
-export type AuthControllerRegisterResponses = {
-    /**
-     * Tạo tài khoản thành công.
-     */
-    201: unknown;
-};
-
-export type AuthControllerLoginData = {
-    body: LoginDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/auth/login';
-};
-
-export type AuthControllerLoginErrors = {
-    /**
-     * Sai email hoặc mật khẩu.
-     */
-    401: unknown;
-};
-
-export type AuthControllerLoginResponses = {
-    200: AuthTokensDto;
-};
-
-export type AuthControllerLoginResponse = AuthControllerLoginResponses[keyof AuthControllerLoginResponses];
-
-export type AuthControllerRefreshData = {
-    body: RefreshTokenDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/auth/refresh';
-};
-
-export type AuthControllerRefreshErrors = {
+export type PostAuthRefreshErrors = {
     /**
      * Refresh token không hợp lệ hoặc đã hết hạn.
      */
-    401: unknown;
+    401: ErrorResponse;
 };
 
-export type AuthControllerRefreshResponses = {
-    200: AuthTokensDto;
-};
+export type PostAuthRefreshError = PostAuthRefreshErrors[keyof PostAuthRefreshErrors];
 
-export type AuthControllerRefreshResponse = AuthControllerRefreshResponses[keyof AuthControllerRefreshResponses];
-
-export type AuthControllerLogoutData = {
-    body: RefreshTokenDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/auth/logout';
-};
-
-export type AuthControllerLogoutErrors = {
+export type PostAuthRefreshResponses = {
     /**
-     * Thiếu hoặc sai access token.
+     * Cấp token mới thành công.
      */
-    401: unknown;
+    200: {
+        accessToken?: string;
+        refreshToken?: string;
+        expiresIn?: number;
+    };
 };
 
-export type AuthControllerLogoutResponses = {
-    /**
-     * Logged out successfully.
-     */
-    200: unknown;
-};
+export type PostAuthRefreshResponse = PostAuthRefreshResponses[keyof PostAuthRefreshResponses];
 
-export type AuthControllerMeData = {
+export type PostAuthLogoutData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/me';
+    url: '/auth/logout';
 };
 
-export type AuthControllerMeErrors = {
+export type PostAuthLogoutErrors = {
     /**
-     * Thiếu hoặc sai access token.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    401: unknown;
-};
-
-export type AuthControllerMeResponses = {
-    /**
-     * Thông tin user (không kèm password).
-     */
-    200: UserProfileDto;
-};
-
-export type AuthControllerMeResponse = AuthControllerMeResponses[keyof AuthControllerMeResponses];
-
-export type AuthControllerForgotPasswordData = {
-    body: ForgotPasswordDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/auth/forgot-password';
-};
-
-export type AuthControllerForgotPasswordErrors = {
-    /**
-     * Email không tồn tại.
-     */
-    400: unknown;
-};
-
-export type AuthControllerForgotPasswordResponses = {
-    /**
-     * Đường dẫn khôi phục mật khẩu đã được gửi.
-     */
-    200: unknown;
-};
-
-export type AuthControllerResetPasswordData = {
-    body: ResetPasswordDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/auth/reset-password';
-};
-
-export type AuthControllerResetPasswordErrors = {
-    /**
-     * Token không hợp lệ hoặc hết hạn.
-     */
-    400: unknown;
-};
-
-export type AuthControllerResetPasswordResponses = {
-    /**
-     * Mật khẩu đã được thay đổi thành công.
-     */
-    200: unknown;
-};
-
-export type CohortControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        page?: number;
-        limit?: number;
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
     };
-    url: '/api/v1/cohorts';
 };
 
-export type CohortControllerFindAllErrors = {
+export type PostAuthLogoutError = PostAuthLogoutErrors[keyof PostAuthLogoutErrors];
+
+export type PostAuthLogoutResponses = {
     /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-};
-
-export type CohortControllerFindAllResponses = {
-    /**
-     * Lấy danh sách thành công.
-     */
-    200: CohortListResponseDto;
-};
-
-export type CohortControllerFindAllResponse = CohortControllerFindAllResponses[keyof CohortControllerFindAllResponses];
-
-export type CohortControllerCreateData = {
-    body: CreateCohortDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/cohorts';
-};
-
-export type CohortControllerCreateErrors = {
-    /**
-     * Dữ liệu đầu vào không hợp lệ.
-     */
-    400: unknown;
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-};
-
-export type CohortControllerCreateResponses = {
-    /**
-     * Khởi tạo thành công.
-     */
-    201: CohortDetailDto;
-};
-
-export type CohortControllerCreateResponse = CohortControllerCreateResponses[keyof CohortControllerCreateResponses];
-
-export type CohortControllerGetOverviewData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cohorts/{id}/overview';
-};
-
-export type CohortControllerGetOverviewErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy Cohort.
-     */
-    404: unknown;
-};
-
-export type CohortControllerGetOverviewResponses = {
-    /**
-     * Lấy thông tin thành công.
-     */
-    200: CohortDashboardStatsDto;
-};
-
-export type CohortControllerGetOverviewResponse = CohortControllerGetOverviewResponses[keyof CohortControllerGetOverviewResponses];
-
-export type CohortControllerGetTrackCompletionData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cohorts/{id}/track-completion';
-};
-
-export type CohortControllerGetTrackCompletionErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy Cohort.
-     */
-    404: unknown;
-};
-
-export type CohortControllerGetTrackCompletionResponses = {
-    /**
-     * Lấy thông tin thành công.
-     */
-    200: CohortTrackCompletionResponseDto;
-};
-
-export type CohortControllerGetTrackCompletionResponse = CohortControllerGetTrackCompletionResponses[keyof CohortControllerGetTrackCompletionResponses];
-
-export type CohortControllerExportReportData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cohorts/{id}/export';
-};
-
-export type CohortControllerExportReportErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy Cohort.
-     */
-    404: unknown;
-};
-
-export type CohortControllerExportReportResponses = {
-    /**
-     * Xuất báo cáo thành công.
-     */
-    200: unknown;
-};
-
-export type CohortControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cohorts/{id}';
-};
-
-export type CohortControllerRemoveErrors = {
-    /**
-     * Không thể xóa do ràng buộc dữ liệu.
-     */
-    400: unknown;
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy Cohort.
-     */
-    404: unknown;
-};
-
-export type CohortControllerRemoveResponses = {
-    /**
-     * Xóa thành công.
-     */
-    200: unknown;
-};
-
-export type CohortControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cohorts/{id}';
-};
-
-export type CohortControllerFindOneErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy Cohort.
-     */
-    404: unknown;
-};
-
-export type CohortControllerFindOneResponses = {
-    /**
-     * Lấy thông tin thành công.
-     */
-    200: CohortDetailDto;
-};
-
-export type CohortControllerFindOneResponse = CohortControllerFindOneResponses[keyof CohortControllerFindOneResponses];
-
-export type CohortControllerUpdateData = {
-    body: UpdateCohortDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/cohorts/{id}';
-};
-
-export type CohortControllerUpdateErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy Cohort.
-     */
-    404: unknown;
-};
-
-export type CohortControllerUpdateResponses = {
-    /**
-     * Cập nhật thành công.
-     */
-    200: CohortDetailDto;
-};
-
-export type CohortControllerUpdateResponse = CohortControllerUpdateResponses[keyof CohortControllerUpdateResponses];
-
-export type TracksControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Số trang (mặc định: 1)
-         */
-        page?: number;
-        /**
-         * Số bản ghi trên mỗi trang (mặc định: 20, tối đa: 50)
-         */
-        limit?: number;
-        /**
-         * Lọc danh sách tracks theo trạng thái
-         */
-        status?: 'completed' | 'in_progress' | 'locked';
-    };
-    url: '/api/v1/tracks';
-};
-
-export type TracksControllerFindAllResponses = {
-    /**
-     * Lấy danh sách tracks thành công.
-     */
-    200: TrackListResponseDto;
-};
-
-export type TracksControllerFindAllResponse = TracksControllerFindAllResponses[keyof TracksControllerFindAllResponses];
-
-export type TracksControllerCreateData = {
-    body: CreateTrackDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/tracks';
-};
-
-export type TracksControllerCreateResponses = {
-    /**
-     * Tạo track thành công.
-     */
-    201: unknown;
-};
-
-export type TracksControllerReorderData = {
-    body: ReorderTracksDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/tracks/reorder';
-};
-
-export type TracksControllerReorderResponses = {
-    /**
-     * Sắp xếp lại thứ tự tracks thành công.
-     */
-    200: unknown;
-};
-
-export type TracksControllerDeleteData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/tracks/{id}';
-};
-
-export type TracksControllerDeleteResponses = {
-    /**
-     * Xóa track thành công.
+     * Đăng xuất thành công. Không có dữ liệu trả về.
      */
     204: void;
 };
 
-export type TracksControllerDeleteResponse = TracksControllerDeleteResponses[keyof TracksControllerDeleteResponses];
+export type PostAuthLogoutResponse = PostAuthLogoutResponses[keyof PostAuthLogoutResponses];
 
-export type TracksControllerFindOneData = {
+export type PostAuthForgotPasswordData = {
+    body: {
+        email: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/forgot-password';
+};
+
+export type PostAuthForgotPasswordResponses = {
+    /**
+     * Yêu cầu đã được tiếp nhận.
+     */
+    202: {
+        message?: string;
+    };
+};
+
+export type PostAuthForgotPasswordResponse = PostAuthForgotPasswordResponses[keyof PostAuthForgotPasswordResponses];
+
+export type PostAuthResetPasswordData = {
+    body: {
+        token: string;
+        password: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/auth/reset-password';
+};
+
+export type PostAuthResetPasswordErrors = {
+    /**
+     * Dữ liệu đầu vào không hợp lệ (lỗi validate DTO).
+     */
+    400: {
+        statusCode?: number;
+        message?: Array<string>;
+        error?: string;
+    };
+};
+
+export type PostAuthResetPasswordError = PostAuthResetPasswordErrors[keyof PostAuthResetPasswordErrors];
+
+export type PostAuthResetPasswordResponses = {
+    /**
+     * Đổi mật khẩu thành công.
+     */
+    200: {
+        message?: string;
+    };
+};
+
+export type PostAuthResetPasswordResponse = PostAuthResetPasswordResponses[keyof PostAuthResetPasswordResponses];
+
+export type GetAuthMeData = {
     body?: never;
-    path: {
-        id: string;
-    };
+    path?: never;
     query?: never;
-    url: '/api/v1/tracks/{id}';
+    url: '/auth/me';
 };
 
-export type TracksControllerFindOneResponses = {
+export type GetAuthMeErrors = {
     /**
-     * Lấy chi tiết track thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    200: TrackDetailDto;
-};
-
-export type TracksControllerFindOneResponse = TracksControllerFindOneResponses[keyof TracksControllerFindOneResponses];
-
-export type TracksControllerUpdateData = {
-    body: UpdateTrackDto;
-    path: {
-        id: string;
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
     };
-    query?: never;
-    url: '/api/v1/tracks/{id}';
 };
 
-export type TracksControllerUpdateResponses = {
+export type GetAuthMeError = GetAuthMeErrors[keyof GetAuthMeErrors];
+
+export type GetAuthMeResponses = {
     /**
-     * Cập nhật track thành công.
+     * Thành công.
      */
-    200: unknown;
+    200: UserDetail;
 };
 
-export type TracksControllerUpdateProgressData = {
-    body: UpdateTrackProgressDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/tracks/{id}/progress';
-};
+export type GetAuthMeResponse = GetAuthMeResponses[keyof GetAuthMeResponses];
 
-export type TracksControllerUpdateProgressResponses = {
-    /**
-     * Cập nhật tiến độ thành công.
-     */
-    200: unknown;
-};
-
-export type LessonsControllerFindLessonsData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/tracks/{id}/lessons';
-};
-
-export type LessonsControllerFindLessonsResponses = {
-    /**
-     * Lấy danh sách bài học thành công.
-     */
-    200: LessonListResponseDto;
-};
-
-export type LessonsControllerFindLessonsResponse = LessonsControllerFindLessonsResponses[keyof LessonsControllerFindLessonsResponses];
-
-export type LessonsControllerCreateLessonData = {
-    body: CreateLessonDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/tracks/{id}/lessons';
-};
-
-export type LessonsControllerCreateLessonResponses = {
-    /**
-     * Tạo bài học thành công.
-     */
-    201: unknown;
-};
-
-export type LessonsControllerDeleteLessonData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/lessons/{id}';
-};
-
-export type LessonsControllerDeleteLessonResponses = {
-    /**
-     * Xóa bài học thành công.
-     */
-    204: void;
-};
-
-export type LessonsControllerDeleteLessonResponse = LessonsControllerDeleteLessonResponses[keyof LessonsControllerDeleteLessonResponses];
-
-export type LessonsControllerFindOneLessonData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/lessons/{id}';
-};
-
-export type LessonsControllerFindOneLessonResponses = {
-    /**
-     * Lấy chi tiết bài học thành công.
-     */
-    200: LessonDetailDto;
-};
-
-export type LessonsControllerFindOneLessonResponse = LessonsControllerFindOneLessonResponses[keyof LessonsControllerFindOneLessonResponses];
-
-export type LessonsControllerUpdateLessonData = {
-    body: UpdateLessonDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/lessons/{id}';
-};
-
-export type LessonsControllerUpdateLessonResponses = {
-    /**
-     * Cập nhật bài học thành công.
-     */
-    200: unknown;
-};
-
-export type LessonsControllerFindExercisesByLessonData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/lessons/{id}/exercises';
-};
-
-export type LessonsControllerFindExercisesByLessonResponses = {
-    /**
-     * Lấy danh sách bài tập thành công.
-     */
-    200: ExerciseListResponseDto;
-};
-
-export type LessonsControllerFindExercisesByLessonResponse = LessonsControllerFindExercisesByLessonResponses[keyof LessonsControllerFindExercisesByLessonResponses];
-
-export type LessonsControllerCompleteLessonData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/lessons/{id}/complete';
-};
-
-export type LessonsControllerCompleteLessonResponses = {
-    /**
-     * Hoàn thành bài học thành công.
-     */
-    200: CompleteLessonResponseDto;
-};
-
-export type LessonsControllerCompleteLessonResponse = LessonsControllerCompleteLessonResponses[keyof LessonsControllerCompleteLessonResponses];
-
-export type ExercisesControllerFindAllData = {
+export type GetUsersData = {
     body?: never;
     path?: never;
     query?: {
         /**
-         * Lọc bài tập thuộc Track cụ thể.
+         * Lọc danh sách theo Cohort ID
          */
-        trackId?: string;
+        cohortId?: string;
         /**
-         * Lọc bài tập thuộc Lesson cụ thể.
+         * Lọc theo vai trò (learner hoặc admin)
          */
-        lessonId?: string;
+        role?: 'learner' | 'admin';
         /**
-         * Lọc theo nhãn chuyên môn.
-         */
-        tag?: string;
-        /**
-         * Lọc theo cấp độ khó.
-         */
-        difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
-        /**
-         * Lọc theo trạng thái bài nộp cá nhân của Learner.
-         */
-        status?: 'pending' | 'submitted' | 'approved' | 'changes';
-        /**
-         * Số lượng phần tử tối đa trả về trên mỗi trang (phục vụ cursor pagination).
-         */
-        limit?: number;
-        /**
-         * Cursor dùng để tải trang tiếp theo (phục vụ keyset pagination).
-         */
-        cursor?: string;
-    };
-    url: '/api/v1/exercises';
-};
-
-export type ExercisesControllerFindAllResponses = {
-    /**
-     * Lấy danh sách thành công.
-     */
-    200: ExerciseListResponseDto;
-};
-
-export type ExercisesControllerFindAllResponse = ExercisesControllerFindAllResponses[keyof ExercisesControllerFindAllResponses];
-
-export type ExercisesControllerCreateData = {
-    body: CreateExerciseDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/exercises';
-};
-
-export type ExercisesControllerCreateErrors = {
-    /**
-     * Dữ liệu đầu vào không hợp lệ.
-     */
-    400: unknown;
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-};
-
-export type ExercisesControllerCreateResponses = {
-    /**
-     * Tạo bài tập thành công.
-     */
-    201: unknown;
-};
-
-export type ExercisesControllerRemoveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/exercises/{id}';
-};
-
-export type ExercisesControllerRemoveErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy bài tập.
-     */
-    404: unknown;
-};
-
-export type ExercisesControllerRemoveResponses = {
-    /**
-     * Xóa thành công.
-     */
-    200: unknown;
-};
-
-export type ExercisesControllerFindOneData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/exercises/{id}';
-};
-
-export type ExercisesControllerFindOneErrors = {
-    /**
-     * Không tìm thấy bài tập.
-     */
-    404: unknown;
-};
-
-export type ExercisesControllerFindOneResponses = {
-    /**
-     * Lấy thông tin thành công.
-     */
-    200: ExerciseDetailDto;
-};
-
-export type ExercisesControllerFindOneResponse = ExercisesControllerFindOneResponses[keyof ExercisesControllerFindOneResponses];
-
-export type ExercisesControllerUpdateData = {
-    body: UpdateExerciseDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/exercises/{id}';
-};
-
-export type ExercisesControllerUpdateErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
-    /**
-     * Không tìm thấy bài tập.
-     */
-    404: unknown;
-};
-
-export type ExercisesControllerUpdateResponses = {
-    /**
-     * Cập nhật thành công.
-     */
-    200: unknown;
-};
-
-export type DocumentsControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Từ khóa tìm kiếm trong tiêu đề hoặc nội dung tài liệu
+         * Tìm kiếm theo họ tên hoặc email
          */
         q?: string;
         /**
-         * Danh sách các thẻ phân loại (tags) phân tách bằng dấu phẩy
-         */
-        tags?: string;
-        /**
-         * Phân loại tài liệu kỹ thuật
-         */
-        kind?: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
-        /**
-         * Số lượng tài liệu tối đa trả về trên mỗi trang
+         * Giới hạn số lượng bản ghi trả về (tối đa 50)
          */
         limit?: number;
         /**
-         * Con trỏ (cursor) phục vụ phân trang
+         * Cursor phục vụ phân trang danh sách
          */
         cursor?: string;
     };
-    url: '/api/v1/documents';
+    url: '/users';
 };
 
-export type DocumentsControllerFindAllResponses = {
+export type GetUsersErrors = {
     /**
-     * Lấy danh sách tài liệu thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    200: DocumentListResponseDto;
-};
-
-export type DocumentsControllerFindAllResponse = DocumentsControllerFindAllResponses[keyof DocumentsControllerFindAllResponses];
-
-export type DocumentsControllerCreateData = {
-    body: CreateDocumentDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/documents';
-};
-
-export type DocumentsControllerCreateResponses = {
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
     /**
-     * Tạo tài liệu thành công.
+     * Người dùng không có quyền truy cập chức năng này (sai role).
      */
-    201: unknown;
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
 };
 
-export type DocumentsControllerFindRecentData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/documents/recent';
-};
+export type GetUsersError = GetUsersErrors[keyof GetUsersErrors];
 
-export type DocumentsControllerFindRecentResponses = {
+export type GetUsersResponses = {
     /**
-     * Lấy tài liệu gần đây thành công.
+     * Thành công.
      */
-    200: RecentDocumentsResponseDto;
+    200: {
+        data?: Array<UserSummary>;
+        nextCursor?: string | null;
+        hasMore?: boolean;
+    };
 };
 
-export type DocumentsControllerFindRecentResponse = DocumentsControllerFindRecentResponses[keyof DocumentsControllerFindRecentResponses];
+export type GetUsersResponse = GetUsersResponses[keyof GetUsersResponses];
 
-export type DocumentsControllerDeleteData = {
+export type GetUsersByIdData = {
     body?: never;
     path: {
+        /**
+         * ID của người dùng cần xem
+         */
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}';
+    url: '/users/{id}';
 };
 
-export type DocumentsControllerDeleteResponses = {
+export type GetUsersByIdErrors = {
     /**
-     * Xóa tài liệu thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không đủ quyền truy cập (Learner xem profile người khác).
+     */
+    403: ErrorResponse;
+    /**
+     * Không tìm thấy người dùng.
+     */
+    404: ErrorResponse;
+};
+
+export type GetUsersByIdError = GetUsersByIdErrors[keyof GetUsersByIdErrors];
+
+export type GetUsersByIdResponses = {
+    /**
+     * Thành công.
+     */
+    200: UserDetail;
+};
+
+export type GetUsersByIdResponse = GetUsersByIdResponses[keyof GetUsersByIdResponses];
+
+export type PatchUsersMeData = {
+    body: {
+        title?: string;
+        avatarHue?: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/users/me';
+};
+
+export type PatchUsersMeErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PatchUsersMeError = PatchUsersMeErrors[keyof PatchUsersMeErrors];
+
+export type PatchUsersMeResponses = {
+    /**
+     * Cập nhật thành công.
+     */
+    200: {
+        id?: string;
+        title?: string;
+        avatarHue?: number;
+    };
+};
+
+export type PatchUsersMeResponse = PatchUsersMeResponses[keyof PatchUsersMeResponses];
+
+export type GetUsersMeStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/users/me/stats';
+};
+
+export type GetUsersMeStatsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetUsersMeStatsError = GetUsersMeStatsErrors[keyof GetUsersMeStatsErrors];
+
+export type GetUsersMeStatsResponses = {
+    /**
+     * Thành công.
+     */
+    200: UserDashboardStats;
+};
+
+export type GetUsersMeStatsResponse = GetUsersMeStatsResponses[keyof GetUsersMeStatsResponses];
+
+export type PostUsersMeNotificationsSlackData = {
+    body: {
+        /**
+         * ID định danh của user trên workspace Slack
+         */
+        slackMemberId: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/users/me/notifications/slack';
+};
+
+export type PostUsersMeNotificationsSlackErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PostUsersMeNotificationsSlackError = PostUsersMeNotificationsSlackErrors[keyof PostUsersMeNotificationsSlackErrors];
+
+export type PostUsersMeNotificationsSlackResponses = {
+    /**
+     * Liên kết thành công.
+     */
+    200: {
+        userId?: string;
+        slackMemberId?: string;
+        slackNotificationsEnabled?: boolean;
+    };
+};
+
+export type PostUsersMeNotificationsSlackResponse = PostUsersMeNotificationsSlackResponses[keyof PostUsersMeNotificationsSlackResponses];
+
+export type GetCohortsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/cohorts';
+};
+
+export type GetCohortsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetCohortsError = GetCohortsErrors[keyof GetCohortsErrors];
+
+export type GetCohortsResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<CohortSummary>;
+        nextCursor?: string | null;
+        hasMore?: boolean;
+    };
+};
+
+export type GetCohortsResponse = GetCohortsResponses[keyof GetCohortsResponses];
+
+export type PostCohortsData = {
+    body: {
+        /**
+         * Tên khóa học
+         */
+        name: string;
+        /**
+         * Số ngày mục tiêu để hoàn thành lộ trình
+         */
+        targetRampDays?: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/cohorts';
+};
+
+export type PostCohortsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PostCohortsError = PostCohortsErrors[keyof PostCohortsErrors];
+
+export type PostCohortsResponses = {
+    /**
+     * Tạo thành công.
+     */
+    201: CohortDetail;
+};
+
+export type PostCohortsResponse = PostCohortsResponses[keyof PostCohortsResponses];
+
+export type GetCohortsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID của Cohort
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/cohorts/{id}';
+};
+
+export type GetCohortsByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy Cohort.
+     */
+    404: ErrorResponse;
+};
+
+export type GetCohortsByIdError = GetCohortsByIdErrors[keyof GetCohortsByIdErrors];
+
+export type GetCohortsByIdResponses = {
+    /**
+     * Thành công.
+     */
+    200: CohortDetail;
+};
+
+export type GetCohortsByIdResponse = GetCohortsByIdResponses[keyof GetCohortsByIdResponses];
+
+export type PatchCohortsByIdData = {
+    body: {
+        name?: string;
+        targetRampDays?: number;
+    };
+    path: {
+        /**
+         * ID của Cohort cần sửa
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/cohorts/{id}';
+};
+
+export type PatchCohortsByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PatchCohortsByIdError = PatchCohortsByIdErrors[keyof PatchCohortsByIdErrors];
+
+export type PatchCohortsByIdResponses = {
+    /**
+     * Cập nhật thành công.
+     */
+    200: CohortDetail;
+};
+
+export type PatchCohortsByIdResponse = PatchCohortsByIdResponses[keyof PatchCohortsByIdResponses];
+
+export type GetCohortsByIdOverviewData = {
+    body?: never;
+    path: {
+        /**
+         * ID của Cohort
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/cohorts/{id}/overview';
+};
+
+export type GetCohortsByIdOverviewErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetCohortsByIdOverviewError = GetCohortsByIdOverviewErrors[keyof GetCohortsByIdOverviewErrors];
+
+export type GetCohortsByIdOverviewResponses = {
+    /**
+     * Thành công.
+     */
+    200: CohortDashboardStats;
+};
+
+export type GetCohortsByIdOverviewResponse = GetCohortsByIdOverviewResponses[keyof GetCohortsByIdOverviewResponses];
+
+export type GetCohortsByIdTrackCompletionData = {
+    body?: never;
+    path: {
+        /**
+         * ID của Cohort
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/cohorts/{id}/track-completion';
+};
+
+export type GetCohortsByIdTrackCompletionErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetCohortsByIdTrackCompletionError = GetCohortsByIdTrackCompletionErrors[keyof GetCohortsByIdTrackCompletionErrors];
+
+export type GetCohortsByIdTrackCompletionResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<{
+            trackId?: string;
+            title?: string;
+            completionPct?: number;
+        }>;
+    };
+};
+
+export type GetCohortsByIdTrackCompletionResponse = GetCohortsByIdTrackCompletionResponses[keyof GetCohortsByIdTrackCompletionResponses];
+
+export type GetCohortsByIdExportData = {
+    body?: never;
+    path: {
+        /**
+         * ID của Cohort
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/cohorts/{id}/export';
+};
+
+export type GetCohortsByIdExportErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetCohortsByIdExportError = GetCohortsByIdExportErrors[keyof GetCohortsByIdExportErrors];
+
+export type GetCohortsByIdExportResponses = {
+    /**
+     * File CSV được sinh thành công.
+     */
+    200: string;
+};
+
+export type GetCohortsByIdExportResponse = GetCohortsByIdExportResponses[keyof GetCohortsByIdExportResponses];
+
+export type GetTracksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Trang hiện tại (mặc định 1)
+         */
+        page?: number;
+        /**
+         * Số lượng chặng trên mỗi trang (mặc định 20, tối đa 50)
+         */
+        limit?: number;
+    };
+    url: '/tracks';
+};
+
+export type GetTracksErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetTracksError = GetTracksErrors[keyof GetTracksErrors];
+
+export type GetTracksResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<TrackSummary>;
+        meta?: {
+            total?: number;
+            page?: number;
+            limit?: number;
+            lastPage?: number;
+        };
+    };
+};
+
+export type GetTracksResponse = GetTracksResponses[keyof GetTracksResponses];
+
+export type PostTracksData = {
+    body: {
+        title: string;
+        description: string;
+        estimatedTime: string;
+        lessonCount: number;
+        /**
+         * Chèn sau Track có ID này (để tự động tính toán order). Nếu bỏ trống sẽ chèn cuối cùng.
+         */
+        afterTrackId?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/tracks';
+};
+
+export type PostTracksErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PostTracksError = PostTracksErrors[keyof PostTracksErrors];
+
+export type PostTracksResponses = {
+    /**
+     * Tạo thành công.
+     */
+    201: TrackDetail;
+};
+
+export type PostTracksResponse = PostTracksResponses[keyof PostTracksResponses];
+
+export type PatchTracksReorderData = {
+    body: {
+        /**
+         * Danh sách ID của track được sắp xếp lại.
+         */
+        order: Array<string>;
+    };
+    path?: never;
+    query?: never;
+    url: '/tracks/reorder';
+};
+
+export type PatchTracksReorderErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PatchTracksReorderError = PatchTracksReorderErrors[keyof PatchTracksReorderErrors];
+
+export type PatchTracksReorderResponses = {
+    /**
+     * Đã cập nhật thứ tự thành công.
+     */
+    200: {
+        message?: string;
+        count?: number;
+    };
+};
+
+export type PatchTracksReorderResponse = PatchTracksReorderResponses[keyof PatchTracksReorderResponses];
+
+export type DeleteTracksByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID của Track cần xóa
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/tracks/{id}';
+};
+
+export type DeleteTracksByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteTracksByIdError = DeleteTracksByIdErrors[keyof DeleteTracksByIdErrors];
+
+export type DeleteTracksByIdResponses = {
+    /**
+     * Xóa thành công.
      */
     204: void;
 };
 
-export type DocumentsControllerDeleteResponse = DocumentsControllerDeleteResponses[keyof DocumentsControllerDeleteResponses];
+export type DeleteTracksByIdResponse = DeleteTracksByIdResponses[keyof DeleteTracksByIdResponses];
 
-export type DocumentsControllerFindOneData = {
+export type GetTracksByIdData = {
     body?: never;
     path: {
+        /**
+         * ID của Track
+         */
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}';
+    url: '/tracks/{id}';
 };
 
-export type DocumentsControllerFindOneResponses = {
+export type GetTracksByIdErrors = {
     /**
-     * Lấy chi tiết tài liệu thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    200: DocumentResponseDto;
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy Track.
+     */
+    404: ErrorResponse;
 };
 
-export type DocumentsControllerFindOneResponse = DocumentsControllerFindOneResponses[keyof DocumentsControllerFindOneResponses];
+export type GetTracksByIdError = GetTracksByIdErrors[keyof GetTracksByIdErrors];
 
-export type DocumentsControllerUpdateData = {
-    body: UpdateDocumentDto;
+export type GetTracksByIdResponses = {
+    /**
+     * Thành công.
+     */
+    200: TrackDetail;
+};
+
+export type GetTracksByIdResponse = GetTracksByIdResponses[keyof GetTracksByIdResponses];
+
+export type PatchTracksByIdData = {
+    body: {
+        title?: string;
+        description?: string;
+        estimatedTime?: string;
+        icon?: string;
+    };
     path: {
+        /**
+         * ID của Track
+         */
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}';
+    url: '/tracks/{id}';
 };
 
-export type DocumentsControllerUpdateResponses = {
+export type PatchTracksByIdErrors = {
     /**
-     * Cập nhật tài liệu thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    200: unknown;
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
 };
 
-export type DocumentsControllerUnbookmarkData = {
+export type PatchTracksByIdError = PatchTracksByIdErrors[keyof PatchTracksByIdErrors];
+
+export type PatchTracksByIdResponses = {
+    /**
+     * Cập nhật thành công.
+     */
+    200: TrackDetail;
+};
+
+export type PatchTracksByIdResponse = PatchTracksByIdResponses[keyof PatchTracksByIdResponses];
+
+export type GetTracksByIdLessonsData = {
     body?: never;
     path: {
+        /**
+         * ID của Track
+         */
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}/bookmark';
+    url: '/tracks/{id}/lessons';
 };
 
-export type DocumentsControllerUnbookmarkResponses = {
+export type GetTracksByIdLessonsErrors = {
     /**
-     * Hủy bookmark thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy Track.
+     */
+    404: ErrorResponse;
+};
+
+export type GetTracksByIdLessonsError = GetTracksByIdLessonsErrors[keyof GetTracksByIdLessonsErrors];
+
+export type GetTracksByIdLessonsResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<LessonSummary>;
+    };
+};
+
+export type GetTracksByIdLessonsResponse = GetTracksByIdLessonsResponses[keyof GetTracksByIdLessonsResponses];
+
+export type PostTracksByIdLessonsData = {
+    body: {
+        title: string;
+        /**
+         * Số thứ tự sắp xếp bài học trong Track
+         */
+        order: number;
+        estimatedTime: string;
+        /**
+         * Nội dung bài học (hỗ trợ định dạng Markdown)
+         */
+        body: string;
+    };
+    path: {
+        /**
+         * ID của Track cần thêm bài học
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/tracks/{id}/lessons';
+};
+
+export type PostTracksByIdLessonsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PostTracksByIdLessonsError = PostTracksByIdLessonsErrors[keyof PostTracksByIdLessonsErrors];
+
+export type PostTracksByIdLessonsResponses = {
+    /**
+     * Tạo thành công.
+     */
+    201: LessonDetail;
+};
+
+export type PostTracksByIdLessonsResponse = PostTracksByIdLessonsResponses[keyof PostTracksByIdLessonsResponses];
+
+export type DeleteLessonsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID của bài học cần xóa
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/lessons/{id}';
+};
+
+export type DeleteLessonsByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteLessonsByIdError = DeleteLessonsByIdErrors[keyof DeleteLessonsByIdErrors];
+
+export type DeleteLessonsByIdResponses = {
+    /**
+     * Xóa thành công.
      */
     204: void;
 };
 
-export type DocumentsControllerUnbookmarkResponse = DocumentsControllerUnbookmarkResponses[keyof DocumentsControllerUnbookmarkResponses];
+export type DeleteLessonsByIdResponse = DeleteLessonsByIdResponses[keyof DeleteLessonsByIdResponses];
 
-export type DocumentsControllerBookmarkData = {
-    body?: never;
+export type PatchLessonsByIdData = {
+    body: {
+        title?: string;
+        body?: string;
+        estimatedTime?: string;
+    };
     path: {
+        /**
+         * ID của bài học
+         */
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}/bookmark';
+    url: '/lessons/{id}';
 };
 
-export type DocumentsControllerBookmarkResponses = {
+export type PatchLessonsByIdErrors = {
     /**
-     * Bookmark tài liệu thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    200: BookmarkResponseDto;
-};
-
-export type DocumentsControllerBookmarkResponse = DocumentsControllerBookmarkResponses[keyof DocumentsControllerBookmarkResponses];
-
-export type DocumentsControllerFindAllTagsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/tags';
-};
-
-export type DocumentsControllerFindAllTagsResponses = {
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
     /**
-     * Lấy danh sách tags thành công.
+     * Người dùng không có quyền truy cập chức năng này (sai role).
      */
-    200: unknown;
-};
-
-export type DocumentsControllerCreateTagData = {
-    body: CreateTagDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/tags';
-};
-
-export type DocumentsControllerCreateTagResponses = {
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
     /**
-     * Tạo tag thành công.
+     * Không tìm thấy bài học.
      */
-    201: unknown;
+    404: ErrorResponse;
 };
 
-export type DocumentsControllerDeleteTagData = {
+export type PatchLessonsByIdError = PatchLessonsByIdErrors[keyof PatchLessonsByIdErrors];
+
+export type PatchLessonsByIdResponses = {
+    /**
+     * Cập nhật thành công.
+     */
+    200: LessonDetail;
+};
+
+export type PatchLessonsByIdResponse = PatchLessonsByIdResponses[keyof PatchLessonsByIdResponses];
+
+export type PostLessonsByIdCompleteData = {
     body?: never;
     path: {
+        /**
+         * ID của bài học cần hoàn thành
+         */
         id: string;
     };
     query?: never;
-    url: '/api/v1/tags/{id}';
+    url: '/lessons/{id}/complete';
 };
 
-export type DocumentsControllerDeleteTagResponses = {
+export type PostLessonsByIdCompleteErrors = {
     /**
-     * Xóa tag thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy bài học.
+     */
+    404: ErrorResponse;
+};
+
+export type PostLessonsByIdCompleteError = PostLessonsByIdCompleteErrors[keyof PostLessonsByIdCompleteErrors];
+
+export type PostLessonsByIdCompleteResponses = {
+    /**
+     * Đánh dấu thành công.
+     */
+    200: {
+        lessonId?: string;
+        trackId?: string;
+        /**
+         * Số lượng bài học đã xong trong track này
+         */
+        lessonsCompleted?: number;
+        trackStatus?: 'completed' | 'in_progress' | 'locked';
+        /**
+         * XP nhận được từ bài học này
+         */
+        xpAwarded?: number;
+        /**
+         * Tổng điểm XP hiện tại của người dùng
+         */
+        totalXp?: number;
+        /**
+         * ID của Track tiếp theo vừa được mở khóa (nếu hoàn tất track hiện tại)
+         */
+        unlockedTrackId?: string | null;
+    };
+};
+
+export type PostLessonsByIdCompleteResponse = PostLessonsByIdCompleteResponses[keyof PostLessonsByIdCompleteResponses];
+
+export type GetDocumentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Từ khóa tìm kiếm trong tiêu đề
+         */
+        q?: string;
+        /**
+         * Lọc danh sách tag phân tách bằng dấu phẩy
+         */
+        tags?: string;
+        /**
+         * Lọc theo phân loại tài liệu
+         */
+        kind?: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+        /**
+         * Số bản ghi tối đa trả về
+         */
+        limit?: number;
+        /**
+         * Con trỏ phục vụ phân trang
+         */
+        cursor?: string;
+    };
+    url: '/documents';
+};
+
+export type GetDocumentsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetDocumentsError = GetDocumentsErrors[keyof GetDocumentsErrors];
+
+export type GetDocumentsResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<Document>;
+        nextCursor?: string | null;
+        hasMore?: boolean;
+    };
+};
+
+export type GetDocumentsResponse = GetDocumentsResponses[keyof GetDocumentsResponses];
+
+export type PostDocumentsData = {
+    body: {
+        title: string;
+        /**
+         * URL đường dẫn tài liệu (đối với wiki nội bộ hoặc external)
+         */
+        url: string;
+        kind: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+        tags?: Array<string>;
+    };
+    path?: never;
+    query?: never;
+    url: '/documents';
+};
+
+export type PostDocumentsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PostDocumentsError = PostDocumentsErrors[keyof PostDocumentsErrors];
+
+export type PostDocumentsResponses = {
+    /**
+     * Tạo thành công.
+     */
+    201: Document;
+};
+
+export type PostDocumentsResponse = PostDocumentsResponses[keyof PostDocumentsResponses];
+
+export type GetDocumentsRecentData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/documents/recent';
+};
+
+export type GetDocumentsRecentErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetDocumentsRecentError = GetDocumentsRecentErrors[keyof GetDocumentsRecentErrors];
+
+export type GetDocumentsRecentResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<{
+            id?: string;
+            title?: string;
+            tags?: Array<string>;
+        }>;
+    };
+};
+
+export type GetDocumentsRecentResponse = GetDocumentsRecentResponses[keyof GetDocumentsRecentResponses];
+
+export type DeleteDocumentsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID tài liệu cần xóa
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/documents/{id}';
+};
+
+export type DeleteDocumentsByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteDocumentsByIdError = DeleteDocumentsByIdErrors[keyof DeleteDocumentsByIdErrors];
+
+export type DeleteDocumentsByIdResponses = {
+    /**
+     * Xóa thành công.
      */
     204: void;
 };
 
-export type DocumentsControllerDeleteTagResponse = DocumentsControllerDeleteTagResponses[keyof DocumentsControllerDeleteTagResponses];
+export type DeleteDocumentsByIdResponse = DeleteDocumentsByIdResponses[keyof DeleteDocumentsByIdResponses];
 
-export type SearchControllerGlobalSearchData = {
+export type GetDocumentsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID của tài liệu
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/documents/{id}';
+};
+
+export type GetDocumentsByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy tài liệu.
+     */
+    404: ErrorResponse;
+};
+
+export type GetDocumentsByIdError = GetDocumentsByIdErrors[keyof GetDocumentsByIdErrors];
+
+export type GetDocumentsByIdResponses = {
+    /**
+     * Thành công.
+     */
+    200: Document;
+};
+
+export type GetDocumentsByIdResponse = GetDocumentsByIdResponses[keyof GetDocumentsByIdResponses];
+
+export type PatchDocumentsByIdData = {
+    body: {
+        title?: string;
+        url?: string;
+        kind?: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+        tags?: Array<string>;
+    };
+    path: {
+        /**
+         * ID của tài liệu
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/documents/{id}';
+};
+
+export type PatchDocumentsByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
+};
+
+export type PatchDocumentsByIdError = PatchDocumentsByIdErrors[keyof PatchDocumentsByIdErrors];
+
+export type PatchDocumentsByIdResponses = {
+    /**
+     * Cập nhật thành công.
+     */
+    200: Document;
+};
+
+export type PatchDocumentsByIdResponse = PatchDocumentsByIdResponses[keyof PatchDocumentsByIdResponses];
+
+export type DeleteDocumentsByIdBookmarkData = {
+    body?: never;
+    path: {
+        /**
+         * ID tài liệu
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/documents/{id}/bookmark';
+};
+
+export type DeleteDocumentsByIdBookmarkErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteDocumentsByIdBookmarkError = DeleteDocumentsByIdBookmarkErrors[keyof DeleteDocumentsByIdBookmarkErrors];
+
+export type DeleteDocumentsByIdBookmarkResponses = {
+    /**
+     * Bỏ bookmark thành công. Không có body trả về.
+     */
+    204: void;
+};
+
+export type DeleteDocumentsByIdBookmarkResponse = DeleteDocumentsByIdBookmarkResponses[keyof DeleteDocumentsByIdBookmarkResponses];
+
+export type PostDocumentsByIdBookmarkData = {
+    body?: never;
+    path: {
+        /**
+         * ID tài liệu
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/documents/{id}/bookmark';
+};
+
+export type PostDocumentsByIdBookmarkErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
+};
+
+export type PostDocumentsByIdBookmarkError = PostDocumentsByIdBookmarkErrors[keyof PostDocumentsByIdBookmarkErrors];
+
+export type PostDocumentsByIdBookmarkResponses = {
+    /**
+     * Đã đánh dấu bookmark thành công.
+     */
+    200: {
+        documentId?: string;
+        bookmarked?: boolean;
+    };
+};
+
+export type PostDocumentsByIdBookmarkResponse = PostDocumentsByIdBookmarkResponses[keyof PostDocumentsByIdBookmarkResponses];
+
+export type GetTagsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/tags';
+};
+
+export type GetTagsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetTagsError = GetTagsErrors[keyof GetTagsErrors];
+
+export type GetTagsResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<Tag>;
+    };
+};
+
+export type GetTagsResponse = GetTagsResponses[keyof GetTagsResponses];
+
+export type PostTagsData = {
+    body: {
+        name: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/tags';
+};
+
+export type PostTagsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Tag đã tồn tại trong hệ thống.
+     */
+    409: ErrorResponse;
+};
+
+export type PostTagsError = PostTagsErrors[keyof PostTagsErrors];
+
+export type PostTagsResponses = {
+    /**
+     * Tạo thành công.
+     */
+    201: Tag;
+};
+
+export type PostTagsResponse = PostTagsResponses[keyof PostTagsResponses];
+
+export type DeleteTagsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID của tag cần xóa
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/tags/{id}';
+};
+
+export type DeleteTagsByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy tag.
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteTagsByIdError = DeleteTagsByIdErrors[keyof DeleteTagsByIdErrors];
+
+export type DeleteTagsByIdResponses = {
+    /**
+     * Xóa thành công.
+     */
+    204: void;
+};
+
+export type DeleteTagsByIdResponse = DeleteTagsByIdResponses[keyof DeleteTagsByIdResponses];
+
+export type GetExercisesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Lọc bài tập thuộc Track cụ thể
+         */
+        trackId?: string;
+        /**
+         * Lọc theo nhãn chuyên môn (ví dụ NestJS)
+         */
+        tag?: string;
+        /**
+         * Lọc theo cấp độ khó
+         */
+        difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+        /**
+         * Lọc theo trạng thái bài nộp cá nhân
+         */
+        status?: 'pending' | 'submitted' | 'approved' | 'changes';
+    };
+    url: '/exercises';
+};
+
+export type GetExercisesErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetExercisesError = GetExercisesErrors[keyof GetExercisesErrors];
+
+export type GetExercisesResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<ExerciseSummary>;
+        nextCursor?: string | null;
+        hasMore?: boolean;
+    };
+};
+
+export type GetExercisesResponse = GetExercisesResponses[keyof GetExercisesResponses];
+
+export type PostExercisesData = {
+    body: {
+        title: string;
+        /**
+         * ID của track chứa bài tập này
+         */
+        trackId: string;
+        /**
+         * Tag phân loại chuyên môn
+         */
+        tag: string;
+        difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+        estimatedTime: string;
+        /**
+         * Điểm kinh nghiệm nhận được khi hoàn tất bài tập
+         */
+        xp: number;
+        brief: string;
+        overview: string;
+        /**
+         * Tiêu chí nghiệm thu (Acceptance Criteria)
+         */
+        objectives: Array<string>;
+        /**
+         * Các bước thực hiện gợi ý
+         */
+        steps: Array<string>;
+        /**
+         * Danh sách ID tài liệu tham khảo
+         */
+        resourceDocIds?: Array<string>;
+        hint?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/exercises';
+};
+
+export type PostExercisesErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PostExercisesError = PostExercisesErrors[keyof PostExercisesErrors];
+
+export type PostExercisesResponses = {
+    /**
+     * Tạo thành công.
+     */
+    201: {
+        id?: string;
+        title?: string;
+        trackId?: string;
+        xp?: number;
+        status?: string;
+    };
+};
+
+export type PostExercisesResponse = PostExercisesResponses[keyof PostExercisesResponses];
+
+export type DeleteExercisesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID của bài tập
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/exercises/{id}';
+};
+
+export type DeleteExercisesByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteExercisesByIdError = DeleteExercisesByIdErrors[keyof DeleteExercisesByIdErrors];
+
+export type DeleteExercisesByIdResponses = {
+    /**
+     * Xóa thành công.
+     */
+    204: void;
+};
+
+export type DeleteExercisesByIdResponse = DeleteExercisesByIdResponses[keyof DeleteExercisesByIdResponses];
+
+export type GetExercisesByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID của bài tập
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/exercises/{id}';
+};
+
+export type GetExercisesByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy bài tập.
+     */
+    404: ErrorResponse;
+};
+
+export type GetExercisesByIdError = GetExercisesByIdErrors[keyof GetExercisesByIdErrors];
+
+export type GetExercisesByIdResponses = {
+    /**
+     * Thành công.
+     */
+    200: ExerciseDetail;
+};
+
+export type GetExercisesByIdResponse = GetExercisesByIdResponses[keyof GetExercisesByIdResponses];
+
+export type PatchExercisesByIdData = {
+    body: {
+        xp?: number;
+        difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
+    };
+    path: {
+        /**
+         * ID của bài tập
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/exercises/{id}';
+};
+
+export type PatchExercisesByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy bài tập.
+     */
+    404: ErrorResponse;
+};
+
+export type PatchExercisesByIdError = PatchExercisesByIdErrors[keyof PatchExercisesByIdErrors];
+
+export type PatchExercisesByIdResponses = {
+    /**
+     * Cập nhật thành công.
+     */
+    200: {
+        id?: string;
+        xp?: number;
+        difficulty?: string;
+    };
+};
+
+export type PatchExercisesByIdResponse = PatchExercisesByIdResponses[keyof PatchExercisesByIdResponses];
+
+export type PostExercisesByIdSubmissionsData = {
+    body: {
+        /**
+         * URL của Pull Request GitHub chứa bài giải
+         */
+        prUrl: string;
+    };
+    path: {
+        /**
+         * ID của bài tập
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/exercises/{id}/submissions';
+};
+
+export type PostExercisesByIdSubmissionsErrors = {
+    /**
+     * Dữ liệu đầu vào không hợp lệ (lỗi validate DTO).
+     */
+    400: {
+        statusCode?: number;
+        message?: Array<string>;
+        error?: string;
+    };
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy bài tập.
+     */
+    404: ErrorResponse;
+};
+
+export type PostExercisesByIdSubmissionsError = PostExercisesByIdSubmissionsErrors[keyof PostExercisesByIdSubmissionsErrors];
+
+export type PostExercisesByIdSubmissionsResponses = {
+    /**
+     * Nộp bài thành công.
+     */
+    201: Submission;
+};
+
+export type PostExercisesByIdSubmissionsResponse = PostExercisesByIdSubmissionsResponses[keyof PostExercisesByIdSubmissionsResponses];
+
+export type PutExercisesByIdSubmissionsData = {
+    body: {
+        prUrl: string;
+    };
+    path: {
+        /**
+         * ID bài tập
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/exercises/{id}/submissions';
+};
+
+export type PutExercisesByIdSubmissionsErrors = {
+    /**
+     * Dữ liệu đầu vào không hợp lệ (lỗi validate DTO).
+     */
+    400: {
+        statusCode?: number;
+        message?: Array<string>;
+        error?: string;
+    };
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PutExercisesByIdSubmissionsError = PutExercisesByIdSubmissionsErrors[keyof PutExercisesByIdSubmissionsErrors];
+
+export type PutExercisesByIdSubmissionsResponses = {
+    /**
+     * Cập nhật bài nộp thành công.
+     */
+    200: Submission;
+};
+
+export type PutExercisesByIdSubmissionsResponse = PutExercisesByIdSubmissionsResponses[keyof PutExercisesByIdSubmissionsResponses];
+
+export type GetSubmissionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Lọc theo trạng thái bài nộp
+         */
+        status?: 'submitted' | 'approved' | 'changes';
+        /**
+         * Lọc bài nộp của học viên trong cohort cụ thể
+         */
+        cohortId?: string;
+        /**
+         * Giới hạn bản ghi trả về
+         */
+        limit?: number;
+        /**
+         * Cursor phân trang danh sách
+         */
+        cursor?: string;
+    };
+    url: '/submissions';
+};
+
+export type GetSubmissionsErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetSubmissionsError = GetSubmissionsErrors[keyof GetSubmissionsErrors];
+
+export type GetSubmissionsResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<SubmissionFeedItem>;
+        nextCursor?: string | null;
+        hasMore?: boolean;
+    };
+};
+
+export type GetSubmissionsResponse = GetSubmissionsResponses[keyof GetSubmissionsResponses];
+
+export type GetSubmissionsMineData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/submissions/mine';
+};
+
+export type GetSubmissionsMineErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetSubmissionsMineError = GetSubmissionsMineErrors[keyof GetSubmissionsMineErrors];
+
+export type GetSubmissionsMineResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<{
+            id?: string;
+            exerciseId?: string;
+            exercise?: string;
+            prUrl?: string;
+            status?: 'submitted' | 'approved' | 'changes';
+            submittedAt?: string;
+        }>;
+    };
+};
+
+export type GetSubmissionsMineResponse = GetSubmissionsMineResponses[keyof GetSubmissionsMineResponses];
+
+export type GetSubmissionsByIdData = {
+    body?: never;
+    path: {
+        /**
+         * ID của bài nộp (Submission ID)
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/submissions/{id}';
+};
+
+export type GetSubmissionsByIdErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy bài nộp.
+     */
+    404: ErrorResponse;
+};
+
+export type GetSubmissionsByIdError = GetSubmissionsByIdErrors[keyof GetSubmissionsByIdErrors];
+
+export type GetSubmissionsByIdResponses = {
+    /**
+     * Thành công.
+     */
+    200: SubmissionDetail;
+};
+
+export type GetSubmissionsByIdResponse = GetSubmissionsByIdResponses[keyof GetSubmissionsByIdResponses];
+
+export type PostSubmissionsByIdApproveData = {
+    body?: {
+        /**
+         * Nhận xét phê duyệt từ Admin
+         */
+        note?: string;
+    };
+    path: {
+        /**
+         * ID của bài nộp
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/submissions/{id}/approve';
+};
+
+export type PostSubmissionsByIdApproveErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy.
+     */
+    404: ErrorResponse;
+};
+
+export type PostSubmissionsByIdApproveError = PostSubmissionsByIdApproveErrors[keyof PostSubmissionsByIdApproveErrors];
+
+export type PostSubmissionsByIdApproveResponses = {
+    /**
+     * Phê duyệt thành công.
+     */
+    200: {
+        id?: string;
+        status?: string;
+        exerciseId?: string;
+        exerciseStatus?: string;
+        reviewerId?: string;
+        reviewedAt?: string;
+        xpAwarded?: number;
+        learnerTotalXp?: number;
+    };
+};
+
+export type PostSubmissionsByIdApproveResponse = PostSubmissionsByIdApproveResponses[keyof PostSubmissionsByIdApproveResponses];
+
+export type PostSubmissionsByIdRequestChangesData = {
+    body: {
+        /**
+         * Nội dung chi tiết các yêu cầu học viên cần chỉnh sửa
+         */
+        note: string;
+    };
+    path: {
+        /**
+         * ID bài nộp
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/submissions/{id}/request-changes';
+};
+
+export type PostSubmissionsByIdRequestChangesErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Người dùng không có quyền truy cập chức năng này (sai role).
+     */
+    403: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type PostSubmissionsByIdRequestChangesError = PostSubmissionsByIdRequestChangesErrors[keyof PostSubmissionsByIdRequestChangesErrors];
+
+export type PostSubmissionsByIdRequestChangesResponses = {
+    /**
+     * Yêu cầu sửa đổi thành công.
+     */
+    200: {
+        id?: string;
+        status?: string;
+        exerciseId?: string;
+        exerciseStatus?: string;
+        reviewerId?: string;
+        reviewNote?: string;
+        reviewedAt?: string;
+    };
+};
+
+export type PostSubmissionsByIdRequestChangesResponse = PostSubmissionsByIdRequestChangesResponses[keyof PostSubmissionsByIdRequestChangesResponses];
+
+export type GetSubmissionsByIdHistoryData = {
+    body?: never;
+    path: {
+        /**
+         * ID của bài nộp chính
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/submissions/{id}/history';
+};
+
+export type GetSubmissionsByIdHistoryErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+    /**
+     * Không tìm thấy lịch sử.
+     */
+    404: ErrorResponse;
+};
+
+export type GetSubmissionsByIdHistoryError = GetSubmissionsByIdHistoryErrors[keyof GetSubmissionsByIdHistoryErrors];
+
+export type GetSubmissionsByIdHistoryResponses = {
+    /**
+     * Thành công.
+     */
+    200: SubmissionHistoryResponse;
+};
+
+export type GetSubmissionsByIdHistoryResponse = GetSubmissionsByIdHistoryResponses[keyof GetSubmissionsByIdHistoryResponses];
+
+export type GetSearchData = {
     body?: never;
     path?: never;
     query: {
         /**
-         * Từ khóa tìm kiếm toàn cục
+         * Từ khóa tìm kiếm
          */
         q: string;
     };
-    url: '/api/v1/search';
+    url: '/search';
 };
 
-export type SearchControllerGlobalSearchResponses = {
+export type GetSearchErrors = {
     /**
-     * Tìm kiếm thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    200: SearchResponseDto;
-};
-
-export type SearchControllerGlobalSearchResponse = SearchControllerGlobalSearchResponses[keyof SearchControllerGlobalSearchResponses];
-
-export type LeaderboardControllerGetLeaderboardData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Lọc bảng xếp hạng theo khóa học (cohort) cụ thể.
-         */
-        cohortId?: string;
-        /**
-         * Phạm vi bảng xếp hạng (cohort hoặc global). Nếu chọn cohort mà không truyền cohortId, hệ thống tự động lấy cohort của học viên hiện tại.
-         */
-        scope?: 'cohort' | 'global';
-        /**
-         * Số lượng học viên hiển thị tối đa trên bảng xếp hạng (1 - 100).
-         */
-        limit?: number;
-        /**
-         * Con trỏ base64 dùng để phân trang dựa trên (level, xp, streakDays, createdAt, id).
-         */
-        cursor?: string;
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
     };
-    url: '/api/v1/leaderboard';
 };
 
-export type LeaderboardControllerGetLeaderboardResponses = {
+export type GetSearchError = GetSearchErrors[keyof GetSearchErrors];
+
+export type GetSearchResponses = {
     /**
-     * Lấy bảng xếp hạng thành công.
+     * Thành công.
      */
-    200: LeaderboardResponseDto;
-};
-
-export type LeaderboardControllerGetLeaderboardResponse = LeaderboardControllerGetLeaderboardResponses[keyof LeaderboardControllerGetLeaderboardResponses];
-
-export type SubmissionsControllerFindExercisesData = {
-    body?: never;
-    path: {
-        id: string;
+    200: {
+        tracks?: Array<{
+            id?: string;
+            title?: string;
+        }>;
+        documents?: Array<{
+            id?: string;
+            title?: string;
+            kind?: string;
+        }>;
+        exercises?: Array<{
+            id?: string;
+            title?: string;
+            tag?: string;
+        }>;
     };
-    query?: never;
-    url: '/api/v1/tracks/{id}/exercises';
 };
 
-export type SubmissionsControllerFindExercisesResponses = {
-    /**
-     * Lấy bài tập thành công.
-     */
-    200: unknown;
-};
+export type GetSearchResponse = GetSearchResponses[keyof GetSearchResponses];
 
-export type SubmissionsControllerSubmitData = {
-    body: CreateSubmissionDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/exercises/{id}/submissions';
-};
-
-export type SubmissionsControllerSubmitResponses = {
-    /**
-     * Nộp bài tập thành công.
-     */
-    201: SubmissionDetailDto;
-};
-
-export type SubmissionsControllerSubmitResponse = SubmissionsControllerSubmitResponses[keyof SubmissionsControllerSubmitResponses];
-
-export type SubmissionsControllerResubmitData = {
-    body: CreateSubmissionDto;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/exercises/{id}/submissions';
-};
-
-export type SubmissionsControllerResubmitResponses = {
-    /**
-     * Nộp lại bài tập thành công.
-     */
-    200: SubmissionDetailDto;
-};
-
-export type SubmissionsControllerResubmitResponse = SubmissionsControllerResubmitResponses[keyof SubmissionsControllerResubmitResponses];
-
-export type SubmissionsControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: {
-        /**
-         * Lọc danh sách bài nộp theo trạng thái.
-         */
-        status?: 'pending' | 'submitted' | 'changes' | 'approved' | 'rejected';
-        /**
-         * Lọc theo ID của khóa/lớp học (Cohort).
-         */
-        cohortId?: string;
-        /**
-         * Lọc theo ID của học viên.
-         */
-        userId?: string;
-        /**
-         * Lọc theo ID của bài tập thực hành.
-         */
-        exerciseId?: string;
-        /**
-         * Số lượng bài nộp trên mỗi trang.
-         */
-        limit?: number;
-        /**
-         * Con trỏ (cursor) phục vụ phân trang
-         */
-        cursor?: string;
-    };
-    url: '/api/v1/submissions';
-};
-
-export type SubmissionsControllerFindAllResponses = {
-    /**
-     * Lấy hàng chờ thành công.
-     */
-    200: SubmissionListResponseDto;
-};
-
-export type SubmissionsControllerFindAllResponse = SubmissionsControllerFindAllResponses[keyof SubmissionsControllerFindAllResponses];
-
-export type SubmissionsControllerFindMineData = {
+export type GetNotificationsData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/submissions/mine';
+    url: '/notifications';
 };
 
-export type SubmissionsControllerFindMineResponses = {
+export type GetNotificationsErrors = {
     /**
-     * Lấy danh sách bài nộp thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    200: SubmissionListResponseDto;
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
 };
 
-export type SubmissionsControllerFindMineResponse = SubmissionsControllerFindMineResponses[keyof SubmissionsControllerFindMineResponses];
+export type GetNotificationsError = GetNotificationsErrors[keyof GetNotificationsErrors];
 
-export type SubmissionsControllerFindOneData = {
+export type GetNotificationsResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<Notification>;
+        /**
+         * Số lượng thông báo chưa đọc
+         */
+        unreadCount?: number;
+    };
+};
+
+export type GetNotificationsResponse = GetNotificationsResponses[keyof GetNotificationsResponses];
+
+export type PostNotificationsByIdReadData = {
     body?: never;
     path: {
+        /**
+         * ID của thông báo cần đọc
+         */
         id: string;
     };
     query?: never;
-    url: '/api/v1/submissions/{id}';
+    url: '/notifications/{id}/read';
 };
 
-export type SubmissionsControllerFindOneResponses = {
+export type PostNotificationsByIdReadErrors = {
     /**
-     * Lấy chi tiết bài nộp thành công.
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
      */
-    200: SubmissionDetailDto;
-};
-
-export type SubmissionsControllerFindOneResponse = SubmissionsControllerFindOneResponses[keyof SubmissionsControllerFindOneResponses];
-
-export type SubmissionsControllerReviewData = {
-    body: ReviewSubmissionDto;
-    path: {
-        id: string;
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
     };
-    query?: never;
-    url: '/api/v1/submissions/{id}/review';
-};
-
-export type SubmissionsControllerReviewResponses = {
-    /**
-     * Đánh giá bài nộp thành công.
-     */
-    200: SubmissionDetailDto;
-};
-
-export type SubmissionsControllerReviewResponse = SubmissionsControllerReviewResponses[keyof SubmissionsControllerReviewResponses];
-
-export type SubmissionsControllerApproveData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/submissions/{id}/approve';
-};
-
-export type SubmissionsControllerApproveResponses = {
-    /**
-     * Phê duyệt bài nộp thành công.
-     */
-    200: SubmissionDetailDto;
-};
-
-export type SubmissionsControllerApproveResponse = SubmissionsControllerApproveResponses[keyof SubmissionsControllerApproveResponses];
-
-export type SubmissionsControllerRequestChangesData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/submissions/{id}/request-changes';
-};
-
-export type SubmissionsControllerRequestChangesResponses = {
-    /**
-     * Yêu cầu sửa đổi thành công.
-     */
-    200: SubmissionDetailDto;
-};
-
-export type SubmissionsControllerRequestChangesResponse = SubmissionsControllerRequestChangesResponses[keyof SubmissionsControllerRequestChangesResponses];
-
-export type SubmissionsControllerFindHistoryData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/submissions/{id}/history';
-};
-
-export type SubmissionsControllerFindHistoryResponses = {
-    /**
-     * Lấy lịch sử thành công.
-     */
-    200: SubmissionHistoryResponseDto;
-};
-
-export type SubmissionsControllerFindHistoryResponse = SubmissionsControllerFindHistoryResponses[keyof SubmissionsControllerFindHistoryResponses];
-
-export type NotificationsControllerFindAllData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/notifications';
-};
-
-export type NotificationsControllerFindAllResponses = {
-    /**
-     * Lấy danh sách thành công.
-     */
-    200: unknown;
-};
-
-export type NotificationsControllerMarkReadData = {
-    body?: never;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/v1/notifications/{id}/read';
-};
-
-export type NotificationsControllerMarkReadErrors = {
-    /**
-     * Không có quyền truy cập.
-     */
-    403: unknown;
     /**
      * Không tìm thấy thông báo.
      */
-    404: unknown;
+    404: ErrorResponse;
 };
 
-export type NotificationsControllerMarkReadResponses = {
+export type PostNotificationsByIdReadError = PostNotificationsByIdReadErrors[keyof PostNotificationsByIdReadErrors];
+
+export type PostNotificationsByIdReadResponses = {
     /**
-     * Đánh dấu thành công.
+     * Cập nhật thành công.
      */
-    200: unknown;
+    200: {
+        id?: string;
+        read?: boolean;
+    };
 };
+
+export type PostNotificationsByIdReadResponse = PostNotificationsByIdReadResponses[keyof PostNotificationsByIdReadResponses];
+
+export type GetLeaderboardData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Lọc bảng xếp hạng theo khóa học cụ thể. Nếu bỏ trống và scope là cohort, hệ thống tự động lấy cohort của học viên hiện tại.
+         */
+        cohortId?: string;
+        /**
+         * Phạm vi bảng xếp hạng (cohort hoặc global). Nếu chọn cohort và không truyền cohortId, hệ thống tự động lấy cohort của học viên hiện tại.
+         */
+        scope?: 'cohort' | 'global';
+        /**
+         * Số lượng học viên hiển thị tối đa trên bảng xếp hạng
+         */
+        limit?: number;
+        /**
+         * Con trỏ base64 dùng để phân trang dựa trên (level, xp, streakDays, createdAt, id)
+         */
+        cursor?: string;
+    };
+    url: '/leaderboard';
+};
+
+export type GetLeaderboardErrors = {
+    /**
+     * Chưa đăng nhập hoặc Token hết hạn/không hợp lệ.
+     */
+    401: {
+        statusCode?: number;
+        message?: string;
+        error?: string;
+    };
+};
+
+export type GetLeaderboardError = GetLeaderboardErrors[keyof GetLeaderboardErrors];
+
+export type GetLeaderboardResponses = {
+    /**
+     * Thành công.
+     */
+    200: {
+        data?: Array<LeaderboardEntry>;
+        nextCursor?: string | null;
+        hasMore?: boolean;
+    };
+};
+
+export type GetLeaderboardResponse = GetLeaderboardResponses[keyof GetLeaderboardResponses];

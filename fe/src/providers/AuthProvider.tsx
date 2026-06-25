@@ -22,7 +22,7 @@ interface AuthContextValue {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => void;
+  loginWithGoogle: (callbackUrl?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -157,8 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const loginWithGoogle = useCallback(() => {
-    nextAuthSignIn('google', { callbackUrl: '/login' });
+  const loginWithGoogle = useCallback(async (callbackUrl = '/dashboard') => {
+    await nextAuthSignIn('google', { callbackUrl });
   }, []);
 
   const logout = useCallback(async () => {

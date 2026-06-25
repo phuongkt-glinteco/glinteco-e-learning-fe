@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@/providers/AuthProvider';
 import AppLogo from './AppLogo';
 import NavMenu from './NavMenu';
 import { useAuth } from '@/providers/AuthProvider';
@@ -13,7 +14,7 @@ export interface NavItem {
 
 const learnerMainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
-  { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/courses' },
+  { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/tracks' },
   { label: 'My Courses', translationKey: 'myCourses', icon: 'local_library', href: '/my-courses' },
   { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
 ];
@@ -50,6 +51,7 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 flex flex-col gap-xs px-md">
+        <NavMenu items={navItems} variant="desktop" />
         <NavMenu items={navItems} variant="desktop" />
       </div>
 

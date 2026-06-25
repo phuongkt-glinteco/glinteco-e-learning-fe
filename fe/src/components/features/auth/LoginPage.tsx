@@ -12,6 +12,24 @@ import { useAuth } from '@/providers/AuthProvider';
 import Link from 'next/dist/client/link';
 import { UiShowError } from '@/services/errors';
 
+function getDashboardPath(role?: string) {
+  return role === 'admin' ? '/dashboard/admin' : '/dashboard/learner';
+}
+
+function getSafeCallbackUrl(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/login')) {
+    return '/dashboard';
+  }
+
+  return value;
+}
+
+function getOAuthErrorKey(value: string | null) {
+  if (!value) return null;
+  if (value === 'Configuration') return 'GOOGLE_AUTH_CONFIGURATION';
+  return 'GOOGLE_AUTH_FAILED';
+}
+
 export default function LoginPage() {
   const t = useTranslations('LoginPage');
   const router = useRouter();
@@ -19,6 +37,8 @@ export default function LoginPage() {
   const { user, loading: authLoading, login, loginWithGoogle } = useAuth();
 
   const isFromRegistration = searchParams.get('registered') === 'true';
+  const callbackUrl = getSafeCallbackUrl(searchParams.get('callbackUrl'));
+  const oauthError = getOAuthErrorKey(searchParams.get('error'));
 
   const { register, handleSubmit, formState: { errors } } = useForm<AuthLoginInput>({
     resolver: zodResolver(authLoginRequestSchema),
@@ -35,7 +55,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace('/dashboard/learner');
+      router.replace(getDashboardPath(user.role));
     }
   }, [user, authLoading, router]);
 
@@ -54,12 +74,15 @@ export default function LoginPage() {
   const onGoogleSignIn = async () => {
     setLoading(true);
     try {
-      await loginWithGoogle();
+      await loginWithGoogle(callbackUrl);
     } catch {
+      setErrorMsg('GOOGLE_AUTH_FAILED');
     } finally {
       setLoading(false);
     }
   };
+
+  const visibleError = error ?? oauthError;
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
@@ -114,10 +137,10 @@ export default function LoginPage() {
               </div>
             )}
 
-            {error && (
+            {visibleError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">error</span>
-                <span>{t(error)}</span>
+                <span>{t(visibleError)}</span>
               </div>
             )}
 

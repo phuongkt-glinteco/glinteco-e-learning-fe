@@ -28,7 +28,9 @@
     "alertGoogleSuccess": "Google login successful!",
     "alertEmailSuccess": "Successfully signed in with: {email}",
     "registrationSuccessMessage": "Account created successfully! Please sign in.",
-    "LOGIN_INVALID_CREDENTIALS": "Incorrect email or password."
+    "LOGIN_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "GOOGLE_AUTH_CONFIGURATION": "Google OAuth is not configured correctly. Add a valid AUTH_GOOGLE_SECRET to fe/.env.local.",
+    "GOOGLE_AUTH_FAILED": "Google sign-in did not complete. Please try again."
   },
 
   "LandingPage": {

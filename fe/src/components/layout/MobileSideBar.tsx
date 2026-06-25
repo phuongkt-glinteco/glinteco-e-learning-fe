@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useAuth } from '@/providers/AuthProvider';
 import UserProfileAvatar from './UserProfileAvatar';
 import NavMenu from './NavMenu';
 import { getMainNav, footerNav } from './Sidebar';
@@ -51,7 +50,7 @@ export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
           {/* Menu Items */}
           <div className="flex flex-col gap-2">
             
-            <NavMenu items={mainNav} variant="mobile" onItemClick={onClose} />
+            <NavMenu items={navItems} variant="mobile" onItemClick={onClose} />
 
             <div className="my-2 border-t border-outline-variant"></div>
 

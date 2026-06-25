@@ -1,6 +1,5 @@
 'use client';
 
-import Skeleton from '@/components/ui/loading/Skeleton';
 import WelcomeSection from './WelcomeSection';
 import StatsGrid from './StatsGrid';
 import ContinueLearningSection from './ContinueLearningSection';

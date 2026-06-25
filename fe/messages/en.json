@@ -574,6 +574,9 @@
     "redirectCountdown": "Redirecting to sign in in {seconds} seconds...",
     "REGISTER_EMAIL_EXISTS": "This email address is already registered. Please sign in or use a different email."
   },
+  "fall back": {
+    "retry": "Retry"
+  },
   "ErrorPage": {
     "title": "Something went wrong",
     "defaultMessage": "An unexpected error occurred. Please try again.",

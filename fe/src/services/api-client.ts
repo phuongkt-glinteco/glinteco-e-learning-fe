@@ -17,6 +17,8 @@ if (typeof window !== 'undefined') {
 
 const TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
+const TOKEN_COOKIE = 'access_token';
+const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -32,16 +34,44 @@ export function setClientToken(token: string | null) {
   client.setConfig({ auth: token ?? undefined });
 }
 
+export function setTokenCookie(token: string) {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${TOKEN_COOKIE}=${token};path=/;max-age=86400;samesite=lax`;
+  }
+}
+
+export function clearTokenCookie() {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${TOKEN_COOKIE}=;path=/;max-age=0`;
+  }
+}
+
+export function setRefreshTokenCookie(token: string) {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${REFRESH_TOKEN_COOKIE}=${token};path=/;max-age=2592000;samesite=lax`;
+  }
+}
+
+export function clearRefreshTokenCookie() {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${REFRESH_TOKEN_COOKIE}=;path=/;max-age=0`;
+  }
+}
+
 export function saveTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem(TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   setClientToken(accessToken);
+  setTokenCookie(accessToken);
+  setRefreshTokenCookie(refreshToken);
 }
 
 export function clearTokens() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   setClientToken(null);
+  clearTokenCookie();
+  clearRefreshTokenCookie();
 }
 
 let refreshPromise: Promise<boolean> | null = null;

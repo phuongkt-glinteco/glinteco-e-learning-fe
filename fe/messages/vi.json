@@ -573,6 +573,9 @@
     "EXERCISE_TITLE_EXISTS": "Bài tập với tiêu đề này đã tồn tại trong lộ trình.",
     "UNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
   },
+  "fall back": {
+    "retry": "Thử lại"
+  },
   "ErrorPage": {
     "title": "Đã xảy ra lỗi",
     "defaultMessage": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",

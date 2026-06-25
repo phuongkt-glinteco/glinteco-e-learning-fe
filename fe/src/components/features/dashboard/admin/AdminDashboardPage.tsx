@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import {
   cohortControllerFindAll,
   cohortControllerGetOverview,
@@ -15,6 +16,7 @@ import type {
 } from '@/services/api-client';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
+import { FallbackUiSimple } from '@/components/ui/fallback';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import StatsCard from './StatsCard';
 import SubmissionFeed from './SubmissionFeed';
@@ -36,19 +38,47 @@ function mapStatus(apiStatus: string): 'pending_review' | 'changes_requested' | 
   }
 }
 
-export default function AdminDashboardPage() {
+interface AdminDashboardPageProps {
+  cohorts?: { id: string; name: string }[];
+  selectedCohortId?: string | null;
+  initialStats?: CohortDashboardStatsDto | null;
+  initialSubmissions?: SubmissionFeedItemDto[];
+  initialTrackCompletion?: { label: string; value: number }[];
+}
+
+export default function AdminDashboardPage({
+  cohorts: serverCohorts,
+  selectedCohortId: serverCohortId,
+  initialStats: serverStats,
+  initialSubmissions: serverSubmissions = [],
+  initialTrackCompletion: serverTrackCompletion = [],
+}: AdminDashboardPageProps) {
+  const isServerRendered = !!serverCohorts;
   const t = useTranslations('AdminDashboardPage');
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const cohortIdFromUrl = searchParams.get('cohortId');
 
-  const [cohortList, setCohortList] = useState<{ id: string; name: string }[]>([]);
-  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
-
-  const [stats, setStats] = useState<CohortDashboardStatsDto | null>(null);
-  const [submissions, setSubmissions] = useState<SubmissionFeedItemDto[]>([]);
-  const [trackCompletion, setTrackCompletion] = useState<{ label: string; value: number }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  // Client-mode state (only used when isServerRendered === false)
+  const [clientCohortList, setClientCohortList] = useState<{ id: string; name: string }[]>([]);
+  const [clientSelectedCohortId, setClientSelectedCohortId] = useState<string | null>(cohortIdFromUrl);
+  const [clientStats, setClientStats] = useState<CohortDashboardStatsDto | null>(null);
+  const [clientSubmissions, setClientSubmissions] = useState<SubmissionFeedItemDto[]>([]);
+  const [clientTrackCompletion, setClientTrackCompletion] = useState<{ label: string; value: number }[]>([]);
+  const [clientLoading, setClientLoading] = useState(true);
+  const [clientError, setClientError] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Derived values — use server props in server mode, client state otherwise
+  const cohortList = isServerRendered ? serverCohorts! : clientCohortList;
+  const selectedCohortId = isServerRendered ? (serverCohortId ?? null) : clientSelectedCohortId;
+  const stats = isServerRendered ? (serverStats ?? null) : clientStats;
+  const submissions = isServerRendered ? serverSubmissions : clientSubmissions;
+  const trackCompletion = isServerRendered ? serverTrackCompletion : clientTrackCompletion;
+  const loading = isServerRendered ? false : clientLoading;
+  const error = isServerRendered ? false : clientError;
 
   function timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime();
@@ -64,8 +94,17 @@ export default function AdminDashboardPage() {
     setMounted(true);
   }, []);
 
-  // Fetch cohorts list once
+  // Client-mode: sync URL back to state (browser back/forward)
   useEffect(() => {
+    if (isServerRendered) return;
+    if (cohortIdFromUrl && cohortIdFromUrl !== clientSelectedCohortId) {
+      setClientSelectedCohortId(cohortIdFromUrl);
+    }
+  }, [isServerRendered, cohortIdFromUrl]);
+
+  // Client-mode: fetch cohorts list then determine default
+  useEffect(() => {
+    if (isServerRendered) return;
     if (!mounted || authLoading) return;
     let cancelled = false;
 
@@ -76,27 +115,34 @@ export default function AdminDashboardPage() {
           id: c.id ?? '',
           name: c.name ?? '',
         }));
-        setCohortList(list);
+        setClientCohortList(list);
 
-        // Default selection: user's cohort, or first cohort
-        const defaultId = (user as UserProfileDto)?.cohortId && list.some((c) => c.id === (user as UserProfileDto).cohortId)
-          ? (user as UserProfileDto).cohortId ?? null
-          : list[0]?.id ?? null;
-        setSelectedCohortId(defaultId);
+        if (!cohortIdFromUrl) {
+          const defaultId = (user as UserProfileDto)?.cohortId && list.some((c) => c.id === (user as UserProfileDto).cohortId)
+            ? (user as UserProfileDto).cohortId ?? null
+            : list[0]?.id ?? null;
+          if (defaultId) {
+            setClientSelectedCohortId(defaultId);
+            const params = new URLSearchParams(searchParams.toString());
+            params.set('cohortId', defaultId);
+            router.replace(pathname + '?' + params.toString());
+          }
+        }
       })
       .catch(() => {
-        if (!cancelled) setError(true);
+        if (!cancelled) setClientError(true);
       });
 
     return () => { cancelled = true; };
-  }, [mounted, authLoading, (user as UserProfileDto)?.cohortId]);
+  }, [isServerRendered, mounted, authLoading, cohortIdFromUrl, (user as UserProfileDto)?.cohortId]);
 
-  // Fetch dashboard data when selected cohort changes
+  // Client-mode: fetch dashboard data when cohort changes
   useEffect(() => {
-    const cid = selectedCohortId;
+    if (isServerRendered) return;
+    const cid = clientSelectedCohortId;
     if (!cid) return;
-    setLoading(true);
-    setError(false);
+    setClientLoading(true);
+    setClientError(false);
     let cancelled = false;
 
     async function fetchData() {
@@ -107,39 +153,41 @@ export default function AdminDashboardPage() {
           cohortControllerGetTrackCompletion({ path: { id: cid! }, throwOnError: true }),
         ]);
         if (cancelled) return;
-        setStats(overviewRes.data as CohortDashboardStatsDto);
-        setSubmissions(submissionsRes.data?.data ?? []);
-        setTrackCompletion(
+        setClientStats(overviewRes.data as CohortDashboardStatsDto);
+        setClientSubmissions(submissionsRes.data?.data ?? []);
+        setClientTrackCompletion(
           (trackRes.data?.data ?? []).map((t) => ({
             label: t.title ?? '',
             value: t.completionPct ?? 0,
           }))
         );
       } catch {
-        if (!cancelled) setError(true);
+        if (!cancelled) setClientError(true);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setClientLoading(false);
       }
     }
     fetchData();
 
     return () => { cancelled = true; };
-  }, [selectedCohortId]);
+  }, [isServerRendered, clientSelectedCohortId]);
+
+  // Update URL when user changes cohort (Rule 2)
+  const handleCohortChange = useCallback((id: string) => {
+    if (!isServerRendered) {
+      setClientSelectedCohortId(id);
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('cohortId', id);
+    router.push(pathname + '?' + params.toString());
+  }, [isServerRendered, router, pathname, searchParams]);
 
   if (authLoading || !mounted) return null;
   if (error && !cohortList.length) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-gray-500">{t('loadError')}</p>
-      </div>
-    );
+    return <FallbackUiSimple mainContentLabel={t('loadError')} />;
   }
   if (!selectedCohortId) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-gray-500">{t('noCohort')}</p>
-      </div>
-    );
+    return <FallbackUiSimple mainContentLabel={t('noCohort')} />;
   }
 
   const statCards = [
@@ -226,7 +274,7 @@ export default function AdminDashboardPage() {
             <CohortSelector
               cohorts={cohortList}
               selectedId={selectedCohortId}
-              onChange={setSelectedCohortId}
+              onChange={handleCohortChange}
             />
           </div>
         </div>

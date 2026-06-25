@@ -13,6 +13,7 @@ import {
   saveTokens,
   clearTokens,
   attemptTokenRefresh,
+  setTokenCookie,
   type UserProfileDto,
 } from '@/services/api-client';
 
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             saveTokens(sessionToken, sessionRefreshToken);
           } else {
             localStorage.setItem('accessToken', sessionToken);
+            setTokenCookie(sessionToken);
           }
           setAuthCookie(profile.role ?? 'learner');
           setToken(sessionToken);
@@ -142,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           saveTokens(accessToken, refreshToken);
         } else {
           localStorage.setItem('accessToken', accessToken);
+          setTokenCookie(accessToken);
         }
         setAuthCookie(profile?.role ?? 'learner');
         setToken(accessToken);

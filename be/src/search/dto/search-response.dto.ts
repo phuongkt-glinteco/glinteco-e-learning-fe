@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { DocumentKind } from '../../database/entities/document.entity';
 
 export class SearchTrackResultDto {
   @ApiProperty({ example: 't3', description: 'ID của Track' })
@@ -22,11 +23,11 @@ export class SearchDocumentResultDto {
   title: string;
 
   @ApiProperty({
-    example: 'Guide',
+    example: DocumentKind.GUIDE,
     description: 'Loại tài liệu',
-    enum: ['Guide', 'Reference', 'Runbook', 'Tutorial', 'Link'],
+    enum: DocumentKind,
   })
-  kind: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+  kind: DocumentKind;
 }
 
 export class SearchExerciseResultDto {

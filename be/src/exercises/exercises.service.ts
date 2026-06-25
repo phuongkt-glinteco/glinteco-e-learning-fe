@@ -35,6 +35,7 @@ export class ExercisesService {
     const exercise = this.exerciseRepository.create({
       title: dto.title,
       trackId: dto.trackId,
+      lessonId: dto.lessonId || null,
       tag: dto.tag,
       difficulty: dto.difficulty,
       estimatedTime: dto.estimatedTime,
@@ -60,6 +61,7 @@ export class ExercisesService {
     if (query.trackId) where.trackId = query.trackId;
     if (query.tag) where.tag = query.tag;
     if (query.difficulty) where.difficulty = query.difficulty;
+    if (query.lessonId) where.lessonId = query.lessonId;
 
     const exercises = await this.exerciseRepository.find({
       where,
@@ -94,6 +96,7 @@ export class ExercisesService {
         objectiveCount,
         status: sub ? sub.status : 'pending',
         prUrl: sub ? sub.prUrl : null,
+        lessonId: e.lessonId,
       };
     });
 
@@ -135,6 +138,7 @@ export class ExercisesService {
       hint: exercise.hint,
       status: submission ? submission.status : 'pending',
       prUrl: submission ? submission.prUrl : null,
+      lessonId: exercise.lessonId,
     };
   }
 
@@ -161,6 +165,7 @@ export class ExercisesService {
     Object.assign(exercise, {
       title: dto.title !== undefined ? dto.title : exercise.title,
       trackId: dto.trackId !== undefined ? dto.trackId : exercise.trackId,
+      lessonId: dto.lessonId !== undefined ? dto.lessonId : exercise.lessonId,
       tag: dto.tag !== undefined ? dto.tag : exercise.tag,
       difficulty:
         dto.difficulty !== undefined ? dto.difficulty : exercise.difficulty,

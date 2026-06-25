@@ -10,6 +10,14 @@ import {
 import { Tag } from './tag.entity';
 import { User } from './user.entity';
 
+export enum DocumentKind {
+  GUIDE = 'Guide',
+  REFERENCE = 'Reference',
+  RUNBOOK = 'Runbook',
+  TUTORIAL = 'Tutorial',
+  LINK = 'Link',
+}
+
 @Entity('documents')
 export class Document {
   @PrimaryGeneratedColumn('uuid')
@@ -26,10 +34,10 @@ export class Document {
 
   @Column({
     type: 'enum',
-    enum: ['Guide', 'Reference', 'Runbook', 'Tutorial', 'Link'],
-    default: 'Guide',
+    enum: DocumentKind,
+    default: DocumentKind.GUIDE,
   })
-  kind: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+  kind: DocumentKind;
 
   @ManyToMany(() => Tag, (tag) => tag.documents)
   @JoinTable({

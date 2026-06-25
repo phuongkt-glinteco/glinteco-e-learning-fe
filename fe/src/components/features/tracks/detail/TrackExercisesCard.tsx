@@ -1,10 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { ExerciseSummary } from '@/services/api-client';
+import type { ExerciseSummaryDto } from '@/services/api-client';
 
 interface TrackExercisesCardProps {
-  exercises?: ExerciseSummary[];
+  exercises?: ExerciseSummaryDto[];
   activeExerciseId?: string;
 }
 

@@ -16,10 +16,18 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { TracksService } from './tracks.service';
+import { ExercisesService } from '../exercises/exercises.service';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { UpdateLessonDto } from './dto/update-lesson.dto';
+import {
+  LessonDetailDto,
+  LessonListResponseDto,
+  CompleteLessonResponseDto,
+} from './dto/track-response.dto';
+import { ExerciseListResponseDto } from '../exercises/dto/exercise-response.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { Roles } from '../modules/auth/decorators/roles.decorator';
@@ -37,16 +45,42 @@ interface RequestWithUser {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller()
 export class LessonsController {
-  constructor(private readonly tracksService: TracksService) {}
+  constructor(
+    private readonly tracksService: TracksService,
+    private readonly exercisesService: ExercisesService,
+  ) {}
 
   @ApiOperation({ summary: 'Lấy danh sách các bài học thuộc track' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
+    type: LessonListResponseDto,
     description: 'Lấy danh sách bài học thành công.',
   })
   @Get('tracks/:id/lessons')
   async findLessons(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.tracksService.findLessons(id, req.user.id);
+  }
+
+  @ApiOperation({ summary: 'Lấy thông tin chi tiết một bài học' })
+  @ApiOkResponse({
+    type: LessonDetailDto,
+    description: 'Lấy chi tiết bài học thành công.',
+  })
+  @Get('lessons/:id')
+  async findOneLesson(@Param('id') id: string, @Req() req: RequestWithUser) {
+    return this.tracksService.findOneLesson(id, req.user.id);
+  }
+
+  @ApiOperation({ summary: 'Lấy danh sách các bài tập thuộc bài học' })
+  @ApiOkResponse({
+    type: ExerciseListResponseDto,
+    description: 'Lấy danh sách bài tập thành công.',
+  })
+  @Get('lessons/:id/exercises')
+  async findExercisesByLesson(
+    @Param('id') lessonId: string,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.exercisesService.findAll({ lessonId }, req.user as any);
   }
 
   @ApiOperation({ summary: 'Tạo bài học mới trong track (Admin only)' })
@@ -81,7 +115,10 @@ export class LessonsController {
   }
 
   @ApiOperation({ summary: 'Đánh dấu hoàn thành bài học và nhận XP' })
-  @ApiResponse({ status: 200, description: 'Hoàn thành bài học thành công.' })
+  @ApiOkResponse({
+    type: CompleteLessonResponseDto,
+    description: 'Hoàn thành bài học thành công.',
+  })
   @Post('lessons/:id/complete')
   async completeLesson(@Param('id') id: string, @Req() req: RequestWithUser) {
     return this.tracksService.completeLesson(id, req.user.id);

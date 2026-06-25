@@ -3,128 +3,133 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { postTracks, postTracksByIdLessons } from '@/services/api-client';
+import { tracksControllerCreate } from '@/services/api-client';
+import type { TrackDetailDto, TrackSummaryDto } from '@/services/api-client';
+import { queryCache } from '@/lib/queryCache';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
-import { sumEstimatedTimes } from '@/lib/time-utils';
+import { UiShowError } from '@/services/errors';
 import { BasicInfoCard } from './components/BasicInfoCard';
-import { CurriculumSection } from './components/CurriculumSection';
-import { SummaryCard } from './components/SummaryCard';
 import { InstructionCard } from './components/InstructionCard';
-import { TrackPreview } from './detail/TrackPreview';
+import { TrackPicker } from './components/TrackPicker';
+import { CreateTrackSummaryCard } from './components/CreateTrackSummaryCard';
 
 export default function CreateTrackPage() {
   const t = useTranslations('CreateTrackPage');
   const router = useRouter();
-  const { title, description, lessons, reset } = useTrackDraftStore();
+  const resetDraft = useTrackDraftStore((state) => state.reset);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [previousTrack, setPreviousTrack] = useState<TrackSummaryDto | null>(null);
   const [saving, setSaving] = useState(false);
-  const [isPreview, setIsPreview] = useState(false);
-
-  const estimatedTime = sumEstimatedTimes(lessons.map((l) => l.estimatedTime));
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    if (!title.trim() || lessons.length === 0) return;
+    if (!title.trim()) return;
     setSaving(true);
+    setError(null);
 
     try {
-      const res = await postTracks({
+      const res = await tracksControllerCreate({
         body: {
           title: title.trim(),
           description: description.trim(),
-          estimatedTime,
-          lessonCount: lessons.length,
+          estimatedTime: '0m',
+          lessonCount: 0,
+          afterTrackId: previousTrack?.id || undefined,
         },
         throwOnError: true,
       });
 
-      const trackId = res.data?.id;
-      if (!trackId) {
-        router.push('/admin/tracks');
+      const created = res.data as Partial<TrackDetailDto> | undefined;
+      if (!created?.id) {
+        setError('Unexpected response: missing track ID');
+        setSaving(false);
         return;
       }
 
-      await Promise.all(
-        lessons.map((lesson, i) =>
-          postTracksByIdLessons({
-            path: { id: trackId },
-            body: {
-              title: lesson.title,
-              order: i + 1,
-              estimatedTime: lesson.estimatedTime,
-              body: '',
-            },
-            throwOnError: true,
-          })
-        )
-      );
-
-      reset();
-      router.push(`/admin/tracks/${trackId}`);
-    } catch {
+      queryCache.set(`track-detail-${created.id}`, {
+        track: {
+          id: created.id,
+          title: created.title ?? title.trim(),
+          description: created.description ?? description.trim(),
+          estimatedTime: created.estimatedTime ?? '0m',
+          order: created.order ?? 0,
+          icon: created.icon ?? 'school',
+          status: created.status ?? 'in_progress',
+          lessonsCompleted: created.lessonsCompleted ?? 0,
+          lessons: created.lessons ?? [],
+          level: created.level ?? '',
+          thumbnail: created.thumbnail ?? null,
+          accessStatus: created.accessStatus ?? 'unlocked',
+          lockedReason: created.lockedReason ?? null,
+          currentLessonId: created.currentLessonId ?? null,
+          prevTrack: created.prevTrack ?? null,
+          nextTrack: created.nextTrack ?? null,
+        },
+        exercises: [],
+      });
+      resetDraft();
+      router.push(`/admin/tracks/${created.id}`);
+    } catch (e) {
+      setError(e instanceof UiShowError ? e.errorCode : t('createFailed'));
       setSaving(false);
     }
   }
 
-  if (isPreview) {
-    return (
-      <TrackPreview
-        title={title}
-        description={description}
-        lessons={lessons}
-        onBackToEdit={() => setIsPreview(false)}
-        onSaveTrack={handleSave}
-        isSaveDisabled={!title.trim() || lessons.length === 0 || saving}
-      />
-    );
+  function handleCancel() {
+    resetDraft();
+    router.push('/admin/tracks');
   }
 
   return (
     <main className="flex-1 overflow-y-auto bg-background px-2 pt-4 pb-24 lg:px-8 lg:pt-8 xl:pt-12 2xl:px-16">
-      <div className="lg:max-w-[1200px] mx-auto px-gutter py-stack-lg">
-        <header className="mb-stack-lg flex justify-between items-end">
-          <div>
-            <h2 className="headline-lg text-on-surface mb-2">{t('title')}</h2>
-            <p className="text-body-base text-secondary">{t('subtitle')}</p>
-          </div>
+      <div className="lg:max-w-[760px] mx-auto px-gutter py-stack-lg">
+        <header className="mb-stack-lg">
+          <h2 className="headline-lg text-on-surface mb-2">{t('title')}</h2>
+          <p className="text-body-base text-secondary">{t('subtitle')}</p>
         </header>
 
-        <div className="grid grid-cols-12 gap-8 mx-auto">
-          <div className="col-span-12 xl:col-span-7 2xl:col-span-8 space-y-6">
-            <BasicInfoCard />
-            <CurriculumSection />
+        {error && (
+          <div className="mb-6 p-4 bg-error-container text-on-error-container rounded-lg border border-error flex items-center gap-3">
+            <span className="material-symbols-outlined text-[20px]">error</span>
+            <p className="text-body-sm">{error}</p>
           </div>
+        )}
 
-          <div className="col-span-12 xl:col-span-5 2xl:col-span-4 space-y-6">
-              <SummaryCard />
-              <InstructionCard />
-          </div>
+        <div className="space-y-6">
+          <BasicInfoCard
+            title={title}
+            description={description}
+            onTitleChange={setTitle}
+            onDescriptionChange={setDescription}
+          />
+          <TrackPicker
+            selectedTrackId={previousTrack?.id ?? ''}
+            onSelectTrack={setPreviousTrack}
+          />
+          <CreateTrackSummaryCard
+            title={title}
+            description={description}
+            previousTrackTitle={previousTrack?.title}
+          />
+          <InstructionCard ready={title.trim().length > 0} />
         </div>
 
         <footer className="fixed bottom-0 left-0 md:left-[256px] right-0 bg-surface-container-lowest border-t border-outline-variant px-gutter py-4 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <div className="max-w-[1200px] mx-auto flex justify-between items-center">
+          <div className="max-w-[760px] mx-auto flex justify-between items-center">
             <button
-              onClick={() => {
-                reset();
-                router.back();}}
+              onClick={handleCancel}
               className="px-6 py-2 border border-outline-variant rounded-lg label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
             >
               {t('cancel')}
             </button>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsPreview(true)}
-                className="flex items-center gap-2 px-6 py-2 border border-primary/20 text-primary rounded-lg label-md hover:bg-primary/10 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[20px]">visibility</span>
-                {t('previewTrack')}
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!title.trim() || lessons.length === 0 || saving}
-                className="px-8 py-2 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-              >
-                {saving ? t('saving') : t('createTrack')}
-              </button>
-            </div>
+            <button
+              onClick={handleSave}
+              disabled={!title.trim() || saving}
+              className="px-8 py-2 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+            >
+              {saving ? t('saving') : t('createTrack')}
+            </button>
           </div>
         </footer>
       </div>

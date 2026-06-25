@@ -19,52 +19,62 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Swagger OpenAPI Documentation - load first so it can be served via middleware
-  let yamlContent: string | null = null;
-  let document: any;
-  const yamlPaths = [
-    path.join(process.cwd(), 'docs/openapi.yaml'),
-    path.join(process.cwd(), '../docs/openapi.yaml'),
-    path.join(__dirname, '..', '..', 'docs/openapi.yaml'),
-  ];
-  let foundPath: string | null = null;
-  for (const p of yamlPaths) {
-    if (fs.existsSync(p)) {
-      foundPath = p;
-      break;
-    }
-  }
+  // Swagger OpenAPI Documentation - Generated dynamically
+  const currentServerUrl =
+    process.env.NODE_ENV === 'production'
+      ? 'https://be-teal-tau.vercel.app/api/v1'
+      : `http://localhost:${process.env.PORT || 5000}/${apiPrefix}`;
 
-  if (foundPath) {
-    console.log(`Loading OpenAPI Spec from: ${foundPath}`);
-    try {
-      const rawYaml = fs.readFileSync(foundPath, 'utf8');
-      const parsedDoc = yaml.load(rawYaml) as any;
-      if (parsedDoc && typeof parsedDoc === 'object') {
-        const currentServerUrl =
-          process.env.NODE_ENV === 'production'
-            ? 'https://be-teal-tau.vercel.app/api/v1'
-            : `http://localhost:${process.env.PORT || 5000}/${apiPrefix}`;
+  const config = new DocumentBuilder()
+    .setTitle('RAMP UP — Engineering Onboarding Portal API')
+    .setDescription(
+      'Tài liệu đặc tả API (OpenAPI Specification) cho hệ thống **RAMP UP** (Glinteco e-Learning).',
+    )
+    .setVersion('1.0.0')
+    .addServer(
+      currentServerUrl,
+      process.env.NODE_ENV === 'production'
+        ? 'Môi trường Production (Vercel)'
+        : 'Môi trường Local Development',
+    )
+    .addBearerAuth()
+    .build();
 
-        parsedDoc.servers = [
-          {
-            url: currentServerUrl,
-            description:
-              process.env.NODE_ENV === 'production'
-                ? 'Môi trường Production (Vercel)'
-                : 'Môi trường Local Development',
-          },
-        ];
-        document = parsedDoc;
-        yamlContent = yaml.dump(document);
-      } else {
-        yamlContent = rawYaml;
-        document = parsedDoc;
+  const document = SwaggerModule.createDocument(app, config);
+
+  // Customize operationIds to match frontend client conventions and strip prefix from path keys
+  if (document.paths) {
+    const newPaths: any = {};
+    for (const pathKey of Object.keys(document.paths)) {
+      const pathItem = document.paths[pathKey];
+      let relativePath = pathKey;
+      const prefix = `/${apiPrefix}`;
+      if (relativePath.startsWith(prefix)) {
+        relativePath = relativePath.slice(prefix.length);
       }
-    } catch (err) {
-      console.error(`Error loading or parsing openapi.yaml:`, err);
+      for (const method of Object.keys(pathItem)) {
+        const operation = pathItem[method];
+        if (operation && typeof operation === 'object') {
+          const segments = relativePath.split('/').filter(Boolean);
+          const cleanSegments = segments.map((segment) => {
+            if (segment.startsWith('{') && segment.endsWith('}')) {
+              return 'ById';
+            }
+            return segment
+              .split('-')
+              .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+              .join('');
+          });
+          const cleanOperationId = method.toLowerCase() + cleanSegments.join('');
+          operation.operationId = cleanOperationId;
+        }
+      }
+      newPaths[relativePath || '/'] = pathItem;
     }
+    document.paths = newPaths;
   }
+
+  const yamlContent = yaml.dump(document);
 
   // Redirect Swagger UI static assets to CDN and serve raw/JSON OpenAPI doc directly
   app.use((req: any, res: any, next: any) => {
@@ -116,19 +126,6 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-
-  if (!document) {
-    console.log('Generating Swagger document dynamically...');
-    const config = new DocumentBuilder()
-      .setTitle('RAMP UP — Engineering Onboarding Portal API')
-      .setDescription(
-        'Tài liệu đặc tả API (OpenAPI Specification) cho hệ thống **RAMP UP** (Glinteco e-Learning).',
-      )
-      .setVersion('1.0.0')
-      .addBearerAuth()
-      .build();
-    document = SwaggerModule.createDocument(app, config);
-  }
 
   SwaggerModule.setup(`${apiPrefix}/docs`, app, document, {
     customCssUrl:

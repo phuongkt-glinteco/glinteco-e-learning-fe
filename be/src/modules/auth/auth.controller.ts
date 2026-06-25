@@ -17,7 +17,7 @@ import { User } from '../../database/entities/user.entity';
 import { AuthService, SafeUser } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { AuthTokensDto } from './dto/auth-tokens.dto';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthResponseDto, UserProfileDto } from './dto/auth-response.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -105,11 +105,24 @@ export class AuthController {
   @ApiOperation({ summary: 'Thông tin user đang đăng nhập.' })
   @ApiResponse({
     status: 200,
+    type: UserProfileDto,
     description: 'Thông tin user (không kèm password).',
   })
   @ApiResponse({ status: 401, description: 'Thiếu hoặc sai access token.' })
-  me(@CurrentUser() user: User): User {
-    return user;
+  me(@CurrentUser() user: User): UserProfileDto {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      title: user.title ?? null,
+      avatarHue: user.avatarHue ?? 0,
+      cohortId: user.cohortId ?? null,
+      level: user.level,
+      xp: user.xp,
+      streakDays: user.streakDays,
+      joinedAt: user.createdAt,
+    };
   }
 
   @Post('forgot-password')

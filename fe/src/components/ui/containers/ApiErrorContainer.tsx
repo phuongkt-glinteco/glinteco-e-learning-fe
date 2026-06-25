@@ -12,9 +12,8 @@ export function ApiErrorContainer() {
 
   if (errors.length === 0) return null;
 
-  const displayedErrors = isExpanded ? errors : errors.slice(-3);
+  const displayedErrors = isExpanded ? errors : errors.slice(-1);
   const hiddenCount = errors.length - displayedErrors.length;
-
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-auto">
       <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto scrollbar-none pr-1">

@@ -1,7 +1,7 @@
 import { client } from './client/client.gen';
 import { classify, pipeline } from './error-mapper';
-import { UiShowError } from './errors';
-import { postAuthRefresh } from './client/sdk.gen';
+import { ApiError, UiShowError } from './errors';
+import { authControllerRefresh } from './client/sdk.gen';
 
 const DEFAULT_BASE_URL = 'https://api.glinteco-elearning.dev/api/v1';
 client.setConfig({
@@ -17,6 +17,8 @@ if (typeof window !== 'undefined') {
 
 const TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
+const TOKEN_COOKIE = 'access_token';
+const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -32,16 +34,44 @@ export function setClientToken(token: string | null) {
   client.setConfig({ auth: token ?? undefined });
 }
 
+export function setTokenCookie(token: string) {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${TOKEN_COOKIE}=${token};path=/;max-age=86400;samesite=lax`;
+  }
+}
+
+export function clearTokenCookie() {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${TOKEN_COOKIE}=;path=/;max-age=0`;
+  }
+}
+
+export function setRefreshTokenCookie(token: string) {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${REFRESH_TOKEN_COOKIE}=${token};path=/;max-age=2592000;samesite=lax`;
+  }
+}
+
+export function clearRefreshTokenCookie() {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${REFRESH_TOKEN_COOKIE}=;path=/;max-age=0`;
+  }
+}
+
 export function saveTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem(TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   setClientToken(accessToken);
+  setTokenCookie(accessToken);
+  setRefreshTokenCookie(refreshToken);
 }
 
 export function clearTokens() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   setClientToken(null);
+  clearTokenCookie();
+  clearRefreshTokenCookie();
 }
 
 let refreshPromise: Promise<boolean> | null = null;
@@ -51,7 +81,7 @@ export async function attemptTokenRefresh(): Promise<boolean> {
   if (!refreshToken) return false;
 
   try {
-    const res = await postAuthRefresh({ body: { refreshToken } });
+    const res = await authControllerRefresh({ body: { refreshToken } });
     const { accessToken, refreshToken: newRefreshToken } = res.data ?? {};
     if (accessToken && newRefreshToken) {
       saveTokens(accessToken, newRefreshToken);
@@ -73,22 +103,25 @@ function dispatchErrorItems(items: UiShowError[]) {
 client.interceptors.error.use(async (error, response, request) => {
   if (response?.status === 401 && request) {
     const url = new URL(request.url);
-    if (url.pathname.endsWith('/auth/refresh') || url.pathname.endsWith('/auth/logout')) {
-      return error;
+
+    // Chặn refresh loop cho chính endpoint auth
+    const isAuthEndpoint = url.pathname.includes('/auth/');
+
+    if (!isAuthEndpoint) {
+      if (!refreshPromise) {
+        refreshPromise = attemptTokenRefresh().finally(() => { refreshPromise = null; });
+      }
+      const success = await refreshPromise;
+      if (success) {
+        const newToken = getAccessToken();
+        if (newToken) request.headers.set('Authorization', `Bearer ${newToken}`);
+        return fetch(request);
+      }
+      clearTokens();
     }
 
-    if (!refreshPromise) {
-      refreshPromise = attemptTokenRefresh().finally(() => { refreshPromise = null; });
-    }
-    const success = await refreshPromise;
-
-    if (success) {
-      const newToken = getAccessToken();
-      if (newToken) request.headers.set('Authorization', `Bearer ${newToken}`);
-      return fetch(request);
-    }
-
-    clearTokens();
+    // Biến đổi error thành SESSION_EXPIRED rồi cho pipeline xử lý
+    error = new ApiError('SESSION_EXPIRED', 'Session expired. Please log in again.', 401, '/auth/refresh');
   }
 
   const classified = classify(error, response, request);

@@ -7,6 +7,7 @@ import { UpdateDocumentDto } from './dto/update-document.dto';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
+import { DocumentKind } from '../database/entities/document.entity';
 
 describe('DocumentsController', () => {
   let controller: DocumentsController;
@@ -88,7 +89,7 @@ describe('DocumentsController', () => {
   describe('create', () => {
     it('should delegate create to service', async () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
-      const dto: CreateDocumentDto = { title: 'Doc', kind: 'Guide' };
+      const dto: CreateDocumentDto = { title: 'Doc', kind: DocumentKind.GUIDE };
       mockDocumentsService.create.mockResolvedValue({ id: 'doc-1' });
 
       const result = await controller.create(dto, req);

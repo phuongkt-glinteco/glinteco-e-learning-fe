@@ -54,7 +54,7 @@
 2. Bổ sung `currentLessonId` trong `GET /tracks` hoặc tạo `GET /me/progress` để dashboard Continue biết route chính xác.
 3. Đồng bộ response của `POST /lessons/:id/complete` với generated client type: `trackId`, `lessonsCompleted`, `trackStatus`.
 4. Bổ sung `lessonId` relation cho exercise hoặc tạo endpoint `GET /lessons/:lessonId/exercises`.
-5. Bổ sung các field learner-facing cho course/track: `thumbnail`, `level`, `accessStatus`, `lockedReason`, `currentLessonId`.
+5. Bổ sung các field learner-facing cho course/track: `thumbnail`, `description`, `level`, `accessStatus`, `lockedReason`, `currentLessonId`.
 6. Cân nhắc milestone model lâu dài: `milestoneId`, `title`, `order`, grouping lesson theo milestone.
 7. Bổ sung Swagger DTO/schema rõ ràng bằng `ApiOkResponse({ type: ... })`, tránh chỉ có description khiến generated client yếu.
 

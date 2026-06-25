@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { SearchService } from './search.service';
 import { Track } from '../database/entities/track.entity';
-import { Document } from '../database/entities/document.entity';
+import { Document, DocumentKind } from '../database/entities/document.entity';
 import { Exercise } from '../database/entities/exercise.entity';
 import { SearchQueryDto } from './dto/search-query.dto';
 
@@ -50,7 +50,7 @@ describe('SearchService', () => {
       const query: SearchQueryDto = { q: 'react' };
       const tracks = [{ id: 'track-1', title: 'React Track' }];
       const documents = [
-        { id: 'doc-1', title: 'React Documentation', kind: 'Guide' },
+        { id: 'doc-1', title: 'React Documentation', kind: DocumentKind.GUIDE },
       ];
       const exercises = [
         {
@@ -76,7 +76,7 @@ describe('SearchService', () => {
       expect(result.documents[0]).toEqual({
         id: 'doc-1',
         title: 'React Documentation',
-        kind: 'Guide',
+        kind: DocumentKind.GUIDE,
       });
       expect(result.exercises).toHaveLength(1);
       expect(result.exercises[0]).toEqual({

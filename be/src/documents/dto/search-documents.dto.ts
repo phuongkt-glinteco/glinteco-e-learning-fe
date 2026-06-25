@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, Max, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { DocumentKind } from '../../database/entities/document.entity';
 
 export class SearchDocumentsDto {
   @ApiPropertyOptional({
@@ -21,12 +22,14 @@ export class SearchDocumentsDto {
 
   @ApiPropertyOptional({
     description: 'Phân loại tài liệu kỹ thuật',
-    enum: ['Guide', 'Reference', 'Runbook', 'Tutorial', 'Link'],
-    example: 'Guide',
+    enum: DocumentKind,
+    example: DocumentKind.GUIDE,
   })
   @IsOptional()
-  @IsString()
-  kind?: string;
+  @IsEnum(DocumentKind, {
+    message: `kind phải là một trong các giá trị: ${Object.values(DocumentKind).join(', ')}`,
+  })
+  kind?: DocumentKind;
 
   @ApiPropertyOptional({
     description: 'Số lượng tài liệu tối đa trả về trên mỗi trang',

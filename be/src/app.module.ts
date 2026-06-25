@@ -21,6 +21,7 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { SubmissionsModule } from './submissions/submissions.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { MIGRATIONS } from './database/migrations-list';
 
 @Module({
   imports: [
@@ -60,6 +61,8 @@ import { NotificationsModule } from './notifications/notifications.module';
         entities: [
           path.join(__dirname, 'database/entities', '*.entity{.ts,.js}'),
         ],
+        migrations: MIGRATIONS,
+        migrationsRun: false,
         autoLoadEntities: true,
         // Schema is managed by migrations (src/database/migrations). Keep
         // synchronize off by default to avoid accidental schema drift.

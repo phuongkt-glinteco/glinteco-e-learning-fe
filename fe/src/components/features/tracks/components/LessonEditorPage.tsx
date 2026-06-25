@@ -6,11 +6,14 @@ import { useTranslations } from 'next-intl';
 import { MarkdownRenderer, parseFrontmatter } from '@/lib/md-renderer';
 import { SyntaxGuide } from './SyntaxGuide';
 import { LessonMetadata } from './LessonMetadata';
-import { useTrackDraftStore, type DraftLesson } from '@/stores/trackDraftStore';
-import { buildTimeString, formatEstimatedTime, type TimeUnit } from '@/lib/time-utils';
+import { buildTimeString, type TimeUnit } from '@/lib/time-utils';
+import { lessonsControllerCreateLesson, lessonsControllerUpdateLesson, lessonsControllerFindOneLesson, lessonsControllerFindLessons } from '@/services/api-client';
+import type { LessonDetailDto, LessonProgressItemDto } from '@/services/api-client';
+import { queryCache } from '@/lib/queryCache';
 
 interface LessonEditorPageProps {
-  editIndex?: number;
+  trackId?: string;
+  lessonId?: string;
 }
 
 type ToolbarAction =
@@ -99,30 +102,72 @@ const UNIT_OPTIONS: { value: TimeUnit; labelKey: string }[] = [
   { value: 'M', labelKey: 'months_label' },
 ];
 
-export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
+const LESSON_TYPE_OPTIONS: { value: LessonProgressItemDto['type']; labelKey: string }[] = [
+  { value: 'reading', labelKey: 'typeReading' },
+  { value: 'video', labelKey: 'typeVideo' },
+  { value: 'quiz', labelKey: 'typeQuiz' },
+  { value: 'coding', labelKey: 'typeCoding' },
+  { value: 'assignment', labelKey: 'typeAssignment' },
+];
+
+export function LessonEditorPage({ trackId, lessonId }: LessonEditorPageProps) {
   const t = useTranslations('CreateTrackPage');
   const tu = useTranslations('TimeUnit');
   const router = useRouter();
-  const { lessons, addLesson, updateLesson } = useTrackDraftStore();
+  const [saving, setSaving] = useState(false);
 
-  const existing = editIndex !== undefined ? lessons[editIndex] : null;
-
-  const [title, setTitle] = useState(existing?.title ?? '');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [lessonType, setLessonType] = useState<LessonProgressItemDto['type']>('reading');
+  const [order, setOrder] = useState(1);
   const [numValue, setNumValue] = useState('');
   const [unit, setUnit] = useState<TimeUnit>('m');
-  const [body, setBody] = useState(existing?.body ?? '');
+  const [body, setBody] = useState('');
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (existing?.estimatedTime) {
-      const match = existing.estimatedTime.match(/^(\d+(?:\.\d+)?)\s*(m|h|d|w|M)$/);
-      if (match) {
-        setNumValue(match[1]);
-        setUnit(match[2] as TimeUnit);
+    if (!lessonId) return;
+    async function fetchLesson() {
+      if (!trackId || !lessonId) return;
+      try {
+        const res = await lessonsControllerFindOneLesson({ path: { id: lessonId }, throwOnError: true });
+        const found = res.data as LessonDetailDto;
+        if (found) {
+          setTitle(found.title ?? '');
+          setDescription(found.description ?? '');
+          setLessonType(found.type ?? 'reading');
+          setOrder(found.order ?? 1);
+          setBody(found.body ?? '');
+          if (found.estimatedTime) {
+            const match = found.estimatedTime.match(/^(\d+(?:\.\d+)?)\s*(m|h|d|w|M)$/);
+            if (match) {
+              setNumValue(match[1]);
+              setUnit(match[2] as TimeUnit);
+            }
+          }
+        }
+      } catch {
+        // silent
       }
     }
-  }, [existing]);
+    fetchLesson();
+  }, [trackId, lessonId]);
+
+  useEffect(() => {
+    if (!trackId || lessonId) return;
+    async function fetchNextOrder() {
+      try {
+        const res = await lessonsControllerFindLessons({ path: { id: trackId! }, throwOnError: true });
+        const lessons = res.data?.data ?? [];
+        const maxOrder = lessons.reduce((max, lesson) => Math.max(max, lesson.order ?? 0), 0);
+        setOrder(maxOrder + 1);
+      } catch {
+        setOrder(1);
+      }
+    }
+    fetchNextOrder();
+  }, [trackId, lessonId]);
 
   const insertMarkdown = useCallback((action: ToolbarAction) => {
     const ta = textareaRef.current;
@@ -151,7 +196,6 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
         cursorPos = start + inserted.length;
       } else {
         const before = body.substring(0, start);
-        const after = body.substring(end);
         const newLine = before.endsWith('\n') || before === '' ? '' : '\n';
         inserted = `${newLine}${snippet}${selected}`;
         cursorPos = start + inserted.length;
@@ -193,18 +237,52 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
     }
   }
 
-  function handleSave() {
-    if (!title.trim()) return;
-    const lesson: DraftLesson = {
-      title: title.trim(),
-      estimatedTime: estimatedTime || '0m',
-      body,
-    };
-    if (editIndex !== undefined) {
-      updateLesson(editIndex, lesson);
-    } else {
-      addLesson(lesson);
+  async function handleSave() {
+    if (!title.trim() || !trackId) return;
+    setSaving(true);
+    try {
+      if (lessonId) {
+        await lessonsControllerUpdateLesson({
+          path: { id: lessonId },
+          body: { title: title.trim(), description: description.trim() || null, estimatedTime: estimatedTime || '0m', body: body.trim() },
+          throwOnError: true,
+        });
+
+        // Update query cache optimistically for editing lesson
+        const cached = queryCache.get<{ track: any; exercises: any[] }>(`track-detail-${trackId}`);
+        if (cached && cached.track) {
+          const updatedLessons = cached.track.lessons?.map((l: any) => {
+            if (l.id === lessonId) {
+              return {
+                ...l,
+                title: title.trim(),
+                description: description.trim() || null,
+                estimatedTime: estimatedTime || '0m',
+                body: body.trim(),
+              };
+            }
+            return l;
+          }) ?? [];
+          queryCache.set(`track-detail-${trackId}`, {
+            ...cached,
+            track: {
+              ...cached.track,
+              lessons: updatedLessons,
+            },
+          });
+        }
+      } else {
+        await lessonsControllerCreateLesson({
+          path: { id: trackId },
+          body: { title: title.trim(), description: description.trim() || null, order, estimatedTime: estimatedTime || '0m', body: body.trim() },
+          throwOnError: true,
+        });
+      }
+    } catch {
+      setSaving(false);
+      return;
     }
+    setSaving(false);
     router.back();
   }
 
@@ -212,55 +290,92 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
 
   return (
     <main className="flex-1 flex flex-col bg-background px-0 xl:p-14 md:p-4 gap-6">
-      {/* Metadata Header */}
-      <header className=" bg-surface-container-lowest border-b border-outline-variant max-w-[1600px] w-full mx-auto px-8 py-5">
-          <div className="flex flex-col sm:flex-row sm:justify-between gap-5">
-            <div className="flex-1 min-w-0 md:max-w-[500px]">
-              <label className="block label-sm text-secondary mb-1.5">
-                {t('lessonTitle')}
-              </label>
+      <header className="bg-surface-container-lowest border-b border-outline-variant max-w-[1600px] w-full mx-auto px-8 py-5">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-5">
+          <div className="flex-1 min-w-0 md:max-w-[500px]">
+            <label className="block label-sm text-secondary mb-1.5">
+              {t('lessonTitle')}
+            </label>
+            <input
+              className="text-xl font-bold w-full text-h1 font-h1 border-none hover:bg-surface-container-high p-2 focus:ring-0 placeholder-surface-dim bg-transparent"
+              placeholder={t('untitledLesson')}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div className="w-full sm:w-52 shrink-0">
+            <label className="block label-sm text-secondary mb-1.5">
+              {t('estimatedTime')}
+            </label>
+            <div className="flex items-center gap-2 border border-outline-variant rounded-lg px-3 py-2 bg-surface-container-lowest focus-within:border-primary transition-colors">
+              <span className="material-symbols-outlined text-secondary text-[20px] shrink-0">schedule</span>
               <input
-                className="
-                text-xl font-bold
-                w-full text-h1 font-h1 border-none hover:bg-surface-container-high p-2 focus:ring-0 placeholder-surface-dim bg-transparent"
-                placeholder={t('untitledLesson')}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                type="number"
+                min={0}
+                step="0.5"
+                className="w-[60px] border-none p-0 focus:ring-0 bg-transparent text-body-base font-medium outline-none"
+                placeholder="0"
+                value={numValue}
+                onChange={(e) => setNumValue(e.target.value)}
               />
-            </div>
-            <div className="w-full sm:w-52 shrink-0">
-              <label className="block label-sm text-secondary mb-1.5">
-                {t('estimatedTime')}
-              </label>
-              <div className="flex items-center gap-2 border border-outline-variant rounded-lg px-3 py-2 bg-surface-container-lowest focus-within:border-primary transition-colors">
-                <span className="material-symbols-outlined text-secondary text-[20px] shrink-0">schedule</span>
-                <input
-                  type="number"
-                  min={0}
-                  step="0.5"
-                  className="w-[60px] border-none p-0 focus:ring-0 bg-transparent text-body-base font-medium outline-none"
-                  placeholder="0"
-                  value={numValue}
-                  onChange={(e) => setNumValue(e.target.value)}
-                />
-                <select
-                  className="flex-1 border-none bg-transparent text-body-sm text-secondary outline-none cursor-pointer appearance-none pr-4  bg-no-repeat bg-[right_0_center]"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value as TimeUnit)}
-                >
-                  {UNIT_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {tu(opt.labelKey)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
+              <select
+                className="flex-1 border-none bg-transparent text-body-sm text-secondary outline-none cursor-pointer appearance-none pr-4 bg-no-repeat bg-[right_0_center]"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value as TimeUnit)}
+              >
+                {UNIT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {tu(opt.labelKey)}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+        </div>
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-[1fr_160px_180px] gap-3">
+          <div>
+            <label className="block label-sm text-secondary mb-1.5">
+              {t('lessonDescription')}
+            </label>
+            <input
+              className="w-full border border-outline-variant rounded-lg p-2 text-body-base focus:border-primary focus:ring-0 transition-colors outline-none bg-surface-container-low"
+              placeholder={t('lessonDescriptionPlaceholder')}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block label-sm text-secondary mb-1.5">
+              {t('lessonOrder')}
+            </label>
+            <input
+              type="number"
+              min={1}
+              className="w-full border border-outline-variant rounded-lg p-2 text-body-base focus:border-primary focus:ring-0 transition-colors outline-none bg-surface-container-low"
+              value={order}
+              onChange={(e) => setOrder(Math.max(1, Number(e.target.value) || 1))}
+            />
+          </div>
+          <div>
+            <label className="block label-sm text-secondary mb-1.5">
+              {t('lessonType')}
+            </label>
+            <select
+              className="w-full border border-outline-variant rounded-lg p-2 text-body-base focus:border-primary focus:ring-0 transition-colors outline-none bg-surface-container-low"
+              value={lessonType}
+              onChange={(e) => setLessonType(e.target.value as LessonProgressItemDto['type'])}
+              title={t('lessonTypeReadonlyHint')}
+            >
+              {LESSON_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {t(opt.labelKey)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </header>
 
-      {/* Mobile Tabs */}
       <div className="md:hidden flex border-b border-outline-variant bg-surface">
         <button
           onClick={() => setMobileTab('editor')}
@@ -284,18 +399,12 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
         </button>
       </div>
 
-      {/* Workspace */}
-      <section className="flex-1 flex bg-surface-container-lowest w-full max-w-[1600px] mx-auto md:rounded-sm border border-outline-variant
-      h-full min-h-[70vh] max-h-[calc(100vh-4rem)]
-      ">
-        {/* Editor Panel */}
+      <section className="flex-1 flex bg-surface-container-lowest w-full max-w-[1600px] mx-auto md:rounded-sm border border-outline-variant h-full min-h-[70vh] max-h-[calc(100vh-4rem)]">
         <div
-          className={`flex-1 flex flex-col border-r border-outline-variant
-            ${
+          className={`flex-1 flex flex-col border-r border-outline-variant ${
             mobileTab === 'preview' ? 'hidden md:flex' : 'flex'
           }`}
         >
-          {/* Toolbar */}
           <div className="sticky top-0 z-10 flex items-center gap-0.5 px-3 py-2 bg-surface border-b border-outline-variant flex-wrap">
             {toolbarButtons.map((btn, i) => (
               <span key={btn.action}>
@@ -315,7 +424,6 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
             ))}
           </div>
 
-          {/* Textarea */}
           <div className="flex-1">
             <textarea
               ref={textareaRef}
@@ -326,10 +434,8 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
               onKeyDown={handleTextareaKeyDown}
             />
           </div>
-          
         </div>
 
-        {/* Preview Panel */}
         <div
           className={`flex-1 flex flex-col bg-surface-container-lowest overflow-hidden ${
             mobileTab === 'editor' ? 'hidden md:flex' : 'flex'
@@ -342,9 +448,9 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
             </span>
           </div>
 
-          <div className="flex-1  overflow-y-scroll px-8 sm:px-12 py-8 sm:py-10">
+          <div className="flex-1 overflow-y-scroll px-8 sm:px-12 py-8 sm:py-10">
             <div className="max-w-[720px] mx-auto">
-               {title || body ? (
+              {title || body ? (
                 <article>
                   <LessonMetadata
                     title={title}
@@ -377,35 +483,28 @@ export function LessonEditorPage({ editIndex }: LessonEditorPageProps) {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="
-      justify-center items-center
-      fixed bottom-0 left-0 md:left-[256px] right-0 z-40 bg-surface border-t border-outline-variant transition-all duration-200">
-        
-              
+      <footer className="justify-center items-center fixed bottom-0 left-0 md:left-[256px] right-0 z-40 bg-surface border-t border-outline-variant transition-all duration-200">
+        <div className="flex mx-2 justify-center items-center gap-2">
+          <SyntaxGuide />
+          <div className="w-px h-6 bg-outline-variant mx-1" />
+          <div className="flex-1" />
 
-              <div className="flex mx-2 justify-center items-center gap-2">
-                <SyntaxGuide />
-                <div className="w-px h-6 bg-outline-variant mx-1" />
-                <div className="flex-1" />
-
-                <div className="flex-2 flex justify-center items-center gap-8">
-<button
-                  onClick={() => router.back()}
-                  className="px-4 py-1.5 border border-outline-variant rounded-lg label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
-                >
-                  {t('cancel')}
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={!title.trim()}
-                  className="px-5 py-1.5 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 disabled:opacity-50 transition-all cursor-pointer"
-                >
-                  {t('saveLesson')}
-                </button>
-                </div>
-                
-              </div>
+          <div className="flex-2 flex justify-center items-center gap-8">
+            <button
+              onClick={() => router.back()}
+              className="px-4 py-1.5 border border-outline-variant rounded-lg label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!title.trim() || saving}
+              className="px-5 py-1.5 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 disabled:opacity-50 transition-all cursor-pointer"
+            >
+              {saving ? t('saving') : t('saveLesson')}
+            </button>
+          </div>
+        </div>
       </footer>
     </main>
   );

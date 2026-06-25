@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
-import type { ExerciseSummary } from '@/services/api-client';
+import type { ExerciseSummaryDto } from '@/services/api-client';
 
 interface LinkedExercisesCardProps {
-  exercises?: ExerciseSummary[];
+  exercises?: ExerciseSummaryDto[];
   onRemove?: (id: string) => void;
   onAdd?: () => void;
   disabled?: boolean;

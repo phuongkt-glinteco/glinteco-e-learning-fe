@@ -57,6 +57,20 @@ export const createExerciseSchema = z.object({
   hint: z.string().optional(),
 });
 
+export const createExerciseFormSchema = z.object({
+  title: z.string().min(1, { message: 'titleRequired' }),
+  tag: z.string().min(1, { message: 'tagRequired' }),
+  difficulty: exerciseDifficultySchema,
+  estimatedTime: z.string().min(1, { message: 'estimatedTimeRequired' }),
+  xp: z.string().min(1, { message: 'xpRequired' }),
+  brief: z.string().min(1, { message: 'briefRequired' }),
+  overview: z.string().min(1, { message: 'overviewRequired' }),
+  objectives: z.array(z.string()).min(1, { message: 'objectivesMin' }),
+  steps: z.array(z.string()).min(1, { message: 'stepsMin' }),
+  resourceDocIds: z.array(z.string()).default([]),
+  hint: z.string().optional(),
+});
+
 export const updateExerciseSchema = z.object({
   xp: z.number().int().min(0, { message: 'XP must be a non-negative integer' }).optional(),
   difficulty: exerciseDifficultySchema.optional(),
@@ -65,4 +79,5 @@ export const updateExerciseSchema = z.object({
 export type ExerciseSummary = z.infer<typeof exerciseSummarySchema>;
 export type ExerciseDetail = z.infer<typeof exerciseDetailSchema>;
 export type CreateExerciseInput = z.infer<typeof createExerciseSchema>;
+export type CreateExerciseFormInput = z.infer<typeof createExerciseFormSchema>;
 export type UpdateExerciseInput = z.infer<typeof updateExerciseSchema>;

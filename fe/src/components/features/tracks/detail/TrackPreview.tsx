@@ -2,8 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { sumEstimatedTimes } from '@/lib/time-utils';
-import type { LessonDetail, ExerciseSummary } from '@/services/api-client';
-import { PreviewBanner } from './PreviewBanner';
+import type { LessonProgressItemDto, ExerciseSummaryDto } from '@/services/api-client';
 import { TrackHero } from './TrackHero';
 import { CourseRoadmap } from './CourseRoadmap';
 import { TrackExercisesCard } from './TrackExercisesCard';
@@ -19,8 +18,8 @@ interface TrackTrackStatusItem {
 interface TrackPreviewProps {
   title: string;
   description: string;
-  lessons: LessonDetail[];
-  exercises?: ExerciseSummary[];
+  lessons: LessonProgressItemDto[];
+  exercises?: ExerciseSummaryDto[];
   onBackToEdit: () => void;
   onSaveTrack?: () => void;
   isSaveDisabled?: boolean;
@@ -51,8 +50,6 @@ export function TrackPreview({
 
   return (
     <div className="min-h-screen bg-background text-on-background flex flex-col">
-      {/* PREVIEW MODE BANNER */}
-      <PreviewBanner />
 
       {/* Main Content Area */}
       <main className="flex-1 p-margin-mobile md:p-gutter max-w-[1200px] mx-auto w-full pb-32">

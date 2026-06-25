@@ -344,9 +344,13 @@ export class AuthService {
         email: user.email,
         name: user.name,
         role: user.role,
+        title: user.title ?? null,
+        avatarHue: user.avatarHue ?? 0,
+        cohortId: user.cohortId ?? null,
         level: user.level,
         xp: user.xp,
         streakDays: user.streakDays,
+        joinedAt: user.createdAt,
       },
     };
   }

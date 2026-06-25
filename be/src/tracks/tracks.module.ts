@@ -9,6 +9,7 @@ import { TracksService } from './tracks.service';
 import { TracksController } from './tracks.controller';
 import { LessonsController } from './lessons.controller';
 import { AuthModule } from '../modules/auth/auth.module';
+import { ExercisesModule } from '../exercises/exercises.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthModule } from '../modules/auth/auth.module';
       User,
     ]),
     AuthModule,
+    ExercisesModule,
   ],
   controllers: [TracksController, LessonsController],
   providers: [TracksService],

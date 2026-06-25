@@ -29,6 +29,15 @@ export class CreateExerciseDto {
   trackId: string;
 
   @ApiProperty({
+    description: 'ID của Lesson (UUID) chứa bài tập này (nếu có).',
+    required: false,
+    example: 'd3b07384-d113-495f-9f75-e11500e3cfd0',
+  })
+  @IsOptional()
+  @IsUUID('4', { message: 'lessonId phải là một UUID hợp lệ' })
+  lessonId?: string;
+
+  @ApiProperty({
     description: 'Nhãn phân loại chuyên môn.',
     example: 'NestJS',
   })

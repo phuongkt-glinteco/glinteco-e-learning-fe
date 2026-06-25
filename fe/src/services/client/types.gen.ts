@@ -231,6 +231,19 @@ export type Submission = {
     submittedAt?: string;
 };
 
+export type Item = {
+    id?: string;
+    user?: {
+        id?: string;
+        name?: string;
+        avatarHue?: number;
+    };
+    exercise?: string;
+    prUrl?: string;
+    status?: string;
+    submittedAt?: string;
+};
+
 export type SubmissionFeedItem = {
     id?: string;
     user?: {
@@ -263,7 +276,7 @@ export type SubmissionDetail = {
 export type SubmissionHistoryResponse = {
     submissionId?: string;
     exerciseId?: string;
-    history?: unknown;
+    history?: Array<SubmissionHistoryItem>;
 };
 
 export type SubmissionHistoryItem = {

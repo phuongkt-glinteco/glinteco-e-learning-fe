@@ -22,7 +22,7 @@ export function CourseRoadmap({
   if (lessons.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-8 text-center">
-        <h2 className="headline-sm text-on-surface">No lessons available</h2>
+        <h2 className="headline-sm text-on-surface">No lessons yet</h2>
         <p className="mt-2 body-sm text-on-surface-variant">
           This course does not have published lessons yet.
         </p>
@@ -82,12 +82,18 @@ export function CourseRoadmap({
                   <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
                     Lesson {lesson.order}
                   </span>
+                  <span className="rounded bg-surface-container px-2 py-0.5 label-sm capitalize text-on-surface-variant">
+                    {lesson.type}
+                  </span>
                   <span className="inline-flex items-center gap-1 label-sm text-on-surface-variant">
                     <span className="material-symbols-outlined text-[15px]">schedule</span>
                     {lesson.estimatedTime}
                   </span>
                 </div>
                 <h3 className="mt-2 headline-sm text-on-surface">{lesson.title}</h3>
+                {lesson.description && (
+                  <p className="mt-1 body-sm text-on-surface-variant">{lesson.description}</p>
+                )}
 
                 <div className="mt-4 flex justify-end">
                   <button

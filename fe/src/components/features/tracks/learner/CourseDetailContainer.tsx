@@ -2,15 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getTracksById, getTracksByIdLessons } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { CourseDetailView } from './CourseDetailView';
 import type { LearnerTrack, TrackLessonPreview } from './types';
+import { fetchCourseDetail } from './courseLearningApi';
 import {
+  getErrorStatus,
   getErrorMessage,
   getRouteParam,
-  normalizeLessonsPreview,
-  normalizeTrackDetail,
 } from './utils';
 
 function CourseDetailLoadingState() {
@@ -34,10 +33,12 @@ function CourseDetailLoadingState() {
 }
 
 function CourseDetailErrorState({
+  title,
   message,
   onBack,
   onRetry,
 }: {
+  title: string;
   message: string;
   onBack: () => void;
   onRetry: () => void;
@@ -45,7 +46,7 @@ function CourseDetailErrorState({
   return (
     <section className="mx-auto max-w-[760px] px-gutter py-8">
       <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
-        <h1 className="headline-sm">Course not available</h1>
+        <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <button
@@ -73,7 +74,7 @@ function CourseDetailErrorState({
 export default function CourseDetailContainer() {
   const params = useParams();
   const router = useRouter();
-  const trackId = getRouteParam(params.trackId);
+  const courseId = getRouteParam(params.courseId ?? params.trackId);
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<TrackLessonPreview[]>([]);
@@ -81,8 +82,8 @@ export default function CourseDetailContainer() {
   const [error, setError] = useState<string | null>(null);
 
   const loadCourseDetail = useCallback(async () => {
-    if (!trackId) {
-      setError('Missing track route parameter.');
+    if (!courseId) {
+      setError('Missing course route parameter.');
       setLoading(false);
       return;
     }
@@ -91,52 +92,48 @@ export default function CourseDetailContainer() {
     setError(null);
 
     try {
-      const [trackResponse, lessonsResponse] = await Promise.all([
-        getTracksById({
-          path: { id: trackId },
-          throwOnError: true,
-        }),
-        getTracksByIdLessons({
-          path: { id: trackId },
-          throwOnError: true,
-        }),
-      ]);
-
-      if (!trackResponse.data) throw new Error('Track was not found.');
-
-      const normalizedLessons = normalizeLessonsPreview(
-        lessonsResponse.data?.data ?? [],
-        trackResponse.data.lessons ?? []
-      );
-
-      setLessons(normalizedLessons);
-      setTrack(normalizeTrackDetail(trackResponse.data, trackId, normalizedLessons));
+      const courseDetail = await fetchCourseDetail(courseId);
+      setLessons(courseDetail.lessons);
+      setTrack(courseDetail.course);
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, 'Failed to load course details.'));
     } finally {
       setLoading(false);
     }
-  }, [trackId]);
+  }, [courseId]);
 
   useEffect(() => {
     loadCourseDetail();
   }, [loadCourseDetail]);
 
   const currentLessonId = useMemo(() => (
-    lessons.find((lesson) => !lesson.completed)?.id ?? lessons[0]?.id ?? null
-  ), [lessons]);
+    track?.currentLessonId
+      ?? lessons.find((lesson) => !lesson.completed)?.id
+      ?? lessons[0]?.id
+      ?? null
+  ), [lessons, track?.currentLessonId]);
 
   function handleOpenLesson(lessonId: string) {
-    router.push(`/tracks/${trackId}/lessons/${lessonId}`);
+    router.push(`/courses/${courseId}/lessons/${lessonId}`);
+  }
+
+  function handleContinueCourse() {
+    if (!currentLessonId) return;
+    handleOpenLesson(currentLessonId);
   }
 
   if (loading) return <CourseDetailLoadingState />;
 
   if (error || !track) {
+    const errorTitle = getErrorStatus(error) === 404 || /not found/i.test(error ?? '')
+      ? 'Course not found'
+      : 'Course not available';
+
     return (
       <CourseDetailErrorState
+        title={errorTitle}
         message={error ?? 'Track was not found.'}
-        onBack={() => router.push('/tracks')}
+        onBack={() => router.push('/courses')}
         onRetry={loadCourseDetail}
       />
     );
@@ -147,7 +144,8 @@ export default function CourseDetailContainer() {
       track={track}
       lessons={lessons}
       currentLessonId={currentLessonId}
-      onBackToTracks={() => router.push('/tracks')}
+      onBackToTracks={() => router.push('/courses')}
+      onContinueCourse={handleContinueCourse}
       onOpenLesson={handleOpenLesson}
     />
   );

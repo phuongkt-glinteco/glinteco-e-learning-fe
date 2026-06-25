@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@/providers/AuthProvider';
 import AppLogo from './AppLogo';
 import NavMenu from './NavMenu';
 
@@ -10,10 +11,17 @@ export interface NavItem {
   href: string;
 }
 
-export const mainNav: NavItem[] = [
+export const learnerMainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
   { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/tracks' },
   { label: 'My Courses', translationKey: 'myCourses', icon: 'local_library', href: '/my-courses' },
+  { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
+];
+
+export const adminMainNav: NavItem[] = [
+  { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
+  { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/tracks' },
+  { label: 'Track Manager', translationKey: 'trackManager', icon: 'route', href: '/admin/tracks' },
   { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
 ];
 
@@ -25,6 +33,9 @@ export const footerNav: NavItem[] = [
 
 
 export default function Sidebar() {
+  const { user } = useAuth();
+  const navItems = user?.role === 'admin' ? adminMainNav : learnerMainNav;
+
   return (
     <nav className="hidden 
       md:flex flex-col fixed left-0 top-0 h-screen w-sidebar py-lg z-40 
@@ -34,7 +45,7 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 flex flex-col gap-xs px-md">
-        <NavMenu items={mainNav} variant="desktop" />
+        <NavMenu items={navItems} variant="desktop" />
       </div>
 
       <div className="mt-auto flex flex-col gap-xs pt-md px-md border-t border-outline-variant">

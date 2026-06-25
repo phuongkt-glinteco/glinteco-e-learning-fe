@@ -273,7 +273,6 @@ export default function AdminDashboardPage() {
                 icon="edit_note"
                 links={[
                   { label: t('trackEditor'), href: '/admin/tracks' },
-                  { label: t('lessonPlanner'), href: '/admin/tracks', icon: 'chevron_right' },
                 ]}
               />
               <QuickLinksCard

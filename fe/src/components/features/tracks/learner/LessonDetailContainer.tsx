@@ -2,19 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
-  getTracksById,
-  getTracksByIdLessons,
-  postLessonsByIdComplete,
-} from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { LessonDetailView } from './LessonDetailView';
-import type { LearnerLesson, LearnerTrack } from './types';
+import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
+import { completeLesson, fetchLessonPage } from './courseLearningApi';
 import {
   getErrorMessage,
   getRouteParam,
-  normalizeLessons,
-  normalizeTrackDetailWithCount,
 } from './utils';
 
 function LessonLoadingState() {
@@ -72,11 +66,13 @@ function LessonErrorState({
 export default function LessonDetailContainer() {
   const params = useParams();
   const router = useRouter();
-  const trackId = getRouteParam(params.trackId);
+  const courseId = getRouteParam(params.courseId ?? params.trackId);
   const lessonId = getRouteParam(params.lessonId);
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<LearnerLesson[]>([]);
+  const [exercises, setExercises] = useState<LearnerExercise[]>([]);
+  const [activeLesson, setActiveLesson] = useState<LearnerLesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState(false);
@@ -84,8 +80,8 @@ export default function LessonDetailContainer() {
   const [completionError, setCompletionError] = useState<string | null>(null);
 
   const loadLessonData = useCallback(async () => {
-    if (!trackId || !lessonId) {
-      setError('Missing track or lesson route parameters.');
+    if (!courseId || !lessonId) {
+      setError('Missing course or lesson route parameters.');
       setLoading(false);
       return;
     }
@@ -95,41 +91,24 @@ export default function LessonDetailContainer() {
     setCompletionError(null);
 
     try {
-      const [trackResponse, lessonsResponse] = await Promise.all([
-        getTracksById({
-          path: { id: trackId },
-          throwOnError: true,
-        }),
-        getTracksByIdLessons({
-          path: { id: trackId },
-          throwOnError: true,
-        }),
-      ]);
-
-      if (!trackResponse.data) {
-        throw new Error('Track was not found.');
-      }
-
-      const normalizedLessons = normalizeLessons(
-        lessonsResponse.data?.data ?? [],
-        trackResponse.data.lessons ?? []
-      );
-
-      setLessons(normalizedLessons);
-      setTrack(normalizeTrackDetailWithCount(trackResponse.data, trackId, normalizedLessons.length));
+      const lessonPage = await fetchLessonPage(courseId, lessonId);
+      setLessons(lessonPage.lessons);
+      setTrack(lessonPage.course);
+      setActiveLesson(lessonPage.activeLesson);
+      setExercises(lessonPage.exercises);
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, 'Failed to load lesson details.'));
     } finally {
       setLoading(false);
     }
-  }, [trackId, lessonId]);
+  }, [courseId, lessonId]);
 
   useEffect(() => {
     loadLessonData();
   }, [loadLessonData]);
 
-  const activeLesson = useMemo(
-    () => lessons.find((lesson) => lesson.id === lessonId) ?? null,
+  const activeLessonIndex = useMemo(
+    () => lessons.findIndex((lesson) => lesson.id === lessonId),
     [lessons, lessonId]
   );
 
@@ -141,28 +120,17 @@ export default function LessonDetailContainer() {
     setCompletionMessage(null);
 
     try {
-      const response = await postLessonsByIdComplete({
-        path: { id: activeLesson.id },
-        throwOnError: true,
-      });
+      const response = await completeLesson(activeLesson.id);
 
-      const xpAwarded = response.data?.xpAwarded ?? activeLesson.xp;
-      const nextCompletedCount = response.data?.lessonsCompleted
+      const xpAwarded = response.xpAwarded ?? activeLesson.xp;
+      const nextCompletedCount = response.lessonsCompleted
         ?? Math.min(track.lessonsCompleted + 1, track.lessonCount);
-      const nextStatus = response.data?.trackStatus
+      const nextStatus = response.trackStatus
         ?? (nextCompletedCount >= track.lessonCount ? 'completed' : 'in_progress');
-
-      setLessons((currentLessons) => currentLessons.map((lesson) => (
-        lesson.id === activeLesson.id
-          ? { ...lesson, completed: true }
-          : lesson
-      )));
-      setTrack({
-        ...track,
-        lessonsCompleted: nextCompletedCount,
-        status: nextStatus,
-      });
       setCompletionMessage(`Lesson completed. +${xpAwarded} XP awarded.`);
+      setActiveLesson({ ...activeLesson, completed: true });
+      setTrack({ ...track, lessonsCompleted: nextCompletedCount, status: nextStatus });
+      await loadLessonData();
     } catch (completeError: unknown) {
       setCompletionError(getErrorMessage(completeError, 'Failed to complete lesson.'));
     } finally {
@@ -171,7 +139,7 @@ export default function LessonDetailContainer() {
   }
 
   function handleSelectLesson(nextLessonId: string) {
-    router.push(`/tracks/${trackId}/lessons/${nextLessonId}`);
+    router.push(`/courses/${courseId}/lessons/${nextLessonId}`);
   }
 
   if (loading) return <LessonLoadingState />;
@@ -181,7 +149,7 @@ export default function LessonDetailContainer() {
       <LessonErrorState
         title="Lesson not available"
         message={error}
-        onBack={() => router.push('/tracks')}
+        onBack={() => router.push('/courses')}
         onRetry={loadLessonData}
       />
     );
@@ -192,7 +160,7 @@ export default function LessonDetailContainer() {
       <LessonErrorState
         title="Lesson not found"
         message="This lesson does not exist in the selected track."
-        onBack={() => router.push('/tracks')}
+        onBack={() => router.push('/courses')}
         onRetry={loadLessonData}
       />
     );
@@ -203,10 +171,12 @@ export default function LessonDetailContainer() {
       track={track}
       lessons={lessons}
       activeLesson={activeLesson}
+      activeLessonIndex={activeLessonIndex}
+      exercises={exercises}
       completing={completing}
       completionMessage={completionMessage}
       completionError={completionError}
-      onBackToTracks={() => router.push('/tracks')}
+      onBackToTracks={() => router.push(`/courses/${courseId}`)}
       onSelectLesson={handleSelectLesson}
       onCompleteLesson={handleCompleteLesson}
     />

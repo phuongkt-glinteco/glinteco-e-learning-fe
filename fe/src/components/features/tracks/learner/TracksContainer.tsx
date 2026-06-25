@@ -1,32 +1,34 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getTracks } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
-import { TracksGrid } from './TracksGrid';
-import type { TrackFilter } from './TracksGrid';
+import { TracksTimeline } from './TracksTimeline';
 import type { LearnerTrack } from './types';
-import {
-  getErrorMessage,
-  normalizeTrackSummaries,
-} from './utils';
+import { fetchCourses } from './courseLearningApi';
+import { getErrorMessage } from './utils';
 
 function TracksLoadingState() {
   return (
-    <section className="mx-auto max-w-container-max px-gutter py-8">
-      <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div className="space-y-2">
-          <Skeleton width={240} height={32} rounded="rounded" />
-          <Skeleton width={360} height={20} rounded="rounded" />
-        </div>
-        <Skeleton width={420} height={48} rounded="rounded-full" />
+    <section className="mx-auto flex max-w-[920px] flex-col gap-6 px-gutter py-8">
+      <div className="space-y-2">
+        <Skeleton width={240} height={32} rounded="rounded" />
+        <Skeleton width={460} height={20} rounded="rounded" />
       </div>
-      <Skeleton height={56} className="mb-6" />
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 2xl:grid-cols-3">
-        <Skeleton height={292} />
-        <Skeleton height={292} />
-        <Skeleton height={292} />
+      <Skeleton height={112} />
+      <div className="space-y-5">
+        <div className="grid grid-cols-[56px_1fr] gap-4">
+          <Skeleton width={56} height={56} rounded="rounded-lg" />
+          <Skeleton height={184} />
+        </div>
+        <div className="grid grid-cols-[56px_1fr] gap-4">
+          <Skeleton width={56} height={56} rounded="rounded-lg" />
+          <Skeleton height={184} />
+        </div>
+        <div className="grid grid-cols-[56px_1fr] gap-4">
+          <Skeleton width={56} height={56} rounded="rounded-lg" />
+          <Skeleton height={184} />
+        </div>
       </div>
     </section>
   );
@@ -62,70 +64,39 @@ export default function TracksContainer() {
   const [tracks, setTracks] = useState<LearnerTrack[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [openingTrackId, setOpeningTrackId] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<TrackFilter>('all');
 
-  async function loadTracks() {
+  const loadTracks = useCallback(async (isActive: () => boolean = () => true) => {
     setLoading(true);
     setError(null);
-    setActionError(null);
 
     try {
-      const response = await getTracks({ throwOnError: true });
-      setTracks(normalizeTrackSummaries(response.data?.data ?? []));
+      const courses = await fetchCourses();
+      if (isActive()) setTracks(courses);
     } catch (loadError: unknown) {
-      setError(getErrorMessage(loadError, 'Failed to fetch learning tracks.'));
+      if (isActive()) {
+        setError(getErrorMessage(loadError, 'Failed to fetch learning tracks.'));
+      }
     } finally {
-      setLoading(false);
+      if (isActive()) setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     let active = true;
 
-    async function load() {
-      setLoading(true);
-      setError(null);
-      setActionError(null);
-
-      try {
-        const response = await getTracks({ throwOnError: true });
-        if (active) setTracks(normalizeTrackSummaries(response.data?.data ?? []));
-      } catch (loadError: unknown) {
-        if (active) setError(getErrorMessage(loadError, 'Failed to fetch learning tracks.'));
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    load();
+    loadTracks(() => active);
 
     return () => {
       active = false;
     };
-  }, []);
-
-  const visibleTracks = useMemo(() => {
-    const keyword = query.trim().toLowerCase();
-
-    return tracks.filter((track) => {
-      const matchesFilter = filter === 'all' || track.status === filter;
-      const matchesQuery = keyword.length === 0
-        || track.title.toLowerCase().includes(keyword)
-        || track.description.toLowerCase().includes(keyword);
-
-      return matchesFilter && matchesQuery;
-    });
-  }, [filter, query, tracks]);
+  }, [loadTracks]);
 
   function handleOpenTrack(track: LearnerTrack) {
     if (track.status === 'locked') return;
 
     setOpeningTrackId(track.id);
-    setActionError(null);
-    router.push(`/tracks/${track.id}`);
+    router.push(`/courses/${track.id}`);
   }
 
   if (loading) return <TracksLoadingState />;
@@ -140,14 +111,9 @@ export default function TracksContainer() {
   }
 
   return (
-    <TracksGrid
-      tracks={visibleTracks}
-      query={query}
-      filter={filter}
+    <TracksTimeline
+      tracks={tracks}
       openingTrackId={openingTrackId}
-      actionError={actionError}
-      onQueryChange={setQuery}
-      onFilterChange={setFilter}
       onOpenTrack={handleOpenTrack}
     />
   );

@@ -7,6 +7,7 @@ interface CourseDetailViewProps {
   lessons: TrackLessonPreview[];
   currentLessonId: string | null;
   onBackToTracks: () => void;
+  onContinueCourse: () => void;
   onOpenLesson: (lessonId: string) => void;
 }
 
@@ -15,6 +16,7 @@ export function CourseDetailView({
   lessons,
   currentLessonId,
   onBackToTracks,
+  onContinueCourse,
   onOpenLesson,
 }: CourseDetailViewProps) {
   const progressPercent = track.lessonCount > 0
@@ -44,7 +46,7 @@ export function CourseDetailView({
               <span className="material-symbols-outlined text-[17px]">
                 {track.icon || 'route'}
               </span>
-              {isLocked ? 'Locked Course' : 'Learning Track'}
+              {isLocked ? 'Course locked' : 'Learning Track'}
             </div>
             <h1 className="headline-lg text-primary">{track.title}</h1>
             <p className="mt-3 max-w-[760px] body-md text-on-surface-variant">
@@ -65,6 +67,12 @@ export function CourseDetailView({
                 {track.lessonsCompleted} completed
               </span>
             </div>
+
+            {track.lockedReason && (
+              <div className="mt-4 rounded-lg border border-outline-variant bg-surface-container-low p-3 body-sm text-on-surface-variant">
+                {track.lockedReason}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-center">
@@ -83,6 +91,32 @@ export function CourseDetailView({
 
         <aside className="flex flex-col gap-4">
           <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+            <h2 className="headline-sm text-on-surface">Next Step</h2>
+            {lessons.length > 0 ? (
+              <>
+                <p className="mt-2 body-sm text-on-surface-variant">
+                  Continue from the current lesson in this course.
+                </p>
+                <button
+                  type="button"
+                  onClick={onContinueCourse}
+                  disabled={isLocked || !currentLessonId}
+                  className={`mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 label-sm transition-colors ${
+                    isLocked || !currentLessonId
+                      ? 'cursor-not-allowed bg-surface-container text-outline'
+                      : 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
+                  }`}
+                >
+                  Continue Course
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
+              </>
+            ) : (
+              <p className="mt-2 body-sm text-on-surface-variant">No lessons yet.</p>
+            )}
+          </section>
+
+          <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
             <h2 className="headline-sm text-on-surface">Course Progress</h2>
             <div className="mt-4 space-y-3">
               <div className="flex items-center justify-between label-sm text-on-surface-variant">
@@ -100,19 +134,6 @@ export function CourseDetailView({
             </div>
           </section>
 
-          <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
-            <h2 className="headline-sm text-on-surface">Exercises</h2>
-            <p className="mt-2 body-sm text-on-surface-variant">
-              No assigned exercise found for this course.
-            </p>
-          </section>
-
-          <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
-            <h2 className="headline-sm text-on-surface">Related Docs</h2>
-            <p className="mt-2 body-sm text-on-surface-variant">
-              No related documents found for this course.
-            </p>
-          </section>
         </aside>
       </div>
     </section>

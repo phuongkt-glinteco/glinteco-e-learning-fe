@@ -1,6 +1,4 @@
-import { Icon } from '@iconify/react';
-import HPBar from '@/components/ui/HPBar';
-import { StatusBadge, TimeBadge } from '@/components/ui/Badge';
+import CircleMeter from '@/components/ui/CircleMeter';
 import { CourseRoadmap } from './CourseRoadmap';
 import type { LearnerTrack, TrackLessonPreview } from './types';
 
@@ -8,9 +6,8 @@ interface CourseDetailViewProps {
   track: LearnerTrack;
   lessons: TrackLessonPreview[];
   currentLessonId: string | null;
-  isUsingMockData: boolean;
-  fallbackMessage: string | null;
   onBackToTracks: () => void;
+  onContinueCourse: () => void;
   onOpenLesson: (lessonId: string) => void;
 }
 
@@ -18,112 +15,127 @@ export function CourseDetailView({
   track,
   lessons,
   currentLessonId,
-  isUsingMockData,
-  fallbackMessage,
   onBackToTracks,
+  onContinueCourse,
   onOpenLesson,
 }: CourseDetailViewProps) {
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
+  const isLocked = track.status === 'locked';
 
   return (
-    <div className="max-w-[960px] mx-auto py-4">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs font-semibold text-on-surface-variant mb-4">
+    <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
+      <nav className="flex items-center gap-2 label-sm text-on-surface-variant">
         <button
           type="button"
           onClick={onBackToTracks}
-          className="inline-flex items-center gap-1 text-primary hover:underline cursor-pointer"
+          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-primary hover:bg-surface-container-low cursor-pointer"
         >
-          <Icon icon="lucide:arrow-left" className="w-3.5 h-3.5" />
+          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
           Learning Tracks
         </button>
-        <span className="text-outline">/</span>
+        <span>/</span>
         <span className="truncate text-on-surface">{track.title}</span>
       </nav>
 
-      {fallbackMessage && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
-          {fallbackMessage}
-        </div>
-      )}
-
-      {/* Track Header */}
-      <header className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm mb-6">
-        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+      <header className="rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+        <div className="grid gap-6 lg:grid-cols-[1fr_220px] lg:items-center">
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-2">
-              {isUsingMockData && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                  <Icon icon="lucide:flask-conical" className="w-3.5 h-3.5" />
-                  Sample data
-                </span>
-              )}
-              <StatusBadge status={track.status} />
-              <TimeBadge time={track.estimatedTime} />
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-on-surface-variant">
-                <Icon icon="lucide:book-open" className="w-3.5 h-3.5 text-primary" />
-                {track.lessonCount} lessons
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary-fixed px-3 py-1 label-sm text-primary">
+              <span className="material-symbols-outlined text-[17px]">
+                {track.icon || 'route'}
               </span>
+              {isLocked ? 'Course locked' : 'Learning Track'}
             </div>
-            <h1 className="text-xl font-bold text-on-surface">{track.title}</h1>
-            <p className="text-sm text-on-surface-variant mt-2 leading-relaxed">
+            <h1 className="headline-lg text-primary">{track.title}</h1>
+            <p className="mt-3 max-w-[760px] body-md text-on-surface-variant">
               {track.description}
             </p>
+
+            <div className="mt-5 flex flex-wrap gap-3 label-sm text-on-surface-variant">
+              <span className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-2">
+                <span className="material-symbols-outlined text-[16px]">schedule</span>
+                {track.estimatedTime}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-2">
+                <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                {track.lessonCount} lessons
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-2">
+                <span className="material-symbols-outlined text-[16px]">task_alt</span>
+                {track.lessonsCompleted} completed
+              </span>
+            </div>
+
+            {track.lockedReason && (
+              <div className="mt-4 rounded-lg border border-outline-variant bg-surface-container-low p-3 body-sm text-on-surface-variant">
+                {track.lockedReason}
+              </div>
+            )}
           </div>
 
-          {track.lessonCount > 0 && (
-            <div className="w-full lg:w-[200px]">
-              <div className="flex justify-between text-xs font-semibold mb-1.5">
-                <span className="text-on-surface-variant">
-                  {track.lessonsCompleted}/{track.lessonCount} done
-                </span>
-                <span className="text-primary">{progressPercent}%</span>
-              </div>
-              <HPBar value={progressPercent} segments={track.lessonCount * 3} />
-            </div>
-          )}
+          <div className="flex items-center justify-center">
+            <CircleMeter value={progressPercent} size={168} label="Completed" />
+          </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <div className="grid gap-4 lg:grid-cols-[1fr_280px] lg:items-start">
+      <div className="grid gap-6 xl:grid-cols-[1fr_320px] xl:items-start">
         <CourseRoadmap
           lessons={lessons}
           activeLessonId={currentLessonId}
+          disabled={isLocked}
           onOpenLesson={onOpenLesson}
         />
 
         <aside className="flex flex-col gap-4">
-          <section className="bg-surface border border-outline-variant rounded-lg p-4 shadow-sm">
-            <h2 className="text-sm font-bold text-on-surface mb-2">Course Progress</h2>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-semibold text-on-surface-variant">
+          <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+            <h2 className="headline-sm text-on-surface">Next Step</h2>
+            {lessons.length > 0 ? (
+              <>
+                <p className="mt-2 body-sm text-on-surface-variant">
+                  Continue from the current lesson in this course.
+                </p>
+                <button
+                  type="button"
+                  onClick={onContinueCourse}
+                  disabled={isLocked || !currentLessonId}
+                  className={`mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 label-sm transition-colors ${
+                    isLocked || !currentLessonId
+                      ? 'cursor-not-allowed bg-surface-container text-outline'
+                      : 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
+                  }`}
+                >
+                  Continue Course
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
+              </>
+            ) : (
+              <p className="mt-2 body-sm text-on-surface-variant">No lessons yet.</p>
+            )}
+          </section>
+
+          <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+            <h2 className="headline-sm text-on-surface">Course Progress</h2>
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between label-sm text-on-surface-variant">
                 <span>Lessons completed</span>
                 <span className="text-on-surface">
                   {track.lessonsCompleted}/{track.lessonCount}
                 </span>
               </div>
-              <HPBar value={progressPercent} segments={Math.max(track.lessonCount, 4)} />
+              <div className="h-2 overflow-hidden rounded-full bg-surface-container">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
           </section>
 
-          <section className="bg-surface border border-outline-variant rounded-lg p-4 shadow-sm">
-            <h2 className="text-sm font-bold text-on-surface mb-1">Exercises</h2>
-            <p className="text-xs text-on-surface-variant">
-              No assigned exercises for this course yet.
-            </p>
-          </section>
-
-          <section className="bg-surface border border-outline-variant rounded-lg p-4 shadow-sm">
-            <h2 className="text-sm font-bold text-on-surface mb-1">Related Docs</h2>
-            <p className="text-xs text-on-surface-variant">
-              No related documents for this course yet.
-            </p>
-          </section>
         </aside>
       </div>
-    </div>
+    </section>
   );
 }

@@ -2,22 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { usersControllerGetStats } from '@/services/api-client';
-import type { UserDashboardStatsDto } from '@/services/api-client';
+import { getUsersMeStats } from '@/services/api-client';
+import type { UserDashboardStats } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 import { ProgressBar } from '@/components/ui/HPBar';
 
 export default function LearningActivitySection() {
   const t = useTranslations('LearnerDashboard');
-  const [stats, setStats] = useState<UserDashboardStatsDto | null>(null);
+  const [stats, setStats] = useState<UserDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    usersControllerGetStats({ throwOnError: true })
+    getUsersMeStats({ throwOnError: true })
       .then((res) => {
-        if (!cancelled) setStats(res.data as UserDashboardStatsDto);
+        if (!cancelled) setStats(res.data as UserDashboardStats);
       })
       .catch(() => {})
       .finally(() => {
@@ -28,21 +28,15 @@ export default function LearningActivitySection() {
 
   if (loading) return <Skeleton height={256} />;
 
-  const tracks = stats?.tracks ?? { completed: 0, total: 0 };
-  const exercises = stats?.exercises ?? { total: 0, approved: 0, awaitingReview: 0 };
-  const savedDocs = stats?.savedDocs ?? { total: 0, unread: 0 };
+  if (!stats) return null;
 
-  if (!stats || !stats.tracks || !stats.exercises || !stats.savedDocs) {
-    return null;
-  }
-
-  if (!tracks.total) tracks.total = 0;
-  if (!tracks.completed) tracks.completed = 0;
-  if (!exercises.total) exercises.total = 0;
-  if (!savedDocs.total) savedDocs.total = 0;
-  if (!savedDocs.unread) savedDocs.unread = 0;
-  if (!exercises.approved) exercises.approved = 0;
-  if (!exercises.awaitingReview) exercises.awaitingReview = 0;
+  const tracksCompleted = stats.tracks?.completed ?? 0;
+  const tracksTotal = stats.tracks?.total ?? 0;
+  const exercisesTotal = stats.exercises?.total ?? 0;
+  const exercisesApproved = stats.exercises?.approved ?? 0;
+  const exercisesAwaiting = stats.exercises?.awaitingReview ?? 0;
+  const savedDocsTotal = stats.savedDocs?.total ?? 0;
+  const savedDocsUnread = stats.savedDocs?.unread ?? 0;
 
   return (
     <section>
@@ -55,10 +49,10 @@ export default function LearningActivitySection() {
               <span className="font-label-md text-label-md">{t('tracksCompleted')}</span>
             </div>
             <span className="font-label-md text-label-md text-primary">
-              {tracks.completed}/{tracks.total}
+              {tracksCompleted}/{tracksTotal}
             </span>
           </div>
-          <ProgressBar value={tracks.total > 0 ? (tracks.completed / tracks.total) * 100 : 0} />
+          <ProgressBar value={tracksTotal > 0 ? (tracksCompleted / tracksTotal) * 100 : 0} />
         </div>
         <div className="grid grid-cols-2 gap-gutter">
           <div className="flex flex-col gap-2">
@@ -68,16 +62,16 @@ export default function LearningActivitySection() {
             </div>
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <span className="font-headline-sm text-headline-sm">{exercises.total}</span>
+                <span className="font-headline-sm text-headline-sm">{exercisesTotal}</span>
                 <span className="font-body-sm text-body-sm text-on-surface-variant">{t('total')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-tertiary" />
-                <span className="text-body-sm text-body-sm">{t('approved', { count: exercises.approved })}</span>
+                <span className="text-body-sm text-body-sm">{t('approved', { count: exercisesApproved })}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200 uppercase tracking-tighter">
-                  {t('awaitingReview', { count: exercises.awaitingReview })}
+                  {t('awaitingReview', { count: exercisesAwaiting })}
                 </span>
               </div>
             </div>
@@ -89,12 +83,12 @@ export default function LearningActivitySection() {
             </div>
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <span className="font-headline-sm text-headline-sm">{savedDocs.total}</span>
+                <span className="font-headline-sm text-headline-sm">{savedDocsTotal}</span>
                 <span className="font-body-sm text-body-sm text-on-surface-variant">{t('total')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-secondary" />
-                <span className="text-body-sm text-body-sm font-semibold text-secondary">{t('unread', { count: savedDocs.unread })}</span>
+                <span className="text-body-sm text-body-sm font-semibold text-secondary">{t('unread', { count: savedDocsUnread })}</span>
               </div>
             </div>
           </div>

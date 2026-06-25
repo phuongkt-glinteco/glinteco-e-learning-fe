@@ -2,31 +2,23 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
-  getAccessToken,
-  getTracksById,
-  getTracksByIdLessons,
-  postLessonsByIdComplete,
-} from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { LessonDetailView } from './LessonDetailView';
-import { getMockTrackById } from './mockData';
-import type { LearnerLesson, LearnerTrack } from './types';
+import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
+import { completeLesson, fetchLessonPage } from './courseLearningApi';
 import {
   getErrorMessage,
   getRouteParam,
-  normalizeLessons,
-  normalizeTrackDetail,
 } from './utils';
 
 function LessonLoadingState() {
   return (
-    <div className="max-w-[960px] mx-auto py-4">
-      <Skeleton height={56} className="mb-4" />
-      <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr_240px] gap-4">
-        <Skeleton height={320} />
-        <Skeleton height={480} />
-        <Skeleton height={280} />
+    <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
+      <Skeleton height={72} />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <Skeleton height={360} />
+        <Skeleton height={520} className="lg:col-span-2" />
+        <Skeleton height={300} />
       </div>
     </div>
   );
@@ -44,130 +36,79 @@ function LessonErrorState({
   onRetry: () => void;
 }) {
   return (
-    <div className="max-w-2xl mx-auto my-8">
-      <div className="p-lg bg-red-50 border border-red-200 rounded-lg text-red-700">
-        <h3 className="font-bold">{title}</h3>
-        <p className="text-sm mt-1">{message}</p>
-        <div className="flex gap-3 mt-3">
+    <section className="mx-auto max-w-[760px] px-gutter py-8">
+      <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
+        <h1 className="headline-sm">{title}</h1>
+        <p className="body-sm mt-2">{message}</p>
+        <div className="flex gap-3 flex-wrap mt-4">
           <button
             type="button"
             onClick={onBack}
-            className="px-4 py-2 border border-outline-variant text-on-surface text-xs font-semibold rounded-md hover:bg-surface-container-low cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-4 py-2 label-sm text-on-surface hover:bg-surface-container-low cursor-pointer"
           >
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
             Back to tracks
           </button>
           <button
             type="button"
             onClick={onRetry}
-            className="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-md hover:opacity-90 cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
           >
+            <span className="material-symbols-outlined text-[16px]">refresh</span>
             Retry
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
 export default function LessonDetailContainer() {
   const params = useParams();
   const router = useRouter();
-  const trackId = getRouteParam(params.trackId);
+  const courseId = getRouteParam(params.courseId ?? params.trackId);
   const lessonId = getRouteParam(params.lessonId);
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<LearnerLesson[]>([]);
+  const [exercises, setExercises] = useState<LearnerExercise[]>([]);
+  const [activeLesson, setActiveLesson] = useState<LearnerLesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [fallbackMessage, setFallbackMessage] = useState<string | null>(null);
-  const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [completionMessage, setCompletionMessage] = useState<string | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
 
-  const useMockLessonDetail = useCallback((message?: string) => {
-    if (!trackId || !lessonId) return false;
-
-    const mockTrack = getMockTrackById(trackId);
-    if (!mockTrack) return false;
-
-    if (mockTrack.status === 'locked') {
-      setTrack(null);
-      setLessons([]);
-      setIsUsingMockData(true);
-      setFallbackMessage(message ?? null);
-      setError('This track is locked. Complete previous milestones first.');
-      return true;
-    }
-
-    const hasLesson = mockTrack.lessons.some((lesson) => lesson.id === lessonId);
-    if (!hasLesson) return false;
-
-    setTrack(mockTrack);
-    setLessons(mockTrack.lessons);
-    setIsUsingMockData(true);
-    setFallbackMessage(message ?? null);
-    setError(null);
-    return true;
-  }, [lessonId, trackId]);
-
   const loadLessonData = useCallback(async () => {
-    if (!trackId || !lessonId) {
-      setError('Missing track or lesson route parameters.');
+    if (!courseId || !lessonId) {
+      setError('Missing course or lesson route parameters.');
       setLoading(false);
       return;
     }
 
     setLoading(true);
     setError(null);
-    setFallbackMessage(null);
     setCompletionError(null);
 
     try {
-      if (!getAccessToken()) {
-        if (!useMockLessonDetail('Showing sample lesson content because you are not connected to the API yet.')) {
-          setError('This lesson does not exist in the selected track.');
-        }
-        return;
-      }
-
-      const [trackResponse, lessonsResponse] = await Promise.all([
-        getTracksById({ path: { id: trackId }, throwOnError: true }),
-        getTracksByIdLessons({ path: { id: trackId }, throwOnError: true }),
-      ]);
-
-      if (!trackResponse.data) {
-        throw new Error('Track was not found.');
-      }
-
-      if (trackResponse.data.status === 'locked') {
-        throw new Error('This track is locked. Complete previous milestones first.');
-      }
-
-      const normalizedLessons = normalizeLessons(
-        lessonsResponse.data?.data ?? [],
-        trackResponse.data.lessons ?? [],
-        trackResponse.data
-      );
-
-      setLessons(normalizedLessons);
-      setTrack(normalizeTrackDetail(trackResponse.data, trackId, normalizedLessons));
-      setIsUsingMockData(false);
+      const lessonPage = await fetchLessonPage(courseId, lessonId);
+      setLessons(lessonPage.lessons);
+      setTrack(lessonPage.course);
+      setActiveLesson(lessonPage.activeLesson);
+      setExercises(lessonPage.exercises);
     } catch (loadError: unknown) {
-      if (!useMockLessonDetail(getErrorMessage(loadError, 'Showing sample lesson content because the API is not available.'))) {
-        setError(getErrorMessage(loadError, 'Failed to load lesson details.'));
-      }
+      setError(getErrorMessage(loadError, 'Failed to load lesson details.'));
     } finally {
       setLoading(false);
     }
-  }, [trackId, lessonId, useMockLessonDetail]);
+  }, [courseId, lessonId]);
 
   useEffect(() => {
     loadLessonData();
   }, [loadLessonData]);
 
-  const activeLesson = useMemo(
-    () => lessons.find((lesson) => lesson.id === lessonId) ?? null,
+  const activeLessonIndex = useMemo(
+    () => lessons.findIndex((lesson) => lesson.id === lessonId),
     [lessons, lessonId]
   );
 
@@ -179,45 +120,17 @@ export default function LessonDetailContainer() {
     setCompletionMessage(null);
 
     try {
-      if (isUsingMockData) {
-        const nextCompletedCount = Math.min(track.lessonsCompleted + 1, track.lessonCount);
+      const response = await completeLesson(activeLesson.id);
 
-        setLessons((currentLessons) => currentLessons.map((lesson) => (
-          lesson.id === activeLesson.id
-            ? { ...lesson, completed: true }
-            : lesson
-        )));
-        setTrack({
-          ...track,
-          lessonsCompleted: nextCompletedCount,
-          status: nextCompletedCount >= track.lessonCount ? 'completed' : 'in_progress',
-        });
-        setCompletionMessage(`Lesson completed locally. +${activeLesson.xp} XP awarded in sample data.`);
-        return;
-      }
-
-      const response = await postLessonsByIdComplete({
-        path: { id: activeLesson.id },
-        throwOnError: true,
-      });
-
-      const xpAwarded = response.data?.xpAwarded ?? activeLesson.xp;
-      const nextCompletedCount = response.data?.lessonsCompleted
+      const xpAwarded = response.xpAwarded ?? activeLesson.xp;
+      const nextCompletedCount = response.lessonsCompleted
         ?? Math.min(track.lessonsCompleted + 1, track.lessonCount);
-      const nextStatus = response.data?.trackStatus
+      const nextStatus = response.trackStatus
         ?? (nextCompletedCount >= track.lessonCount ? 'completed' : 'in_progress');
-
-      setLessons((currentLessons) => currentLessons.map((lesson) => (
-        lesson.id === activeLesson.id
-          ? { ...lesson, completed: true }
-          : lesson
-      )));
-      setTrack({
-        ...track,
-        lessonsCompleted: nextCompletedCount,
-        status: nextStatus,
-      });
       setCompletionMessage(`Lesson completed. +${xpAwarded} XP awarded.`);
+      setActiveLesson({ ...activeLesson, completed: true });
+      setTrack({ ...track, lessonsCompleted: nextCompletedCount, status: nextStatus });
+      await loadLessonData();
     } catch (completeError: unknown) {
       setCompletionError(getErrorMessage(completeError, 'Failed to complete lesson.'));
     } finally {
@@ -226,7 +139,7 @@ export default function LessonDetailContainer() {
   }
 
   function handleSelectLesson(nextLessonId: string) {
-    router.push(`/courses/${trackId}/lessons/${nextLessonId}`);
+    router.push(`/courses/${courseId}/lessons/${nextLessonId}`);
   }
 
   if (loading) return <LessonLoadingState />;
@@ -258,12 +171,12 @@ export default function LessonDetailContainer() {
       track={track}
       lessons={lessons}
       activeLesson={activeLesson}
-      isUsingMockData={isUsingMockData}
-      fallbackMessage={fallbackMessage}
+      activeLessonIndex={activeLessonIndex}
+      exercises={exercises}
       completing={completing}
       completionMessage={completionMessage}
       completionError={completionError}
-      onBackToTracks={() => router.push(`/courses/${trackId}`)}
+      onBackToTracks={() => router.push(`/courses/${courseId}`)}
       onSelectLesson={handleSelectLesson}
       onCompleteLesson={handleCompleteLesson}
     />

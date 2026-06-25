@@ -1,5 +1,5 @@
-import TracksContainer from '@/components/features/tracks/learner/TracksContainer';
+import CoursesContainer from '@/components/features/courses/CoursesContainer';
 
 export default function CoursesPage() {
-  return <TracksContainer />;
+  return <CoursesContainer />;
 }

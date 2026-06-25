@@ -1,19 +1,29 @@
-import { Icon } from '@iconify/react';
 import type { TrackLessonPreview } from './types';
 
 interface CourseRoadmapProps {
   lessons: TrackLessonPreview[];
   activeLessonId: string | null;
+  disabled: boolean;
   onOpenLesson: (lessonId: string) => void;
 }
 
-export function CourseRoadmap({ lessons, activeLessonId, onOpenLesson }: CourseRoadmapProps) {
+function getLessonState(lesson: TrackLessonPreview, activeLessonId: string | null) {
+  if (lesson.completed) return 'completed';
+  if (lesson.id === activeLessonId) return 'current';
+  return 'upcoming';
+}
+
+export function CourseRoadmap({
+  lessons,
+  activeLessonId,
+  disabled,
+  onOpenLesson,
+}: CourseRoadmapProps) {
   if (lessons.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-8 text-center">
-        <Icon icon="lucide:book-x" className="w-8 h-8 mx-auto text-outline mb-2" />
-        <h3 className="text-sm font-bold text-on-surface">No lessons available</h3>
-        <p className="text-xs text-on-surface-variant mt-1">
+        <h2 className="headline-sm text-on-surface">No lessons yet</h2>
+        <p className="mt-2 body-sm text-on-surface-variant">
           This course does not have published lessons yet.
         </p>
       </div>
@@ -21,86 +31,88 @@ export function CourseRoadmap({ lessons, activeLessonId, onOpenLesson }: CourseR
   }
 
   return (
-    <div className="bg-surface border border-outline-variant rounded-lg p-4 shadow-sm">
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+      <div className="mb-5 flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-sm font-bold text-on-surface">Course Roadmap</h2>
-          <p className="text-xs text-on-surface-variant mt-0.5">
+          <h2 className="headline-sm text-on-surface">Course Roadmap</h2>
+          <p className="mt-1 body-sm text-on-surface-variant">
             Follow the lessons in order and continue from your current step.
           </p>
         </div>
-        <span className="hidden sm:inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+        <span className="hidden rounded-full bg-primary-fixed px-3 py-1 label-sm text-primary sm:inline-flex">
           {lessons.length} lessons
         </span>
       </div>
 
-      <div className="relative flex flex-col gap-3">
-        {lessons.map((lesson, idx) => {
-          const isCurrent = lesson.id === activeLessonId && !lesson.completed;
-          const isCompleted = lesson.completed;
+      <div className="relative isolate flex flex-col gap-4">
+        <div className="pointer-events-none absolute bottom-8 left-10 top-8 z-0 w-px bg-outline-variant/80" />
+
+        {lessons.map((lesson) => {
+          const state = getLessonState(lesson, activeLessonId);
+          const isCurrent = state === 'current';
+          const isCompleted = state === 'completed';
 
           return (
             <article
               key={lesson.id}
-              className={`relative grid grid-cols-[44px_1fr] gap-3 rounded-lg border p-3 transition-colors ${
+              className={`relative z-10 grid grid-cols-[48px_1fr] gap-4 overflow-hidden rounded-lg border bg-surface-container-lowest p-4 transition-all ${
                 isCurrent
-                  ? 'border-primary bg-primary/5'
-                  : 'border-outline-variant bg-surface'
+                  ? 'border-primary shadow-sm ring-1 ring-primary/20'
+                  : 'border-outline-variant hover:border-primary/40'
               }`}
             >
-              <div
-                className={`flex h-11 w-11 items-center justify-center rounded-full ${
-                  isCompleted
-                    ? 'bg-green-600 text-white'
-                    : isCurrent
-                      ? 'bg-primary text-white'
-                      : 'bg-surface-container text-outline'
-                }`}
-              >
-                <Icon
-                  icon={
-                    isCompleted
-                      ? 'lucide:check'
-                      : isCurrent
-                        ? 'lucide:play'
-                        : 'lucide:circle'
-                  }
-                  className="w-5 h-5"
-                />
+              {isCurrent && (
+                <div className="pointer-events-none absolute inset-0 z-0 bg-primary/5" />
+              )}
+
+              <div className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-4 border-surface-container-lowest shadow-sm ${
+                isCompleted
+                  ? 'bg-green-600 text-white'
+                  : isCurrent
+                    ? 'bg-primary text-on-primary'
+                    : 'bg-surface-container text-outline'
+              }`}>
+                <span className="material-symbols-outlined text-[22px]">
+                  {isCompleted ? 'check' : isCurrent ? 'play_arrow' : 'radio_button_unchecked'}
+                </span>
               </div>
 
-              <div className="min-w-0">
+              <div className="relative z-10 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded bg-surface-container px-2 py-0.5 text-xs font-semibold text-on-surface-variant">
+                  <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
                     Lesson {lesson.order}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-on-surface-variant">
-                    <Icon icon="lucide:clock" className="w-3 h-3" />
+                  <span className="rounded bg-surface-container px-2 py-0.5 label-sm capitalize text-on-surface-variant">
+                    {lesson.type}
+                  </span>
+                  <span className="inline-flex items-center gap-1 label-sm text-on-surface-variant">
+                    <span className="material-symbols-outlined text-[15px]">schedule</span>
                     {lesson.estimatedTime}
                   </span>
                 </div>
-                <h3 className="mt-1.5 text-sm font-bold text-on-surface">{lesson.title}</h3>
+                <h3 className="mt-2 headline-sm text-on-surface">{lesson.title}</h3>
+                {lesson.description && (
+                  <p className="mt-1 body-sm text-on-surface-variant">{lesson.description}</p>
+                )}
 
-                <div className="mt-2 flex justify-end">
+                <div className="mt-4 flex justify-end">
                   <button
                     type="button"
                     onClick={() => onOpenLesson(lesson.id)}
-                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition-colors ${
-                      isCurrent
-                        ? 'bg-primary text-white hover:opacity-90 cursor-pointer'
-                        : 'border border-outline-variant text-on-surface hover:bg-surface-container-low cursor-pointer'
+                    disabled={disabled}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 label-sm transition-colors ${
+                      disabled
+                        ? 'cursor-not-allowed bg-surface-container text-outline'
+                        : isCurrent
+                          ? 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
+                          : 'cursor-pointer border border-outline-variant text-on-surface hover:bg-surface-container-low'
                     }`}
                   >
                     {isCompleted ? 'Review' : isCurrent ? 'Continue' : 'Open'}
-                    <Icon icon="lucide:arrow-right" className="w-3 h-3" />
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </button>
                 </div>
               </div>
-
-              {/* Connector line */}
-              {idx < lessons.length - 1 && (
-                <div className="absolute left-[22px] top-[52px] h-[calc(100%-8px)] w-px bg-outline-variant" />
-              )}
             </article>
           );
         })}

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { usersControllerGetStats } from '@/services/api-client';
-import type { UserDashboardStatsDto } from '@/services/api-client';
+import { getUsersMeStats } from '@/services/api-client';
+import type { UserDashboardStats } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { ProgressBar } from '@/components/ui/HPBar';
 
@@ -44,14 +44,14 @@ function StreakDots({ days }: { days: number }) {
 
 export default function StatsGrid() {
   const t = useTranslations('LearnerDashboard');
-  const [stats, setStats] = useState<UserDashboardStatsDto | null>(null);
+  const [stats, setStats] = useState<UserDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    usersControllerGetStats({ throwOnError: true })
+    getUsersMeStats({ throwOnError: true })
       .then((res) => {
-        if (!cancelled) setStats(res.data as UserDashboardStatsDto);
+        if (!cancelled) setStats(res.data as UserDashboardStats);
       })
       .catch(() => {})
       .finally(() => {

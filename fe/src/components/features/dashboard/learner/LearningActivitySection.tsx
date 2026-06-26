@@ -2,22 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { getUsersMeStats } from '@/services/api-client';
-import type { UserDashboardStats } from '@/services/api-client';
+import { usersControllerGetStats } from '@/services/api-client';
+import type { UserDashboardStatsDto } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 import { ProgressBar } from '@/components/ui/HPBar';
 
 export default function LearningActivitySection() {
   const t = useTranslations('LearnerDashboard');
-  const [stats, setStats] = useState<UserDashboardStats | null>(null);
+  const [stats, setStats] = useState<UserDashboardStatsDto | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    getUsersMeStats({ throwOnError: true })
+    usersControllerGetStats({ throwOnError: true })
       .then((res) => {
-        if (!cancelled) setStats(res.data as UserDashboardStats);
+        if (!cancelled) setStats(res.data as UserDashboardStatsDto);
       })
       .catch(() => {})
       .finally(() => {

@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { getDocumentsRecent } from '@/services/api-client';
-import type { Document } from '@/services/api-client';
+import { documentsControllerFindRecent } from '@/services/api-client';
+import type { DocumentDto } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 
-function DocCard({ title, tags, kind }: Pick<Document, 'title' | 'tags' | 'kind'>) {
+function DocCard({ title, tags, kind }: Pick<DocumentDto, 'title' | 'tags' | 'kind'>) {
   const tagLabels = (tags ?? []).map((tag) => (
     typeof tag === 'string' ? tag : tag.name ?? tag.id ?? ''
   )).filter(Boolean);

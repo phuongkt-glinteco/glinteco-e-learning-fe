@@ -1,12 +1,11 @@
 import {
   client,
-  getExercises,
-  getTracks,
-  getTracksById,
-  getTracksByIdLessons,
-  postLessonsByIdComplete,
+  exercisesControllerFindAll,
+  tracksControllerFindAll,
+  tracksControllerFindOne,
+  lessonsControllerFindLessons,
+  lessonsControllerCompleteLesson,
   withAuthRetry,
-  type ErrorResponse,
 } from '@/services/api-client';
 import type { LearnerExercise, LearnerLesson, LearnerTrack, TrackLessonPreview } from './types';
 import {
@@ -28,6 +27,12 @@ import {
 } from './utils';
 
 const bearerSecurity = [{ scheme: 'bearer' as const, type: 'http' as const }];
+
+type ErrorResponse = {
+  statusCode?: number;
+  message?: string | string[];
+  error?: string;
+};
 
 type LessonDetailResponses = {
   200: LessonDetailContract;
@@ -60,7 +65,7 @@ export interface CompleteLessonResult {
 }
 
 export async function fetchCourses(): Promise<LearnerTrack[]> {
-  const response = await withAuthRetry(() => getTracks({ throwOnError: true }));
+  const response = await withAuthRetry(() => tracksControllerFindAll({ throwOnError: true }));
   return normalizeTrackSummaries(
     extractDataArray<TrackSummaryContract>(response.data as unknown as TrackSummaryContract[] | { data?: TrackSummaryContract[] })
   );
@@ -68,11 +73,11 @@ export async function fetchCourses(): Promise<LearnerTrack[]> {
 
 export async function fetchCourseDetail(courseId: string): Promise<CourseDetailData> {
   const [courseResponse, lessonsResponse] = await Promise.all([
-    getTracksById({
+    tracksControllerFindOne({
       path: { id: courseId },
       throwOnError: true,
     }),
-    getTracksByIdLessons({
+    lessonsControllerFindLessons({
       path: { id: courseId },
       throwOnError: true,
     }),
@@ -125,7 +130,7 @@ async function fetchLessonExercises(
     if (getErrorStatus(error) === 401) throw error;
   }
 
-  const trackExercisesResponse = await getExercises({
+  const trackExercisesResponse = await exercisesControllerFindAll({
     query: { trackId: courseId },
     throwOnError: true,
   });
@@ -207,7 +212,7 @@ export async function fetchLessonPage(
 }
 
 export async function completeLesson(lessonId: string): Promise<CompleteLessonResult> {
-  const response = await postLessonsByIdComplete({
+  const response = await lessonsControllerCompleteLesson({
     path: { id: lessonId },
     throwOnError: true,
   });

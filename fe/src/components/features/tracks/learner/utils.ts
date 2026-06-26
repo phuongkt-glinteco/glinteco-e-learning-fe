@@ -1,11 +1,9 @@
 import type {
-  ErrorResponse,
-  ExerciseSummary,
-  LessonDetail,
-  LessonProgressItem,
-  LessonSummary,
-  TrackDetail,
-  TrackSummary,
+  ExerciseSummaryDto,
+  LessonDetailDto,
+  LessonProgressItemDto,
+  TrackDetailDto,
+  TrackSummaryDto,
 } from '@/services/api-client';
 import { normalizeTrackIcon } from '@/utils/track-icons';
 import type {
@@ -39,18 +37,29 @@ type LessonContractExtras = {
   description?: string | null;
   type?: LessonType | null;
   completed?: boolean | null;
+  estimatedTime?: string | null;
+  body?: string | null;
 };
 
-export type TrackSummaryContract = TrackSummary & TrackContractExtras;
-export type TrackDetailContract = TrackDetail & TrackContractExtras & {
-  lessons?: Array<LessonProgressItem & LessonContractExtras>;
+type ErrorResponseLike = {
+  statusCode?: number;
 };
-export type LessonSummaryContract = LessonSummary & LessonContractExtras;
-export type LessonProgressContract = LessonProgressItem & LessonContractExtras;
-export type LessonDetailContract = LessonDetail & LessonContractExtras & {
+
+type FlexibleTrackFields = 'accessStatus' | 'lockedReason' | 'currentLessonId' | 'level' | 'thumbnail';
+type OptionalTrackDetailFields = 'prevTrack' | 'nextTrack';
+
+export type TrackSummaryContract = Omit<TrackSummaryDto, FlexibleTrackFields> & TrackContractExtras;
+export type TrackDetailContract = Omit<TrackDetailDto, FlexibleTrackFields | OptionalTrackDetailFields | 'lessons'> & TrackContractExtras & {
+  lessons?: Array<LessonProgressItemDto & LessonContractExtras>;
+  prevTrack?: unknown;
+  nextTrack?: unknown;
+};
+export type LessonSummaryContract = LessonProgressItemDto & LessonContractExtras;
+export type LessonProgressContract = LessonProgressItemDto & LessonContractExtras;
+export type LessonDetailContract = LessonDetailDto & LessonContractExtras & {
   relatedDocs?: unknown[];
 };
-export type ExerciseSummaryContract = ExerciseSummary & {
+export type ExerciseSummaryContract = ExerciseSummaryDto & {
   lessonId?: string | null;
 };
 
@@ -73,7 +82,7 @@ export function getErrorStatus(error: unknown): number | null {
 
   const maybeStatus = (error as { status?: unknown; statusCode?: unknown }).status
     ?? (error as { response?: { status?: unknown } }).response?.status
-    ?? (error as ErrorResponse).statusCode;
+    ?? (error as ErrorResponseLike).statusCode;
 
   return typeof maybeStatus === 'number' ? maybeStatus : null;
 }

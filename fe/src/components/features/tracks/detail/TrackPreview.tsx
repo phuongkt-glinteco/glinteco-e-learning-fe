@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { sumEstimatedTimes } from '@/lib/time-utils';
-import type { LessonProgressItem, ExerciseSummaryDto } from '@/services/api-client';
+import type { LessonProgressItemDto, ExerciseSummaryDto } from '@/services/api-client';
 import { TrackHero } from './TrackHero';
 import { CourseRoadmap } from './CourseRoadmap';
 import { TrackExercisesCard } from './TrackExercisesCard';
@@ -18,7 +18,7 @@ interface TrackTrackStatusItem {
 interface TrackPreviewProps {
   title: string;
   description: string;
-  lessons: LessonProgressItem[];
+  lessons: Array<LessonProgressItemDto & { estimatedTime?: string; body?: string | null }>;
   exercises?: ExerciseSummaryDto[];
   onBackToEdit: () => void;
   onSaveTrack?: () => void;

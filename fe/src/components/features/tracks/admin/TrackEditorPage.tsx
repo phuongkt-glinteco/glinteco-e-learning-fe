@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
-  getTracksById,
-  getTracksByIdLessons,
-  patchTracksById,
-  postTracksByIdLessons,
-  deleteLessonsById,
+  tracksControllerFindOne,
+  lessonsControllerFindLessons,
+  tracksControllerUpdate,
+  lessonsControllerCreateLesson,
+  lessonsControllerDeleteLesson,
 } from '@/services/api-client';
-import type { LessonSummary, TrackDetail } from '@/services/api-client';
+import type { LessonProgressItemDto, TrackDetailDto } from '@/services/api-client';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { sumEstimatedTimes } from '@/lib/time-utils';
 import Skeleton from '@/components/ui/loading/Skeleton';
@@ -24,7 +24,12 @@ interface TrackEditorPageProps {
   trackId: string;
 }
 
-interface ExistingLesson extends LessonSummary {
+type LessonSummaryDto = LessonProgressItemDto & {
+  estimatedTime?: string | null;
+  body?: string | null;
+};
+
+interface ExistingLesson extends LessonSummaryDto {
   _id: string;
   _body: string;
 }
@@ -44,14 +49,14 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
     async function loadTrack() {
       try {
         const [trackRes, lessonsRes] = await Promise.all([
-          getTracksById({ path: { id: trackId }, throwOnError: true }),
-          getTracksByIdLessons({ path: { id: trackId }, throwOnError: true }),
+          tracksControllerFindOne({ path: { id: trackId }, throwOnError: true }),
+          lessonsControllerFindLessons({ path: { id: trackId }, throwOnError: true }),
         ]);
 
         if (cancelled) return;
 
-        const track = trackRes.data as TrackDetail | undefined;
-        const lessonList = (lessonsRes.data?.data ?? []) as LessonSummary[];
+        const track = trackRes.data as TrackDetailDto | undefined;
+        const lessonList = (lessonsRes.data?.data ?? []) as LessonSummaryDto[];
 
         const store = useTrackDraftStore.getState();
         store.setTitle(track?.title?.trim() ?? '');
@@ -93,7 +98,7 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
     setSaving(true);
 
     try {
-      await patchTracksById({
+      await tracksControllerUpdate({
         path: { id: trackId },
         body: {
           title: title.trim(),
@@ -104,11 +109,11 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
       });
 
       const previousLessonIds = existingLessons.map((l) => l._id).filter(Boolean);
-      await Promise.all(previousLessonIds.map((id) => deleteLessonsById({ path: { id } })));
+      await Promise.all(previousLessonIds.map((id) => lessonsControllerDeleteLesson({ path: { id } })));
 
       await Promise.all(
         lessons.map((lesson, i) =>
-          postTracksByIdLessons({
+          lessonsControllerCreateLesson({
             path: { id: trackId },
             body: {
               title: lesson.title,

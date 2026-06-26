@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { sumEstimatedTimes } from '@/lib/time-utils';
-import type { ExerciseSummaryDto, TrackDetail } from '@/services/api-client';
+import type { ExerciseSummaryDto, LessonProgressItemDto, TrackDetailDto } from '@/services/api-client';
 import { TrackHero } from './TrackHero';
 import { CourseRoadmap } from './CourseRoadmap';
 import { TrackExercisesCard } from './TrackExercisesCard';
@@ -10,12 +10,14 @@ import { PrerequisitesCard } from './PrerequisitesCard';
 import { PotentialRewardsCard } from './PotentialRewardsCard';
 
 interface AdminTrackPreviewProps {
-  track: TrackDetail;
+  track: TrackDetailDto;
   exercises: ExerciseSummaryDto[];
   onBack: () => void;
 }
 
-function getAdjacentTrackTitle(track: TrackDetail['prevTrack'] | TrackDetail['nextTrack']) {
+type PreviewLesson = LessonProgressItemDto & { estimatedTime?: string };
+
+function getAdjacentTrackTitle(track: TrackDetailDto['prevTrack'] | TrackDetailDto['nextTrack']) {
   if (track && typeof track === 'object' && 'title' in track && typeof track.title === 'string') {
     return track.title;
   }
@@ -25,7 +27,7 @@ function getAdjacentTrackTitle(track: TrackDetail['prevTrack'] | TrackDetail['ne
 export default function AdminTrackPreview({ track, exercises, onBack }: AdminTrackPreviewProps) {
   const t = useTranslations('TrackPreview');
   const td = useTranslations('TrackDetailPage');
-  const lessons = [...(track.lessons ?? [])].sort((a, b) => a.order - b.order);
+  const lessons = ([...(track.lessons ?? [])] as PreviewLesson[]).sort((a, b) => a.order - b.order);
 
   const estimatedTime = track.estimatedTime || sumEstimatedTimes(lessons.map((l) => l.estimatedTime || '0m'));
   const totalXP = lessons.length * 800;

@@ -25,7 +25,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
 
   return (
     <article
-      className={`flex flex-col gap-4 rounded-xl border bg-surface-container-lowest p-5 shadow-sm transition-all ${
+      className={`flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-surface-container-lowest p-5 shadow-sm transition-all ${
         isLocked
           ? 'border-dashed border-outline-variant opacity-70'
           : isInProgress
@@ -33,8 +33,8 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
             : 'border-outline-variant hover:border-primary/40'
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border ${
               isLocked
@@ -48,16 +48,27 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
               {track.icon || statusIcon[track.status]}
             </span>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <span className="label-sm uppercase text-on-surface-variant">
               {t('milestone', { order: String(track.order).padStart(2, '0') })}
             </span>
-            <h3 className="headline-sm text-on-surface truncate">{track.title}</h3>
+            <h3 className="headline-sm text-on-surface line-clamp-2 break-words">{track.title}</h3>
           </div>
         </div>
+      </div>
 
+      <p className="body-sm line-clamp-3 break-words text-on-surface-variant">
+        {track.description || t('noDescription')}
+      </p>
+
+      <div className="flex min-w-0 flex-wrap gap-3 label-sm text-on-surface-variant">
+        <TimeBadge time={track.estimatedTime} />
+        <span className="inline-flex items-center gap-1">
+          <span className="material-symbols-outlined text-[15px]">menu_book</span>
+          {t('lessonCount', { count: track.lessonCount })}
+        </span>
         <span
-          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 label-sm ${
+          className={`inline-flex w-fit max-w-full items-center gap-1 rounded-full px-2.5 py-1 label-sm ${
             isLocked
               ? 'bg-surface-container text-outline'
               : isCompleted
@@ -68,19 +79,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
           <span className="material-symbols-outlined text-[15px]">
             {statusIcon[track.status]}
           </span>
-          {statusLabel}
-        </span>
-      </div>
-
-      <p className="body-sm text-on-surface-variant line-clamp-2">
-        {track.description || t('noDescription')}
-      </p>
-
-      <div className="flex flex-wrap gap-3 label-sm text-on-surface-variant">
-        <TimeBadge time={track.estimatedTime} />
-        <span className="inline-flex items-center gap-1">
-          <span className="material-symbols-outlined text-[15px]">menu_book</span>
-          {t('lessonCount', { count: track.lessonCount })}
+          <span className="min-w-0 truncate">{statusLabel}</span>
         </span>
       </div>
 

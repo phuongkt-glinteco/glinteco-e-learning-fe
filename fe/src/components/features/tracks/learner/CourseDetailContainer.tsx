@@ -12,6 +12,29 @@ import {
   getRouteParam,
 } from './utils';
 
+function getContinueLessonId(
+  lessons: TrackLessonPreview[],
+  currentLessonId: string | null | undefined
+) {
+  if (lessons.length === 0) return null;
+
+  const firstIncompleteLesson = lessons.find((lesson) => !lesson.completed);
+  if (!firstIncompleteLesson) return null;
+  if (!currentLessonId) return firstIncompleteLesson.id;
+
+  const currentLessonIndex = lessons.findIndex((lesson) => lesson.id === currentLessonId);
+  if (currentLessonIndex < 0) return firstIncompleteLesson.id;
+
+  const currentLesson = lessons[currentLessonIndex];
+  if (!currentLesson.completed) return currentLesson.id;
+
+  const nextIncompleteLesson = lessons
+    .slice(currentLessonIndex + 1)
+    .find((lesson) => !lesson.completed);
+
+  return nextIncompleteLesson?.id ?? firstIncompleteLesson.id;
+}
+
 function CourseDetailLoadingState() {
   return (
     <section className="mx-auto max-w-container-max px-gutter py-8">
@@ -106,20 +129,18 @@ export default function CourseDetailContainer() {
     loadCourseDetail();
   }, [loadCourseDetail]);
 
-  const currentLessonId = useMemo(() => (
-    track?.currentLessonId
-      ?? lessons.find((lesson) => !lesson.completed)?.id
-      ?? lessons[0]?.id
-      ?? null
-  ), [lessons, track?.currentLessonId]);
+  const continueLessonId = useMemo(
+    () => getContinueLessonId(lessons, track?.currentLessonId),
+    [lessons, track?.currentLessonId]
+  );
 
   function handleOpenLesson(lessonId: string) {
     router.push(`/courses/${courseId}/lessons/${lessonId}`);
   }
 
   function handleContinueCourse() {
-    if (!currentLessonId) return;
-    handleOpenLesson(currentLessonId);
+    if (!continueLessonId) return;
+    handleOpenLesson(continueLessonId);
   }
 
   if (loading) return <CourseDetailLoadingState />;
@@ -143,7 +164,7 @@ export default function CourseDetailContainer() {
     <CourseDetailView
       track={track}
       lessons={lessons}
-      currentLessonId={currentLessonId}
+      continueLessonId={continueLessonId}
       onBackToTracks={() => router.push('/courses')}
       onContinueCourse={handleContinueCourse}
       onOpenLesson={handleOpenLesson}

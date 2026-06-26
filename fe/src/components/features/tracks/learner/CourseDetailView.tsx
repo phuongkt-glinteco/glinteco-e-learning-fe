@@ -5,7 +5,7 @@ import type { LearnerTrack, TrackLessonPreview } from './types';
 interface CourseDetailViewProps {
   track: LearnerTrack;
   lessons: TrackLessonPreview[];
-  currentLessonId: string | null;
+  continueLessonId: string | null;
   onBackToTracks: () => void;
   onContinueCourse: () => void;
   onOpenLesson: (lessonId: string) => void;
@@ -14,7 +14,7 @@ interface CourseDetailViewProps {
 export function CourseDetailView({
   track,
   lessons,
-  currentLessonId,
+  continueLessonId,
   onBackToTracks,
   onContinueCourse,
   onOpenLesson,
@@ -48,8 +48,8 @@ export function CourseDetailView({
               </span>
               {isLocked ? 'Course locked' : 'Learning Track'}
             </div>
-            <h1 className="headline-lg text-primary">{track.title}</h1>
-            <p className="mt-3 max-w-[760px] body-md text-on-surface-variant">
+            <h1 className="headline-lg break-words text-primary">{track.title}</h1>
+            <p className="mt-3 max-w-[760px] break-words body-md text-on-surface-variant">
               {track.description}
             </p>
 
@@ -84,7 +84,7 @@ export function CourseDetailView({
       <div className="grid gap-6 xl:grid-cols-[1fr_320px] xl:items-start">
         <CourseRoadmap
           lessons={lessons}
-          activeLessonId={currentLessonId}
+          activeLessonId={continueLessonId}
           disabled={isLocked}
           onOpenLesson={onOpenLesson}
         />
@@ -95,20 +95,22 @@ export function CourseDetailView({
             {lessons.length > 0 ? (
               <>
                 <p className="mt-2 body-sm text-on-surface-variant">
-                  Continue from the current lesson in this course.
+                  Continue to the next lesson that needs your attention.
                 </p>
                 <button
                   type="button"
                   onClick={onContinueCourse}
-                  disabled={isLocked || !currentLessonId}
+                  disabled={isLocked || !continueLessonId}
                   className={`mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 label-sm transition-colors ${
-                    isLocked || !currentLessonId
+                    isLocked || !continueLessonId
                       ? 'cursor-not-allowed bg-surface-container text-outline'
                       : 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
                   }`}
                 >
-                  Continue Course
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  {continueLessonId ? 'Continue Course' : 'All Lessons Completed'}
+                  {continueLessonId && (
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  )}
                 </button>
               </>
             ) : (

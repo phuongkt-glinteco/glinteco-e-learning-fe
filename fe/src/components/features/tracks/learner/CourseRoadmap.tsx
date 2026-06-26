@@ -31,11 +31,11 @@ export function CourseRoadmap({
   }
 
   return (
-    <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <div>
+    <div className="min-w-0 rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+      <div className="mb-5 flex min-w-0 flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0">
           <h2 className="headline-sm text-on-surface">Course Roadmap</h2>
-          <p className="mt-1 body-sm text-on-surface-variant">
+          <p className="mt-1 body-sm break-words text-on-surface-variant">
             Follow the lessons in order and continue from your current step.
           </p>
         </div>
@@ -55,7 +55,7 @@ export function CourseRoadmap({
           return (
             <article
               key={lesson.id}
-              className={`relative z-10 grid grid-cols-[48px_1fr] gap-4 overflow-hidden rounded-lg border bg-surface-container-lowest p-4 transition-all ${
+              className={`relative z-10 grid min-w-0 grid-cols-[48px_minmax(0,1fr)] gap-4 overflow-hidden rounded-lg border bg-surface-container-lowest p-4 transition-all ${
                 isCurrent
                   ? 'border-primary shadow-sm ring-1 ring-primary/20'
                   : 'border-outline-variant hover:border-primary/40'
@@ -78,7 +78,7 @@ export function CourseRoadmap({
               </div>
 
               <div className="relative z-10 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
                     Lesson {lesson.order}
                   </span>
@@ -90,12 +90,16 @@ export function CourseRoadmap({
                     {lesson.estimatedTime}
                   </span>
                 </div>
-                <h3 className="mt-2 headline-sm text-on-surface">{lesson.title}</h3>
+                <h3 className="mt-2 headline-sm line-clamp-2 break-words text-on-surface">
+                  {lesson.title}
+                </h3>
                 {lesson.description && (
-                  <p className="mt-1 body-sm text-on-surface-variant">{lesson.description}</p>
+                  <p className="mt-1 body-sm line-clamp-3 break-words text-on-surface-variant">
+                    {lesson.description}
+                  </p>
                 )}
 
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex flex-wrap justify-end">
                   <button
                     type="button"
                     onClick={() => onOpenLesson(lesson.id)}

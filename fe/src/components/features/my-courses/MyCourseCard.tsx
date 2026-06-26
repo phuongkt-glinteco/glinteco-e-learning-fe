@@ -15,14 +15,14 @@ export function MyCourseCard({ track, onOpen }: MyCourseCardProps) {
 
   return (
     <article
-      className={`flex flex-col gap-4 rounded-xl border bg-surface-container-lowest p-5 shadow-sm transition-all ${
+      className={`flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-surface-container-lowest p-5 shadow-sm transition-all ${
         isCompleted
           ? 'border-green-200 hover:border-green-400'
           : 'border-primary ring-1 ring-primary/20 hover:border-primary/60'
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border ${
               isCompleted
@@ -34,16 +34,16 @@ export function MyCourseCard({ track, onOpen }: MyCourseCardProps) {
               {track.icon || (isCompleted ? 'check_circle' : 'play_circle')}
             </span>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <span className="label-sm uppercase text-on-surface-variant">
               {t('milestone', { order: String(track.order).padStart(2, '0') })}
             </span>
-            <h3 className="headline-sm text-on-surface truncate">{track.title}</h3>
+            <h3 className="headline-sm line-clamp-2 break-words text-on-surface">{track.title}</h3>
           </div>
         </div>
 
         <span
-          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 label-sm ${
+          className={`inline-flex max-w-full items-center gap-1 rounded-full px-2.5 py-1 label-sm ${
             isCompleted
               ? 'bg-green-50 text-green-700'
               : 'bg-primary-fixed text-primary'
@@ -52,15 +52,17 @@ export function MyCourseCard({ track, onOpen }: MyCourseCardProps) {
           <span className="material-symbols-outlined text-[15px]">
             {isCompleted ? 'check_circle' : 'play_circle'}
           </span>
-          {isCompleted ? t('status_completed') : t('status_in_progress')}
+          <span className="min-w-0 truncate">
+            {isCompleted ? t('status_completed') : t('status_in_progress')}
+          </span>
         </span>
       </div>
 
-      <p className="body-sm text-on-surface-variant line-clamp-2">
+      <p className="body-sm line-clamp-3 break-words text-on-surface-variant">
         {track.description || t('noDescription')}
       </p>
 
-      <div className="flex flex-wrap gap-3 label-sm text-on-surface-variant">
+      <div className="flex min-w-0 flex-wrap gap-3 label-sm text-on-surface-variant">
         <TimeBadge time={track.estimatedTime} />
         <span className="inline-flex items-center gap-1">
           <span className="material-symbols-outlined text-[15px]">menu_book</span>

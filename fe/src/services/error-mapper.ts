@@ -63,7 +63,6 @@ export class ErrorProcessorPipeline {
           current = action.error;
         } else if (action.type === 'ADD_TO_ITEMS') {
           errorItems.push(action.errorItem);
-          console.log(`Error item added at priority ${p}:`, action.errorItem);
         } else if (action.type === 'FINAL_THROW') {
           finalThrow = action.error;
         }
@@ -163,7 +162,12 @@ interface BE {
   error?: string;
 }
 
-function extractMessage(err: any): string {
+function getErrorField(error: unknown, field: 'name' | 'message' | 'statusCode' | 'status') {
+  if (typeof error !== 'object' || error === null || !(field in error)) return undefined;
+  return (error as Record<typeof field, unknown>)[field];
+}
+
+function extractMessage(err: unknown): string {
   if (err && typeof err === 'object') {
     const be = err as BE;
     if (be.message) return Array.isArray(be.message) ? be.message.join(', ') : be.message;
@@ -185,27 +189,33 @@ const STATUS_MAP: Record<number, string> = {
 };
 
 export function classify(
-  error: any,
+  error: unknown,
   response?: Response,
   request?: Request,
 ): Error {
   if (error instanceof HttpError || error instanceof ApiError || error instanceof UiShowError) return error;
 
   const requestPath = request?.url || undefined;
+  const errorName = getErrorField(error, 'name');
+  const errorMessage = getErrorField(error, 'message');
 
   const isNetwork =
     (typeof window !== 'undefined' && !window.navigator.onLine) ||
     error instanceof TypeError ||
-    error?.name === 'TypeError' ||
-    error?.message?.toLowerCase().includes('fetch') ||
-    error?.message?.toLowerCase().includes('network') ||
+    errorName === 'TypeError' ||
+    (typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('fetch')) ||
+    (typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('network')) ||
     !response;
 
   if (isNetwork && !response) {
     return new HttpError(0, 'Cannot connect to the server.');
   }
 
-  const sc = response?.status || error?.statusCode || error?.status;
+  const statusCode = getErrorField(error, 'statusCode');
+  const status = getErrorField(error, 'status');
+  const sc = response?.status
+    || (typeof statusCode === 'number' ? statusCode : undefined)
+    || (typeof status === 'number' ? status : undefined);
   if (sc) {
     const msg = extractMessage(error);
     const code = STATUS_MAP[sc] || 'UNKNOWN_ERROR';

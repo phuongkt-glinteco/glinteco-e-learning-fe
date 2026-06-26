@@ -4,7 +4,7 @@ import tsParser from '@typescript-eslint/parser';
 
 const eslintConfig = [
   {
-    ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', '*.tsbuildinfo'],
+    ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', '*.tsbuildinfo', 'src/services/client/**'],
   },
   nextPlugin.flatConfig.coreWebVitals,
   {

@@ -59,6 +59,7 @@ export function paginate<T>(items: T[], page: number, size: number): T[] {
 }
 
 export function getProgressPercent(track: LearnerTrack): number {
+  if (track.status === 'completed') return 100;
   if (track.lessonCount <= 0) return 0;
   return Math.round((track.lessonsCompleted / track.lessonCount) * 100);
 }

@@ -10,9 +10,10 @@ interface ReorderTopBarProps {
   selectedCount: number;
   onBack: () => void;
   onApply: () => void;
+  onCancel: () => void;
 }
 
-export default function ReorderTopBar({ isDirty, saving, selectedCount, onBack, onApply }: ReorderTopBarProps) {
+export default function ReorderTopBar({ isDirty, saving, selectedCount, onBack, onApply, onCancel }: ReorderTopBarProps) {
   const t = useTranslations('ReorderTracksPage');
 
   return (
@@ -32,6 +33,9 @@ export default function ReorderTopBar({ isDirty, saving, selectedCount, onBack, 
         {selectedCount > 0 && (
           <span className="text-body-sm text-on-surface-variant">{t('selectedCount', { count: selectedCount })}</span>
         )}
+        <AppButton variant="outline" onClick={onCancel}>
+          {t('cancel')}
+        </AppButton>
         <AppButton
           icon="lucide:save"
           disabled={!isDirty || saving}

@@ -1,36 +1,42 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import {
-  getTracksById,
-  getTracksByIdLessons,
-  patchTracksById,
-  postTracksByIdLessons,
-  deleteLessonsById,
+  tracksControllerFindOne,
+  lessonsControllerFindLessons,
+  tracksControllerUpdate,
+  lessonsControllerCreateLesson,
+  lessonsControllerDeleteLesson,
+  exercisesControllerFindAll,
 } from '@/services/api-client';
-import type { LessonSummary, TrackDetail } from '@/services/api-client';
+import type { LessonProgressItemDto, TrackDetailDto, ExerciseSummaryDto } from '@/services/api-client';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { sumEstimatedTimes } from '@/lib/time-utils';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { BasicInfoCard } from '../components/BasicInfoCard';
 import { CurriculumSection } from '../components/CurriculumSection';
 import { SummaryCard } from '../components/SummaryCard';
-import { InstructionCard } from '../components/InstructionCard';
 import { TrackPreview } from '../detail/TrackPreview';
+import { LinkedExercisesCard } from '../components/LinkedExercisesCard';
 
-interface TrackEditorPageProps {
+interface TrackEditPageProps {
   trackId: string;
 }
 
-interface ExistingLesson extends LessonSummary {
+type LessonSummaryDto = LessonProgressItemDto & {
+  estimatedTime?: string | null;
+  body?: string | null;
+};
+
+interface ExistingLesson extends LessonSummaryDto {
   _id: string;
   _body: string;
 }
 
-export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
-  const t = useTranslations('CreateTrackPage');
+export default function TrackEditPage({ trackId }: TrackEditPageProps) {
+  const t = useTranslations('EditTrackPage');
   const router = useRouter();
   const { title, description, lessons, reset } = useTrackDraftStore();
   const [saving, setSaving] = useState(false);
@@ -38,20 +44,23 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [existingLessons, setExistingLessons] = useState<ExistingLesson[]>([]);
+  const [exercises, setExercises] = useState<ExerciseSummaryDto[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     async function loadTrack() {
       try {
-        const [trackRes, lessonsRes] = await Promise.all([
-          getTracksById({ path: { id: trackId }, throwOnError: true }),
-          getTracksByIdLessons({ path: { id: trackId }, throwOnError: true }),
+        const [trackRes, lessonsRes, exercisesRes] = await Promise.all([
+          tracksControllerFindOne({ path: { id: trackId }, throwOnError: true }),
+          lessonsControllerFindLessons({ path: { id: trackId }, throwOnError: true }),
+          exercisesControllerFindAll({ query: { trackId }, throwOnError: true }),
         ]);
 
         if (cancelled) return;
 
-        const track = trackRes.data as TrackDetail | undefined;
-        const lessonList = (lessonsRes.data?.data ?? []) as LessonSummary[];
+        const track = trackRes.data as TrackDetailDto | undefined;
+        const lessonList = (lessonsRes.data?.data ?? []) as LessonSummaryDto[];
+        const exerciseList = (exercisesRes.data?.data ?? []) as ExerciseSummaryDto[];
 
         const store = useTrackDraftStore.getState();
         store.setTitle(track?.title?.trim() ?? '');
@@ -72,6 +81,7 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
             _body: '',
           }))
         );
+        setExercises(exerciseList);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to load track.');
@@ -86,6 +96,10 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
     };
   }, [trackId]);
 
+  const handleDeleteExercise = useCallback((exerciseId: string) => {
+    setExercises((prev) => prev.filter((ex) => ex.id !== exerciseId));
+  }, []);
+
   const estimatedTime = sumEstimatedTimes(lessons.map((l) => l.estimatedTime));
 
   async function handleSave() {
@@ -93,7 +107,7 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
     setSaving(true);
 
     try {
-      await patchTracksById({
+      await tracksControllerUpdate({
         path: { id: trackId },
         body: {
           title: title.trim(),
@@ -104,11 +118,11 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
       });
 
       const previousLessonIds = existingLessons.map((l) => l._id).filter(Boolean);
-      await Promise.all(previousLessonIds.map((id) => deleteLessonsById({ path: { id } })));
+      await Promise.all(previousLessonIds.map((id) => lessonsControllerDeleteLesson({ path: { id } })));
 
       await Promise.all(
         lessons.map((lesson, i) =>
-          postTracksByIdLessons({
+          lessonsControllerCreateLesson({
             path: { id: trackId },
             body: {
               title: lesson.title,
@@ -205,41 +219,54 @@ export default function TrackEditorPage({ trackId }: TrackEditorPageProps) {
               description={description}
               onTitleChange={useTrackDraftStore.getState().setTitle}
               onDescriptionChange={useTrackDraftStore.getState().setDescription}
+              ns="EditTrackPage"
             />
-            <CurriculumSection />
+            <CurriculumSection ns="EditTrackPage" />
+
+            <LinkedExercisesCard
+              trackId={trackId}
+              exercises={exercises}
+              onRemove={handleDeleteExercise}
+            />
           </div>
 
           <div className="col-span-12 xl:col-span-5 2xl:col-span-4 space-y-6">
-            <SummaryCard />
-            <InstructionCard ready={Boolean(title.trim())} />
+            <SummaryCard ns="EditTrackPage" exerciseCount={exercises.length} />
           </div>
         </div>
 
         <footer className="fixed bottom-0 left-0 md:left-[256px] right-0 bg-surface-container-lowest border-t border-outline-variant px-gutter py-4 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <div className="max-w-[1200px] mx-auto flex justify-between items-center">
+          <div className="max-w-[1200px] mx-auto flex items-center justify-between gap-2 flex-wrap">
             <button
               onClick={() => {
                 reset();
                 router.push('/admin/tracks');
               }}
-              className="px-6 py-2 border border-outline-variant rounded-lg label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
+              className="px-6 py-2 border border-outline-variant rounded-lg label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer shrink-0"
             >
               {t('cancel')}
             </button>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
               <button
                 onClick={() => setIsPreview(true)}
-                className="flex items-center gap-2 px-6 py-2 border border-primary/20 text-primary rounded-lg label-md hover:bg-primary/10 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 border border-primary/20 text-primary rounded-lg label-md hover:bg-primary/10 transition-colors cursor-pointer shrink-0"
               >
                 <span className="material-symbols-outlined text-[20px]">visibility</span>
-                {t('previewTrack')}
+                <span className="hidden sm:inline truncate max-w-[120px]">{t('previewTrack')}</span>
               </button>
               <button
                 onClick={handleSave}
                 disabled={!title.trim() || lessons.length === 0 || saving}
-                className="px-8 py-2 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer shrink-0"
               >
-                {saving ? t('saving') : t('saveTrack')}
+                {saving ? (
+                  <span className="truncate max-w-[100px]">{t('saving')}</span>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[18px] hidden sm:inline">save</span>
+                    <span className="truncate max-w-[100px]">{t('saveTrack')}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { getTracks, deleteTracksById, patchTracksReorder } from '@/services/api-client';
-import type { GetTracksResponse, TrackSummary } from '@/services/api-client';
+import { tracksControllerFindAll, tracksControllerDelete, tracksControllerReorder } from '@/services/api-client';
+import type { TrackListResponseDto, TrackSummaryDto } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { AdminTracksView } from '../components/AdminTracksView';
 import { normalizeAdminTrack, type AdminTrackItem, type AdminTracksPagination } from '../types';
@@ -20,7 +20,7 @@ const initialPagination: AdminTracksPagination = {
 };
 
 function normalizePagination(
-  meta: GetTracksResponse['meta'] | undefined,
+  meta: TrackListResponseDto['meta'] | undefined,
   itemCount: number,
   fallbackPage: number,
   fallbackLimit: number,
@@ -33,16 +33,16 @@ function normalizePagination(
   return { total, page, limit, lastPage };
 }
 
-function extractTracksResponse(response: GetTracksResponse | undefined) {
+function extractTracksResponse(response: TrackListResponseDto | undefined) {
   const data = response?.data;
   return {
-    tracks: Array.isArray(data) ? data : ([] as TrackSummary[]),
+    tracks: Array.isArray(data) ? data : ([] as TrackSummaryDto[]),
     pagination: response?.meta,
   };
 }
 
 async function loadAllTrackIds(): Promise<string[]> {
-  const firstResponse = await getTracks({
+  const firstResponse = await tracksControllerFindAll({
     query: { page: 1, limit: MAX_REORDER_FETCH_LIMIT },
     throwOnError: true,
   });
@@ -59,7 +59,7 @@ async function loadAllTrackIds(): Promise<string[]> {
 
   const remainingResponses = await Promise.all(
     Array.from({ length: lastPage - 1 }, (_, index) =>
-      getTracks({
+      tracksControllerFindAll({
         query: { page: index + 2, limit: MAX_REORDER_FETCH_LIMIT },
         throwOnError: true,
       })
@@ -92,7 +92,7 @@ export default function AdminTracksContainer() {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await getTracks({
+      const res = await tracksControllerFindAll({
         query: { page, limit },
         throwOnError: true,
       });
@@ -137,7 +137,7 @@ export default function AdminTracksContainer() {
     setDeletingId(trackId);
     setActionError(null);
     try {
-      await deleteTracksById({ path: { id: trackId }, throwOnError: true });
+      await tracksControllerDelete({ path: { id: trackId }, throwOnError: true });
       const nextTotal = Math.max(0, pagination.total - 1);
       const nextLastPage = Math.max(1, Math.ceil(nextTotal / pagination.limit));
       const nextPage = Math.min(pagination.page, nextLastPage);
@@ -163,7 +163,7 @@ export default function AdminTracksContainer() {
       const [movedTrackId] = nextTrackIds.splice(currentIndex, 1);
       nextTrackIds.splice(targetIndex, 0, movedTrackId);
 
-      await patchTracksReorder({
+      await tracksControllerReorder({
         body: { order: nextTrackIds },
         throwOnError: true,
       });

@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { documentsControllerFindRecent } from '@/services/api-client';
-import type { DocumentDto } from '@/services/api-client';
+import type { DocumentResponseDto } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 
-function DocCard({ title, tags, kind }: Pick<DocumentDto, 'title' | 'tags' | 'kind'>) {
+function DocCard({ title, tags, kind }: Pick<DocumentResponseDto, 'title' | 'tags' | 'kind'>) {
   const tagLabels = (tags ?? []).map((tag) => (
     typeof tag === 'string' ? tag : tag.name ?? tag.id ?? ''
   )).filter(Boolean);
@@ -46,13 +46,13 @@ function DocCard({ title, tags, kind }: Pick<DocumentDto, 'title' | 'tags' | 'ki
 
 export default function RecentDocumentsSection() {
   const t = useTranslations('LearnerDashboard');
-  const [docs, setDocs] = useState<Document[]>([]);
+  const [docs, setDocs] = useState<DocumentResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    getDocumentsRecent({ throwOnError: true })
+    documentsControllerFindRecent({ throwOnError: true })
       .then((res) => {
         if (cancelled) return;
         const list = res.data?.data ?? [];

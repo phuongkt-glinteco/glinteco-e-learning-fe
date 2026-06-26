@@ -21,7 +21,7 @@ const learnerMainNav: NavItem[] = [
 const adminMainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
   { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/courses' },
-  { label: 'Track Management', translationKey: 'trackManagement', icon: 'local_library', href: '/admin/tracks' },
+  { label: 'Track Management', translationKey: 'trackManager', icon: 'local_library', href: '/admin/tracks' },
   { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
 ];
 
@@ -50,7 +50,6 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 flex flex-col gap-xs px-md">
-        <NavMenu items={navItems} variant="desktop" />
         <NavMenu items={navItems} variant="desktop" />
       </div>
 

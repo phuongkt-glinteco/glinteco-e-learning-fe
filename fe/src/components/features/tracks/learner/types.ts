@@ -1,6 +1,6 @@
-import type { TrackSummary } from '@/services/api-client';
+import type { TrackSummaryDto } from '@/services/api-client';
 
-export type TrackStatus = NonNullable<TrackSummary['status']>;
+export type TrackStatus = NonNullable<TrackSummaryDto['status']>;
 export type CourseAccessStatus = 'unlocked' | 'locked';
 export type LessonType = 'video' | 'reading' | 'quiz' | 'coding' | 'assignment';
 

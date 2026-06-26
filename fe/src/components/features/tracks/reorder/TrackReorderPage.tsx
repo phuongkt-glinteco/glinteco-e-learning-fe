@@ -152,6 +152,7 @@ export default function TrackReorderPage({ initialTracks }: TrackReorderPageProp
         selectedCount={selectedCount}
         onBack={() => router.push('/admin/tracks')}
         onApply={() => setShowConfirmModal(true)}
+        onCancel={() => router.push('/admin/tracks')}
       />
 
       <div className="flex flex-1 overflow-hidden">

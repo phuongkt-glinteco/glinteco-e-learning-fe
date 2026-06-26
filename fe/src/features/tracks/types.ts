@@ -1,4 +1,4 @@
-import type { TrackDetail, TrackSummary } from '@/services/api-client';
+import type { TrackDetailDto, TrackSummaryDto } from '@/services/api-client';
 
 export interface AdminTrackItem {
   id: string;
@@ -17,7 +17,7 @@ export interface AdminTracksPagination {
   lastPage: number;
 }
 
-function getLessonCount(track: TrackSummary | TrackDetail): number {
+function getLessonCount(track: TrackSummaryDto | TrackDetailDto): number {
   if ('lessonCount' in track && typeof track.lessonCount === 'number') {
     return track.lessonCount;
   }
@@ -27,7 +27,7 @@ function getLessonCount(track: TrackSummary | TrackDetail): number {
   return 0;
 }
 
-export function normalizeAdminTrack(track: TrackSummary | TrackDetail): AdminTrackItem | null {
+export function normalizeAdminTrack(track: TrackSummaryDto | TrackDetailDto): AdminTrackItem | null {
   if (!track.id) return null;
   return {
     id: track.id,

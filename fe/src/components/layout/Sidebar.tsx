@@ -1,6 +1,5 @@
 'use client';
 
-import { useAuth } from '@/providers/AuthProvider';
 import AppLogo from './AppLogo';
 import NavMenu from './NavMenu';
 import { useAuth } from '@/providers/AuthProvider';

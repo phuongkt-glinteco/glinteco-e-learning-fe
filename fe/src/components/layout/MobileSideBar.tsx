@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/providers/AuthProvider';
 import UserProfileAvatar from './UserProfileAvatar';
 import NavMenu from './NavMenu';
 import { getMainNav, footerNav } from './Sidebar';

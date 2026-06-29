@@ -112,6 +112,13 @@ export default function LessonDetailContainer() {
     [lessons, lessonId]
   );
 
+  const previousLessonId = activeLessonIndex > 0
+    ? lessons[activeLessonIndex - 1]?.id ?? null
+    : null;
+  const nextLessonId = activeLessonIndex >= 0
+    ? lessons[activeLessonIndex + 1]?.id ?? null
+    : null;
+
   async function handleCompleteLesson() {
     if (!activeLesson || activeLesson.completed || !track) return;
 
@@ -171,7 +178,8 @@ export default function LessonDetailContainer() {
       track={track}
       lessons={lessons}
       activeLesson={activeLesson}
-      activeLessonIndex={activeLessonIndex}
+      previousLessonId={previousLessonId}
+      nextLessonId={nextLessonId}
       exercises={exercises}
       completing={completing}
       completionMessage={completionMessage}

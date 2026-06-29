@@ -1,12 +1,14 @@
 import { StatusBadge, TimeBadge } from '@/components/ui';
 import CircleMeter from '@/components/ui/CircleMeter';
+import { MarkdownRenderer } from '@/lib/md-renderer';
 import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 
 interface LessonDetailViewProps {
   track: LearnerTrack;
   lessons: LearnerLesson[];
   activeLesson: LearnerLesson;
-  activeLessonIndex: number;
+  previousLessonId: string | null;
+  nextLessonId: string | null;
   exercises: LearnerExercise[];
   completing: boolean;
   completionMessage: string | null;
@@ -20,7 +22,8 @@ export function LessonDetailView({
   track,
   lessons,
   activeLesson,
-  activeLessonIndex,
+  previousLessonId,
+  nextLessonId,
   exercises,
   completing,
   completionMessage,
@@ -32,8 +35,6 @@ export function LessonDetailView({
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
-  const previousLesson = activeLessonIndex > 0 ? lessons[activeLessonIndex - 1] : null;
-  const nextLesson = activeLessonIndex >= 0 ? lessons[activeLessonIndex + 1] : null;
 
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
@@ -44,8 +45,8 @@ export function LessonDetailView({
         </div>
       )}
 
-      <header className="bg-surface border border-outline-variant rounded-lg p-4 flex items-center justify-between gap-4 flex-wrap shadow-sm">
-        <div className="flex items-center gap-3 min-w-0">
+      <header className="bg-surface border border-outline-variant rounded-lg p-4 flex min-w-0 items-center justify-between gap-4 flex-wrap shadow-sm">
+        <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
             onClick={onBackToTracks}
@@ -58,14 +59,14 @@ export function LessonDetailView({
             <span className="label-sm text-primary uppercase">
               Course Lesson
             </span>
-            <h1 className="headline-sm text-on-surface truncate">{track.title}</h1>
+            <h1 className="headline-sm line-clamp-2 break-words text-on-surface">{track.title}</h1>
           </div>
         </div>
         <StatusBadge status={track.status} />
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-        <aside className="lg:col-span-1 bg-surface border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col gap-4">
+        <aside className="lg:col-span-1 bg-surface border border-outline-variant rounded-lg p-4 shadow-sm flex min-w-0 flex-col gap-4">
           <div className="border-b border-outline-variant pb-3">
             <h2 className="label-sm text-on-surface-variant uppercase">
               Lessons Playlist
@@ -104,7 +105,7 @@ export function LessonDetailView({
                   >
                     {lesson.completed ? 'check_circle' : isActive ? 'play_circle' : 'radio_button_unchecked'}
                   </span>
-                  <span className="leading-normal flex-1 truncate">
+                  <span className="min-w-0 flex-1 truncate leading-normal">
                     {String(index + 1).padStart(2, '0')}. {lesson.title}
                   </span>
                 </button>
@@ -113,7 +114,7 @@ export function LessonDetailView({
           </div>
         </aside>
 
-        <main className="lg:col-span-2 bg-surface border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col gap-6">
+        <main className="lg:col-span-2 bg-surface border border-outline-variant rounded-lg p-6 shadow-sm flex min-w-0 flex-col gap-6">
           <div className="border-b border-outline-variant pb-4">
             <div className="flex items-center gap-2 flex-wrap mb-2">
               <span className="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-primary-container/20 text-primary border border-primary-container/30">
@@ -134,15 +135,17 @@ export function LessonDetailView({
                 </span>
               )}
             </div>
-            <h2 className="headline-md text-on-surface leading-snug">{activeLesson.title}</h2>
+            <h2 className="headline-md break-words text-on-surface leading-snug">{activeLesson.title}</h2>
             {activeLesson.description && (
-              <p className="mt-2 body-sm text-on-surface-variant">{activeLesson.description}</p>
+              <p className="mt-2 body-sm break-words text-on-surface-variant">
+                {activeLesson.description}
+              </p>
             )}
           </div>
 
           {activeLesson.body.trim() ? (
-            <article className="body-md text-on-surface-variant leading-relaxed whitespace-pre-line">
-              {activeLesson.body}
+            <article className="min-w-0 break-words text-on-surface-variant">
+              <MarkdownRenderer content={activeLesson.body} />
             </article>
           ) : (
             <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-6">
@@ -209,8 +212,8 @@ export function LessonDetailView({
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => previousLesson && onSelectLesson(previousLesson.id)}
-                disabled={!previousLesson}
+                onClick={() => previousLessonId && onSelectLesson(previousLessonId)}
+                disabled={!previousLessonId}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
               >
                 <span className="material-symbols-outlined text-[16px]">arrow_back</span>
@@ -218,8 +221,8 @@ export function LessonDetailView({
               </button>
               <button
                 type="button"
-                onClick={() => nextLesson && onSelectLesson(nextLesson.id)}
-                disabled={!nextLesson}
+                onClick={() => nextLessonId && onSelectLesson(nextLessonId)}
+                disabled={!nextLessonId}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
               >
                 Next
@@ -249,7 +252,7 @@ export function LessonDetailView({
           </div>
         </main>
 
-        <aside className="lg:col-span-1 flex flex-col gap-6">
+        <aside className="lg:col-span-1 flex min-w-0 flex-col gap-6">
           <div className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col items-center gap-3">
             <h2 className="label-sm text-on-surface-variant uppercase text-center border-b border-outline-variant w-full pb-2">
               Track Progress
@@ -262,16 +265,16 @@ export function LessonDetailView({
             </p>
           </div>
 
-          <div className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col gap-3">
+          <div className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm flex min-w-0 flex-col gap-3">
             <h2 className="label-sm text-on-surface-variant uppercase border-b border-outline-variant pb-2">
               Track Summary
             </h2>
-            <p className="body-sm text-on-surface-variant leading-relaxed">
+            <p className="body-sm break-words text-on-surface-variant leading-relaxed">
               {track.description}
             </p>
-            <div className="flex items-center justify-between label-sm text-on-surface-variant">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 label-sm text-on-surface-variant">
               <span>Estimated time</span>
-              <span className="text-on-surface">{track.estimatedTime}</span>
+              <span className="break-words text-on-surface">{track.estimatedTime}</span>
             </div>
           </div>
         </aside>

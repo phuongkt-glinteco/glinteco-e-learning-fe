@@ -39,7 +39,7 @@ export function TrackStepCard({
   const progress = getProgress(track);
 
   return (
-    <article className="grid grid-cols-[56px_1fr] gap-4">
+    <article className="grid min-w-0 grid-cols-[56px_minmax(0,1fr)] gap-4">
       <div className="flex flex-col items-center">
         <div
           className={`z-10 flex h-14 w-14 items-center justify-center rounded-lg border-2 shadow-sm ${
@@ -64,7 +64,7 @@ export function TrackStepCard({
       </div>
 
       <div
-        className={`mb-5 rounded-lg border bg-surface-container-lowest p-5 shadow-sm transition-all ${
+        className={`mb-5 min-w-0 overflow-hidden rounded-lg border bg-surface-container-lowest p-5 shadow-sm transition-all ${
           isLocked
             ? 'border-dashed border-outline-variant opacity-70'
             : isInProgress
@@ -72,17 +72,19 @@ export function TrackStepCard({
               : 'border-outline-variant hover:border-primary/40'
         }`}
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
             <span className="label-sm uppercase text-on-surface-variant">
               Milestone {String(index + 1).padStart(2, '0')}
             </span>
-            <h2 className="mt-1 headline-sm text-on-surface">{track.title}</h2>
-            <p className="mt-2 body-sm text-on-surface-variant">{track.description}</p>
+            <h2 className="mt-1 headline-sm line-clamp-2 break-words text-on-surface">{track.title}</h2>
+            <p className="mt-2 body-sm line-clamp-3 break-words text-on-surface-variant">
+              {track.description}
+            </p>
           </div>
 
           <span
-            className={`inline-flex w-fit items-center gap-1 rounded-full px-3 py-1 label-sm ${
+            className={`inline-flex w-fit max-w-full items-center gap-1 rounded-full px-3 py-1 label-sm ${
               isLocked
                 ? 'bg-surface-container text-outline'
                 : isCompleted
@@ -93,11 +95,11 @@ export function TrackStepCard({
             <span className="material-symbols-outlined text-[15px]">
               {statusIcon[track.status]}
             </span>
-            {statusCopy[track.status]}
+            <span className="min-w-0 truncate">{statusCopy[track.status]}</span>
           </span>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+        <div className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div className="min-w-0">
             <div className="flex flex-wrap gap-3 label-sm text-on-surface-variant">
               <span className="inline-flex items-center gap-1">
@@ -132,7 +134,7 @@ export function TrackStepCard({
             type="button"
             onClick={() => onOpenTrack(track)}
             disabled={isLocked || isOpening}
-            className={`inline-flex h-11 items-center justify-center gap-1.5 rounded-lg px-4 label-sm transition-colors ${
+            className={`inline-flex h-11 max-w-full items-center justify-center gap-1.5 rounded-lg px-4 label-sm transition-colors ${
               isLocked
                 ? 'cursor-not-allowed bg-surface-container text-outline'
                 : isInProgress

@@ -1,9 +1,10 @@
 import {
-  client,
   exercisesControllerFindAll,
   tracksControllerFindAll,
   tracksControllerFindOne,
   lessonsControllerFindLessons,
+  lessonsControllerFindExercisesByLesson,
+  lessonsControllerFindOneLesson,
   lessonsControllerCompleteLesson,
   withAuthRetry,
 } from '@/services/api-client';
@@ -25,22 +26,6 @@ import {
   type TrackDetailContract,
   type TrackSummaryContract,
 } from './utils';
-
-const bearerSecurity = [{ scheme: 'bearer' as const, type: 'http' as const }];
-
-type ErrorResponse = {
-  statusCode?: number;
-  message?: string | string[];
-  error?: string;
-};
-
-type LessonDetailResponses = {
-  200: LessonDetailContract;
-};
-
-type LessonExerciseResponses = {
-  200: ExerciseSummaryContract[] | { data?: ExerciseSummaryContract[] };
-};
 
 export interface CourseDetailData {
   course: LearnerTrack;
@@ -72,16 +57,18 @@ export async function fetchCourses(): Promise<LearnerTrack[]> {
 }
 
 export async function fetchCourseDetail(courseId: string): Promise<CourseDetailData> {
-  const [courseResponse, lessonsResponse] = await Promise.all([
-    tracksControllerFindOne({
-      path: { id: courseId },
-      throwOnError: true,
-    }),
-    lessonsControllerFindLessons({
-      path: { id: courseId },
-      throwOnError: true,
-    }),
-  ]);
+  const [courseResponse, lessonsResponse] = await withAuthRetry(() =>
+    Promise.all([
+      tracksControllerFindOne({
+        path: { id: courseId },
+        throwOnError: true,
+      }),
+      lessonsControllerFindLessons({
+        path: { id: courseId },
+        throwOnError: true,
+      }),
+    ])
+  );
 
   if (!courseResponse.data) throw new Error('Course not found');
 
@@ -99,14 +86,14 @@ export async function fetchCourseDetail(courseId: string): Promise<CourseDetailD
 
 async function fetchLessonDetail(lessonId: string): Promise<LessonDetailContract | null> {
   try {
-    const response = await client.get<LessonDetailResponses, ErrorResponse, true>({
-      security: bearerSecurity,
-      url: '/lessons/{id}',
-      path: { id: lessonId },
-      throwOnError: true,
-    });
+    const response = await withAuthRetry(() =>
+      lessonsControllerFindOneLesson({
+        path: { id: lessonId },
+        throwOnError: true,
+      })
+    );
 
-    return response.data ?? null;
+    return (response.data as LessonDetailContract | undefined) ?? null;
   } catch (error) {
     if (getErrorStatus(error) === 404) throw error;
     return null;
@@ -118,22 +105,26 @@ async function fetchLessonExercises(
   lessonId: string
 ): Promise<ExerciseSummaryContract[]> {
   try {
-    const response = await client.get<LessonExerciseResponses, ErrorResponse, true>({
-      security: bearerSecurity,
-      url: '/lessons/{id}/exercises',
-      path: { id: lessonId },
-      throwOnError: true,
-    });
+    const response = await withAuthRetry(() =>
+      lessonsControllerFindExercisesByLesson({
+        path: { id: lessonId },
+        throwOnError: true,
+      })
+    );
 
-    return extractDataArray<ExerciseSummaryContract>(response.data);
+    return extractDataArray<ExerciseSummaryContract>(
+      response.data as unknown as ExerciseSummaryContract[] | { data?: ExerciseSummaryContract[] }
+    );
   } catch (error) {
     if (getErrorStatus(error) === 401) throw error;
   }
 
-  const trackExercisesResponse = await exercisesControllerFindAll({
-    query: { trackId: courseId },
-    throwOnError: true,
-  });
+  const trackExercisesResponse = await withAuthRetry(() =>
+    exercisesControllerFindAll({
+      query: { trackId: courseId },
+      throwOnError: true,
+    })
+  );
   const trackExercises = extractDataArray<ExerciseSummaryContract>(
     trackExercisesResponse.data as unknown as { data?: ExerciseSummaryContract[] }
   );
@@ -212,10 +203,12 @@ export async function fetchLessonPage(
 }
 
 export async function completeLesson(lessonId: string): Promise<CompleteLessonResult> {
-  const response = await lessonsControllerCompleteLesson({
-    path: { id: lessonId },
-    throwOnError: true,
-  });
+  const response = await withAuthRetry(() =>
+    lessonsControllerCompleteLesson({
+      path: { id: lessonId },
+      throwOnError: true,
+    })
+  );
 
   const data = response.data;
   if (!data) return {};

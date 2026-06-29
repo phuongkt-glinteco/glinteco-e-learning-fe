@@ -6,12 +6,31 @@ import Skeleton from '@/components/ui/loading/Skeleton';
 import { ExerciseDetailView } from './ExerciseDetailView';
 import {
   fetchExercisePage,
+  fetchStandaloneExercisePage,
   resubmitExercise,
   submitExercise,
   type ExercisePageData,
 } from './courseLearningApi';
 import type { LearnerSubmissionFormValues } from './types';
 import { getErrorMessage, getLearnerRouteBase, getRouteParam } from './utils';
+
+const EXERCISE_RETURN_KEY = 'learnerExerciseReturnTo';
+
+function getStoredExerciseReturnTo(exerciseId: string): string | null {
+  const rawReturnTo = window.sessionStorage.getItem(EXERCISE_RETURN_KEY);
+  if (!rawReturnTo) return null;
+
+  try {
+    const parsed = JSON.parse(rawReturnTo) as { exerciseId?: unknown; returnTo?: unknown };
+    if (parsed.exerciseId === exerciseId && typeof parsed.returnTo === 'string') {
+      return parsed.returnTo;
+    }
+  } catch {
+    window.sessionStorage.removeItem(EXERCISE_RETURN_KEY);
+  }
+
+  return null;
+}
 
 function validatePullRequestUrl(value: string): string | null {
   if (!value) return 'Please enter a pull request URL.';
@@ -114,6 +133,7 @@ export default function ExerciseDetailContainer() {
   const lessonId = getRouteParam(params.lessonId);
   const exerciseId = getRouteParam(params.exerciseId);
   const routeBase = getLearnerRouteBase(params.trackId);
+  const isStandaloneRoute = !courseId || !lessonId;
 
   const [pageData, setPageData] = useState<ExercisePageData | null>(null);
   const [formValues, setFormValues] = useState<LearnerSubmissionFormValues>({ prUrl: '' });
@@ -122,10 +142,11 @@ export default function ExerciseDetailContainer() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [hasStarted, setHasStarted] = useState(false);
 
   const loadExercise = useCallback(async () => {
-    if (!courseId || !lessonId || !exerciseId) {
-      setError('Missing course, lesson, or exercise route parameters.');
+    if (!exerciseId) {
+      setError('Missing exercise route parameter.');
       setLoading(false);
       return;
     }
@@ -135,15 +156,18 @@ export default function ExerciseDetailContainer() {
     setSubmitError(null);
 
     try {
-      const nextPageData = await fetchExercisePage(courseId, lessonId, exerciseId);
+      const nextPageData = isStandaloneRoute
+        ? await fetchStandaloneExercisePage(exerciseId)
+        : await fetchExercisePage(courseId, lessonId, exerciseId);
       setPageData(nextPageData);
       setFormValues({ prUrl: nextPageData.submission.prUrl ?? '' });
+      setHasStarted(nextPageData.submission.status !== 'pending');
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, 'Failed to load exercise details.'));
     } finally {
       setLoading(false);
     }
-  }, [courseId, lessonId, exerciseId]);
+  }, [courseId, lessonId, exerciseId, isStandaloneRoute]);
 
   useEffect(() => {
     loadExercise();
@@ -172,6 +196,7 @@ export default function ExerciseDetailContainer() {
         ...pageData,
         submission: nextSubmission,
       });
+      setHasStarted(true);
       setFormValues({ prUrl: nextSubmission.prUrl ?? nextPrUrl });
       setSubmitMessage('Submission saved successfully.');
     } catch (submitFailure: unknown) {
@@ -182,6 +207,20 @@ export default function ExerciseDetailContainer() {
   }
 
   function handleBackToLesson() {
+    if (exerciseId) {
+      const storedReturnTo = getStoredExerciseReturnTo(exerciseId);
+      if (storedReturnTo) {
+        window.sessionStorage.removeItem(EXERCISE_RETURN_KEY);
+        router.push(storedReturnTo);
+        return;
+      }
+    }
+
+    if (isStandaloneRoute) {
+      router.push('/exercises');
+      return;
+    }
+
     if (!courseId || !lessonId) {
       router.push(`/${routeBase}`);
       return;
@@ -212,8 +251,11 @@ export default function ExerciseDetailContainer() {
       submitting={submitting}
       submitError={submitError}
       submitMessage={submitMessage}
+      hasStarted={hasStarted}
+      backLabel={isStandaloneRoute ? 'Back to Exercises' : 'Back to Lesson'}
       onBackToLesson={handleBackToLesson}
       onPrUrlChange={(value) => setFormValues({ prUrl: value })}
+      onStartExercise={() => setHasStarted(true)}
       onSubmit={handleSubmit}
     />
   );

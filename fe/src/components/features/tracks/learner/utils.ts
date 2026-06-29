@@ -13,6 +13,7 @@ import { normalizeTrackIcon } from '@/utils/track-icons';
 import type {
   LearnerLesson,
   LearnerExercise,
+  LearnerExerciseFeedItem,
   LearnerExerciseDetail,
   LearnerExerciseResource,
   LearnerSubmissionState,
@@ -472,6 +473,8 @@ export function normalizeExerciseSummary(exercise: ExerciseSummaryContract): Lea
   return {
     id: exercise.id,
     lessonId: normalizeLessonId(exercise.lessonId),
+    trackId: normalizeNullableString(exercise.trackId),
+    trackTitle: exercise.track?.trim() || 'Course',
     title: exercise.title?.trim() || 'Untitled exercise',
     brief: exercise.brief?.trim() || 'Exercise details are being prepared.',
     difficulty: exercise.difficulty ?? 'Beginner',
@@ -534,9 +537,57 @@ export function normalizeSubmissionState(
   };
 }
 
-export function getSubmissionExerciseId(submission: SubmissionFeedItemContract): string | null {
+export function getSubmissionExerciseId(submission: SubmissionFeedItemContract | SubmissionDetailContract): string | null {
+  const directExerciseId = normalizeNullableString((submission as SubmissionDetailContract).exerciseId);
+  if (directExerciseId) return directExerciseId;
+
   const exercise = submission.exercise;
   if (typeof exercise === 'string') return normalizeNullableString(exercise);
   if (typeof exercise !== 'object' || exercise === null) return null;
   return normalizeNullableString((exercise as { id?: unknown }).id);
+}
+
+export function getSubmissionExercise(submission: SubmissionFeedItemContract | SubmissionDetailContract): ExerciseDetailContract | null {
+  return typeof submission.exercise === 'object' && submission.exercise !== null
+    ? submission.exercise as ExerciseDetailContract
+    : null;
+}
+
+export function normalizeReviewerName(submission: SubmissionFeedItemContract | SubmissionDetailContract): string | null {
+  const maybeUser = (submission as SubmissionFeedItemContract & { user?: unknown }).user;
+  if (typeof maybeUser === 'object' && maybeUser !== null) {
+    return normalizeNullableString((maybeUser as { name?: unknown }).name);
+  }
+
+  return normalizeStringFromFlexibleValue(
+    (submission as SubmissionDetailContract).reviewerId,
+    ['name', 'fullName', 'email', 'id']
+  );
+}
+
+export function normalizeExerciseFeedItem(
+  exercise: ExerciseSummaryContract,
+  submission?: SubmissionFeedItemContract | SubmissionDetailContract
+): LearnerExerciseFeedItem | null {
+  const summary = normalizeExerciseSummary(exercise);
+  if (!summary) return null;
+
+  const submissionState = normalizeSubmissionState(submission, summary);
+
+  return {
+    ...summary,
+    status: submissionState.status,
+    prUrl: submissionState.prUrl,
+    submissionId: normalizeNullableString(submission?.id),
+    reviewNote: normalizeStringFromFlexibleValue(
+      (submission as SubmissionDetailContract | undefined)?.reviewNote,
+      ['note', 'comment', 'message', 'content', 'text']
+    ),
+    reviewerName: submission ? normalizeReviewerName(submission) : null,
+    submittedAt: normalizeNullableString(submission?.submittedAt),
+    reviewedAt: normalizeStringFromFlexibleValue(
+      (submission as SubmissionDetailContract | undefined)?.reviewedAt,
+      ['date', 'at', 'reviewedAt']
+    ),
+  };
 }

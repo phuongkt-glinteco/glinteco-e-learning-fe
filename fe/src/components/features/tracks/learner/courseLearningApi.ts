@@ -2,8 +2,10 @@ import {
   exercisesControllerFindAll,
   exercisesControllerFindOne,
   submissionsControllerFindMine,
+  submissionsControllerFindOne,
   submissionsControllerResubmit,
   submissionsControllerSubmit,
+  SUPPRESS_ERROR_TOAST_HEADER,
   tracksControllerFindAll,
   tracksControllerFindOne,
   lessonsControllerFindLessons,
@@ -13,6 +15,7 @@ import {
 } from '@/services/api-client';
 import type {
   LearnerExercise,
+  LearnerExerciseFeedItem,
   LearnerExerciseDetail,
   LearnerLesson,
   LearnerSubmissionState,
@@ -22,7 +25,9 @@ import type {
 import {
   extractDataArray,
   getSubmissionExerciseId,
+  getSubmissionExercise,
   getErrorStatus,
+  normalizeExerciseFeedItem,
   normalizeExerciseDetail,
   normalizeExerciseSummaries,
   normalizeLessonDetail,
@@ -44,6 +49,10 @@ import {
   type TrackSummaryContract,
 } from './utils';
 
+const silentErrorToastOptions = {
+  headers: { [SUPPRESS_ERROR_TOAST_HEADER]: 'true' },
+} as const;
+
 export interface CourseDetailData {
   course: LearnerTrack;
   lessons: TrackLessonPreview[];
@@ -64,6 +73,10 @@ export interface ExercisePageData {
   submission: LearnerSubmissionState;
 }
 
+export interface MyExercisesData {
+  exercises: LearnerExerciseFeedItem[];
+}
+
 export interface CompleteLessonResult {
   lessonId?: string;
   trackId?: string;
@@ -74,11 +87,115 @@ export interface CompleteLessonResult {
   unlockedTrackId?: string | null;
 }
 
+function createFallbackCourse(exercise: LearnerExerciseDetail): LearnerTrack {
+  return {
+    id: exercise.trackId ?? 'standalone-exercises',
+    title: exercise.trackTitle || 'Exercises',
+    description: 'Standalone exercises available to the learner.',
+    estimatedTime: exercise.estimatedTime,
+    lessonCount: 0,
+    lessonsCompleted: 0,
+    order: 1,
+    status: 'in_progress',
+    icon: 'code',
+    accessStatus: 'unlocked',
+    lockedReason: null,
+    currentLessonId: null,
+    level: exercise.difficulty,
+    thumbnail: null,
+  };
+}
+
+function createFallbackLesson(exercise: LearnerExerciseDetail): LearnerLesson {
+  return {
+    id: exercise.lessonId ?? 'standalone-exercise',
+    title: exercise.lessonId ? 'Linked lesson' : 'Standalone exercise',
+    body: '',
+    description: exercise.brief,
+    estimatedTime: exercise.estimatedTime,
+    order: 1,
+    completed: false,
+    xp: exercise.xp,
+    type: 'assignment',
+  };
+}
+
 export async function fetchCourses(): Promise<LearnerTrack[]> {
   const response = await withAuthRetry(() => tracksControllerFindAll({ throwOnError: true }));
   return normalizeTrackSummaries(
     extractDataArray<TrackSummaryContract>(response.data as unknown as TrackSummaryContract[] | { data?: TrackSummaryContract[] })
   );
+}
+
+function shouldHydrateSubmission(submission: SubmissionFeedItemContract) {
+  const status = normalizeSubmissionState(submission).status;
+  return status === 'changes' || status === 'rejected' || status === 'approved';
+}
+
+async function hydrateSubmissionDetail(
+  submission: SubmissionFeedItemContract
+): Promise<SubmissionFeedItemContract | SubmissionDetailContract> {
+  if (!submission.id || !shouldHydrateSubmission(submission)) return submission;
+
+  try {
+    const response = await withAuthRetry(() =>
+      submissionsControllerFindOne({
+        path: { id: submission.id },
+        throwOnError: true,
+        ...silentErrorToastOptions,
+      })
+    );
+
+    return (response.data as unknown as SubmissionDetailContract | undefined) ?? submission;
+  } catch (error) {
+    if (getErrorStatus(error) === 401) throw error;
+    return submission;
+  }
+}
+
+export async function fetchMyExercises(): Promise<MyExercisesData> {
+  const [exerciseResponse, submissionResponse] = await withAuthRetry(() =>
+    Promise.all([
+      exercisesControllerFindAll({
+        query: { limit: 100 },
+        throwOnError: true,
+        ...silentErrorToastOptions,
+      }),
+      submissionsControllerFindMine({ throwOnError: true, ...silentErrorToastOptions }),
+    ])
+  );
+
+  const exercises = extractDataArray<ExerciseSummaryContract>(
+    exerciseResponse.data as unknown as ExerciseSummaryContract[] | { data?: ExerciseSummaryContract[] }
+  );
+  const rawSubmissions = extractDataArray<SubmissionFeedItemContract>(
+    submissionResponse.data as unknown as { data?: SubmissionFeedItemContract[] }
+  );
+  const submissions = await Promise.all(rawSubmissions.map(hydrateSubmissionDetail));
+  const submissionByExerciseId = new Map(
+    submissions
+      .map((submission) => [getSubmissionExerciseId(submission), submission] as const)
+      .filter((entry): entry is readonly [string, SubmissionFeedItemContract | SubmissionDetailContract] => Boolean(entry[0]))
+  );
+  const exerciseIds = new Set(exercises.map((exercise) => exercise.id).filter(Boolean));
+  const feedItems = exercises
+    .map((exercise) => normalizeExerciseFeedItem(exercise, submissionByExerciseId.get(exercise.id ?? '')))
+    .filter((exercise): exercise is LearnerExerciseFeedItem => Boolean(exercise));
+
+  const submittedOnlyItems = submissions
+    .filter((submission) => {
+      const exerciseId = getSubmissionExerciseId(submission);
+      return exerciseId && !exerciseIds.has(exerciseId);
+    })
+    .map((submission) => {
+      const submissionExercise = getSubmissionExercise(submission);
+      return submissionExercise ? normalizeExerciseFeedItem(submissionExercise, submission) : null;
+    })
+    .filter((exercise): exercise is LearnerExerciseFeedItem => Boolean(exercise));
+
+  return {
+    exercises: [...feedItems, ...submittedOnlyItems],
+  };
 }
 
 export async function fetchCourseDetail(courseId: string): Promise<CourseDetailData> {
@@ -87,10 +204,12 @@ export async function fetchCourseDetail(courseId: string): Promise<CourseDetailD
       tracksControllerFindOne({
         path: { id: courseId },
         throwOnError: true,
+        ...silentErrorToastOptions,
       }),
       lessonsControllerFindLessons({
         path: { id: courseId },
         throwOnError: true,
+        ...silentErrorToastOptions,
       }),
     ])
   );
@@ -115,6 +234,7 @@ async function fetchLessonDetail(lessonId: string): Promise<LessonDetailContract
       lessonsControllerFindOneLesson({
         path: { id: lessonId },
         throwOnError: true,
+        ...silentErrorToastOptions,
       })
     );
 
@@ -133,6 +253,7 @@ async function fetchLessonExercises(
     exercisesControllerFindAll({
       query: { lessonId },
       throwOnError: true,
+      ...silentErrorToastOptions,
     })
   );
   const lessonExercises = extractDataArray<ExerciseSummaryContract>(
@@ -149,6 +270,7 @@ async function fetchLessonExercises(
     exercisesControllerFindAll({
       query: { trackId: courseId },
       throwOnError: true,
+      ...silentErrorToastOptions,
     })
   );
   const trackExercises = extractDataArray<ExerciseSummaryContract>(
@@ -250,6 +372,7 @@ async function fetchExerciseDetail(exerciseId: string): Promise<LearnerExerciseD
     exercisesControllerFindOne({
       path: { id: exerciseId },
       throwOnError: true,
+      ...silentErrorToastOptions,
     })
   );
 
@@ -260,15 +383,16 @@ async function fetchExerciseDetail(exerciseId: string): Promise<LearnerExerciseD
 
 async function fetchMySubmissionForExercise(
   exerciseId: string
-): Promise<SubmissionFeedItemContract | null> {
+): Promise<SubmissionFeedItemContract | SubmissionDetailContract | null> {
   try {
     const response = await withAuthRetry(() =>
-      submissionsControllerFindMine({ throwOnError: true })
+      submissionsControllerFindMine({ throwOnError: true, ...silentErrorToastOptions })
     );
     const submissions = extractDataArray<SubmissionFeedItemContract>(
       response.data as unknown as { data?: SubmissionFeedItemContract[] }
     );
-    return submissions.find((submission) => getSubmissionExerciseId(submission) === exerciseId) ?? null;
+    const submission = submissions.find((item) => getSubmissionExerciseId(item) === exerciseId) ?? null;
+    return submission ? hydrateSubmissionDetail(submission) : null;
   } catch (error) {
     if (getErrorStatus(error) === 401) throw error;
     return null;
@@ -299,6 +423,44 @@ export async function fetchExercisePage(
   };
 }
 
+export async function fetchStandaloneExercisePage(exerciseId: string): Promise<ExercisePageData> {
+  const exercise = await fetchExerciseDetail(exerciseId);
+  const submission = await fetchMySubmissionForExercise(exerciseId);
+  let course = createFallbackCourse(exercise);
+  let activeLesson = createFallbackLesson(exercise);
+  let lessons: LearnerLesson[] = [activeLesson];
+
+  if (exercise.trackId) {
+    try {
+      const courseDetail = await fetchCourseDetail(exercise.trackId);
+      course = courseDetail.course;
+
+      const linkedLesson = exercise.lessonId
+        ? courseDetail.lessons.find((lesson) => lesson.id === exercise.lessonId)
+        : null;
+
+      if (linkedLesson) {
+        activeLesson = {
+          ...linkedLesson,
+          body: '',
+          xp: exercise.xp,
+        };
+        lessons = [activeLesson];
+      }
+    } catch (error) {
+      if (getErrorStatus(error) === 401) throw error;
+    }
+  }
+
+  return {
+    course,
+    lessons,
+    activeLesson,
+    exercise,
+    submission: normalizeSubmissionState(submission, exercise),
+  };
+}
+
 export async function submitExercise(
   exerciseId: string,
   prUrl: string
@@ -308,6 +470,7 @@ export async function submitExercise(
       path: { id: exerciseId },
       body: { prUrl },
       throwOnError: true,
+      ...silentErrorToastOptions,
     })
   );
 
@@ -323,6 +486,7 @@ export async function resubmitExercise(
       path: { id: exerciseId },
       body: { prUrl },
       throwOnError: true,
+      ...silentErrorToastOptions,
     })
   );
 

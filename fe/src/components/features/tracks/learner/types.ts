@@ -46,6 +46,8 @@ export interface TrackLessonPreview {
 export interface LearnerExercise {
   id: string;
   lessonId: string | null;
+  trackId: string | null;
+  trackTitle: string;
   title: string;
   brief: string;
   difficulty: string;
@@ -88,11 +90,17 @@ export interface LearnerSubmissionFormValues {
 }
 
 export interface LearnerExerciseDetail extends LearnerExercise {
-  trackId: string | null;
-  trackTitle: string;
   overview: string;
   objectives: string[];
   steps: string[];
   resources: LearnerExerciseResource[];
   hint: string | null;
+}
+
+export interface LearnerExerciseFeedItem extends LearnerExercise {
+  submissionId: string | null;
+  reviewNote: string | null;
+  reviewerName: string | null;
+  submittedAt: string | null;
+  reviewedAt: string | null;
 }

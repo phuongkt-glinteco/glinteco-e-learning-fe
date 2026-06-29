@@ -182,6 +182,13 @@ export default function LessonDetailContainer() {
 
   function handleOpenExercise(exerciseId: string) {
     if (!courseId || !lessonId || !exerciseId) return;
+    window.sessionStorage.setItem(
+      'learnerExerciseReturnTo',
+      JSON.stringify({
+        exerciseId,
+        returnTo: `/${routeBase}/${courseId}/lessons/${lessonId}`,
+      })
+    );
     router.push(`/${routeBase}/${courseId}/lessons/${lessonId}/exercises/${exerciseId}`);
   }
 

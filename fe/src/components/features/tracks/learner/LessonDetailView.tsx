@@ -15,6 +15,7 @@ interface LessonDetailViewProps {
   completionError: string | null;
   onBackToTracks: () => void;
   onSelectLesson: (lessonId: string) => void;
+  onOpenExercise: (exerciseId: string) => void;
   onCompleteLesson: () => void;
 }
 
@@ -30,6 +31,7 @@ export function LessonDetailView({
   completionError,
   onBackToTracks,
   onSelectLesson,
+  onOpenExercise,
   onCompleteLesson,
 }: LessonDetailViewProps) {
   const progressPercent = track.lessonCount > 0
@@ -39,9 +41,9 @@ export function LessonDetailView({
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
       {completionMessage && (
-        <div className="rounded-lg border border-tertiary-container bg-tertiary-fixed/40 p-4 text-tertiary label-sm flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2 rounded-lg border border-tertiary-container bg-tertiary-fixed/40 p-4 label-sm text-tertiary">
           <span className="material-symbols-outlined text-[18px]">bolt</span>
-          {completionMessage}
+          <span className="min-w-0 break-words">{completionMessage}</span>
         </div>
       )}
 
@@ -167,29 +169,38 @@ export function LessonDetailView({
             {exercises.length > 0 ? (
               <div className="flex flex-col gap-3">
                 {exercises.map((exercise) => (
-                  <article
+                  <button
                     key={exercise.id}
-                    className="rounded-lg border border-outline-variant bg-surface p-4"
+                    type="button"
+                    onClick={() => onOpenExercise(exercise.id)}
+                    className="rounded-lg border border-outline-variant bg-surface p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 cursor-pointer"
                   >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
-                        {exercise.difficulty}
-                      </span>
-                      <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
-                        {exercise.tag}
-                      </span>
-                      <span className="inline-flex items-center gap-1 label-sm text-on-surface-variant">
-                        <span className="material-symbols-outlined text-[15px]">schedule</span>
-                        {exercise.estimatedTime}
-                      </span>
-                      <span className="inline-flex items-center gap-1 label-sm text-on-surface-variant">
-                        <span className="material-symbols-outlined text-[15px]">bolt</span>
-                        {exercise.xp} XP
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
+                            {exercise.difficulty}
+                          </span>
+                          <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
+                            {exercise.tag}
+                          </span>
+                          <span className="inline-flex items-center gap-1 label-sm text-on-surface-variant">
+                            <span className="material-symbols-outlined text-[15px]">schedule</span>
+                            {exercise.estimatedTime}
+                          </span>
+                          <span className="inline-flex items-center gap-1 label-sm text-on-surface-variant">
+                            <span className="material-symbols-outlined text-[15px]">bolt</span>
+                            {exercise.xp} XP
+                          </span>
+                        </div>
+                        <h4 className="mt-2 headline-sm line-clamp-2 break-words text-on-surface">{exercise.title}</h4>
+                        <p className="mt-1 body-sm line-clamp-3 break-words text-on-surface-variant">{exercise.brief}</p>
+                      </div>
+                      <span className="material-symbols-outlined mt-1 shrink-0 text-[18px] text-primary">
+                        arrow_forward
                       </span>
                     </div>
-                    <h4 className="mt-2 headline-sm text-on-surface">{exercise.title}</h4>
-                    <p className="mt-1 body-sm text-on-surface-variant">{exercise.brief}</p>
-                  </article>
+                  </button>
                 ))}
               </div>
             ) : (
@@ -274,7 +285,7 @@ export function LessonDetailView({
             </p>
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 label-sm text-on-surface-variant">
               <span>Estimated time</span>
-              <span className="break-words text-on-surface">{track.estimatedTime}</span>
+              <span className="min-w-0 break-words text-on-surface">{track.estimatedTime}</span>
             </div>
           </div>
         </aside>

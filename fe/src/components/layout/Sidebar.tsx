@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import AppLogo from './AppLogo';
 import NavMenu from './NavMenu';
 import { useAuth } from '@/providers/AuthProvider';
@@ -15,14 +16,15 @@ const learnerMainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
   { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/tracks' },
   { label: 'My Courses', translationKey: 'myCourses', icon: 'local_library', href: '/my-courses' },
-  { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
+  { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/documents' },
 ];
 
 const adminMainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
   { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/courses' },
   { label: 'Track Management', translationKey: 'trackManager', icon: 'local_library', href: '/admin/tracks' },
-  { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
+  { label: 'Review Queue', translationKey: 'reviews', icon: 'rate_review', href: '/admin/reviews' },
+  { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/documents' },
 ];
 
 export const footerNav: NavItem[] = [
@@ -35,11 +37,23 @@ export function getMainNav(role?: string): NavItem[] {
   return role === 'admin' ? adminMainNav : learnerMainNav;
 }
 
+// Pre-computed learner nav for SSR/skeleton - ensures consistent initial render
+const initialNav = learnerMainNav;
+
 export const mainNav = learnerMainNav;
+export { learnerMainNav };
 
 export default function Sidebar() {
   const { user } = useAuth();
-  const navItems = getMainNav(user?.role);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Always show learner nav initially (SSG/SSR and first client render match)
+  // After mount, switch to logged-in user's actual nav (admin or learner)
+  const navItems = hasMounted && user?.role === 'admin' ? adminMainNav : initialNav;
 
   return (
     <nav className="hidden 
@@ -59,4 +73,3 @@ export default function Sidebar() {
     </nav>
   );
 }
-

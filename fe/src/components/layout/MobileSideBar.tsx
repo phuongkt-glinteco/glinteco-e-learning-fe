@@ -1,19 +1,35 @@
 'use client';
 
-import {useAuth} from '@/providers/AuthProvider';
-import React from 'react';
+import { useState, useEffect } from 'react';
 import UserProfileAvatar from './UserProfileAvatar';
 import NavMenu from './NavMenu';
-import { getMainNav, footerNav } from './Sidebar';
+import { learnerMainNav, footerNav } from './Sidebar';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface MobileSideBarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const adminMainNav = [
+  { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
+  { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/courses' },
+  { label: 'Track Management', translationKey: 'trackManager', icon: 'local_library', href: '/admin/tracks' },
+  { label: 'Review Queue', translationKey: 'reviews', icon: 'rate_review', href: '/admin/reviews' },
+  { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/documents' },
+];
+
 export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
   const { user } = useAuth();
-  const mainNav = getMainNav(user?.role);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Always show learner nav initially to match SSR
+  // Switch to admin nav after mount if user is admin
+  const navItems = hasMounted && user?.role === 'admin' ? adminMainNav : learnerMainNav;
 
   return (
     <div
@@ -46,7 +62,7 @@ export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
 
           {/* Menu Items */}
           <div className="flex flex-col gap-2">
-            <NavMenu items={mainNav} variant="mobile" onItemClick={onClose} />
+            <NavMenu items={navItems} variant="mobile" onItemClick={onClose} />
 
             <div className="my-2 border-t border-outline-variant"></div>
 

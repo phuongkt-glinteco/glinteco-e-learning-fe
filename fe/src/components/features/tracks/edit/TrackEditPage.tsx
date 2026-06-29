@@ -103,7 +103,7 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
   const estimatedTime = sumEstimatedTimes(lessons.map((l) => l.estimatedTime));
 
   async function handleSave() {
-    if (!title.trim() || lessons.length === 0) return;
+    if (!title.trim() ) return;
     setSaving(true);
 
     try {
@@ -256,7 +256,7 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
               </button>
               <button
                 onClick={handleSave}
-                disabled={!title.trim() || lessons.length === 0 || saving}
+                disabled={!title.trim() || saving}
                 className="flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer shrink-0"
               >
                 {saving ? (

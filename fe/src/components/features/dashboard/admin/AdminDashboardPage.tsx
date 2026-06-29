@@ -9,6 +9,7 @@ import {
 } from '@/services/api-client';
 import type {
   CohortDashboardStatsDto,
+  CohortSummaryDto,
   SubmissionFeedItemDto,
   ExerciseDetailDto,
   UserProfileDto,
@@ -36,17 +37,36 @@ function mapStatus(apiStatus: string): 'pending_review' | 'changes_requested' | 
   }
 }
 
-export default function AdminDashboardPage() {
+interface AdminDashboardPageProps {
+  cohorts?: { id: string; name: string }[];
+  selectedCohortId?: string | null;
+  initialStats?: CohortDashboardStatsDto;
+  initialSubmissions?: SubmissionFeedItemDto[];
+  initialTrackCompletion?: { label: string; value: number }[];
+}
+
+type TrackCompletionItem = {
+  title?: string;
+  completionPct?: number;
+};
+
+export default function AdminDashboardPage({
+  cohorts = [],
+  selectedCohortId: initialSelectedCohortId = null,
+  initialStats,
+  initialSubmissions = [],
+  initialTrackCompletion = [],
+}: AdminDashboardPageProps = {}) {
   const t = useTranslations('AdminDashboardPage');
   const { user, loading: authLoading } = useAuth();
 
-  const [cohortList, setCohortList] = useState<{ id: string; name: string }[]>([]);
-  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
+  const [cohortList, setCohortList] = useState<{ id: string; name: string }[]>(cohorts);
+  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(initialSelectedCohortId);
 
-  const [stats, setStats] = useState<CohortDashboardStatsDto | null>(null);
-  const [submissions, setSubmissions] = useState<SubmissionFeedItemDto[]>([]);
-  const [trackCompletion, setTrackCompletion] = useState<{ label: string; value: number }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<CohortDashboardStatsDto | null>(initialStats ?? null);
+  const [submissions, setSubmissions] = useState<SubmissionFeedItemDto[]>(initialSubmissions);
+  const [trackCompletion, setTrackCompletion] = useState<{ label: string; value: number }[]>(initialTrackCompletion);
+  const [loading, setLoading] = useState(!initialStats && initialSubmissions.length === 0);
   const [error, setError] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -67,12 +87,14 @@ export default function AdminDashboardPage() {
   // Fetch cohorts list once
   useEffect(() => {
     if (!mounted || authLoading) return;
+    if (cohorts.length > 0) return;
     let cancelled = false;
 
     cohortControllerFindAll({ throwOnError: true })
       .then((res) => {
         if (cancelled) return;
-        const list = (res.data?.data ?? []).map((c) => ({
+        const cohortData = (res.data?.data ?? []) as CohortSummaryDto[];
+        const list = cohortData.map((c) => ({
           id: c.id ?? '',
           name: c.name ?? '',
         }));
@@ -89,7 +111,7 @@ export default function AdminDashboardPage() {
       });
 
     return () => { cancelled = true; };
-  }, [mounted, authLoading, (user as UserProfileDto)?.cohortId]);
+  }, [mounted, authLoading, (user as UserProfileDto)?.cohortId, cohorts.length]);
 
   // Fetch dashboard data when selected cohort changes
   useEffect(() => {
@@ -108,9 +130,10 @@ export default function AdminDashboardPage() {
         ]);
         if (cancelled) return;
         setStats(overviewRes.data as CohortDashboardStatsDto);
-        setSubmissions(submissionsRes.data?.data ?? []);
+        setSubmissions((submissionsRes.data?.data ?? []) as SubmissionFeedItemDto[]);
+        const trackCompletionData = (trackRes.data?.data ?? []) as TrackCompletionItem[];
         setTrackCompletion(
-          (trackRes.data?.data ?? []).map((t) => ({
+          trackCompletionData.map((t) => ({
             label: t.title ?? '',
             value: t.completionPct ?? 0,
           }))
@@ -273,7 +296,6 @@ export default function AdminDashboardPage() {
                 icon="edit_note"
                 links={[
                   { label: t('trackEditor'), href: '/admin/tracks' },
-                  { label: t('lessonPlanner'), href: '/admin/tracks', icon: 'chevron_right' },
                 ]}
               />
               <QuickLinksCard

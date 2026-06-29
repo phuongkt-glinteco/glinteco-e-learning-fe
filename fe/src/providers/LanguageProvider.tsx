@@ -33,7 +33,11 @@ export function LanguageProvider({ children, initialLocale }: LanguageProviderPr
 
   return (
     <LanguageContext.Provider value={{ locale, changeLanguage }}>
-      <NextIntlClientProvider messages={messages[locale]} locale={locale}>
+      <NextIntlClientProvider
+        messages={messages[locale]}
+        locale={locale}
+        timeZone="Asia/Ho_Chi_Minh"
+      >
         {children}
       </NextIntlClientProvider>
     </LanguageContext.Provider>

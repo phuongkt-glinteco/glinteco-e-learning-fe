@@ -2,6 +2,7 @@
 
 import AppLogo from './AppLogo';
 import NavMenu from './NavMenu';
+import { useAuth } from '@/providers/AuthProvider';
 
 export interface NavItem {
   label: string;
@@ -10,10 +11,17 @@ export interface NavItem {
   href: string;
 }
 
-export const mainNav: NavItem[] = [
+const learnerMainNav: NavItem[] = [
+  { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
+  { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/tracks' },
+  { label: 'My Courses', translationKey: 'myCourses', icon: 'local_library', href: '/my-courses' },
+  { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
+];
+
+const adminMainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
   { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/courses' },
-  { label: 'My Courses', translationKey: 'myCourses', icon: 'local_library', href: '/my-courses' },
+  { label: 'Track Management', translationKey: 'trackManager', icon: 'local_library', href: '/admin/tracks' },
   { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/docs' },
 ];
 
@@ -23,8 +31,16 @@ export const footerNav: NavItem[] = [
   { label: 'Logout', translationKey: 'logout', icon: 'logout', href: '/logout' },
 ];
 
+export function getMainNav(role?: string): NavItem[] {
+  return role === 'admin' ? adminMainNav : learnerMainNav;
+}
+
+export const mainNav = learnerMainNav;
 
 export default function Sidebar() {
+  const { user } = useAuth();
+  const navItems = getMainNav(user?.role);
+
   return (
     <nav className="hidden 
       md:flex flex-col fixed left-0 top-0 h-screen w-sidebar py-lg z-40 
@@ -34,7 +50,7 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 flex flex-col gap-xs px-md">
-        <NavMenu items={mainNav} variant="desktop" />
+        <NavMenu items={navItems} variant="desktop" />
       </div>
 
       <div className="mt-auto flex flex-col gap-xs pt-md px-md border-t border-outline-variant">

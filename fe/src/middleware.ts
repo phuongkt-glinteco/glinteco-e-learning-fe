@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 const publicRoutes = ['/', '/login', '/register'];
 const learnerOnlyPaths = ['/dashboard/learner'];
-const adminOnlyPaths = ['/admin', '/dashboard/admin'];
+const adminOnlyPaths = ['/admin', '/dashboard/admin', '/reorder'];
 const apiAuthPath = '/api/auth';
 
 type AuthMiddlewareRequest = NextRequest & {

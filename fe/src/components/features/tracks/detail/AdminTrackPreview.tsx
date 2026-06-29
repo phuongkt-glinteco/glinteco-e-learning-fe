@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { sumEstimatedTimes } from '@/lib/time-utils';
-import type { ExerciseSummaryDto, TrackDetailDto } from '@/services/api-client';
+import type { ExerciseSummaryDto, LessonProgressItemDto, TrackDetailDto } from '@/services/api-client';
 import { TrackHero } from './TrackHero';
 import { CourseRoadmap } from './CourseRoadmap';
 import { TrackExercisesCard } from './TrackExercisesCard';
@@ -15,24 +15,33 @@ interface AdminTrackPreviewProps {
   onBack: () => void;
 }
 
+type PreviewLesson = LessonProgressItemDto & { estimatedTime?: string };
+
+function getAdjacentTrackTitle(track: TrackDetailDto['prevTrack'] | TrackDetailDto['nextTrack']) {
+  if (track && typeof track === 'object' && 'title' in track && typeof track.title === 'string') {
+    return track.title;
+  }
+  return '';
+}
+
 export default function AdminTrackPreview({ track, exercises, onBack }: AdminTrackPreviewProps) {
   const t = useTranslations('TrackPreview');
   const td = useTranslations('TrackDetailPage');
-  const lessons = [...(track.lessons ?? [])].sort((a, b) => a.order - b.order);
+  const lessons = ([...(track.lessons ?? [])] as PreviewLesson[]).sort((a, b) => a.order - b.order);
 
   const estimatedTime = track.estimatedTime || sumEstimatedTimes(lessons.map((l) => l.estimatedTime || '0m'));
   const totalXP = lessons.length * 800;
 
   const prevTrackMapped = track.prevTrack
     ? {
-        title: (track.prevTrack as any).title || '',
+        title: getAdjacentTrackTitle(track.prevTrack),
         status: 'completed' as const,
       }
     : undefined;
 
   const nextTrackMapped = track.nextTrack
     ? {
-        title: (track.nextTrack as any).title || '',
+        title: getAdjacentTrackTitle(track.nextTrack),
         status: 'locked' as const,
       }
     : undefined;

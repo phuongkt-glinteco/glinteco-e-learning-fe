@@ -1,0 +1,180 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Skeleton from '@/components/ui/loading/Skeleton';
+import { CourseDetailView } from './CourseDetailView';
+import type { LearnerTrack, TrackLessonPreview } from './types';
+import { fetchCourseDetail } from './courseLearningApi';
+import {
+  getContinueLessonId,
+  getErrorStatus,
+  getErrorMessage,
+  getLearnerRouteBase,
+  getRouteParam,
+} from './utils';
+
+function CourseDetailLoadingState() {
+  return (
+    <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
+      <Skeleton width={260} height={32} rounded="rounded-lg" />
+      <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+        <div className="grid gap-6 lg:grid-cols-[1fr_220px] lg:items-center">
+          <div className="min-w-0">
+            <Skeleton width={140} height={28} rounded="rounded-full" className="mb-4" />
+            <Skeleton width="72%" height={44} rounded="rounded" />
+            <Skeleton width="88%" height={20} rounded="rounded" className="mt-4" />
+            <Skeleton width="64%" height={20} rounded="rounded" className="mt-2" />
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Skeleton width={116} height={38} rounded="rounded-lg" />
+              <Skeleton width={104} height={38} rounded="rounded-lg" />
+              <Skeleton width={124} height={38} rounded="rounded-lg" />
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <Skeleton width={168} height={168} rounded="rounded-full" />
+          </div>
+        </div>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[1fr_320px] xl:items-start">
+        <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <Skeleton width={180} height={24} rounded="rounded" />
+              <Skeleton width={320} height={18} rounded="rounded" className="mt-2 max-w-full" />
+            </div>
+            <Skeleton width={92} height={28} rounded="rounded-full" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton height={116} rounded="rounded-lg" />
+            <Skeleton height={116} rounded="rounded-lg" />
+            <Skeleton height={116} rounded="rounded-lg" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4">
+          <Skeleton height={150} rounded="rounded-lg" />
+          <Skeleton height={132} rounded="rounded-lg" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CourseDetailErrorState({
+  title,
+  message,
+  onBack,
+  onRetry,
+}: {
+  title: string;
+  message: string;
+  onBack: () => void;
+  onRetry: () => void;
+}) {
+  return (
+    <section className="mx-auto max-w-container-max px-gutter py-8">
+      <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
+        <h1 className="headline-sm">{title}</h1>
+        <p className="body-sm mt-2">{message}</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-4 py-2 label-sm text-on-surface hover:bg-surface-container-low cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            Back to tracks
+          </button>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            Retry
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function CourseDetailContainer() {
+  const params = useParams();
+  const router = useRouter();
+  const courseId = getRouteParam(params.courseId ?? params.trackId);
+  const routeBase = getLearnerRouteBase(params.trackId);
+
+  const [track, setTrack] = useState<LearnerTrack | null>(null);
+  const [lessons, setLessons] = useState<TrackLessonPreview[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadCourseDetail = useCallback(async () => {
+    if (!courseId) {
+      setError('Missing course route parameter.');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const courseDetail = await fetchCourseDetail(courseId);
+      setLessons(courseDetail.lessons);
+      setTrack(courseDetail.course);
+    } catch (loadError: unknown) {
+      setError(getErrorMessage(loadError, 'Failed to load course details.'));
+    } finally {
+      setLoading(false);
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    loadCourseDetail();
+  }, [loadCourseDetail]);
+
+  const continueLessonId = useMemo(
+    () => getContinueLessonId(lessons, track?.currentLessonId),
+    [lessons, track?.currentLessonId]
+  );
+
+  function handleOpenLesson(lessonId: string) {
+    if (!courseId || !lessonId) return;
+    router.push(`/${routeBase}/${courseId}/lessons/${lessonId}`);
+  }
+
+  function handleContinueCourse() {
+    if (!continueLessonId) return;
+    handleOpenLesson(continueLessonId);
+  }
+
+  if (loading) return <CourseDetailLoadingState />;
+
+  if (error || !track) {
+    const errorTitle = getErrorStatus(error) === 404 || /not found/i.test(error ?? '')
+      ? 'Course not found'
+      : 'Course not available';
+
+    return (
+      <CourseDetailErrorState
+        title={errorTitle}
+        message={error ?? 'Track was not found.'}
+        onBack={() => router.push(`/${routeBase}`)}
+        onRetry={loadCourseDetail}
+      />
+    );
+  }
+
+  return (
+    <CourseDetailView
+      track={track}
+      lessons={lessons}
+      continueLessonId={continueLessonId}
+      onBackToTracks={() => router.push(`/${routeBase}`)}
+      onContinueCourse={handleContinueCourse}
+      onOpenLesson={handleOpenLesson}
+    />
+  );
+}

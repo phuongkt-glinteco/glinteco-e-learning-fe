@@ -1,11 +1,10 @@
 'use client';
 
+import {useAuth} from '@/providers/AuthProvider';
 import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import UserProfileAvatar from './UserProfileAvatar';
 import NavMenu from './NavMenu';
-import { mainNav, footerNav } from './Sidebar';
+import { getMainNav, footerNav } from './Sidebar';
 
 interface MobileSideBarProps {
   isOpen: boolean;
@@ -13,8 +12,8 @@ interface MobileSideBarProps {
 }
 
 export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
-  const pathname = usePathname();
-  const isNotificationsActive = pathname.startsWith('/notifications');
+  const { user } = useAuth();
+  const mainNav = getMainNav(user?.role);
 
   return (
     <div
@@ -47,7 +46,6 @@ export default function MobileSideBar({ isOpen, onClose }: MobileSideBarProps) {
 
           {/* Menu Items */}
           <div className="flex flex-col gap-2">
-            
             <NavMenu items={mainNav} variant="mobile" onItemClick={onClose} />
 
             <div className="my-2 border-t border-outline-variant"></div>

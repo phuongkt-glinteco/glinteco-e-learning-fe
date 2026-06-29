@@ -525,7 +525,9 @@ describe('UsersService', () => {
     it('should increment streak if claimed yesterday', async () => {
       const now = new Date();
       // Yestarday at UTC, e.g. -24 hours from todayStart
-      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const todayStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+      );
       const yesterday = new Date(todayStart.getTime() - 12 * 60 * 60 * 1000); // 12 hours before today start
       const mockUser = {
         id: 'u_123',
@@ -547,7 +549,9 @@ describe('UsersService', () => {
 
     it('should reset streak to 1 if claimed more than a day ago', async () => {
       const now = new Date();
-      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const todayStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+      );
       const twoDaysAgo = new Date(todayStart.getTime() - 48 * 60 * 60 * 1000);
       const mockUser = {
         id: 'u_123',

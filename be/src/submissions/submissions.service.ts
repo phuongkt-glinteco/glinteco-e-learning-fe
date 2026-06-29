@@ -188,7 +188,9 @@ export class SubmissionsService {
       const histories = await this.submissionHistoryRepository.find({
         where: { submissionId: savedSubmission.id },
       });
-      const previousComments = histories.map(h => h.comment).filter(c => !!c);
+      const previousComments = histories
+        .map((h) => h.comment)
+        .filter((c) => !!c);
 
       const event = new SubmissionResubmittedEvent();
       event.submissionId = savedSubmission.id;
@@ -317,7 +319,11 @@ export class SubmissionsService {
   ) {
     const submission = await this.submissionRepository.findOne({
       where: { id },
-      relations: { user: true, exercise: { track: true }, histories: { admin: true } },
+      relations: {
+        user: true,
+        exercise: { track: true },
+        histories: { admin: true },
+      },
       order: { histories: { createdAt: 'DESC' } },
     });
 
@@ -389,7 +395,12 @@ export class SubmissionsService {
       event.userEmail = user.email;
       event.exerciseId = exercise.id;
       event.exerciseTitle = exercise.title;
-      event.status = status === SubmissionStatus.APPROVED ? 'approved' : (status === SubmissionStatus.CHANGES ? 'changes' : 'rejected');
+      event.status =
+        status === SubmissionStatus.APPROVED
+          ? 'approved'
+          : status === SubmissionStatus.CHANGES
+            ? 'changes'
+            : 'rejected';
       event.adminId = reviewer.id;
       event.adminName = reviewer.name;
       event.comment = comment;

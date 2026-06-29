@@ -21,9 +21,7 @@ export class UpdateEntitiesForFeAudit1784500000000 implements MigrationInterface
     );
 
     // 3. Add lessonId column and foreign key constraint to exercises table
-    await queryRunner.query(
-      `ALTER TABLE "exercises" ADD "lessonId" uuid`,
-    );
+    await queryRunner.query(`ALTER TABLE "exercises" ADD "lessonId" uuid`);
     await queryRunner.query(
       `ALTER TABLE "exercises" ADD CONSTRAINT "FK_exercises_lessonId" FOREIGN KEY ("lessonId") REFERENCES "lessons"("id") ON DELETE SET NULL`,
     );

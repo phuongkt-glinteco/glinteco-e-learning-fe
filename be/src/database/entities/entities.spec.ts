@@ -195,7 +195,12 @@ describe('Database Entities', () => {
       userRepo.create({ email: 'progress@example.com', name: 'Progress User' }),
     );
     const track = await trackRepo.save(
-      trackRepo.create({ title: 'Progress Track', description: 'Desc', estimatedTime: '1h', order: 2 }),
+      trackRepo.create({
+        title: 'Progress Track',
+        description: 'Desc',
+        estimatedTime: '1h',
+        order: 2,
+      }),
     );
 
     const progress = progressRepo.create({
@@ -243,7 +248,12 @@ describe('Database Entities', () => {
       }),
     );
     const track = await trackRepo.save(
-      trackRepo.create({ title: 'Submission Track', description: 'Desc', estimatedTime: '1h', order: 3 }),
+      trackRepo.create({
+        title: 'Submission Track',
+        description: 'Desc',
+        estimatedTime: '1h',
+        order: 3,
+      }),
     );
 
     const exercise = exerciseRepo.create({

@@ -89,13 +89,24 @@ export class ExerciseDetailDto {
   @ApiProperty({ description: 'Mô tả tổng quan chi tiết bài tập' })
   overview: string;
 
-  @ApiProperty({ type: 'object', additionalProperties: true, description: 'Các mục tiêu cần đạt được' })
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    description: 'Các mục tiêu cần đạt được',
+  })
   objectives: Record<string, any>;
 
-  @ApiProperty({ type: 'object', additionalProperties: true, description: 'Các bước hướng dẫn thực hiện' })
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    description: 'Các bước hướng dẫn thực hiện',
+  })
   steps: Record<string, any>;
 
-  @ApiProperty({ type: [DocumentResponseDto], description: 'Tài liệu hướng dẫn liên kết' })
+  @ApiProperty({
+    type: [DocumentResponseDto],
+    description: 'Tài liệu hướng dẫn liên kết',
+  })
   resources: DocumentResponseDto[];
 
   @ApiProperty({ nullable: true, description: 'Gợi ý giải bài tập' })

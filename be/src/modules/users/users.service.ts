@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, IsNull, Repository } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
@@ -222,12 +226,20 @@ export class UsersService {
     }
 
     const now = new Date();
-    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const todayStart = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
     const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
     if (user.lastClaimedXpAt) {
       const lastClaimed = new Date(user.lastClaimedXpAt);
-      const lastClaimedUTC = new Date(Date.UTC(lastClaimed.getUTCFullYear(), lastClaimed.getUTCMonth(), lastClaimed.getUTCDate()));
+      const lastClaimedUTC = new Date(
+        Date.UTC(
+          lastClaimed.getUTCFullYear(),
+          lastClaimed.getUTCMonth(),
+          lastClaimed.getUTCDate(),
+        ),
+      );
 
       if (lastClaimedUTC.getTime() >= todayStart.getTime()) {
         throw new BadRequestException('Bạn đã nhận XP ngày hôm nay rồi.');

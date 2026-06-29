@@ -29,7 +29,11 @@ export class LessonSummaryDto {
   @ApiProperty({ enum: LessonType, description: 'Phân loại bài học' })
   type: LessonType;
 
-  @ApiProperty({ type: String, description: 'Mô tả ngắn của bài học', nullable: true })
+  @ApiProperty({
+    type: String,
+    description: 'Mô tả ngắn của bài học',
+    nullable: true,
+  })
   description: string | null;
 }
 
@@ -49,7 +53,11 @@ export class LessonProgressItemDto {
   @ApiProperty({ enum: LessonType, description: 'Phân loại bài học' })
   type: LessonType;
 
-  @ApiProperty({ type: String, description: 'Mô tả ngắn của bài học', nullable: true })
+  @ApiProperty({
+    type: String,
+    description: 'Mô tả ngắn của bài học',
+    nullable: true,
+  })
   description: string | null;
 
   @ApiProperty({ description: 'Thời gian ước tính hoàn thành' })
@@ -75,7 +83,11 @@ export class LessonDetailDto {
   @ApiProperty({ description: 'Nội dung chi tiết bài học (Markdown)' })
   body: string;
 
-  @ApiProperty({ type: String, description: 'Mô tả ngắn của bài học', nullable: true })
+  @ApiProperty({
+    type: String,
+    description: 'Mô tả ngắn của bài học',
+    nullable: true,
+  })
   description: string | null;
 
   @ApiProperty({ enum: LessonType, description: 'Phân loại bài học' })
@@ -84,7 +96,10 @@ export class LessonDetailDto {
   @ApiProperty({ description: 'Trạng thái hoàn thành bài học của user' })
   completed: boolean;
 
-  @ApiProperty({ type: [DocumentResponseDto], description: 'Danh sách tài liệu liên quan đến bài học' })
+  @ApiProperty({
+    type: [DocumentResponseDto],
+    description: 'Danh sách tài liệu liên quan đến bài học',
+  })
   relatedDocs: DocumentResponseDto[];
 }
 

@@ -45,12 +45,62 @@ export interface TrackLessonPreview {
 
 export interface LearnerExercise {
   id: string;
+  lessonId: string | null;
+  trackId: string | null;
+  trackTitle: string;
   title: string;
   brief: string;
   difficulty: string;
   estimatedTime: string;
   xp: number;
-  status: string;
+  status: LearnerSubmissionStatus;
   tag: string;
   prUrl: string | null;
+}
+
+export type LearnerSubmissionStatus =
+  | 'pending'
+  | 'submitted'
+  | 'changes'
+  | 'approved'
+  | 'rejected';
+
+export interface LearnerExerciseResource {
+  id: string;
+  title: string;
+  kind: string;
+  content: string | null;
+  url: string | null;
+}
+
+export interface LearnerSubmissionState {
+  id: string | null;
+  status: LearnerSubmissionStatus;
+  prUrl: string | null;
+  reviewNote: string | null;
+  reviewerId: string | null;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  canSubmit: boolean;
+  canResubmit: boolean;
+}
+
+export interface LearnerSubmissionFormValues {
+  prUrl: string;
+}
+
+export interface LearnerExerciseDetail extends LearnerExercise {
+  overview: string;
+  objectives: string[];
+  steps: string[];
+  resources: LearnerExerciseResource[];
+  hint: string | null;
+}
+
+export interface LearnerExerciseFeedItem extends LearnerExercise {
+  submissionId: string | null;
+  reviewNote: string | null;
+  reviewerName: string | null;
+  submittedAt: string | null;
+  reviewedAt: string | null;
 }

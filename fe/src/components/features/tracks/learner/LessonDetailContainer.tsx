@@ -7,18 +7,54 @@ import { LessonDetailView } from './LessonDetailView';
 import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 import { completeLesson, fetchLessonPage } from './courseLearningApi';
 import {
+  getAdjacentLessonIds,
   getErrorMessage,
+  getLearnerRouteBase,
   getRouteParam,
 } from './utils';
 
 function LessonLoadingState() {
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
-      <Skeleton height={72} />
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Skeleton height={360} />
-        <Skeleton height={520} className="lg:col-span-2" />
-        <Skeleton height={300} />
+      <div className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Skeleton width={36} height={36} rounded="rounded-lg" />
+            <div>
+              <Skeleton width={112} height={16} rounded="rounded" />
+              <Skeleton width={260} height={28} rounded="rounded" className="mt-2 max-w-full" />
+            </div>
+          </div>
+          <Skeleton width={104} height={30} rounded="rounded-full" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
+        <div className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm">
+          <Skeleton width={140} height={18} rounded="rounded" />
+          <Skeleton width="100%" height={1} rounded="rounded-none" className="my-3" />
+          <div className="space-y-2">
+            <Skeleton height={40} rounded="rounded-lg" />
+            <Skeleton height={40} rounded="rounded-lg" />
+            <Skeleton height={40} rounded="rounded-lg" />
+            <Skeleton height={40} rounded="rounded-lg" />
+          </div>
+        </div>
+        <div className="rounded-lg border border-outline-variant bg-surface p-6 shadow-sm lg:col-span-2">
+          <div className="mb-4 flex flex-wrap gap-2">
+            <Skeleton width={82} height={24} rounded="rounded" />
+            <Skeleton width={68} height={24} rounded="rounded" />
+            <Skeleton width={92} height={24} rounded="rounded" />
+          </div>
+          <Skeleton width="78%" height={34} rounded="rounded" />
+          <Skeleton width="92%" height={18} rounded="rounded" className="mt-3" />
+          <Skeleton width="64%" height={18} rounded="rounded" className="mt-2" />
+          <Skeleton height={180} rounded="rounded-lg" className="mt-6" />
+          <Skeleton height={150} rounded="rounded-lg" className="mt-6" />
+        </div>
+        <div className="flex flex-col gap-6">
+          <Skeleton height={245} rounded="rounded-lg" />
+          <Skeleton height={180} rounded="rounded-lg" />
+        </div>
       </div>
     </div>
   );
@@ -36,8 +72,8 @@ function LessonErrorState({
   onRetry: () => void;
 }) {
   return (
-    <section className="mx-auto max-w-[760px] px-gutter py-8">
-      <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
+    <section className="mx-auto max-w-container-max px-gutter py-8">
+      <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>
         <div className="flex gap-3 flex-wrap mt-4">
@@ -68,6 +104,7 @@ export default function LessonDetailContainer() {
   const router = useRouter();
   const courseId = getRouteParam(params.courseId ?? params.trackId);
   const lessonId = getRouteParam(params.lessonId);
+  const routeBase = getLearnerRouteBase(params.trackId);
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<LearnerLesson[]>([]);
@@ -107,17 +144,10 @@ export default function LessonDetailContainer() {
     loadLessonData();
   }, [loadLessonData]);
 
-  const activeLessonIndex = useMemo(
-    () => lessons.findIndex((lesson) => lesson.id === lessonId),
+  const { previousLessonId, nextLessonId } = useMemo(
+    () => getAdjacentLessonIds(lessons, lessonId),
     [lessons, lessonId]
   );
-
-  const previousLessonId = activeLessonIndex > 0
-    ? lessons[activeLessonIndex - 1]?.id ?? null
-    : null;
-  const nextLessonId = activeLessonIndex >= 0
-    ? lessons[activeLessonIndex + 1]?.id ?? null
-    : null;
 
   async function handleCompleteLesson() {
     if (!activeLesson || activeLesson.completed || !track) return;
@@ -146,7 +176,20 @@ export default function LessonDetailContainer() {
   }
 
   function handleSelectLesson(nextLessonId: string) {
-    router.push(`/courses/${courseId}/lessons/${nextLessonId}`);
+    if (!courseId || !nextLessonId) return;
+    router.push(`/${routeBase}/${courseId}/lessons/${nextLessonId}`);
+  }
+
+  function handleOpenExercise(exerciseId: string) {
+    if (!courseId || !lessonId || !exerciseId) return;
+    window.sessionStorage.setItem(
+      'learnerExerciseReturnTo',
+      JSON.stringify({
+        exerciseId,
+        returnTo: `/${routeBase}/${courseId}/lessons/${lessonId}`,
+      })
+    );
+    router.push(`/${routeBase}/${courseId}/lessons/${lessonId}/exercises/${exerciseId}`);
   }
 
   if (loading) return <LessonLoadingState />;
@@ -156,7 +199,7 @@ export default function LessonDetailContainer() {
       <LessonErrorState
         title="Lesson not available"
         message={error}
-        onBack={() => router.push('/courses')}
+        onBack={() => router.push(`/${routeBase}`)}
         onRetry={loadLessonData}
       />
     );
@@ -167,7 +210,7 @@ export default function LessonDetailContainer() {
       <LessonErrorState
         title="Lesson not found"
         message="This lesson does not exist in the selected track."
-        onBack={() => router.push('/courses')}
+        onBack={() => router.push(`/${routeBase}`)}
         onRetry={loadLessonData}
       />
     );
@@ -184,8 +227,9 @@ export default function LessonDetailContainer() {
       completing={completing}
       completionMessage={completionMessage}
       completionError={completionError}
-      onBackToTracks={() => router.push(`/courses/${courseId}`)}
+      onBackToTracks={() => router.push(`/${routeBase}/${courseId}`)}
       onSelectLesson={handleSelectLesson}
+      onOpenExercise={handleOpenExercise}
       onCompleteLesson={handleCompleteLesson}
     />
   );

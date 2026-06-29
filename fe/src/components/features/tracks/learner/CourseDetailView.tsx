@@ -49,7 +49,7 @@ export function CourseDetailView({
               {isLocked ? 'Course locked' : 'Learning Track'}
             </div>
             <h1 className="headline-lg break-words text-primary">{track.title}</h1>
-            <p className="mt-3 max-w-[760px] break-words body-md text-on-surface-variant">
+            <p className="mt-3 max-w-[760px] min-w-0 break-words body-md text-on-surface-variant">
               {track.description}
             </p>
 
@@ -69,7 +69,7 @@ export function CourseDetailView({
             </div>
 
             {track.lockedReason && (
-              <div className="mt-4 rounded-lg border border-outline-variant bg-surface-container-low p-3 body-sm text-on-surface-variant">
+              <div className="mt-4 rounded-lg border border-outline-variant bg-surface-container-low p-3 body-sm break-words text-on-surface-variant">
                 {track.lockedReason}
               </div>
             )}

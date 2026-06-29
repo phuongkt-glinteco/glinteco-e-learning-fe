@@ -19,6 +19,7 @@ const TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 const TOKEN_COOKIE = 'access_token';
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
+export const SUPPRESS_ERROR_TOAST_HEADER = 'x-suppress-error-toast';
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -125,9 +126,16 @@ export async function withAuthRetry<T>(operation: () => Promise<T>): Promise<T> 
   }
 }
 
-function dispatchErrorItems(items: UiShowError[]) {
-  if (typeof window !== 'undefined' && items.length > 0) {
-    window.dispatchEvent(new CustomEvent('api-error', { detail: items }));
+function dispatchErrorItems(items: UiShowError[], request?: Request) {
+  if (typeof window === 'undefined' || items.length === 0) return;
+
+  const shouldSuppressToast = request?.headers.get(SUPPRESS_ERROR_TOAST_HEADER) === 'true';
+  const visibleItems = shouldSuppressToast
+    ? items.filter((item) => item.errorCode === 'SESSION_EXPIRED')
+    : items;
+
+  if (visibleItems.length > 0) {
+    window.dispatchEvent(new CustomEvent('api-error', { detail: visibleItems }));
   }
 }
 
@@ -160,12 +168,12 @@ client.interceptors.error.use(async (error, response, request) => {
   try {
     const { errorItems } = pipeline.process(classified);
     // ADD_TO_ITEMS: dispatch cho toast, không throw UiShowError
-    dispatchErrorItems(errorItems);
+    dispatchErrorItems(errorItems, request);
     return classified;
   } catch (e) {
     if (e instanceof UiShowError) {
       // FINAL_THROW: dispatch + throw để page bắt
-      dispatchErrorItems([e]);
+      dispatchErrorItems([e], request);
       throw e;
     }
     throw e;

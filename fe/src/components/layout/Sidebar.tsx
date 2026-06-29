@@ -16,6 +16,7 @@ const learnerMainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
   { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/tracks' },
   { label: 'My Courses', translationKey: 'myCourses', icon: 'local_library', href: '/my-courses' },
+  { label: 'Exercises', translationKey: 'exercises', icon: 'code', href: '/exercises' },
   { label: 'Documentation', translationKey: 'documentation', icon: 'description', href: '/documents' },
 ];
 

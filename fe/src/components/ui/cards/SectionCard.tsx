@@ -20,7 +20,7 @@ export function SectionCard({
 }: SectionCardProps) {
   return (
     <section
-      className={`bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm ${hover ? 'hover:shadow-md transition-shadow' : ''} ${className}`}
+      className={`bg-surface-container-lowest border border-outline-variant/70 rounded-lg p-lg shadow-sm ${hover ? 'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md' : ''} ${className}`}
     >
       {(title || action) && (
         <div className="flex items-center justify-between mb-6">

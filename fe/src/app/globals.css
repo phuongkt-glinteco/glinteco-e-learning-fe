@@ -117,6 +117,25 @@
   --color-background: #f8f9ff;
   --color-on-background: #0b1c30;
   --color-surface-variant: #d3e4fe;
+  --color-foreground: #0b1c30;
+  --color-border: #c3c6d7;
+  --color-input: #c3c6d7;
+  --color-ring: #2563eb;
+  --color-muted: #eff4ff;
+  --color-muted-foreground: #434655;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0b1c30;
+  --color-primary-foreground: #ffffff;
+  --color-secondary-foreground: #ffffff;
+  --color-destructive: #ba1a1a;
+  --color-sidebar: #f8f9ff;
+  --color-sidebar-foreground: #0b1c30;
+  --color-sidebar-primary: #004ac6;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #dce9ff;
+  --color-sidebar-accent-foreground: #004ac6;
+  --color-sidebar-border: #c3c6d7;
+  --color-sidebar-ring: #2563eb;
 
   /* Typography */
   --font-sans: 'Inter', sans-serif;

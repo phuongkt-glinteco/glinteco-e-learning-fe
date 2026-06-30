@@ -15,6 +15,7 @@ import { RefreshToken } from '../../database/entities/refresh-token.entity';
 import { User, UserRole } from '../../database/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { MailService } from '../../mail/mail.service';
 
 const mockVerifyIdToken = jest.fn();
 
@@ -58,6 +59,7 @@ describe('AuthService', () => {
     Pick<Repository<User>, 'findOne' | 'create' | 'save' | 'update'>
   >;
   let jwtService: jest.Mocked<Pick<JwtService, 'signAsync' | 'verifyAsync'>>;
+  let mailService: jest.Mocked<Pick<MailService, 'sendMail'>>;
 
   let allowedDomainSetting: string | undefined = 'company.com';
   let googleClientIdSetting: string | undefined = 'mock-google-client-id';
@@ -87,6 +89,9 @@ describe('AuthService', () => {
     jwtService = {
       signAsync: jest.fn(),
       verifyAsync: jest.fn(),
+    };
+    mailService = {
+      sendMail: jest.fn().mockResolvedValue(undefined),
     };
     const configService = {
       get: jest.fn((key: string, defaultValue?: unknown) => {
@@ -126,6 +131,7 @@ describe('AuthService', () => {
         },
         { provide: JwtService, useValue: jwtService },
         { provide: ConfigService, useValue: configService },
+        { provide: MailService, useValue: mailService },
       ],
     }).compile();
 
@@ -687,15 +693,20 @@ describe('AuthService', () => {
 
   describe('forgotPassword / resetPassword', () => {
     describe('forgotPassword', () => {
-      it('should throw BadRequestException if email does not exist', async () => {
+      it('should return generic success and not send email if email does not exist', async () => {
         usersService.findByEmail.mockResolvedValue(null);
 
         await expect(
           service.forgotPassword('nonexistent@company.com'),
-        ).rejects.toThrow(BadRequestException);
+        ).resolves.toEqual({
+          message:
+            'Nếu tài khoản tồn tại với email này, đường dẫn khôi phục mật khẩu đã được gửi qua email.',
+        });
+        expect(userRepository.update).not.toHaveBeenCalled();
+        expect(mailService.sendMail).not.toHaveBeenCalled();
       });
 
-      it('should generate token, set expiry and update user, logging mock email', async () => {
+      it('should generate token, set expiry, update user, and send reset email', async () => {
         const user = buildUser({ id: 'user-123', email: 'user@company.com' });
         usersService.findByEmail.mockResolvedValue(user);
 
@@ -711,6 +722,37 @@ describe('AuthService', () => {
             resetPasswordExpires: expect.any(Date),
           }),
         );
+        expect(mailService.sendMail).toHaveBeenCalledWith(
+          expect.objectContaining({
+            to: 'user@company.com',
+            subject: '[RAMP UP] Reset your password',
+            html: expect.stringContaining('/reset-password?token='),
+            text: expect.stringContaining('/reset-password?token='),
+          }),
+        );
+      });
+
+      it('should clear reset token and throw when reset email cannot be sent', async () => {
+        const user = buildUser({ id: 'user-123', email: 'user@company.com' });
+        usersService.findByEmail.mockResolvedValue(user);
+        mailService.sendMail.mockRejectedValue(new Error('SMTP unavailable'));
+
+        await expect(service.forgotPassword('user@company.com')).rejects.toThrow(
+          InternalServerErrorException,
+        );
+
+        expect(userRepository.update).toHaveBeenNthCalledWith(
+          1,
+          'user-123',
+          expect.objectContaining({
+            resetPasswordToken: expect.any(String),
+            resetPasswordExpires: expect.any(Date),
+          }),
+        );
+        expect(userRepository.update).toHaveBeenNthCalledWith(2, 'user-123', {
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        });
       });
     });
 
@@ -754,6 +796,44 @@ describe('AuthService', () => {
         expect(result).toEqual({
           message: 'Mật khẩu đã được thay đổi thành công.',
         });
+        expect(userRepository.update).toHaveBeenCalledWith(
+          'user-123',
+          expect.objectContaining({
+            password: expect.any(String),
+            resetPasswordToken: null,
+            resetPasswordExpires: null,
+          }),
+        );
+        expect(mailService.sendMail).toHaveBeenCalledWith(
+          expect.objectContaining({
+            to: 'user@example.com',
+            subject: '[RAMP UP] Your password was changed',
+            html: expect.stringContaining(
+              'Your RAMP UP account password was changed successfully.',
+            ),
+            text: expect.stringContaining(
+              'Your RAMP UP account password was changed successfully.',
+            ),
+          }),
+        );
+      });
+
+      it('should still succeed when the password changed notification email fails', async () => {
+        const futureDate = new Date();
+        futureDate.setHours(futureDate.getHours() + 1);
+        const user = buildUser({
+          id: 'user-123',
+          resetPasswordExpires: futureDate,
+        });
+        userRepository.findOne.mockResolvedValue(user);
+        mailService.sendMail.mockRejectedValue(new Error('SMTP unavailable'));
+
+        await expect(
+          service.resetPassword('valid-token', 'NewSecurePassword123'),
+        ).resolves.toEqual({
+          message: 'Mật khẩu đã được thay đổi thành công.',
+        });
+
         expect(userRepository.update).toHaveBeenCalledWith(
           'user-123',
           expect.objectContaining({

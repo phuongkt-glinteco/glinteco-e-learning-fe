@@ -62,7 +62,7 @@ export function MyCoursesView({
         <p className="mt-2 body-md text-on-surface-variant">{t('subtitle')}</p>
       </header>
 
-      <div className="mb-6 flex gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest p-2 shadow-sm w-fit">
+      <div className="mb-6 flex gap-2 rounded-lg border border-outline-variant/70 bg-surface-container-lowest p-2 shadow-sm w-fit">
         {tabs.map((tab) => {
           const active = activeTab === tab.value;
           const count = tab.value === 'in_progress' ? inProgressCount : completedCount;
@@ -71,17 +71,17 @@ export function MyCoursesView({
               key={tab.value}
               type="button"
               onClick={() => onTabChange(tab.value)}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 label-sm transition-colors cursor-pointer ${
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 label-sm transition-all cursor-pointer ${
                 active
-                  ? 'bg-primary text-on-primary'
-                  : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-low'
+                  ? 'bg-white text-primary shadow-sm ring-1 ring-primary/20'
+                  : 'bg-transparent text-on-surface-variant hover:bg-primary/8 hover:text-primary'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">{tab.icon}</span>
               {t(tab.labelKey)}
               <span
                 className={`ml-1 rounded-full px-1.5 text-[11px] font-bold ${
-                  active ? 'bg-on-primary/20' : 'bg-surface-container-low'
+                  active ? 'bg-primary/10 text-primary' : 'bg-surface-container-low'
                 }`}
               >
                 {count}

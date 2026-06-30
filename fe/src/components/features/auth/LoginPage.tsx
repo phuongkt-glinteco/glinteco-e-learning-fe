@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { authLoginRequestSchema, type AuthLoginInput } from '@/schemas';
 import { useAuth } from '@/providers/AuthProvider';
-import Link from 'next/dist/client/link';
+import Link from 'next/link';
 import { UiShowError } from '@/services/errors';
 
 function getDashboardPath(role?: string) {
@@ -43,8 +43,8 @@ export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm<AuthLoginInput>({
     resolver: zodResolver(authLoginRequestSchema),
     defaultValues: {
-      email: 'alice@glinteco.com',
-      password: 'rampup123',
+      email: '',
+      password: '',
       rememberMe: true,
     }
   });
@@ -200,7 +200,7 @@ export default function LoginPage() {
                   />
                   <label className="ml-2 block text-[14px] text-on-surface-variant select-none" htmlFor="remember">{t('rememberMe')}</label>
                 </div>
-                <a className="text-[14px] font-medium text-primary hover:underline" href="#">{t('forgotPassword')}</a>
+                <Link className="text-[14px] font-medium text-primary hover:underline" href="/forgot-password">{t('forgotPassword')}</Link>
               </div>
 
               <div className="pt-2 space-y-2">

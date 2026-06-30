@@ -3,12 +3,12 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
 import { User, UserRole } from '../../database/entities/user.entity';
 import { NotificationsService } from '../notifications.service';
 import { SubmissionCreatedEvent } from '../events/submission-created.event';
 import { SubmissionResubmittedEvent } from '../events/submission-resubmitted.event';
 import { SubmissionReviewedEvent } from '../events/submission-reviewed.event';
+import { MailService } from '../../mail/mail.service';
 
 @Injectable()
 export class SubmissionNotificationsListener {
@@ -17,6 +17,7 @@ export class SubmissionNotificationsListener {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {}
 
   private async getAdmins(): Promise<User[]> {
@@ -43,28 +44,8 @@ export class SubmissionNotificationsListener {
   }
 
   private async sendEmail(to: string, subject: string, html: string) {
-    const host = this.configService.get<string>('SMTP_HOST') || 'localhost';
-    const port = Number(this.configService.get<string>('SMTP_PORT') || 1025);
-    const secure = this.configService.get<string>('SMTP_SECURE') === 'true';
-    const user = this.configService.get<string>('SMTP_USER');
-    const pass = this.configService.get<string>('SMTP_PASS');
-    const from = this.configService.get<string>('SMTP_FROM') || 'no-reply@glinteco.com';
-
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      auth: user ? { user, pass } : undefined,
-    });
-
     try {
-      await transporter.sendMail({
-        from,
-        to,
-        subject,
-        html,
-      });
-      console.log(`[Email Sent] To: ${to}, Subject: ${subject}`);
+      await this.mailService.sendMail({ to, subject, html });
     } catch (err) {
       console.log('[Email Notification Mock] SMTP delivery failed. Logging content instead:', {
         to,

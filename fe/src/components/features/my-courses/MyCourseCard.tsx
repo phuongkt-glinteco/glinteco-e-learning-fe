@@ -15,10 +15,10 @@ export function MyCourseCard({ track, onOpen }: MyCourseCardProps) {
 
   return (
     <article
-      className={`flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-surface-container-lowest p-5 shadow-sm transition-all ${
+      className={`flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-surface-container-lowest p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
         isCompleted
-          ? 'border-green-200 hover:border-green-400'
-          : 'border-primary ring-1 ring-primary/20 hover:border-primary/60'
+          ? 'border-green-200/80 hover:border-green-400/80'
+          : 'border-primary/60 ring-1 ring-primary/15 hover:border-primary/60'
       }`}
     >
       <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">

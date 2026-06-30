@@ -1,13 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { NextIntlClientProvider } from 'next-intl';
 import { defaultLocale, isLocale, type Locale } from '@/i18n/locales';
-
-import en from '../../messages/en.json';
-import vi from '../../messages/vi.json';
-
-const messages: Record<Locale, typeof en> = { en, vi };
 
 interface LanguageContextType {
   locale: Locale;
@@ -21,7 +15,10 @@ interface LanguageProviderProps {
   initialLocale: string;
 }
 
-export function LanguageProvider({ children, initialLocale }: LanguageProviderProps) {
+export function LanguageProvider({
+  children,
+  initialLocale,
+}: LanguageProviderProps) {
   const [locale, setLocale] = useState<Locale>(
     isLocale(initialLocale) ? initialLocale : defaultLocale,
   );
@@ -33,13 +30,7 @@ export function LanguageProvider({ children, initialLocale }: LanguageProviderPr
 
   return (
     <LanguageContext.Provider value={{ locale, changeLanguage }}>
-      <NextIntlClientProvider
-        messages={messages[locale]}
-        locale={locale}
-        timeZone="Asia/Ho_Chi_Minh"
-      >
-        {children}
-      </NextIntlClientProvider>
+      {children}
     </LanguageContext.Provider>
   );
 }

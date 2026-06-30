@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const publicRoutes = ['/', '/login', '/register'];
+const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
 const learnerOnlyPaths = ['/dashboard/learner'];
 const adminOnlyPaths = ['/admin', '/dashboard/admin', '/reorder'];
 const apiAuthPath = '/api/auth';

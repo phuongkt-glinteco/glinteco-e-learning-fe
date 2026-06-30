@@ -268,7 +268,8 @@ function normalizeTextList(value: NullableUnknown): string[] {
 function normalizeSubmissionStatus(value: NullableUnknown): LearnerSubmissionStatus {
   const status = normalizeNullableString(value);
   if (
-    status === 'submitted'
+    status === 'in_progress'
+    || status === 'submitted'
     || status === 'changes'
     || status === 'changes_requested'
     || status === 'approved'
@@ -532,7 +533,7 @@ export function normalizeSubmissionState(
       (submission as SubmissionDetailContract | undefined)?.reviewedAt,
       ['date', 'at', 'reviewedAt']
     ),
-    canSubmit: !prUrl && status === 'pending',
+    canSubmit: !prUrl && status === 'in_progress',
     canResubmit: status === 'changes' || status === 'rejected',
   };
 }

@@ -1,11 +1,11 @@
 import { Suspense } from 'react';
-import LoginPage from '@/components/features/auth/LoginPage';
+import ResetPasswordPage from '@/components/features/auth/ResetPasswordPage';
 import LoadingPage from '@/components/ui/loading/LoadingPage';
 
-export default function Login() {
+export default function ResetPassword() {
   return (
     <Suspense fallback={<LoadingPage />}>
-      <LoginPage />
+      <ResetPasswordPage />
     </Suspense>
   );
 }

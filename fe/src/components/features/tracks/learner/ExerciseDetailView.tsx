@@ -17,9 +17,9 @@ interface ExerciseDetailViewProps {
   submission: LearnerSubmissionState;
   prUrl: string;
   submitting: boolean;
+  startError: string | null;
   submitError: string | null;
   submitMessage: string | null;
-  hasStarted: boolean;
   backLabel: string;
   onBackToLesson: () => void;
   onPrUrlChange: (value: string) => void;
@@ -34,13 +34,7 @@ function formatDateTime(value: string | null) {
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
-type ExerciseDisplayStatus = LearnerSubmissionState['status'] | 'in_progress';
-
-function getDisplayStatus(status: LearnerSubmissionState['status'], hasStarted: boolean): ExerciseDisplayStatus {
-  return status === 'pending' && hasStarted ? 'in_progress' : status;
-}
-
-function getStatusLabel(status: ExerciseDisplayStatus) {
+function getStatusLabel(status: LearnerSubmissionState['status']) {
   switch (status) {
     case 'in_progress':
       return 'In Progress';
@@ -56,7 +50,7 @@ function getStatusLabel(status: ExerciseDisplayStatus) {
   }
 }
 
-function getStatusBadgeClass(status: ExerciseDisplayStatus) {
+function getStatusBadgeClass(status: LearnerSubmissionState['status']) {
   switch (status) {
     case 'in_progress':
       return 'border-primary-fixed bg-primary-fixed text-primary';
@@ -376,16 +370,12 @@ function StatusAside({
   activeLesson,
   exercise,
   submission,
-  hasStarted,
 }: {
   track: LearnerTrack;
   activeLesson: LearnerLesson;
   exercise: LearnerExerciseDetail;
   submission: LearnerSubmissionState;
-  hasStarted: boolean;
 }) {
-  const displayStatus = getDisplayStatus(submission.status, hasStarted);
-
   return (
     <aside className="flex min-w-0 flex-col gap-6">
       <section className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
@@ -395,8 +385,8 @@ function StatusAside({
         <div className="mt-4 space-y-3 body-sm text-on-surface-variant">
           <div className="flex items-center justify-between gap-3">
             <span>Current State</span>
-            <span className={`rounded-full border px-2.5 py-1 label-sm ${getStatusBadgeClass(displayStatus)}`}>
-              {getStatusLabel(displayStatus)}
+            <span className={`rounded-full border px-2.5 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
+              {getStatusLabel(submission.status)}
             </span>
           </div>
           <div className="flex justify-between gap-3">
@@ -431,9 +421,9 @@ export function ExerciseDetailView({
   submission,
   prUrl,
   submitting,
+  startError,
   submitError,
   submitMessage,
-  hasStarted,
   backLabel,
   onBackToLesson,
   onPrUrlChange,
@@ -441,10 +431,14 @@ export function ExerciseDetailView({
   onSubmit,
 }: ExerciseDetailViewProps) {
   const isNotStarted = submission.status === 'pending';
+  const isInProgress = submission.status === 'in_progress';
   const isSubmitted = submission.status === 'submitted';
   const isChangesRequested = submission.status === 'changes' || submission.status === 'rejected';
   const isApproved = submission.status === 'approved';
-  const displayStatus = getDisplayStatus(submission.status, hasStarted);
+  const startCardTitle = isInProgress ? 'Exercise in progress' : 'Ready to begin?';
+  const startCardCopy = isInProgress
+    ? 'Your progress is saved. Submit your pull request when the work is ready for review.'
+    : 'Start the exercise to clock your time and unlock the submission form.';
 
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-8 px-gutter py-8">
@@ -460,8 +454,8 @@ export function ExerciseDetailView({
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className={`rounded-full border px-3 py-1 label-sm ${getStatusBadgeClass(displayStatus)}`}>
-                {getStatusLabel(displayStatus)}
+              <span className={`rounded-full border px-3 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
+                {getStatusLabel(submission.status)}
               </span>
               <span className="label-sm uppercase text-on-surface-variant">
                 Module {activeLesson.order} - Exercise
@@ -484,7 +478,7 @@ export function ExerciseDetailView({
       {isApproved ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <ApprovedState exercise={exercise} submission={submission} track={track} backLabel={backLabel} onBackToLesson={onBackToLesson} />
-          <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} hasStarted={hasStarted} />
+          <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
         </div>
       ) : isSubmitted ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -494,7 +488,7 @@ export function ExerciseDetailView({
               <ExerciseContent exercise={exercise} />
             </InfoSection>
           </div>
-          <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} hasStarted={hasStarted} />
+          <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
         </div>
       ) : isChangesRequested ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -530,7 +524,7 @@ export function ExerciseDetailView({
               onSubmit={onSubmit}
             />
           </main>
-          <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} hasStarted={hasStarted} />
+          <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -539,27 +533,31 @@ export function ExerciseDetailView({
           </main>
           <aside className="flex min-w-0 flex-col gap-6">
             <section className="rounded-lg border border-outline-variant bg-surface p-5 text-center shadow-sm">
-              <span className={`rounded-full border px-3 py-1 label-sm ${getStatusBadgeClass(displayStatus)}`}>
-                Status: {getStatusLabel(displayStatus)}
+              <span className={`rounded-full border px-3 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
+                Status: {getStatusLabel(submission.status)}
               </span>
-              <h2 className="headline-sm mt-4 text-on-surface">Ready to begin?</h2>
-              <p className="body-sm mt-2 text-on-surface-variant">
-                Start the exercise to clock your time and unlock the submission form.
-              </p>
+              <h2 className="headline-sm mt-4 text-on-surface">{startCardTitle}</h2>
+              <p className="body-sm mt-2 text-on-surface-variant">{startCardCopy}</p>
+              {startError && (
+                <p className="mt-4 flex items-start gap-1.5 rounded-lg border border-error-container bg-error-container/30 p-3 text-left label-sm text-on-error-container">
+                  <span className="material-symbols-outlined mt-0.5 text-[15px]">error</span>
+                  <span className="min-w-0 break-words">{startError}</span>
+                </p>
+              )}
               <button
                 type="button"
                 onClick={onStartExercise}
-                disabled={hasStarted}
+                disabled={!isNotStarted}
                 className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 label-sm text-on-primary hover:opacity-90 disabled:cursor-not-allowed disabled:bg-surface-container disabled:text-outline"
               >
                 <span className="material-symbols-outlined text-[18px]">play_arrow</span>
-                {hasStarted ? 'Exercise Started' : 'Start Exercise'}
+                {isInProgress ? 'Exercise Started' : 'Start Exercise'}
               </button>
             </section>
             <SubmitPanel
               mode="submit"
               prUrl={prUrl}
-              disabled={isNotStarted && !hasStarted}
+              disabled={!submission.canSubmit}
               submitting={submitting}
               submitError={submitError}
               submitMessage={submitMessage}

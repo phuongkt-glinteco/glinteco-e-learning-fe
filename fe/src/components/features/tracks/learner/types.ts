@@ -60,6 +60,7 @@ export interface LearnerExercise {
 
 export type LearnerSubmissionStatus =
   | 'pending'
+  | 'in_progress'
   | 'submitted'
   | 'changes'
   | 'approved'

@@ -39,6 +39,11 @@ export function getDocumentContent(doc: DocumentResponseDto) {
     case 'Runbook':
       return {
         background: typeof raw.background === 'string' ? raw.background : '',
+        severity: typeof raw.severity === 'string' ? raw.severity : undefined,
+        incidentId: typeof raw.incidentId === 'string' ? raw.incidentId : undefined,
+        estimatedTime: typeof raw.estimatedTime === 'string' ? raw.estimatedTime : undefined,
+        symptoms: Array.isArray(raw.symptoms) ? raw.symptoms.map((s) => String(s)) : undefined,
+        status: typeof raw.status === 'string' ? raw.status : undefined,
         phases: Array.isArray(raw.phases)
           ? raw.phases.map((p: unknown) => ({
               name: typeof (p as Record<string, unknown>).name === 'string' ? (p as Record<string, unknown>).name as string : '',

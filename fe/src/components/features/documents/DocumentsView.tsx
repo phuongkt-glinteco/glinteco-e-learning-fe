@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { DocumentResponseDto } from '@/services/api-client';
 import { DocumentGrid } from './DocumentGrid';
 import { DocumentTable } from './DocumentTable';
+import { Loader2 } from 'lucide-react';
 
 interface DocumentsViewProps {
   documents: DocumentResponseDto[];
@@ -40,10 +41,10 @@ export function DocumentsView({ documents, isAdmin, loading, onBookmarkToggle, o
   if (loading) {
     return (
       <div className="relative">
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface-container-lowest/60 rounded-xl">
-          <div className="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-full shadow-sm">
-            <span className="material-symbols-outlined text-[20px] text-outline animate-spin">refresh</span>
-            <span className="text-outline font-label-md">{t('loading')}</span>
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-xl">
+          <div className="flex items-center gap-2 px-4 py-2 bg-card border rounded-full shadow-sm">
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            <span className="text-sm font-medium text-muted-foreground">{t('loading')}</span>
           </div>
         </div>
         {content}

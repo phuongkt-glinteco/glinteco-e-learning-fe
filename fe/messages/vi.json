@@ -348,6 +348,7 @@
     "noRecentDocuments": "Chưa có tài liệu nào gần đây"
   },
   "DocumentsPage": {
+    "visitLink": "Truy cập liên kết",
     "title": "Tài Liệu",
     "description": "Truy cập bản thiết kế kỹ thuật, hướng dẫn kiến trúc và sách hướng dẫn tích hợp.",
     "adminTitle": "Quản Lý Tài Liệu",

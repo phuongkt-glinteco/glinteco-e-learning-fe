@@ -2,6 +2,7 @@ import { documentsControllerFindOne } from '@/services/client';
 import type { DocumentResponseDto } from '@/services/client';
 import DocumentDetail from '@/components/features/document-detail/DocumentDetail';
 import { serverFetch } from '@/services/server-fetch';
+import { PageContainer, PageHeader } from '@/components/ui';
 
 export default async function DocumentDetailPage({ params }: { params: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const result = await serverFetch(async (client) => {
@@ -20,5 +21,18 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
     );
   }
 
-  return <DocumentDetail document={result.data.document} />;
+  const doc = result.data.document;
+
+  return (
+    <PageContainer scrollable>
+      <PageHeader
+        title={""}
+        breadcrumbs={[
+          { label: 'Documents', href: '/documents' },
+          { label: doc.title }
+        ]}
+      />
+      <DocumentDetail document={doc} />
+    </PageContainer>
+  );
 }

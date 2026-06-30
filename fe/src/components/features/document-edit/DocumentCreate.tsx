@@ -10,6 +10,7 @@ import { DocumentReadingEditor } from './DocumentReadingEditor';
 import { DocumentNavigationEditor } from './DocumentNavigationEditor';
 import { DocumentProceduralEditor } from './DocumentProceduralEditor';
 import { buildContentString } from './content-builder';
+import { PageContainer, PageHeader } from '@/components/ui';
 
 const KIND_OPTIONS = [
   { value: 'Guide', label: 'Guide' },
@@ -39,6 +40,11 @@ export default function DocumentCreate() {
 
   // Runbook
   const [runbookBackground, setRunbookBackground] = useState('');
+  const [runbookSeverity, setRunbookSeverity] = useState('');
+  const [runbookIncidentId, setRunbookIncidentId] = useState('');
+  const [runbookEstimatedTime, setRunbookEstimatedTime] = useState('');
+  const [runbookSymptoms, setRunbookSymptoms] = useState<string[]>([]);
+  const [runbookStatus, setRunbookStatus] = useState('');
   const [runbookPhases, setRunbookPhases] = useState<Array<{ name: string; steps: Array<{ title: string; body: string }> }>>([]);
 
   // Reference
@@ -64,6 +70,11 @@ export default function DocumentCreate() {
         tutorialExplanation,
         tutorialSteps,
         runbookBackground,
+        runbookSeverity,
+        runbookIncidentId,
+        runbookEstimatedTime,
+        runbookSymptoms,
+        runbookStatus,
         runbookPhases,
         referenceSections,
         linkDescription,
@@ -90,31 +101,32 @@ export default function DocumentCreate() {
   }
 
   return (
-    <section className="flex-1 flex flex-col p-gutter max-w-6xl mx-auto w-full">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="font-headline-md text-on-surface flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">add</span>
-            {t('createTitle')}
-          </h2>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="px-5 py-2 font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors border border-outline-variant"
-          >
-            {t('cancel')}
-          </button>
-          <button
-            onClick={handleCreate}
-            disabled={saving || !title.trim()}
-            className="px-5 py-2 font-label-md bg-primary text-on-primary rounded-lg transition-all hover:shadow-lg active:scale-95 flex items-center gap-2 disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-[20px]">add</span>
-            {saving ? t('creating') : t('createDocument')}
-          </button>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title={t('createTitle')}
+        breadcrumbs={[
+          { label: 'Documents', href: '/documents' },
+          { label: 'Create' }
+        ]}
+        actions={
+          <>
+            <button
+              onClick={() => router.back()}
+              className="px-5 py-2 font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors border border-outline-variant"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              onClick={handleCreate}
+              disabled={saving || !title.trim()}
+              className="px-5 py-2 font-label-md bg-primary text-on-primary rounded-lg transition-all hover:shadow-lg active:scale-95 flex items-center gap-2 disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[20px]">add</span>
+              {saving ? t('creating') : t('createDocument')}
+            </button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-12 gap-gutter flex-1">
         <DocumentEditSidebar
@@ -138,7 +150,7 @@ export default function DocumentCreate() {
           {renderEditor()}
         </div>
       </div>
-    </section>
+    </PageContainer>
   );
 
   function renderEditor() {
@@ -163,6 +175,16 @@ export default function DocumentCreate() {
             onExplanationOrBackgroundChange={setRunbookBackground}
             phases={runbookPhases}
             onPhasesChange={setRunbookPhases}
+            severity={runbookSeverity}
+            onSeverityChange={setRunbookSeverity}
+            incidentId={runbookIncidentId}
+            onIncidentIdChange={setRunbookIncidentId}
+            estimatedTime={runbookEstimatedTime}
+            onEstimatedTimeChange={setRunbookEstimatedTime}
+            symptoms={runbookSymptoms}
+            onSymptomsChange={setRunbookSymptoms}
+            status={runbookStatus}
+            onStatusChange={setRunbookStatus}
           />
         );
       case 'Reference':

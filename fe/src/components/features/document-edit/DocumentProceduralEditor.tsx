@@ -20,6 +20,17 @@ interface DocumentProceduralEditorProps {
   onStepsChange?: (steps: Step[]) => void;
   phases?: Phase[];
   onPhasesChange?: (phases: Phase[]) => void;
+  // Runbook metadata
+  severity?: string;
+  onSeverityChange?: (value: string) => void;
+  incidentId?: string;
+  onIncidentIdChange?: (value: string) => void;
+  estimatedTime?: string;
+  onEstimatedTimeChange?: (value: string) => void;
+  symptoms?: string[];
+  onSymptomsChange?: (value: string[]) => void;
+  status?: string;
+  onStatusChange?: (value: string) => void;
 }
 
 export function DocumentProceduralEditor({
@@ -30,6 +41,16 @@ export function DocumentProceduralEditor({
   onStepsChange,
   phases = [],
   onPhasesChange,
+  severity,
+  onSeverityChange,
+  incidentId,
+  onIncidentIdChange,
+  estimatedTime,
+  onEstimatedTimeChange,
+  symptoms = [],
+  onSymptomsChange,
+  status,
+  onStatusChange,
 }: DocumentProceduralEditorProps) {
   const t = useTranslations('DocumentEdit');
 
@@ -112,6 +133,67 @@ export function DocumentProceduralEditor({
 
   return (
     <div className="space-y-6">
+      {/* Runbook Metadata Section */}
+      <div className="bg-white border border-outline-variant rounded-xl p-6 shadow-sm">
+        <h3 className="font-label-md text-on-surface mb-4 border-b border-outline-variant pb-2 flex items-center gap-2">
+          <span className="material-symbols-outlined text-error text-[20px]">emergency</span>
+          Incident Information
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block font-label-sm text-on-surface-variant mb-1.5">Severity</label>
+            <select
+              value={severity || ''}
+              onChange={(e) => onSeverityChange?.(e.target.value)}
+              className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary"
+            >
+              <option value="">Select severity...</option>
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
+            </select>
+          </div>
+          <div>
+            <label className="block font-label-sm text-on-surface-variant mb-1.5">Incident ID</label>
+            <input
+              value={incidentId || ''}
+              onChange={(e) => onIncidentIdChange?.(e.target.value)}
+              className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="e.g. RUNBOOK-042-PSQL"
+            />
+          </div>
+          <div>
+            <label className="block font-label-sm text-on-surface-variant mb-1.5">Est. Resolution Time</label>
+            <input
+              value={estimatedTime || ''}
+              onChange={(e) => onEstimatedTimeChange?.(e.target.value)}
+              className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="e.g. 15 Minutes"
+            />
+          </div>
+          <div>
+            <label className="block font-label-sm text-on-surface-variant mb-1.5">Current Status</label>
+            <input
+              value={status || ''}
+              onChange={(e) => onStatusChange?.(e.target.value)}
+              className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary"
+              placeholder="e.g. Outage in Progress"
+            />
+          </div>
+        </div>
+        <div className="mt-4">
+          <label className="block font-label-sm text-on-surface-variant mb-1.5">Primary Symptoms (one per line)</label>
+          <textarea
+            value={symptoms.join('\n')}
+            onChange={(e) => onSymptomsChange?.(e.target.value.split('\n').filter((s) => s.trim()))}
+            className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary resize-none"
+            rows={3}
+            placeholder="500 Errors in Gateway&#10;DB Connection Refused"
+          />
+        </div>
+      </div>
+
       <div className="bg-white border border-outline-variant rounded-xl p-6 shadow-sm">
         <h3 className="font-label-md text-on-surface mb-4 border-b border-outline-variant pb-2">
           {t('background')}

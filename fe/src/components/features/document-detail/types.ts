@@ -9,6 +9,11 @@ export interface TutorialContent {
 
 export interface RunbookContent {
   background: string;
+  severity?: string;
+  incidentId?: string;
+  estimatedTime?: string;
+  symptoms?: string[];
+  status?: string;
   phases: Array<{
     name: string;
     steps: Array<{ title: string; body: string }>;

@@ -11,6 +11,7 @@ import { DocumentNavigationEditor } from './DocumentNavigationEditor';
 import { DocumentProceduralEditor } from './DocumentProceduralEditor';
 import { buildContentString } from './content-builder';
 import { getDocumentContent, getDocumentUrl } from '../document-detail/content-helper';
+import { PageContainer, PageHeader } from '@/components/ui';
 
 const KIND_OPTIONS = [
   { value: 'Guide', label: 'Guide' },
@@ -55,6 +56,21 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
   const [runbookBackground, setRunbookBackground] = useState(
     document.kind === 'Runbook' ? (initialContent as { background: string }).background : ''
   );
+  const [runbookSeverity, setRunbookSeverity] = useState(
+    document.kind === 'Runbook' ? (initialContent as { severity?: string }).severity ?? '' : ''
+  );
+  const [runbookIncidentId, setRunbookIncidentId] = useState(
+    document.kind === 'Runbook' ? (initialContent as { incidentId?: string }).incidentId ?? '' : ''
+  );
+  const [runbookEstimatedTime, setRunbookEstimatedTime] = useState(
+    document.kind === 'Runbook' ? (initialContent as { estimatedTime?: string }).estimatedTime ?? '' : ''
+  );
+  const [runbookSymptoms, setRunbookSymptoms] = useState<string[]>(
+    document.kind === 'Runbook' ? (initialContent as { symptoms?: string[] }).symptoms ?? [] : []
+  );
+  const [runbookStatus, setRunbookStatus] = useState(
+    document.kind === 'Runbook' ? (initialContent as { status?: string }).status ?? '' : ''
+  );
   const [runbookPhases, setRunbookPhases] = useState(
     document.kind === 'Runbook' ? (initialContent as { phases: Array<{ name: string; steps: Array<{ title: string; body: string }> }> }).phases : []
   );
@@ -94,6 +110,11 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
         tutorialExplanation,
         tutorialSteps,
         runbookBackground,
+        runbookSeverity,
+        runbookIncidentId,
+        runbookEstimatedTime,
+        runbookSymptoms,
+        runbookStatus,
         runbookPhases,
         referenceSections,
         linkDescription,
@@ -121,31 +142,33 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
   }
 
   return (
-    <section className="flex-1 flex flex-col p-gutter max-w-6xl mx-auto w-full">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="font-headline-md text-on-surface flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">edit_note</span>
-            {title || t('untitled')}
-          </h2>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="px-5 py-2 font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors border border-outline-variant"
-          >
-            {t('cancel')}
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-5 py-2 font-label-md bg-primary text-on-primary rounded-lg transition-all hover:shadow-lg active:scale-95 flex items-center gap-2 disabled:opacity-50"
-          >
-            <span className="material-symbols-outlined text-[20px]">save</span>
-            {saving ? t('saving') : t('saveChanges')}
-          </button>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title={title || t('untitled')}
+        breadcrumbs={[
+          { label: 'Documents', href: '/documents' },
+          { label: document.title, href: `/documents/${document.id}` },
+          { label: 'Edit' }
+        ]}
+        actions={
+          <>
+            <button
+              onClick={() => router.back()}
+              className="px-5 py-2 font-label-md text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors border border-outline-variant"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-5 py-2 font-label-md bg-primary text-on-primary rounded-lg transition-all hover:shadow-lg active:scale-95 flex items-center gap-2 disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[20px]">save</span>
+              {saving ? t('saving') : t('saveChanges')}
+            </button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-12 gap-gutter flex-1">
         <DocumentEditSidebar
@@ -169,7 +192,7 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
           {renderEditor()}
         </div>
       </div>
-    </section>
+    </PageContainer>
   );
 
   function renderEditor() {
@@ -194,6 +217,16 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
             onExplanationOrBackgroundChange={setRunbookBackground}
             phases={runbookPhases}
             onPhasesChange={setRunbookPhases}
+            severity={runbookSeverity}
+            onSeverityChange={setRunbookSeverity}
+            incidentId={runbookIncidentId}
+            onIncidentIdChange={setRunbookIncidentId}
+            estimatedTime={runbookEstimatedTime}
+            onEstimatedTimeChange={setRunbookEstimatedTime}
+            symptoms={runbookSymptoms}
+            onSymptomsChange={setRunbookSymptoms}
+            status={runbookStatus}
+            onStatusChange={setRunbookStatus}
           />
         );
       case 'Reference':

@@ -1,7 +1,19 @@
 'use client';
 
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import type { TagResponseDto } from '@/services/api-client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/default/select';
+import { SearchIcon, StarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/default/button';
+import { toTitleCase } from '@/lib/utils';
+import { SearchInput } from '@/components/ui/forms/SearchInput';
 
 interface DocumentsFiltersProps {
   search: string;
@@ -29,67 +41,62 @@ export function DocumentsFilters({
   const t = useTranslations('DocumentsPage');
 
   return (
-    <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant">
+    <div className="bg-card p-6 rounded-xl border border-border shadow-sm mb-6">
       <div className="flex flex-col gap-6">
-        {/* Search */}
         <div className="relative">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">
-            search
-          </span>
-          <input
-            className="w-full pl-12 pr-4 py-4 bg-surface-container-low border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-body-base outline-none"
+          <SearchInput
             placeholder={t('searchPlaceholder')}
             value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={onSearchChange}
+            delay={500}
           />
         </div>
 
         {/* Filter Bar */}
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-label-sm text-on-surface-variant uppercase font-bold tracking-tight">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="text-sm text-muted-foreground uppercase font-bold tracking-tight">
             {t('filters')}
           </span>
 
           {/* Kind Filter */}
-          <select
-            className="px-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-label-md focus:outline-none focus:border-primary min-w-[130px] cursor-pointer"
-            value={selectedKind}
-            onChange={(e) => onKindChange(e.target.value)}
-          >
-            <option value="">{t('allKinds')}</option>
-            <option value="Guide">{t('guide')}</option>
-            <option value="Reference">{t('reference')}</option>
-            <option value="Runbook">{t('runbook')}</option>
-            <option value="Tutorial">{t('tutorial')}</option>
-            <option value="Link">{t('link')}</option>
-          </select>
+          <Select value={selectedKind || "all"} onValueChange={(val) => onKindChange(val === "all" ? "" : val)}>
+            <SelectTrigger className="w-[160px] rounded-full h-10">
+              <SelectValue placeholder={t('allKinds')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allKinds')}</SelectItem>
+              <SelectItem value="Guide">{t('guide')}</SelectItem>
+              <SelectItem value="Reference">{t('reference')}</SelectItem>
+              <SelectItem value="Runbook">{t('runbook')}</SelectItem>
+              <SelectItem value="Tutorial">{t('tutorial')}</SelectItem>
+              <SelectItem value="Link">{t('link')}</SelectItem>
+            </SelectContent>
+          </Select>
 
           {/* Tag Filter */}
-          <select
-            className="px-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-label-md focus:outline-none focus:border-primary min-w-[130px] cursor-pointer"
-            value={selectedTag}
-            onChange={(e) => onTagChange(e.target.value)}
-          >
-            <option value="">{t('allTags')}</option>
-            {tags.map((tag) => (
-              <option key={tag.id} value={tag.id}>
-                {tag.name}
-              </option>
-            ))}
-          </select>
+          <Select value={selectedTag || "all"} onValueChange={(val) => onTagChange(val === "all" ? "" : val)}>
+            <SelectTrigger className="w-[160px] rounded-full h-10">
+              <SelectValue placeholder={t('allTags')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('allTags')}</SelectItem>
+              {tags.map((tag) => (
+                <SelectItem key={tag.id} value={tag.id}>
+                  #{toTitleCase(tag.name)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Bookmarked Toggle */}
-          <button
+          <Button
+            variant={bookmarkedOnly ? "default" : "outline"}
             onClick={onBookmarkedToggle}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-full text-label-md transition-colors ${
-              bookmarkedOnly
-                ? 'bg-primary/10 border-primary text-primary'
-                : 'border-outline-variant hover:bg-surface-container-low'
-            }`}
+            className="rounded-full h-10 px-6 gap-2"
           >
-            <span className="material-symbols-outlined text-[18px]">star</span>
+            <StarIcon className={`w-4 h-4 ${bookmarkedOnly ? "fill-primary-foreground" : ""}`} />
             {t('bookmarkedOnly')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

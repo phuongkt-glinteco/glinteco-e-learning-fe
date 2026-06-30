@@ -12,6 +12,11 @@ export function buildContentString(data: {
   tutorialExplanation?: string;
   tutorialSteps?: Array<{ title: string; body: string }>;
   runbookBackground?: string;
+  runbookSeverity?: string;
+  runbookIncidentId?: string;
+  runbookEstimatedTime?: string;
+  runbookSymptoms?: string[];
+  runbookStatus?: string;
   runbookPhases?: Array<{ name: string; steps: Array<{ title: string; body: string }> }>;
   referenceSections?: Array<{ heading: string; body: string }>;
   linkDescription?: string;
@@ -30,6 +35,11 @@ export function buildContentString(data: {
     case 'Runbook':
       return JSON.stringify({
         background: data.runbookBackground ?? '',
+        severity: data.runbookSeverity || undefined,
+        incidentId: data.runbookIncidentId || undefined,
+        estimatedTime: data.runbookEstimatedTime || undefined,
+        symptoms: data.runbookSymptoms && data.runbookSymptoms.length > 0 ? data.runbookSymptoms : undefined,
+        status: data.runbookStatus || undefined,
         phases: data.runbookPhases ?? [],
       } satisfies RunbookContent);
 

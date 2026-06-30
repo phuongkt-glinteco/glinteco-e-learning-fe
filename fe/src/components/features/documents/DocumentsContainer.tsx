@@ -9,6 +9,8 @@ import { DocumentsView } from './DocumentsView';
 import { DocumentsPagination } from './DocumentsPagination';
 import Modal from '@/components/ui/Modal';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/default/button';
+import {Loader2, PlusIcon} from 'lucide-react';
 
 export default function DocumentsContainer() {
   const t = useTranslations('DocumentsPage');
@@ -48,8 +50,8 @@ export default function DocumentsContainer() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <span className="material-symbols-outlined text-[32px] text-outline animate-spin">refresh</span>
-          <p className="text-outline font-label-md">{t('loading')}</p>
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <p className="text-muted-foreground text-sm font-medium">{t('loading')}</p>
         </div>
       </div>
     );
@@ -59,14 +61,11 @@ export default function DocumentsContainer() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-4 text-center">
-          <span className="material-symbols-outlined text-[48px] text-error">error</span>
-          <p className="text-on-surface font-label-lg">{t('failedToLoad')}</p>
-          <button
-            onClick={() => fetchDocuments(null, false)}
-            className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:opacity-90 transition-opacity"
-          >
+          <span className="material-symbols-outlined text-[48px] text-destructive">error</span>
+          <p className="text-foreground font-medium">{t('failedToLoad')}</p>
+          <Button onClick={() => fetchDocuments(null, false)}>
             {t('retry')}
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -76,13 +75,14 @@ export default function DocumentsContainer() {
     <div className="px-gutter py-6 max-w-container-max mx-auto w-full space-y-6">
       {isAdmin && (
         <div className="flex justify-end">
-          <button
-            onClick={() => router.push('/admin/documents/create')}
-            className="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-label-md flex items-center gap-2 hover:opacity-90 transition-opacity active:scale-[0.98]"
-          >
-            <span className="material-symbols-outlined">add</span>
-            {t('newDocument')}
-          </button>
+          {(() => {
+            return (
+              <Button onClick={() => router.push('/admin/documents/create')} className="gap-2 rounded-xl h-10 px-6">
+                <PlusIcon className="w-4 h-4" />
+                {t('newDocument')}
+              </Button>
+            );
+          })()}
         </div>
       )}
 
@@ -119,25 +119,29 @@ export default function DocumentsContainer() {
         onClose={() => setDeleteConfirmId(null)}
         title={t('deleteConfirmTitle')}
       >
-        <p className="text-on-surface font-label-md mb-6">{t('deleteConfirmBody')}</p>
+        <p className="text-foreground text-sm mb-6">{t('deleteConfirmBody')}</p>
         <div className="flex justify-end gap-3">
-          <button
-            onClick={() => setDeleteConfirmId(null)}
-            className="px-4 py-2 rounded-lg border border-outline-variant text-on-surface font-label-md hover:bg-surface-container-low transition-colors"
-          >
-            {t('cancel')}
-          </button>
-          <button
-            onClick={async () => {
-              if (deleteConfirmId) {
-                await handleDelete(deleteConfirmId);
-                setDeleteConfirmId(null);
-              }
-            }}
-            className="px-4 py-2 rounded-lg bg-error text-white font-label-md hover:opacity-90 transition-opacity"
-          >
-            {t('delete')}
-          </button>
+          {(() => {
+            
+            return (
+              <>
+                <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
+                  {t('cancel')}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    if (deleteConfirmId) {
+                      await handleDelete(deleteConfirmId);
+                      setDeleteConfirmId(null);
+                    }
+                  }}
+                >
+                  {t('delete')}
+                </Button>
+              </>
+            );
+          })()}
         </div>
       </Modal>
     </div>

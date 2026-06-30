@@ -349,6 +349,7 @@
     "noRecentDocuments": "No recent documents yet"
   },
   "DocumentsPage": {
+    "visitLink": "Visit Link",
     "title": "Documentation",
     "description": "Access our technical blueprint, architectural guidelines, and integration manuals.",
     "adminTitle": "Documentation Management",

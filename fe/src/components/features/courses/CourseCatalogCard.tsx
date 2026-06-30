@@ -34,7 +34,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
       }`}
     >
       <div className="flex min-w-0 items-start gap-3">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <div
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border ${
               isLocked
@@ -57,15 +57,15 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
         </div>
       </div>
 
-      <p className="body-sm line-clamp-3 break-words text-on-surface-variant">
+      <p className="body-sm min-w-0 line-clamp-3 break-words text-on-surface-variant">
         {track.description || t('noDescription')}
       </p>
 
       <div className="flex min-w-0 flex-wrap gap-3 label-sm text-on-surface-variant">
         <TimeBadge time={track.estimatedTime} />
-        <span className="inline-flex items-center gap-1">
+        <span className="inline-flex min-w-0 max-w-full items-center gap-1">
           <span className="material-symbols-outlined text-[15px]">menu_book</span>
-          {t('lessonCount', { count: track.lessonCount })}
+          <span className="min-w-0 truncate">{t('lessonCount', { count: track.lessonCount })}</span>
         </span>
         <span
           className={`inline-flex w-fit max-w-full items-center gap-1 rounded-full px-2.5 py-1 label-sm ${
@@ -97,7 +97,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
       </div>
 
       {track.lockedReason && isLocked && (
-        <p className="body-sm text-on-surface-variant italic">
+        <p className="body-sm line-clamp-3 break-words text-on-surface-variant italic">
           {track.lockedReason}
         </p>
       )}

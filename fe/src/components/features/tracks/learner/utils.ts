@@ -1,7 +1,11 @@
 import type {
+  DocumentResponseDto,
+  ExerciseDetailDto,
   ExerciseSummaryDto,
   LessonDetailDto,
   LessonProgressItemDto,
+  SubmissionDetailDto,
+  SubmissionFeedItemDto,
   TrackDetailDto,
   TrackSummaryDto,
 } from '@/services/api-client';
@@ -9,6 +13,11 @@ import { normalizeTrackIcon } from '@/utils/track-icons';
 import type {
   LearnerLesson,
   LearnerExercise,
+  LearnerExerciseFeedItem,
+  LearnerExerciseDetail,
+  LearnerExerciseResource,
+  LearnerSubmissionState,
+  LearnerSubmissionStatus,
   LearnerTrack,
   LessonType,
   TrackLessonPreview,
@@ -59,13 +68,44 @@ export type LessonProgressContract = LessonProgressItemDto & LessonContractExtra
 export type LessonDetailContract = LessonDetailDto & LessonContractExtras & {
   relatedDocs?: unknown[];
 };
-export type ExerciseSummaryContract = ExerciseSummaryDto & {
-  lessonId?: string | null;
+export type ExerciseSummaryContract = Partial<Omit<ExerciseSummaryDto, 'lessonId' | 'prUrl' | 'status'>> & {
+  lessonId?: unknown;
+  prUrl?: unknown;
+  status?: unknown;
+};
+export type ExerciseDetailContract = Omit<ExerciseDetailDto, 'lessonId' | 'prUrl' | 'objectives' | 'steps' | 'resources' | 'status'> & {
+  lessonId?: unknown;
+  prUrl?: unknown;
+  objectives?: unknown;
+  steps?: unknown;
+  resources?: unknown;
+  status?: unknown;
+};
+export type SubmissionDetailContract = Omit<
+  SubmissionDetailDto,
+  'prUrl' | 'reviewNote' | 'reviewerId' | 'reviewedAt' | 'submittedAt' | 'status'
+> & {
+  prUrl?: unknown;
+  reviewNote?: unknown;
+  reviewerId?: unknown;
+  reviewedAt?: unknown;
+  submittedAt?: unknown;
+  status?: unknown;
+};
+export type SubmissionFeedItemContract = Omit<SubmissionFeedItemDto, 'prUrl' | 'status' | 'submittedAt' | 'exercise'> & {
+  prUrl?: unknown;
+  status?: unknown;
+  submittedAt?: unknown;
+  exercise?: unknown;
 };
 
 export function getRouteParam(value: string | string[] | undefined) {
   if (Array.isArray(value)) return value[0] ?? '';
   return value ?? '';
+}
+
+export function getLearnerRouteBase(trackId: string | string[] | undefined) {
+  return getRouteParam(trackId) ? 'tracks' : 'courses';
 }
 
 export function getErrorMessage(error: unknown, fallback: string) {
@@ -93,12 +133,72 @@ export function extractDataArray<T>(response: ApiListResponse<T>): T[] {
   return [];
 }
 
-function normalizeNullableString(value: NullableUnknown): string | null {
+export function getContinueLessonId(
+  lessons: TrackLessonPreview[],
+  currentLessonId: string | null | undefined
+): string | null {
+  if (lessons.length === 0) return null;
+
+  const firstIncompleteLesson = lessons.find((lesson) => !lesson.completed);
+  if (!firstIncompleteLesson) return null;
+  if (!currentLessonId) return firstIncompleteLesson.id;
+
+  const currentLessonIndex = lessons.findIndex((lesson) => lesson.id === currentLessonId);
+  if (currentLessonIndex < 0) return firstIncompleteLesson.id;
+
+  const currentLesson = lessons[currentLessonIndex];
+  if (!currentLesson.completed) return currentLesson.id;
+
+  const nextIncompleteLesson = lessons
+    .slice(currentLessonIndex + 1)
+    .find((lesson) => !lesson.completed);
+
+  return nextIncompleteLesson?.id ?? firstIncompleteLesson.id;
+}
+
+export function getAdjacentLessonIds(
+  lessons: Array<Pick<TrackLessonPreview, 'id'>>,
+  activeLessonId: string
+) {
+  const activeLessonIndex = lessons.findIndex((lesson) => lesson.id === activeLessonId);
+
+  return {
+    previousLessonId: activeLessonIndex > 0
+      ? lessons[activeLessonIndex - 1]?.id ?? null
+      : null,
+    nextLessonId: activeLessonIndex >= 0
+      ? lessons[activeLessonIndex + 1]?.id ?? null
+      : null,
+  };
+}
+
+export function normalizeNullableString(value: NullableUnknown): string | null {
   if (typeof value === 'string') {
     const trimmed = value.trim();
     return trimmed || null;
   }
   return null;
+}
+
+function normalizeStringFromObject(value: NullableUnknown, keys: string[]): string | null {
+  if (typeof value !== 'object' || value === null) return null;
+
+  const record = value as Record<string, unknown>;
+  for (const key of keys) {
+    const normalized = normalizeNullableString(record[key]);
+    if (normalized) return normalized;
+  }
+
+  return null;
+}
+
+function normalizeStringFromFlexibleValue(value: NullableUnknown, keys: string[]): string | null {
+  return normalizeNullableString(value) ?? normalizeStringFromObject(value, keys);
+}
+
+export function normalizeLessonId(value: NullableUnknown): string | null {
+  return normalizeNullableString(value)
+    ?? normalizeStringFromObject(value, ['id', 'lessonId', 'uuid']);
 }
 
 function normalizeLockedReason(value: NullableUnknown): string | null {
@@ -135,12 +235,71 @@ function normalizeTag(value: NullableUnknown): string {
     ?? 'Practice';
 }
 
-function normalizeUrl(value: NullableUnknown): string | null {
+export function normalizeUrl(value: NullableUnknown): string | null {
   if (typeof value === 'string') return value.trim() || null;
   if (typeof value !== 'object' || value === null) return null;
 
-  const link = value as { url?: unknown; href?: unknown };
-  return normalizeNullableString(link.url) ?? normalizeNullableString(link.href);
+  const link = value as { url?: unknown; href?: unknown; prUrl?: unknown };
+  return normalizeNullableString(link.url)
+    ?? normalizeNullableString(link.href)
+    ?? normalizeNullableString(link.prUrl);
+}
+
+function normalizeTextList(value: NullableUnknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value !== 'object' || value === null) return [];
+
+  const record = value as Record<string, unknown>;
+  const nested = record.data ?? record.items;
+  if (Array.isArray(nested)) return normalizeTextList(nested);
+
+  return Object.values(record)
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeSubmissionStatus(value: NullableUnknown): LearnerSubmissionStatus {
+  const status = normalizeNullableString(value);
+  if (
+    status === 'submitted'
+    || status === 'changes'
+    || status === 'changes_requested'
+    || status === 'approved'
+    || status === 'rejected'
+  ) {
+    if (status === 'changes_requested') return 'changes';
+    return status;
+  }
+  return 'pending';
+}
+
+function normalizeResource(resource: unknown): LearnerExerciseResource | null {
+  if (typeof resource !== 'object' || resource === null) return null;
+
+  const doc = resource as Partial<DocumentResponseDto> & Record<string, unknown>;
+  const id = normalizeNullableString(doc.id);
+  if (!id) return null;
+
+  return {
+    id,
+    title: normalizeNullableString(doc.title) ?? 'Untitled resource',
+    kind: normalizeNullableString(doc.kind) ?? 'Document',
+    content: normalizeStringFromFlexibleValue(doc.content, ['content', 'body', 'summary', 'description', 'text']),
+    url: normalizeUrl(doc.url ?? doc.href),
+  };
+}
+
+export function normalizeExerciseResources(value: NullableUnknown): LearnerExerciseResource[] {
+  return Array.isArray(value)
+    ? value.map(normalizeResource).filter((resource): resource is LearnerExerciseResource => Boolean(resource))
+    : [];
 }
 
 function normalizeLessonType(value: LessonType | null | undefined): LessonType {
@@ -313,12 +472,15 @@ export function normalizeExerciseSummary(exercise: ExerciseSummaryContract): Lea
 
   return {
     id: exercise.id,
+    lessonId: normalizeLessonId(exercise.lessonId),
+    trackId: normalizeNullableString(exercise.trackId),
+    trackTitle: exercise.track?.trim() || 'Course',
     title: exercise.title?.trim() || 'Untitled exercise',
     brief: exercise.brief?.trim() || 'Exercise details are being prepared.',
     difficulty: exercise.difficulty ?? 'Beginner',
     estimatedTime: exercise.estimatedTime?.trim() || 'TBD',
     xp: exercise.xp ?? 0,
-    status: exercise.status ?? 'pending',
+    status: normalizeSubmissionStatus(exercise.status),
     tag: normalizeTag(exercise.tag),
     prUrl: normalizeUrl(exercise.prUrl),
   };
@@ -328,4 +490,104 @@ export function normalizeExerciseSummaries(exercises: ExerciseSummaryContract[])
   return exercises
     .map(normalizeExerciseSummary)
     .filter((exercise): exercise is LearnerExercise => Boolean(exercise));
+}
+
+export function normalizeExerciseDetail(exercise: ExerciseDetailContract): LearnerExerciseDetail | null {
+  const summary = normalizeExerciseSummary(exercise);
+  if (!summary) return null;
+
+  return {
+    ...summary,
+    trackId: normalizeNullableString(exercise.trackId),
+    trackTitle: exercise.track?.trim() || 'Course',
+    overview: exercise.overview?.trim() || '',
+    objectives: normalizeTextList(exercise.objectives),
+    steps: normalizeTextList(exercise.steps),
+    resources: normalizeExerciseResources(exercise.resources),
+    hint: normalizeNullableString(exercise.hint),
+  };
+}
+
+export function normalizeSubmissionState(
+  submission: SubmissionDetailContract | SubmissionFeedItemContract | null | undefined,
+  exercise?: Pick<LearnerExercise, 'status' | 'prUrl'>
+): LearnerSubmissionState {
+  const status = normalizeSubmissionStatus(submission?.status ?? exercise?.status);
+  const prUrl = normalizeUrl(submission?.prUrl ?? exercise?.prUrl);
+
+  return {
+    id: normalizeNullableString(submission?.id),
+    status,
+    prUrl,
+    reviewNote: normalizeStringFromFlexibleValue(
+      (submission as SubmissionDetailContract | undefined)?.reviewNote,
+      ['note', 'comment', 'message', 'content', 'text']
+    ),
+    reviewerId: normalizeStringFromFlexibleValue(
+      (submission as SubmissionDetailContract | undefined)?.reviewerId,
+      ['id', 'reviewerId', 'uuid']
+    ),
+    submittedAt: normalizeNullableString(submission?.submittedAt),
+    reviewedAt: normalizeStringFromFlexibleValue(
+      (submission as SubmissionDetailContract | undefined)?.reviewedAt,
+      ['date', 'at', 'reviewedAt']
+    ),
+    canSubmit: !prUrl && status === 'pending',
+    canResubmit: status === 'changes' || status === 'rejected',
+  };
+}
+
+export function getSubmissionExerciseId(submission: SubmissionFeedItemContract | SubmissionDetailContract): string | null {
+  const directExerciseId = normalizeNullableString((submission as SubmissionDetailContract).exerciseId);
+  if (directExerciseId) return directExerciseId;
+
+  const exercise = submission.exercise;
+  if (typeof exercise === 'string') return normalizeNullableString(exercise);
+  if (typeof exercise !== 'object' || exercise === null) return null;
+  return normalizeNullableString((exercise as { id?: unknown }).id);
+}
+
+export function getSubmissionExercise(submission: SubmissionFeedItemContract | SubmissionDetailContract): ExerciseDetailContract | null {
+  return typeof submission.exercise === 'object' && submission.exercise !== null
+    ? submission.exercise as ExerciseDetailContract
+    : null;
+}
+
+export function normalizeReviewerName(submission: SubmissionFeedItemContract | SubmissionDetailContract): string | null {
+  const maybeUser = (submission as SubmissionFeedItemContract & { user?: unknown }).user;
+  if (typeof maybeUser === 'object' && maybeUser !== null) {
+    return normalizeNullableString((maybeUser as { name?: unknown }).name);
+  }
+
+  return normalizeStringFromFlexibleValue(
+    (submission as SubmissionDetailContract).reviewerId,
+    ['name', 'fullName', 'email', 'id']
+  );
+}
+
+export function normalizeExerciseFeedItem(
+  exercise: ExerciseSummaryContract,
+  submission?: SubmissionFeedItemContract | SubmissionDetailContract
+): LearnerExerciseFeedItem | null {
+  const summary = normalizeExerciseSummary(exercise);
+  if (!summary) return null;
+
+  const submissionState = normalizeSubmissionState(submission, summary);
+
+  return {
+    ...summary,
+    status: submissionState.status,
+    prUrl: submissionState.prUrl,
+    submissionId: normalizeNullableString(submission?.id),
+    reviewNote: normalizeStringFromFlexibleValue(
+      (submission as SubmissionDetailContract | undefined)?.reviewNote,
+      ['note', 'comment', 'message', 'content', 'text']
+    ),
+    reviewerName: submission ? normalizeReviewerName(submission) : null,
+    submittedAt: normalizeNullableString(submission?.submittedAt),
+    reviewedAt: normalizeStringFromFlexibleValue(
+      (submission as SubmissionDetailContract | undefined)?.reviewedAt,
+      ['date', 'at', 'reviewedAt']
+    ),
+  };
 }

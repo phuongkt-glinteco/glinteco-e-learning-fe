@@ -7,48 +7,53 @@ import { CourseDetailView } from './CourseDetailView';
 import type { LearnerTrack, TrackLessonPreview } from './types';
 import { fetchCourseDetail } from './courseLearningApi';
 import {
+  getContinueLessonId,
   getErrorStatus,
   getErrorMessage,
+  getLearnerRouteBase,
   getRouteParam,
 } from './utils';
 
-function getContinueLessonId(
-  lessons: TrackLessonPreview[],
-  currentLessonId: string | null | undefined
-) {
-  if (lessons.length === 0) return null;
-
-  const firstIncompleteLesson = lessons.find((lesson) => !lesson.completed);
-  if (!firstIncompleteLesson) return null;
-  if (!currentLessonId) return firstIncompleteLesson.id;
-
-  const currentLessonIndex = lessons.findIndex((lesson) => lesson.id === currentLessonId);
-  if (currentLessonIndex < 0) return firstIncompleteLesson.id;
-
-  const currentLesson = lessons[currentLessonIndex];
-  if (!currentLesson.completed) return currentLesson.id;
-
-  const nextIncompleteLesson = lessons
-    .slice(currentLessonIndex + 1)
-    .find((lesson) => !lesson.completed);
-
-  return nextIncompleteLesson?.id ?? firstIncompleteLesson.id;
-}
-
 function CourseDetailLoadingState() {
   return (
-    <section className="mx-auto max-w-container-max px-gutter py-8">
-      <Skeleton width={240} height={28} rounded="rounded" className="mb-5" />
-      <Skeleton height={240} className="mb-6" />
-      <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
-          <Skeleton height={128} />
-          <Skeleton height={128} />
-          <Skeleton height={128} />
+    <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
+      <Skeleton width={260} height={32} rounded="rounded-lg" />
+      <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
+        <div className="grid gap-6 lg:grid-cols-[1fr_220px] lg:items-center">
+          <div className="min-w-0">
+            <Skeleton width={140} height={28} rounded="rounded-full" className="mb-4" />
+            <Skeleton width="72%" height={44} rounded="rounded" />
+            <Skeleton width="88%" height={20} rounded="rounded" className="mt-4" />
+            <Skeleton width="64%" height={20} rounded="rounded" className="mt-2" />
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Skeleton width={116} height={38} rounded="rounded-lg" />
+              <Skeleton width={104} height={38} rounded="rounded-lg" />
+              <Skeleton width={124} height={38} rounded="rounded-lg" />
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <Skeleton width={168} height={168} rounded="rounded-full" />
+          </div>
         </div>
-        <div className="space-y-4">
-          <Skeleton height={160} />
-          <Skeleton height={136} />
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[1fr_320px] xl:items-start">
+        <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <Skeleton width={180} height={24} rounded="rounded" />
+              <Skeleton width={320} height={18} rounded="rounded" className="mt-2 max-w-full" />
+            </div>
+            <Skeleton width={92} height={28} rounded="rounded-full" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton height={116} rounded="rounded-lg" />
+            <Skeleton height={116} rounded="rounded-lg" />
+            <Skeleton height={116} rounded="rounded-lg" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4">
+          <Skeleton height={150} rounded="rounded-lg" />
+          <Skeleton height={132} rounded="rounded-lg" />
         </div>
       </div>
     </section>
@@ -67,8 +72,8 @@ function CourseDetailErrorState({
   onRetry: () => void;
 }) {
   return (
-    <section className="mx-auto max-w-[760px] px-gutter py-8">
-      <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
+    <section className="mx-auto max-w-container-max px-gutter py-8">
+      <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>
         <div className="mt-4 flex flex-wrap gap-3">
@@ -98,6 +103,7 @@ export default function CourseDetailContainer() {
   const params = useParams();
   const router = useRouter();
   const courseId = getRouteParam(params.courseId ?? params.trackId);
+  const routeBase = getLearnerRouteBase(params.trackId);
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<TrackLessonPreview[]>([]);
@@ -135,7 +141,8 @@ export default function CourseDetailContainer() {
   );
 
   function handleOpenLesson(lessonId: string) {
-    router.push(`/courses/${courseId}/lessons/${lessonId}`);
+    if (!courseId || !lessonId) return;
+    router.push(`/${routeBase}/${courseId}/lessons/${lessonId}`);
   }
 
   function handleContinueCourse() {
@@ -154,7 +161,7 @@ export default function CourseDetailContainer() {
       <CourseDetailErrorState
         title={errorTitle}
         message={error ?? 'Track was not found.'}
-        onBack={() => router.push('/courses')}
+        onBack={() => router.push(`/${routeBase}`)}
         onRetry={loadCourseDetail}
       />
     );
@@ -165,7 +172,7 @@ export default function CourseDetailContainer() {
       track={track}
       lessons={lessons}
       continueLessonId={continueLessonId}
-      onBackToTracks={() => router.push('/courses')}
+      onBackToTracks={() => router.push(`/${routeBase}`)}
       onContinueCourse={handleContinueCourse}
       onOpenLesson={handleOpenLesson}
     />

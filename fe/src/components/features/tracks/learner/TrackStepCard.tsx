@@ -101,18 +101,18 @@ export function TrackStepCard({
 
         <div className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div className="min-w-0">
-            <div className="flex flex-wrap gap-3 label-sm text-on-surface-variant">
-              <span className="inline-flex items-center gap-1">
+            <div className="flex min-w-0 flex-wrap gap-3 label-sm text-on-surface-variant">
+              <span className="inline-flex min-w-0 max-w-full items-center gap-1">
                 <span className="material-symbols-outlined text-[16px]">schedule</span>
-                {track.estimatedTime}
+                <span className="min-w-0 truncate">{track.estimatedTime}</span>
               </span>
-              <span className="inline-flex items-center gap-1">
+              <span className="inline-flex min-w-0 max-w-full items-center gap-1">
                 <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                {track.lessonCount} lessons
+                <span className="min-w-0 truncate">{track.lessonCount} lessons</span>
               </span>
-              <span className="inline-flex items-center gap-1">
+              <span className="inline-flex min-w-0 max-w-full items-center gap-1">
                 <span className="material-symbols-outlined text-[16px]">task_alt</span>
-                {track.lessonsCompleted}/{track.lessonCount} done
+                <span className="min-w-0 truncate">{track.lessonsCompleted}/{track.lessonCount} done</span>
               </span>
             </div>
 

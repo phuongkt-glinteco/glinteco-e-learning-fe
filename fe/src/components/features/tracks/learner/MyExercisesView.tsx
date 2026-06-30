@@ -12,7 +12,7 @@ interface MyExercisesViewProps {
 
 const tabMeta: Array<{ id: ExerciseFeedTab; label: string; statuses: LearnerSubmissionStatus[] | null }> = [
   { id: 'all', label: 'All', statuses: null },
-  { id: 'todo', label: 'To Do', statuses: ['pending'] },
+  { id: 'todo', label: 'To Do', statuses: ['pending', 'in_progress'] },
   { id: 'review', label: 'In Review', statuses: ['submitted'] },
   { id: 'changes', label: 'Action Required', statuses: ['changes', 'rejected'] },
   { id: 'completed', label: 'Completed', statuses: ['approved'] },
@@ -42,6 +42,13 @@ function getStatusMeta(status: LearnerSubmissionStatus) {
         badgeClass: 'border-secondary-fixed bg-secondary-fixed text-secondary',
         cardClass: 'border-l-4 border-l-secondary',
       };
+    case 'in_progress':
+      return {
+        label: 'In Progress',
+        icon: 'play_circle',
+        badgeClass: 'border-primary-fixed bg-primary-fixed text-primary',
+        cardClass: 'border-l-4 border-l-primary',
+      };
     case 'pending':
       return {
         label: 'Not Started',
@@ -54,6 +61,8 @@ function getStatusMeta(status: LearnerSubmissionStatus) {
 
 function getPrimaryAction(status: LearnerSubmissionStatus) {
   switch (status) {
+    case 'in_progress':
+      return 'Continue Exercise';
     case 'pending':
       return 'Start Exercise';
     case 'submitted':
@@ -111,7 +120,7 @@ export function MyExercisesView({
         </div>
       </header>
 
-      <div className="flex flex-wrap gap-2 border-b border-outline-variant">
+      <div className="flex flex-wrap gap-2 border-b border-outline-variant/70">
         {tabMeta.map((tab) => {
           const count = getTabCount(exercises, tab.id);
           const isActive = tab.id === activeTab;
@@ -122,8 +131,8 @@ export function MyExercisesView({
               onClick={() => onTabChange(tab.id)}
               className={`-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-3 label-sm transition-colors cursor-pointer ${
                 isActive
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                  ? 'border-primary bg-primary/8 text-primary'
+                  : 'border-transparent text-on-surface-variant hover:bg-primary/5 hover:text-primary'
               }`}
             >
               {tab.label}
@@ -154,7 +163,7 @@ export function MyExercisesView({
             return (
               <article
                 key={exercise.id}
-                className={`flex min-w-0 flex-col rounded-lg border border-outline-variant bg-surface p-5 shadow-sm ${statusMeta.cardClass}`}
+                className={`flex min-w-0 flex-col rounded-lg border border-outline-variant/70 bg-surface p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${statusMeta.cardClass}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 label-sm ${statusMeta.badgeClass}`}>
@@ -190,7 +199,7 @@ export function MyExercisesView({
                     </span>
                   </div>
 
-                  {exercise.status === 'pending' && (
+                  {(exercise.status === 'pending' || exercise.status === 'in_progress') && (
                     <p className="body-sm mt-6 line-clamp-3 break-words text-on-surface-variant">
                       {exercise.brief}
                     </p>

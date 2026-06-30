@@ -14,7 +14,7 @@ interface QuickLinksCardProps {
 
 export default function QuickLinksCard({ title, icon, links }: QuickLinksCardProps) {
   return (
-    <div className="bg-surface border border-outline-variant rounded-lg p-md space-y-4">
+    <div className="bg-surface border border-outline-variant/70 rounded-lg p-md space-y-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center gap-2 text-primary">
         <span className="material-symbols-outlined">{icon}</span>
         <h4 className="font-label-md text-label-md">{title}</h4>
@@ -24,7 +24,7 @@ export default function QuickLinksCard({ title, icon, links }: QuickLinksCardPro
           <a
             key={link.label}
             href={link.href}
-            className="flex items-center justify-between p-2 rounded border border-outline-variant hover:bg-surface-container-low transition-colors"
+            className="flex items-center justify-between p-2 rounded border border-outline-variant/70 hover:bg-primary/5 hover:text-primary transition-colors"
           >
             <span className="text-body-sm">{link.label}</span>
             <span className="material-symbols-outlined text-sm">

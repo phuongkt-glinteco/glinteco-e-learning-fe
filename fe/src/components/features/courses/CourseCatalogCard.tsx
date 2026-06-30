@@ -25,12 +25,12 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
 
   return (
     <article
-      className={`flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-surface-container-lowest p-5 shadow-sm transition-all ${
+      className={`flex min-w-0 flex-col gap-4 overflow-hidden rounded-xl border bg-surface-container-lowest p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
         isLocked
-          ? 'border-dashed border-outline-variant opacity-70'
+          ? 'border-dashed border-outline-variant/80 opacity-70'
           : isInProgress
-            ? 'border-primary ring-1 ring-primary/20 hover:border-primary/60'
-            : 'border-outline-variant hover:border-primary/40'
+            ? 'border-primary/60 ring-1 ring-primary/15 hover:border-primary/60'
+            : 'border-outline-variant/70 hover:border-primary/40'
       }`}
     >
       <div className="flex min-w-0 items-start gap-3">

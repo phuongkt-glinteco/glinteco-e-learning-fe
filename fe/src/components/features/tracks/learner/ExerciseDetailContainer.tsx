@@ -142,7 +142,7 @@ export default function ExerciseDetailContainer() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const [hasStarted, setHasStarted] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const loadExercise = useCallback(async () => {
     if (!exerciseId) {
@@ -161,7 +161,7 @@ export default function ExerciseDetailContainer() {
         : await fetchExercisePage(courseId, lessonId, exerciseId);
       setPageData(nextPageData);
       setFormValues({ prUrl: nextPageData.submission.prUrl ?? '' });
-      setHasStarted(nextPageData.submission.status !== 'pending');
+      setStartError(null);
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, 'Failed to load exercise details.'));
     } finally {
@@ -196,7 +196,6 @@ export default function ExerciseDetailContainer() {
         ...pageData,
         submission: nextSubmission,
       });
-      setHasStarted(true);
       setFormValues({ prUrl: nextSubmission.prUrl ?? nextPrUrl });
       setSubmitMessage('Submission saved successfully.');
     } catch (submitFailure: unknown) {
@@ -204,6 +203,16 @@ export default function ExerciseDetailContainer() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleStartExercise() {
+    setSubmitMessage(null);
+    setSubmitError(null);
+    // TODO: Replace this with a learner-scoped start mutation when the backend exposes one,
+    // e.g. PATCH /api/v1/learner/exercises/:exerciseId/start returning status IN_PROGRESS.
+    setStartError(
+      'Starting an exercise cannot be saved yet because the backend API does not expose a learner exercise start endpoint.'
+    );
   }
 
   function handleBackToLesson() {
@@ -249,13 +258,13 @@ export default function ExerciseDetailContainer() {
       submission={pageData.submission}
       prUrl={formValues.prUrl}
       submitting={submitting}
+      startError={startError}
       submitError={submitError}
       submitMessage={submitMessage}
-      hasStarted={hasStarted}
       backLabel={isStandaloneRoute ? 'Back to Exercises' : 'Back to Lesson'}
       onBackToLesson={handleBackToLesson}
       onPrUrlChange={(value) => setFormValues({ prUrl: value })}
-      onStartExercise={() => setHasStarted(true)}
+      onStartExercise={handleStartExercise}
       onSubmit={handleSubmit}
     />
   );

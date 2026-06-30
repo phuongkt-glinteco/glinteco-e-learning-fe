@@ -13,7 +13,7 @@ interface StatsCardProps {
 
 export default function StatsCard({ label, value, sub, icon, accent = 'text-on-surface-variant', children }: StatsCardProps) {
   return (
-    <div className="bg-surface border border-outline-variant p-md rounded-lg flex flex-col justify-between">
+    <div className="bg-surface border border-outline-variant/70 p-md rounded-lg flex flex-col justify-between shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex justify-between items-start">
         <span className="text-on-surface-variant font-label-md">{label}</span>
         <span className="material-symbols-outlined text-primary-container/20">{icon}</span>

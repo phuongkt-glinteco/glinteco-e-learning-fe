@@ -15,7 +15,17 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors({
-    origin: ['http://localhost:6336'],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:6336',
+        'https://glinteco-e-learning-fe.vercel.app',
+      ];
+      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   });
 

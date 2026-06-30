@@ -14,13 +14,13 @@ async function bootstrap() {
   app.setGlobalPrefix(apiPrefix);
 
   // Enable CORS
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+    : ['http://localhost:6336', 'https://glinteco-e-learning-fe.vercel.app'];
+
   app.enableCors({
     origin: (origin, callback) => {
-      const allowedOrigins = [
-        'http://localhost:6336',
-        'https://glinteco-e-learning-fe.vercel.app',
-      ];
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      if (!origin || allowedOrigins.includes(origin) || (origin && origin.endsWith('.vercel.app'))) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

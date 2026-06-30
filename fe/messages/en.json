@@ -33,6 +33,54 @@
     "GOOGLE_AUTH_FAILED": "Google sign-in did not complete. Please try again."
   },
 
+  "ForgotPasswordPage": {
+    "brandSubtitle": "Level up your engineering journey.",
+    "brandTagline": "Learn, Practice, Review.",
+    "title": "Reset your password",
+    "description": "Enter your email and we'll send instructions to reset your password.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "sendButton": "Send reset link",
+    "sendingButton": "Sending...",
+    "backToLogin": "Back to login",
+    "successTitle": "Check your email",
+    "successDescription": "If an account exists for {email}, a reset link has been sent.",
+    "resendButton": "Resend link",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email address",
+    "UNKNOWN_ERROR": "We couldn't send the reset link. Please try again.",
+    "VALIDATION_ERROR": "Please check the email address and try again.",
+    "RATE_LIMITED": "Too many requests. Please wait and try again."
+  },
+
+  "ResetPasswordPage": {
+    "brandSubtitle": "Level up your engineering journey.",
+    "brandTagline": "Learn, Practice, Review.",
+    "title": "Set a new password",
+    "description": "Choose a new password for your account.",
+    "passwordLabel": "New password",
+    "passwordPlaceholder": "Enter a new password",
+    "confirmPasswordLabel": "Confirm password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "submitButton": "Reset password",
+    "submittingButton": "Resetting...",
+    "backToLogin": "Back to login",
+    "requestNewLink": "Request a new link",
+    "successTitle": "Password reset",
+    "successDescription": "Your password has been updated. You can now sign in.",
+    "invalidLinkTitle": "Invalid or expired link",
+    "invalidLinkDescription": "This reset link is missing, invalid, or expired. Request a new reset link to continue.",
+    "resetTokenRequired": "Reset token is required",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "confirmPasswordRequired": "Please confirm your password",
+    "confirmPasswordMismatch": "Passwords do not match",
+    "UNKNOWN_ERROR": "We couldn't reset your password. Please try again.",
+    "VALIDATION_ERROR": "Please check the password fields and try again.",
+    "NOT_FOUND": "This reset link is invalid or expired.",
+    "FORBIDDEN": "This reset link is invalid or expired."
+  },
+
   "LandingPage": {
     "brandName": "RAMP UP",
     "cta": {

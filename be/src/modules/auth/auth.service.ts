@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -24,6 +25,7 @@ import {
   JwtPayload,
   RefreshTokenPayload,
 } from './interfaces/jwt-payload.interface';
+import { MailService } from '../../mail/mail.service';
 
 const SALT_ROUNDS = 10;
 const DEFAULT_ACCESS_EXPIRES_IN = 900; // 15 minutes
@@ -50,6 +52,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {
     this.googleClientId = this.configService.get<string>(
       'GOOGLE_CLIENT_ID',
@@ -358,7 +361,10 @@ export class AuthService {
   async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new BadRequestException('Email không tồn tại trong hệ thống');
+      return {
+        message:
+          'Nếu tài khoản tồn tại với email này, đường dẫn khôi phục mật khẩu đã được gửi qua email.',
+      };
     }
 
     const token = randomBytes(32).toString('hex');
@@ -372,11 +378,64 @@ export class AuthService {
       resetPasswordExpires: expires,
     });
 
-    const resetLink = `http://localhost:6336/reset-password?token=${token}`;
-    this.logger.log(`[Mock Email] Password Reset Link: ${resetLink}`);
-    console.log(`[Mock Email] Password Reset Link: ${resetLink}`);
+    const frontendUrl = this.configService
+      .get<string>('FRONTEND_URL', 'http://localhost:6336')
+      .replace(/\/$/, '');
+    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+
+    try {
+      await this.mailService.sendMail({
+        to: user.email,
+        subject: '[RAMP UP] Reset your password',
+        html: this.buildResetPasswordEmail(resetLink),
+        text: `Reset your RAMP UP password: ${resetLink}`,
+      });
+    } catch (error) {
+      await this.userRepository.update(user.id, {
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      });
+
+      if (error instanceof ServiceUnavailableException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Could not send password reset email',
+      );
+    }
 
     return { message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.' };
+  }
+
+  private buildResetPasswordEmail(resetLink: string): string {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Reset your RAMP UP password</title>
+</head>
+<body style="font-family: Inter, Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 32px;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <tr>
+      <td style="padding: 24px; background: #2563eb; color: #ffffff; border-radius: 8px 8px 0 0;">
+        <h1 style="font-size: 20px; margin: 0;">RAMP UP Password Reset</h1>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 24px;">
+        <p style="font-size: 15px; line-height: 24px;">We received a request to reset your RAMP UP password.</p>
+        <p style="font-size: 15px; line-height: 24px;">Use the button below within the next hour to set a new password.</p>
+        <p style="margin: 28px 0;">
+          <a href="${resetLink}" style="display: inline-block; background: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 18px; border-radius: 6px; font-weight: 600;">Reset password</a>
+        </p>
+        <p style="font-size: 13px; line-height: 20px; color: #64748b;">If the button does not work, copy and paste this link into your browser:</p>
+        <p style="font-size: 13px; line-height: 20px; word-break: break-all;"><a href="${resetLink}" style="color: #2563eb;">${resetLink}</a></p>
+        <p style="font-size: 13px; line-height: 20px; color: #64748b;">If you did not request a password reset, you can ignore this email.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
   }
 
   async resetPassword(
@@ -389,7 +448,7 @@ export class AuthService {
       where: {
         resetPasswordToken: hashedToken,
       },
-      select: { id: true, resetPasswordExpires: true },
+      select: { id: true, email: true, name: true, resetPasswordExpires: true },
     });
 
     if (!user) {
@@ -410,6 +469,74 @@ export class AuthService {
       resetPasswordExpires: null,
     });
 
+    await this.sendPasswordChangedNotification(user);
+
     return { message: 'Mật khẩu đã được thay đổi thành công.' };
+  }
+
+  private async sendPasswordChangedNotification(
+    user: Pick<User, 'email' | 'name'>,
+  ): Promise<void> {
+    const changedAt = new Date();
+
+    try {
+      await this.mailService.sendMail({
+        to: user.email,
+        subject: '[RAMP UP] Your password was changed',
+        html: this.buildPasswordChangedEmail(user.name, changedAt),
+        text: this.buildPasswordChangedText(user.name, changedAt),
+      });
+    } catch (error) {
+      this.logger.error(
+        `Password changed notification email failed for ${user.email}`,
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+  }
+
+  private buildPasswordChangedEmail(name: string, changedAt: Date): string {
+    const displayName = name || 'there';
+    const changedAtText = changedAt.toISOString();
+
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Your RAMP UP password was changed</title>
+</head>
+<body style="font-family: Inter, Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 32px;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <tr>
+      <td style="padding: 24px; background: #0f172a; color: #ffffff; border-radius: 8px 8px 0 0;">
+        <h1 style="font-size: 20px; margin: 0;">RAMP UP Security Alert</h1>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 24px;">
+        <p style="font-size: 15px; line-height: 24px;">Hi ${displayName},</p>
+        <p style="font-size: 15px; line-height: 24px;">Your RAMP UP account password was changed successfully.</p>
+        <p style="font-size: 15px; line-height: 24px;">If this was you, no further action is needed.</p>
+        <p style="font-size: 15px; line-height: 24px;">If you did not make this change, please contact the administrator or reset your password immediately.</p>
+        <p style="font-size: 13px; line-height: 20px; color: #64748b;">Time: ${changedAtText}</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  }
+
+  private buildPasswordChangedText(name: string, changedAt: Date): string {
+    const displayName = name || 'there';
+
+    return [
+      `Hi ${displayName},`,
+      '',
+      'Your RAMP UP account password was changed successfully.',
+      '',
+      'If this was you, no further action is needed.',
+      'If you did not make this change, please contact the administrator or reset your password immediately.',
+      '',
+      `Time: ${changedAt.toISOString()}`,
+    ].join('\n');
   }
 }

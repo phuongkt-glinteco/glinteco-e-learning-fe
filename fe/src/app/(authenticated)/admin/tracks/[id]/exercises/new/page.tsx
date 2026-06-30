@@ -1,6 +1,6 @@
 import CreateExercisePage from '@/components/features/tracks/exercises/CreateExercisePage';
 
-export default async function Page({
+export default async function NewTrackExercisePage({
   params,
   searchParams,
 }: {
@@ -8,6 +8,6 @@ export default async function Page({
   searchParams: Promise<{ lessonId?: string }>;
 }) {
   const { id } = await params;
-  const sp = await searchParams;
-  return <CreateExercisePage trackId={id} lessonId={sp.lessonId} />;
+  const { lessonId } = await searchParams;
+  return <CreateExercisePage trackId={id} lessonId={lessonId} />;
 }

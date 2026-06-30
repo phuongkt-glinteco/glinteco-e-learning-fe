@@ -14,7 +14,23 @@ import { queryCache } from '@/lib/queryCache';
 interface LessonEditorPageProps {
   trackId?: string;
   lessonId?: string;
+  editIndex?: number;
 }
+
+type CachedLesson = LessonProgressItemDto & {
+  description?: string | null;
+  estimatedTime?: string;
+  body?: string;
+};
+
+type CachedTrackDetail = {
+  lessons?: CachedLesson[];
+};
+
+type CachedTrackEntry = {
+  track: CachedTrackDetail;
+  exercises: unknown[];
+};
 
 type ToolbarAction =
   | 'h1' | 'h2' | 'h3'
@@ -102,7 +118,9 @@ const UNIT_OPTIONS: { value: TimeUnit; labelKey: string }[] = [
   { value: 'M', labelKey: 'months_label' },
 ];
 
-const LESSON_TYPE_OPTIONS: { value: LessonProgressItemDto['type']; labelKey: string }[] = [
+type LessonEditorType = NonNullable<LessonProgressItemDto['type']>;
+
+const LESSON_TYPE_OPTIONS: { value: LessonEditorType; labelKey: string }[] = [
   { value: 'reading', labelKey: 'typeReading' },
   { value: 'video', labelKey: 'typeVideo' },
   { value: 'quiz', labelKey: 'typeQuiz' },
@@ -118,7 +136,7 @@ export function LessonEditorPage({ trackId, lessonId }: LessonEditorPageProps) {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [lessonType, setLessonType] = useState<LessonProgressItemDto['type']>('reading');
+  const [lessonType, setLessonType] = useState<LessonEditorType>('reading');
   const [order, setOrder] = useState(1);
   const [numValue, setNumValue] = useState('');
   const [unit, setUnit] = useState<TimeUnit>('m');
@@ -249,9 +267,9 @@ export function LessonEditorPage({ trackId, lessonId }: LessonEditorPageProps) {
         });
 
         // Update query cache optimistically for editing lesson
-        const cached = queryCache.get<{ track: any; exercises: any[] }>(`track-detail-${trackId}`);
+        const cached = queryCache.get<CachedTrackEntry>(`track-detail-${trackId}`);
         if (cached && cached.track) {
-          const updatedLessons = cached.track.lessons?.map((l: any) => {
+          const updatedLessons = cached.track.lessons?.map((l) => {
             if (l.id === lessonId) {
               return {
                 ...l,
@@ -363,7 +381,7 @@ export function LessonEditorPage({ trackId, lessonId }: LessonEditorPageProps) {
             <select
               className="w-full border border-outline-variant rounded-lg p-2 text-body-base focus:border-primary focus:ring-0 transition-colors outline-none bg-surface-container-low"
               value={lessonType}
-              onChange={(e) => setLessonType(e.target.value as LessonProgressItemDto['type'])}
+              onChange={(e) => setLessonType(e.target.value as LessonEditorType)}
               title={t('lessonTypeReadonlyHint')}
             >
               {LESSON_TYPE_OPTIONS.map((opt) => (

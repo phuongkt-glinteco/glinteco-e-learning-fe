@@ -65,13 +65,22 @@ export default function LinkedExercisesCard({ trackId, exercises, onDeleteExerci
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => setDeletingId(ex.id!)}
-                  className="p-1.5 text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 cursor-pointer shrink-0 self-center"
-                  title={t('deleteExercise')}
-                >
-                  <span className="material-symbols-outlined text-[18px]">delete</span>
-                </button>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0 self-center">
+                  <Link
+                    href={`/admin/tracks/${trackId}/exercises/${ex.id}/edit`}
+                    className="p-1.5 text-outline hover:text-primary transition-colors cursor-pointer block"
+                    title="Edit exercise"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                  </Link>
+                  <button
+                    onClick={() => setDeletingId(ex.id!)}
+                    className="p-1.5 text-outline hover:text-error transition-colors cursor-pointer"
+                    title={t('deleteExercise')}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>

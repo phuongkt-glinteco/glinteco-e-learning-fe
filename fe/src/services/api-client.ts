@@ -2,10 +2,10 @@ import { client } from './client/client.gen';
 import { classify, pipeline } from './error-mapper';
 import { ApiError, UiShowError } from './errors';
 import { authControllerRefresh } from './client/sdk.gen';
+import { getApiClientBaseUrl } from './api-base';
 
-const DEFAULT_BASE_URL = 'https://api.glinteco-elearning.dev/api/v1';
 client.setConfig({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || DEFAULT_BASE_URL,
+  baseUrl: getApiClientBaseUrl(),
 });
 
 if (typeof window !== 'undefined') {
@@ -17,6 +17,9 @@ if (typeof window !== 'undefined') {
 
 const TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
+const TOKEN_COOKIE = 'access_token';
+const REFRESH_TOKEN_COOKIE = 'refresh_token';
+export const SUPPRESS_ERROR_TOAST_HEADER = 'x-suppress-error-toast';
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -32,16 +35,44 @@ export function setClientToken(token: string | null) {
   client.setConfig({ auth: token ?? undefined });
 }
 
+export function setTokenCookie(token: string) {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${TOKEN_COOKIE}=${token};path=/;max-age=86400;samesite=lax`;
+  }
+}
+
+export function clearTokenCookie() {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${TOKEN_COOKIE}=;path=/;max-age=0`;
+  }
+}
+
+export function setRefreshTokenCookie(token: string) {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${REFRESH_TOKEN_COOKIE}=${token};path=/;max-age=2592000;samesite=lax`;
+  }
+}
+
+export function clearRefreshTokenCookie() {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${REFRESH_TOKEN_COOKIE}=;path=/;max-age=0`;
+  }
+}
+
 export function saveTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem(TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   setClientToken(accessToken);
+  setTokenCookie(accessToken);
+  setRefreshTokenCookie(refreshToken);
 }
 
 export function clearTokens() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   setClientToken(null);
+  clearTokenCookie();
+  clearRefreshTokenCookie();
 }
 
 let refreshPromise: Promise<boolean> | null = null;
@@ -64,9 +95,47 @@ export async function attemptTokenRefresh(): Promise<boolean> {
   }
 }
 
-function dispatchErrorItems(items: UiShowError[]) {
-  if (typeof window !== 'undefined' && items.length > 0) {
-    window.dispatchEvent(new CustomEvent('api-error', { detail: items }));
+function getErrorStatus(error: unknown): number | null {
+  if (error instanceof Response) return error.status;
+  if (error instanceof ApiError) return error.status ?? null;
+  if (typeof error !== 'object' || error === null) return null;
+
+  const status = (error as { status?: unknown; statusCode?: unknown }).status
+    ?? (error as { response?: { status?: unknown } }).response?.status
+    ?? (error as { statusCode?: unknown }).statusCode;
+
+  return typeof status === 'number' ? status : null;
+}
+
+function shouldRetryAfterRefresh(error: unknown) {
+  return (error instanceof Response && error.ok) || getErrorStatus(error) === 401;
+}
+
+export async function withAuthRetry<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (!shouldRetryAfterRefresh(error)) throw error;
+
+    const refreshed = error instanceof Response && error.ok
+      ? true
+      : await attemptTokenRefresh();
+
+    if (!refreshed) throw error;
+    return operation();
+  }
+}
+
+function dispatchErrorItems(items: UiShowError[], request?: Request) {
+  if (typeof window === 'undefined' || items.length === 0) return;
+
+  const shouldSuppressToast = request?.headers.get(SUPPRESS_ERROR_TOAST_HEADER) === 'true';
+  const visibleItems = shouldSuppressToast
+    ? items.filter((item) => item.errorCode === 'SESSION_EXPIRED')
+    : items;
+
+  if (visibleItems.length > 0) {
+    window.dispatchEvent(new CustomEvent('api-error', { detail: visibleItems }));
   }
 }
 
@@ -75,7 +144,7 @@ client.interceptors.error.use(async (error, response, request) => {
     const url = new URL(request.url);
 
     // Chặn refresh loop cho chính endpoint auth
-    const isAuthEndpoint = url.pathname.includes('/auth/');
+    const isAuthEndpoint = url.pathname.includes('/auth/refresh') || url.pathname.includes('/auth/login') || url.pathname.includes('/auth/register');
 
     if (!isAuthEndpoint) {
       if (!refreshPromise) {
@@ -88,10 +157,10 @@ client.interceptors.error.use(async (error, response, request) => {
         return fetch(request);
       }
       clearTokens();
+      error = new ApiError('SESSION_EXPIRED', 'Session expired. Please log in again.', 401, '/auth/refresh');
     }
 
     // Biến đổi error thành SESSION_EXPIRED rồi cho pipeline xử lý
-    error = new ApiError('SESSION_EXPIRED', 'Session expired. Please log in again.', 401, '/auth/refresh');
   }
 
   const classified = classify(error, response, request);
@@ -99,12 +168,12 @@ client.interceptors.error.use(async (error, response, request) => {
   try {
     const { errorItems } = pipeline.process(classified);
     // ADD_TO_ITEMS: dispatch cho toast, không throw UiShowError
-    dispatchErrorItems(errorItems);
-    return classified;
+    dispatchErrorItems(errorItems, request);
+    throw classified;
   } catch (e) {
     if (e instanceof UiShowError) {
       // FINAL_THROW: dispatch + throw để page bắt
-      dispatchErrorItems([e]);
+      dispatchErrorItems([e], request);
       throw e;
     }
     throw e;

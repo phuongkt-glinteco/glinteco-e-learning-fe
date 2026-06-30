@@ -6,7 +6,7 @@ export default function LoadingPage() {
   const t = useTranslations('LoadingPage');
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-background p-gutter">
+    <div className="h-full w-full flex flex-col items-center justify-center bg-background p-gutter min-h-[50vh]">
       <div className="flex flex-col items-center space-y-6">
         <div className="relative flex items-center justify-center">
           <div className="w-24 h-24 rounded-full border-4 border-surface-container-highest border-t-primary loading-spinner" />

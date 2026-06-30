@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { usersControllerGetStats } from '@/services/api-client';
 import type { UserDashboardStatsDto } from '@/services/api-client';
-import Skeleton from '@/components/ui/loading/Skeleton';
+import { Skeleton } from '@/components/ui/default/skeleton';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/default/card';
 import { ProgressBar } from '@/components/ui/HPBar';
 
 function StreakDots({ days }: { days: number }) {
@@ -60,7 +61,15 @@ export default function StatsGrid() {
     return () => { cancelled = true; };
   }, []);
 
-  if (loading) return <Skeleton height={128} />;
+  if (loading) {
+    return (
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-32 w-full rounded-xl" />
+        ))}
+      </section>
+    );
+  }
 
   const overallCompletion = stats?.overallCompletion ?? 0;
   const xp = stats?.xp ?? 0;
@@ -70,45 +79,61 @@ export default function StatsGrid() {
 
   return (
     <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-white border border-outline-variant p-md rounded-lg flex flex-col gap-2 hover:bg-slate-50 transition-colors group cursor-default">
-        <div className="flex items-center gap-2 text-on-surface-variant">
-          <span className="material-symbols-outlined text-[18px]">donut_large</span>
-          <span className="font-label-sm text-label-sm uppercase tracking-wider">{t('overallProgress')}</span>
-        </div>
-        <div className="font-headline-lg text-headline-lg text-on-surface flex items-baseline gap-1">
-          {overallCompletion}<span className="text-headline-sm font-body-md text-on-surface-variant">%</span>
-        </div>
-        <ProgressBar value={overallCompletion} />
-      </div>
+      <Card className="hover:bg-slate-50 transition-colors group cursor-default shadow-sm">
+        <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
+          <span className="material-symbols-outlined text-[18px] text-on-surface-variant">donut_large</span>
+          <CardTitle className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+            {t('overallProgress')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          <div className="font-headline-lg text-headline-lg text-on-surface flex items-baseline gap-1">
+            {overallCompletion}<span className="text-headline-sm font-body-md text-on-surface-variant">%</span>
+          </div>
+          <ProgressBar value={overallCompletion} />
+        </CardContent>
+      </Card>
 
-      <div className="bg-white border border-outline-variant p-md rounded-lg flex flex-col gap-2 hover:bg-slate-50 transition-colors cursor-default">
-        <div className="flex items-center gap-2 text-secondary">
-          <span className="material-symbols-outlined text-[18px]">military_tech</span>
-          <span className="font-label-sm text-label-sm uppercase tracking-wider">{t('totalXp')}</span>
-        </div>
-        <div className="font-headline-lg text-headline-lg text-on-surface">{xp}</div>
-        <div className="font-label-sm text-label-sm text-secondary mt-2">{t('thisWeek', { xp: xpThisWeek })}</div>
-      </div>
+      <Card className="hover:bg-slate-50 transition-colors cursor-default shadow-sm">
+        <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
+          <span className="material-symbols-outlined text-[18px] text-secondary">military_tech</span>
+          <CardTitle className="font-label-sm text-label-sm uppercase tracking-wider text-secondary">
+            {t('totalXp')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-1">
+          <div className="font-headline-lg text-headline-lg text-on-surface">{xp}</div>
+          <div className="font-label-sm text-label-sm text-secondary">{t('thisWeek', { xp: xpThisWeek })}</div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-white border border-outline-variant p-md rounded-lg flex flex-col gap-2 hover:bg-slate-50 transition-colors cursor-default">
-        <div className="flex items-center gap-2 text-secondary">
-          <span className="material-symbols-outlined text-[18px]">trending_up</span>
-          <span className="font-label-sm text-label-sm uppercase tracking-wider">{t('currentLevel')}</span>
-        </div>
-        <div className="font-headline-sm text-headline-sm text-on-surface">{t('level', { level })}</div>
-        <div className="font-label-sm text-label-sm text-on-surface-variant mt-2">{t('keepGoing')}</div>
-      </div>
+      <Card className="hover:bg-slate-50 transition-colors cursor-default shadow-sm">
+        <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
+          <span className="material-symbols-outlined text-[18px] text-secondary">trending_up</span>
+          <CardTitle className="font-label-sm text-label-sm uppercase tracking-wider text-secondary">
+            {t('currentLevel')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-1">
+          <div className="font-headline-sm text-headline-sm text-on-surface">{t('level', { level })}</div>
+          <div className="font-label-sm text-label-sm text-on-surface-variant">{t('keepGoing')}</div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-white border border-outline-variant p-md rounded-lg flex flex-col gap-2 hover:bg-slate-50 transition-colors cursor-default">
-        <div className="flex items-center gap-2 text-[#F59E0B]">
-          <span className="material-symbols-outlined text-[18px]">local_fire_department</span>
-          <span className="font-label-sm text-label-sm uppercase tracking-wider">{t('streak')}</span>
-        </div>
-        <div className="font-headline-lg text-headline-lg text-on-surface flex items-baseline gap-1">
-          {streakDays}<span className="text-headline-sm font-body-md text-on-surface-variant">{t('days')}</span>
-        </div>
-        <StreakDots days={streakDays} />
-      </div>
+      <Card className="hover:bg-slate-50 transition-colors cursor-default shadow-sm">
+        <CardHeader className="flex flex-row items-center gap-2 space-y-0 pb-2">
+          <span className="material-symbols-outlined text-[18px] text-[#F59E0B]">local_fire_department</span>
+          <CardTitle className="font-label-sm text-label-sm uppercase tracking-wider text-[#F59E0B]">
+            {t('streak')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-1">
+          <div className="font-headline-lg text-headline-lg text-on-surface flex items-baseline gap-1">
+            {streakDays}<span className="text-headline-sm font-body-md text-on-surface-variant">{t('days')}</span>
+          </div>
+          <StreakDots days={streakDays} />
+        </CardContent>
+      </Card>
     </section>
   );
 }

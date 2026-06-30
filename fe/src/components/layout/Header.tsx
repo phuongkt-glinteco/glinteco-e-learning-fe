@@ -7,6 +7,7 @@ import UserProfileAvatar from './UserProfileAvatar';
 import { useTranslations } from 'next-intl';
 import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { useAuth } from '@/providers/AuthProvider';
+import { SidebarTrigger } from '@/components/ui/default/sidebar';
 
 export default function Header() {
   const t = useTranslations('AppShell');
@@ -26,9 +27,9 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex justify-between items-center px-lg py-sm w-full bg-surface border-b border-outline-variant shadow-sm">
+    <header className="sticky top-0 z-30 flex justify-between items-center px-4 py-sm w-full bg-surface border-b border-outline-variant shadow-sm h-[72px]">
       <div className="flex items-center gap-sm">
-        {/* Empty left side on desktop header since sidebar is on left */}
+        <SidebarTrigger className="mr-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high" />
       </div>
 
       <div className="flex items-center gap-4 ml-auto">
@@ -36,6 +37,7 @@ export default function Header() {
         <div className="relative hidden md:block">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
           <input
+            suppressHydrationWarning
             className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-sm focus:outline-none focus:border-primary w-64"
             placeholder={t('searchPlaceholder')}
             type="text"

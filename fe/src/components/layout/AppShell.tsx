@@ -1,56 +1,37 @@
 'use client';
 
-import { useState, useEffect, type ReactNode } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
-import { useLanguage } from '@/providers/LanguageProvider';
-import Sidebar from './Sidebar';
+import type { ReactNode } from 'react';
+import { SidebarProvider, SidebarInset } from '@/components/ui/default/sidebar';
+import { AppSidebar } from './AppSidebar';
 import Header from './Header';
-import MobileHeader from './MobileHeader';
-import MobileSideBar from './MobileSideBar';
-import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useAuth } from '@/providers/AuthProvider';
+import LoadingPage from '../ui/loading/LoadingPage';
 
 interface AppShellProps {
   children: ReactNode;
 }
 
 export default function AppShell({ children }: AppShellProps) {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  
-  // 3 hooks as requested: useLanguage, useTranslations, useLocale
-  const { locale, changeLanguage } = useLanguage();
-  const currentLocale = useLocale();
-  const t = useTranslations('AppShell');
-
-  const isMobile = useMediaQuery('(max-width: 768px)');
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const showMobile = isMounted && isMobile;
+  const { loading } = useAuth();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {showMobile ? (
-        <MobileSideBar
-          isOpen={isMobileSidebarOpen}
-          onClose={() => setIsMobileSidebarOpen(false)}
-        />
-      ) : (
-        <Sidebar />
-      )}
-
-      <div className="flex-1 flex flex-col md:ml-[256px] h-full overflow-hidden">
-        {showMobile ? (
-          <MobileHeader onOpenSidebar={() => setIsMobileSidebarOpen(true)} />
-        ) : (
-          <Header />
-        )}
-        <main className="flex-1 overflow-y-auto">
-          {children}
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="overflow-hidden bg-background">
+        <Header />
+        <main className="flex-1 overflow-y-auto flex flex-col relative">
+          {loading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <LoadingPage />
+            </div>
+          ) : (
+            <div className="w-full flex-1">
+              {children}
+            </div>
+          )}
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
+

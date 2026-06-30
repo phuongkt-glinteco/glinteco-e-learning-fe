@@ -1,6 +1,7 @@
 'use client';
 
-import type { FieldErrors, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
+import type { FieldErrors, UseFormSetValue, Control } from 'react-hook-form';
 import type { CreateExerciseFormInput } from '@/schemas';
 
 interface ExerciseListEditorProps {
@@ -12,7 +13,7 @@ interface ExerciseListEditorProps {
   addLabel: string;
   errors: FieldErrors<CreateExerciseFormInput>;
   setValue: UseFormSetValue<CreateExerciseFormInput>;
-  getValues: UseFormGetValues<CreateExerciseFormInput>;
+  control: Control<CreateExerciseFormInput>;
   t: (key: string) => string;
 }
 
@@ -25,10 +26,10 @@ export default function ExerciseListEditor({
   addLabel,
   errors,
   setValue,
-  getValues,
+  control,
   t,
 }: ExerciseListEditorProps) {
-  const items = (getValues(fieldName) as string[]) ?? [];
+  const items: string[] = (useWatch({ control, name: fieldName }) as string[]) ?? [];
 
   function addItem() {
     setValue(fieldName, [...items, ''], { shouldValidate: false });

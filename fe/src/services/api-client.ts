@@ -169,7 +169,7 @@ client.interceptors.error.use(async (error, response, request) => {
     const { errorItems } = pipeline.process(classified);
     // ADD_TO_ITEMS: dispatch cho toast, không throw UiShowError
     dispatchErrorItems(errorItems, request);
-    return classified;
+    throw classified;
   } catch (e) {
     if (e instanceof UiShowError) {
       // FINAL_THROW: dispatch + throw để page bắt

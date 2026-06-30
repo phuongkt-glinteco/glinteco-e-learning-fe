@@ -30,8 +30,6 @@ export function ApiErrorProvider({ children }: { children: ReactNode }) {
   const dismiss = useCallback((id: string) => setErrors((p) => p.filter((e) => e.id !== id)), []);
   const clear = useCallback(() => setErrors([]), []);
 
-  useEffect(() => { clear(); }, [pathname, clear]);
-
   useEffect(() => {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail;
@@ -43,8 +41,7 @@ export function ApiErrorProvider({ children }: { children: ReactNode }) {
           if (item.errorCode === 'SESSION_EXPIRED') {
             clearTokens();
             router.push('/login?expired=true');
-            clear();
-            return;
+            // Do not return early, let the error be added to the state so the user sees the toast!
           }
 
           const dedupeKey = `${item.errorCode}:${item.message}`;

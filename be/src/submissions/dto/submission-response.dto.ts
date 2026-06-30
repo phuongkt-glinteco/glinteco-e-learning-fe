@@ -9,7 +9,11 @@ export class SubmissionUserDto {
   @ApiProperty({ description: 'Họ tên của người dùng', example: 'John Doe' })
   name: string;
 
-  @ApiPropertyOptional({ type: Number, description: 'Màu đại diện avatar', example: 120 })
+  @ApiPropertyOptional({
+    type: Number,
+    description: 'Màu đại diện avatar',
+    example: 120,
+  })
   avatarHue?: number;
 }
 
@@ -23,7 +27,10 @@ export class SubmissionFeedItemDto {
   @ApiProperty({ type: ExerciseDetailDto })
   exercise: ExerciseDetailDto;
 
-  @ApiProperty({ description: 'Đường dẫn Pull Request', example: 'https://github.com/org/repo/pull/1' })
+  @ApiProperty({
+    description: 'Đường dẫn Pull Request',
+    example: 'https://github.com/org/repo/pull/1',
+  })
   prUrl: string;
 
   @ApiProperty({ enum: SubmissionStatus, description: 'Trạng thái bài nộp' })
@@ -37,10 +44,17 @@ export class SubmissionListResponseDto {
   @ApiProperty({ type: [SubmissionFeedItemDto] })
   data: SubmissionFeedItemDto[];
 
-  @ApiProperty({ description: 'Con trỏ trang tiếp theo', nullable: true, example: 'eyJzdWJtaXR0ZWRBdCI6... ' })
+  @ApiProperty({
+    description: 'Con trỏ trang tiếp theo',
+    nullable: true,
+    example: 'eyJzdWJtaXR0ZWRBdCI6... ',
+  })
   nextCursor: string | null;
 
-  @ApiProperty({ description: 'Còn dữ liệu trang kế tiếp không', example: true })
+  @ApiProperty({
+    description: 'Còn dữ liệu trang kế tiếp không',
+    example: true,
+  })
   hasMore: boolean;
 }
 
@@ -65,16 +79,27 @@ export class SubmissionDetailDto {
   @ApiProperty({ type: SubmissionDetailUserDto })
   user: SubmissionDetailUserDto;
 
-  @ApiProperty({ description: 'Đường dẫn Pull Request', example: 'https://github.com/org/repo/pull/1' })
+  @ApiProperty({
+    description: 'Đường dẫn Pull Request',
+    example: 'https://github.com/org/repo/pull/1',
+  })
   prUrl: string;
 
   @ApiProperty({ enum: SubmissionStatus, description: 'Trạng thái bài nộp' })
   status: SubmissionStatus;
 
-  @ApiProperty({ description: 'ID của người chấm bài', nullable: true, example: 'a1' })
+  @ApiProperty({
+    description: 'ID của người chấm bài',
+    nullable: true,
+    example: 'a1',
+  })
   reviewerId: string | null;
 
-  @ApiProperty({ description: 'Nhận xét của người chấm bài', nullable: true, example: 'Tốt lắm' })
+  @ApiProperty({
+    description: 'Nhận xét của người chấm bài',
+    nullable: true,
+    example: 'Tốt lắm',
+  })
   reviewNote: string | null;
 
   @ApiProperty({ description: 'Thời gian nộp bài' })
@@ -88,19 +113,33 @@ export class SubmissionHistoryItemDto {
   @ApiProperty({ description: 'ID của bản ghi lịch sử', example: 'sh1' })
   id: string;
 
-  @ApiProperty({ description: 'Đường dẫn Pull Request tại thời điểm nộp', example: 'https://github.com/org/repo/pull/1' })
+  @ApiProperty({
+    description: 'Đường dẫn Pull Request tại thời điểm nộp',
+    example: 'https://github.com/org/repo/pull/1',
+  })
   prUrl: string;
 
-  @ApiProperty({ enum: SubmissionStatus, description: 'Trạng thái bài nộp sau hoạt động' })
+  @ApiProperty({
+    enum: SubmissionStatus,
+    description: 'Trạng thái bài nộp sau hoạt động',
+  })
   status: SubmissionStatus;
 
   @ApiProperty({ description: 'Thời gian thực hiện hoạt động' })
   submittedAt: Date;
 
-  @ApiProperty({ description: 'ID của admin thực hiện hoạt động', nullable: true, example: 'a1' })
+  @ApiProperty({
+    description: 'ID của admin thực hiện hoạt động',
+    nullable: true,
+    example: 'a1',
+  })
   reviewerId: string | null;
 
-  @ApiProperty({ description: 'Ghi chú đánh giá của admin', nullable: true, example: 'Cần sửa đổi...' })
+  @ApiProperty({
+    description: 'Ghi chú đánh giá của admin',
+    nullable: true,
+    example: 'Cần sửa đổi...',
+  })
   reviewNote: string | null;
 
   @ApiProperty({ description: 'Thời gian đánh giá', nullable: true })

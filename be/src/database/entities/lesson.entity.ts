@@ -69,4 +69,3 @@ export class Lesson {
   @UpdateDateColumn()
   updatedAt: Date;
 }
-

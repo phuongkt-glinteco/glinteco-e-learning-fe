@@ -21,7 +21,10 @@ import { ExercisesService } from './exercises.service';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { ExerciseQueryDto } from './dto/exercise-query.dto';
-import { ExerciseListResponseDto, ExerciseDetailDto } from './dto/exercise-response.dto';
+import {
+  ExerciseListResponseDto,
+  ExerciseDetailDto,
+} from './dto/exercise-response.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { Roles } from '../modules/auth/decorators/roles.decorator';
@@ -49,14 +52,20 @@ export class ExercisesController {
   @ApiOperation({
     summary: 'Lấy danh sách bài tập thực hành kèm trạng thái bài nộp cá nhân',
   })
-  @ApiOkResponse({ type: ExerciseListResponseDto, description: 'Lấy danh sách thành công.' })
+  @ApiOkResponse({
+    type: ExerciseListResponseDto,
+    description: 'Lấy danh sách thành công.',
+  })
   findAll(@Query() query: ExerciseQueryDto, @CurrentUser() currentUser: User) {
     return this.exercisesService.findAll(query, currentUser.id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Lấy thông tin chi tiết bài tập theo ID' })
-  @ApiOkResponse({ type: ExerciseDetailDto, description: 'Lấy thông tin thành công.' })
+  @ApiOkResponse({
+    type: ExerciseDetailDto,
+    description: 'Lấy thông tin thành công.',
+  })
   @ApiResponse({ status: 404, description: 'Không tìm thấy bài tập.' })
   findOne(
     @Param('id', ParseUUIDPipe) id: string,

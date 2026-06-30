@@ -63,7 +63,11 @@ export class DocumentsController {
   }
 
   @ApiOperation({ summary: 'Lấy danh sách tài liệu được lưu gần đây' })
-  @ApiResponse({ status: 200, type: RecentDocumentsResponseDto, description: 'Lấy tài liệu gần đây thành công.' })
+  @ApiResponse({
+    status: 200,
+    type: RecentDocumentsResponseDto,
+    description: 'Lấy tài liệu gần đây thành công.',
+  })
   @Get('documents/recent')
   async findRecent(@Req() req: RequestWithUser) {
     return this.documentsService.findRecent(req.user.id);

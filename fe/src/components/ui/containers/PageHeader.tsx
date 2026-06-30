@@ -34,17 +34,17 @@ export function PageHeader({
                 {item.href && !isLast ? (
                   <Link
                     href={item.href}
-                    className="hover:text-primary transition-colors truncate max-w-[120px] sm:max-w-[150px] md:max-w-[200px]"
+                    className="hover:text-primary transition-colors max-w-[200px]"
                     title={item.label}
                   >
-                    {item.label}
+                    {item.label.length > 25 ? `${item.label.slice(0, 25)}...` : item.label}
                   </Link>
                 ) : (
                   <span
-                    className="text-foreground font-medium truncate max-w-[150px] sm:max-w-[200px] md:max-w-[300px]"
+                    className="text-foreground font-medium max-w-[300px]"
                     title={item.label}
                   >
-                    {item.label}
+                    {item.label.length > 25 ? `${item.label.slice(0, 25)}...` : item.label}
                   </span>
                 )}
                 {!isLast && (

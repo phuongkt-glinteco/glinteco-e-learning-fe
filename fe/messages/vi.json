@@ -54,7 +54,7 @@
       }
     },
     "hero": {
-      "headline": "Giúp kỹ sư mới ramp\u00a0up bằng learning track rõ ràng, GitHub PR review và tiến độ đo lường được.",
+      "headline": "Giúp kỹ sư mới ramp up bằng learning track rõ ràng, GitHub PR review và tiến độ đo lường được.",
       "description": "RAMP UP biến onboarding kỹ thuật thành một hệ thống có định hướng: khóa học, tài liệu, bài tập, GitHub submission và feedback từ mentor."
     },
     "dashboardPreview": {
@@ -346,7 +346,9 @@
     "unread": "{count} Chưa Đọc",
     "recentDocuments": "Tài Liệu Gần Đây",
     "viewed": "Đã xem {time}",
-    "noRecentDocuments": "Chưa có tài liệu nào gần đây"
+    "noRecentDocuments": "Chưa có tài liệu nào gần đây",
+    "recentlyAccessed": "Truy cập gần đây",
+    "documentCount": "{count} {count, plural, =1 {Tài liệu} other {Tài liệu}}"
   },
   "DocumentsPage": {
     "visitLink": "Truy cập liên kết",
@@ -618,6 +620,11 @@
     "statusLocked": "Đã Khóa",
     "statusInProgress": "Đang Tiến Hành",
     "potentialRewardLabel": "Phần Thưởng Tích Lũy"
+  },
+  "CourseDetailView": {
+    "dashboard": "Bảng Điều Khiển",
+    "myCourses": "Khóa Học Của Tôi",
+    "learningTracks": "Lộ Trình Học Tập"
   },
   "ApiErrors": {
     "titleVALIDATION_ERROR": "Lỗi Dữ Liệu",

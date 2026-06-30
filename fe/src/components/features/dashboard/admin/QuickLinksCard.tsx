@@ -1,5 +1,9 @@
 'use client';
 
+import Link from 'next/link';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/default/card';
+import { Button } from '@/components/ui/default/button';
+
 interface QuickLink {
   label: string;
   href: string;
@@ -14,25 +18,25 @@ interface QuickLinksCardProps {
 
 export default function QuickLinksCard({ title, icon, links }: QuickLinksCardProps) {
   return (
-    <div className="bg-surface border border-outline-variant rounded-lg p-md space-y-4">
-      <div className="flex items-center gap-2 text-primary">
-        <span className="material-symbols-outlined">{icon}</span>
-        <h4 className="font-label-md text-label-md">{title}</h4>
-      </div>
-      <div className="grid grid-cols-1 gap-2">
+    <Card className="h-full border-outline-variant shadow-sm flex flex-col">
+      <CardHeader className="pb-3 border-b border-outline-variant/30 px-5">
+        <CardTitle className="flex items-center gap-2 text-primary text-base font-semibold">
+          <span className="material-symbols-outlined text-[20px]">{icon}</span>
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-5 grid grid-cols-1 gap-3">
         {links.map((link) => (
-          <a
-            key={link.label}
-            href={link.href}
-            className="flex items-center justify-between p-2 rounded border border-outline-variant hover:bg-surface-container-low transition-colors"
-          >
-            <span className="text-body-sm">{link.label}</span>
-            <span className="material-symbols-outlined text-sm">
-              {link.icon || 'chevron_right'}
-            </span>
-          </a>
+          <Link key={link.label} href={link.href} className="outline-none block w-full">
+            <Button variant="outline" className="w-full justify-between h-auto py-3 px-4 border-outline-variant hover:border-primary hover:text-primary hover:bg-primary/5 transition-all text-sm font-medium">
+              <span>{link.label}</span>
+              <span className="material-symbols-outlined text-[18px]">
+                {link.icon || 'chevron_right'}
+              </span>
+            </Button>
+          </Link>
         ))}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

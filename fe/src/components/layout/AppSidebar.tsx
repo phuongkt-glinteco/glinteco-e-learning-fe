@@ -22,7 +22,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const t = useTranslations('AppShell');
   const pathname = usePathname();
+  const [optimisticPath, setOptimisticPath] = React.useState(pathname);
   const { state, isMobile, setOpenMobile } = useSidebar();
+
+  React.useEffect(() => {
+    setOptimisticPath(pathname);
+  }, [pathname]);
 
   const navItems = getMainNav(user?.role);
 
@@ -35,7 +40,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="py-4">
         <SidebarMenu>
           {navItems.map((item) => {
-            const active = pathname.startsWith(item.href);
+            const active = optimisticPath.startsWith(item.href);
             const translatedLabel = t(item.translationKey) || item.label;
 
             return (
@@ -44,15 +49,20 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   asChild 
                   isActive={active} 
                   tooltip={translatedLabel}
-                  className={`flex items-center gap-3 rounded-lg font-semibold h-10 ${
+                  className={`flex items-center gap-3 rounded-lg font-semibold h-10 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center ${
                     active
-                      ? 'bg-primary/10 text-primary border-r-4 border-primary hover:bg-primary/20 hover:text-primary'
+                      ? `bg-primary/10 text-primary border-primary hover:bg-primary/20 hover:text-primary ${
+                          state === 'expanded' || isMobile ? 'border-r-4' : 'border-1'
+                        }`
                       : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
-                  <Link href={item.href} onClick={() => isMobile && setOpenMobile(false)}>
+                  <Link href={item.href} onClick={() => {
+                    setOptimisticPath(item.href);
+                    if (isMobile) setOpenMobile(false);
+                  }}>
                     <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                    <span>{translatedLabel}</span>
+                    <span className="group-data-[collapsible=icon]:hidden">{translatedLabel}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -64,24 +74,29 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter className="border-t border-outline-variant p-2">
         <SidebarMenu>
           {footerNav.map((item) => {
-            const active = pathname.startsWith(item.href);
+            const active = optimisticPath.startsWith(item.href);
             const translatedLabel = t(item.translationKey) || item.label;
 
             return (
-              <SidebarMenuItem key={item.href} className="mb-1">
+              <SidebarMenuItem key={item.href} className="px-2 mb-1">
                 <SidebarMenuButton 
                   asChild 
                   isActive={active} 
                   tooltip={translatedLabel}
-                  className={`flex items-center gap-3 rounded-lg font-semibold h-10 ${
+                  className={`flex items-center gap-3 rounded-lg font-semibold h-10 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center ${
                     active
-                      ? 'bg-primary/10 text-primary border-r-4 border-primary hover:bg-primary/20 hover:text-primary'
+                      ? `bg-primary/10 text-primary border-primary hover:bg-primary/20 hover:text-primary ${
+                          state === 'expanded' || isMobile ? 'border-r-4' : 'border-1'
+                        }`
                       : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
-                  <Link href={item.href} onClick={() => isMobile && setOpenMobile(false)}>
+                  <Link href={item.href} onClick={() => {
+                    setOptimisticPath(item.href);
+                    if (isMobile) setOpenMobile(false);
+                  }}>
                     <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                    <span>{translatedLabel}</span>
+                    <span className="group-data-[collapsible=icon]:hidden">{translatedLabel}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

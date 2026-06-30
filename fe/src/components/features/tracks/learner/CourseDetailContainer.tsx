@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { CourseDetailView } from './CourseDetailView';
 import type { LearnerTrack, TrackLessonPreview } from './types';
@@ -102,6 +102,7 @@ function CourseDetailErrorState({
 export default function CourseDetailContainer() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const courseId = getRouteParam(params.courseId ?? params.trackId);
   const routeBase = getLearnerRouteBase(params.trackId);
 
@@ -172,6 +173,8 @@ export default function CourseDetailContainer() {
       track={track}
       lessons={lessons}
       continueLessonId={continueLessonId}
+      from={searchParams.get('from')}
+      routeBase={routeBase}
       onBackToTracks={() => router.push(`/${routeBase}`)}
       onContinueCourse={handleContinueCourse}
       onOpenLesson={handleOpenLesson}

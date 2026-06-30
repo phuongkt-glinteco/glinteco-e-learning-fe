@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Skeleton from '@/components/ui/loading/Skeleton';
+import { Skeleton } from '@/components/ui/default/skeleton';
 import { TracksTimeline } from './TracksTimeline';
 import type { LearnerTrack } from './types';
 import { fetchCourses } from './courseLearningApi';
@@ -10,24 +10,24 @@ import { getErrorMessage } from './utils';
 
 function TracksLoadingState() {
   return (
-    <section className="mx-auto flex max-w-[920px] flex-col gap-6 px-gutter py-8">
+    <section className="w-full mx-auto flex max-w-[920px] flex-col gap-6 px-gutter py-8">
       <div className="space-y-2">
-        <Skeleton width={240} height={32} rounded="rounded" />
-        <Skeleton width={460} height={20} rounded="rounded" />
+        <Skeleton className="w-[240px] h-8 rounded" />
+        <Skeleton className="w-[460px] max-w-full h-5 rounded" />
       </div>
-      <Skeleton height={112} />
+      <Skeleton className="w-full h-[112px]" />
       <div className="space-y-5">
         <div className="grid grid-cols-[56px_1fr] gap-4">
-          <Skeleton width={56} height={56} rounded="rounded-lg" />
-          <Skeleton height={184} />
+          <Skeleton className="w-14 h-14 rounded-lg" />
+          <Skeleton className="w-full h-[184px]" />
         </div>
         <div className="grid grid-cols-[56px_1fr] gap-4">
-          <Skeleton width={56} height={56} rounded="rounded-lg" />
-          <Skeleton height={184} />
+          <Skeleton className="w-14 h-14 rounded-lg" />
+          <Skeleton className="w-full h-[184px]" />
         </div>
         <div className="grid grid-cols-[56px_1fr] gap-4">
-          <Skeleton width={56} height={56} rounded="rounded-lg" />
-          <Skeleton height={184} />
+          <Skeleton className="w-14 h-14 rounded-lg" />
+          <Skeleton className="w-full h-[184px]" />
         </div>
       </div>
     </section>

@@ -1,11 +1,15 @@
 import CircleMeter from '@/components/ui/CircleMeter';
 import { CourseRoadmap } from './CourseRoadmap';
 import type { LearnerTrack, TrackLessonPreview } from './types';
+import { PageHeader } from '@/components/ui';
+import { useTranslations } from 'next-intl';
 
 interface CourseDetailViewProps {
   track: LearnerTrack;
   lessons: TrackLessonPreview[];
   continueLessonId: string | null;
+  from?: string | null;
+  routeBase?: string;
   onBackToTracks: () => void;
   onContinueCourse: () => void;
   onOpenLesson: (lessonId: string) => void;
@@ -15,29 +19,36 @@ export function CourseDetailView({
   track,
   lessons,
   continueLessonId,
+  from,
+  routeBase = 'tracks',
   onBackToTracks,
   onContinueCourse,
   onOpenLesson,
 }: CourseDetailViewProps) {
+  const t = useTranslations('CourseDetailView');
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
   const isLocked = track.status === 'locked';
 
+  const breadcrumbs = from === 'dashboard'
+    ? [
+        { label: t('dashboard', { defaultValue: 'Dashboard' }), href: '/dashboard/learner' },
+        { label: track.title }
+      ]
+    : from === 'my-courses'
+      ? [
+          { label: t('myCourses', { defaultValue: 'My Courses' }), href: '/my-courses' },
+          { label: track.title }
+        ]
+      : [
+          { label: t('learningTracks', { defaultValue: 'Learning Tracks' }), href: `/${routeBase}` },
+          { label: track.title }
+        ];
+
   return (
     <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
-      <nav className="flex items-center gap-2 label-sm text-on-surface-variant">
-        <button
-          type="button"
-          onClick={onBackToTracks}
-          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-primary hover:bg-surface-container-low cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-          Learning Tracks
-        </button>
-        <span>/</span>
-        <span className="truncate text-on-surface">{track.title}</span>
-      </nav>
+      <PageHeader title="" breadcrumbs={breadcrumbs} className="mb-0" />
 
       <header className="rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
         <div className="grid gap-6 lg:grid-cols-[1fr_220px] lg:items-center">

@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import Skeleton from '@/components/ui/loading/Skeleton';
+import { Skeleton } from '@/components/ui/default/skeleton';
+import { Card, CardContent } from '@/components/ui/default/card';
+import { Badge } from '@/components/ui/default/badge';
+import { Button } from '@/components/ui/default/button';
 import SectionHead from '@/components/ui/head/SectionHead';
 import { ProgressBar } from '@/components/ui/HPBar';
 import type { LearnerTrack } from '@/components/features/tracks/learner/types';
@@ -32,7 +35,7 @@ export default function ContinueLearningSection() {
     return () => { cancelled = true; };
   }, []);
 
-  if (loading) return <Skeleton height={160} />;
+  if (loading) return <Skeleton className="h-40 w-full rounded-xl" />;
 
   const currentTrack = tracks.find((track) => track.status === 'in_progress')
     ?? tracks.find((track) => track.status !== 'locked');
@@ -47,23 +50,31 @@ export default function ContinueLearningSection() {
     return (
       <section>
         <SectionHead title={t('continueLearning')}>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => router.push('/courses')}
-            className="font-label-sm text-label-sm text-primary hover:opacity-80 transition-opacity flex items-center cursor-pointer"
+            className="text-primary hover:text-primary/80 flex items-center gap-1"
           >
             {t('viewPath')}
             <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-          </button>
+          </Button>
         </SectionHead>
-        <div className="rounded-lg border border-dashed border-outline-variant bg-white p-lg">
-          <h4 className="font-headline-sm text-headline-sm text-on-surface">
-            {error ? 'Unable to load current course' : 'No active course yet'}
-          </h4>
-          <p className="mt-2 font-body-md text-body-md text-on-surface-variant">
-            {error ?? 'Open the course path to choose a course and begin learning.'}
-          </p>
-        </div>
+        <Card className="border-dashed shadow-sm">
+          <CardContent className="p-8 flex flex-col items-center justify-center text-center gap-2">
+            <h4 className="font-semibold text-lg text-on-surface">
+              {error ? 'Unable to load current course' : 'No active course yet'}
+            </h4>
+            <p className="text-sm text-on-surface-variant max-w-sm">
+              {error ?? 'Open the course path to choose a course and begin learning.'}
+            </p>
+            {!error && (
+              <Button className="mt-2" onClick={() => router.push('/courses')}>
+                Browse Courses
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       </section>
     );
   }
@@ -81,52 +92,48 @@ export default function ContinueLearningSection() {
   return (
     <section>
       <SectionHead title={t('continueLearning')}>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => router.push('/courses')}
-          className="font-label-sm text-label-sm text-primary hover:opacity-80 transition-opacity flex items-center cursor-pointer"
+          className="text-primary hover:text-primary/80 flex items-center gap-1"
         >
           {t('viewPath')}
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-        </button>
+        </Button>
       </SectionHead>
-      <div className="bg-white border-2 border-primary rounded-xl p-lg flex flex-col md:flex-row gap-lg md:items-center relative overflow-hidden shadow-sm">
-        <div className="absolute right-0 top-0 w-64 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
-        <div className="w-20 h-20 bg-primary-container/10 rounded-xl flex flex-shrink-0 items-center justify-center border border-primary/20 z-10">
-          <span className="material-symbols-outlined text-[40px] text-primary">{icon}</span>
-        </div>
-        <div className="flex-1 flex flex-col gap-2 z-10">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-primary text-white font-label-sm text-[10px] uppercase tracking-wider rounded">
-              {moduleLabel}
-            </span>
-            <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">schedule</span>
-              {timeLeft}
-            </span>
+      <Card className="border-primary/50 shadow-md bg-gradient-to-r from-primary/5 to-transparent relative overflow-hidden">
+        <CardContent className="p-6 flex flex-col lg:flex-row gap-6 lg:items-center relative z-10">
+          <div className="w-16 h-16 bg-primary/20 rounded-xl flex shrink-0 items-center justify-center text-primary border border-primary/30">
+            <span className="material-symbols-outlined text-[32px]">{icon}</span>
           </div>
-          <h4 className="font-headline-md text-headline-md text-on-surface">{title}</h4>
-          <p className="font-body-md text-body-md text-on-surface-variant line-clamp-2 max-w-2xl">
-            {description}
-          </p>
-          <div className="mt-4 flex flex-col gap-2 max-w-md">
-            <div className="flex justify-between items-center font-label-sm text-label-sm">
-              <span className="text-on-surface-variant">{t('lessonProgress')}</span>
-              <span className="text-primary font-bold">{progress}%</span>
+          <div className="flex-1 flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Badge variant="default" className="text-[10px] uppercase tracking-wider">{moduleLabel}</Badge>
+              <span className="font-label-sm text-sm text-on-surface-variant flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">schedule</span>
+                {timeLeft}
+              </span>
             </div>
-            <ProgressBar value={progress} />
+            <h4 className="font-semibold text-xl text-on-surface">{title}</h4>
+            <p className="text-sm text-on-surface-variant line-clamp-2 max-w-2xl">
+              {description}
+            </p>
+            <div className="mt-2 flex flex-col gap-2 max-w-md">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-on-surface-variant font-medium">{t('lessonProgress')}</span>
+                <span className="text-primary font-bold">{progress}%</span>
+              </div>
+              <ProgressBar value={progress} />
+            </div>
           </div>
-        </div>
-        <div className="mt-4 md:mt-0 z-10">
-          <button
-            type="button"
-            onClick={() => router.push(continueHref)}
-            className="w-full md:w-auto bg-primary text-white font-label-md text-label-md px-8 py-4 rounded-lg hover:opacity-90 transition-all whitespace-nowrap shadow-md active:scale-95 cursor-pointer"
-          >
-            {t('continueLesson')}
-          </button>
-        </div>
-      </div>
+          <div className="mt-4 md:mt-0">
+            <Button size="lg" className="w-full md:w-auto shadow-md" onClick={() => router.push(continueHref)}>
+              {t('continueLesson')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </section>
   );
 }

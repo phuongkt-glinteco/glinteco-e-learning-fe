@@ -1,4 +1,7 @@
 import type { LearnerTrack } from './types';
+import { Card, CardContent } from '@/components/ui/default/card';
+import { Badge } from '@/components/ui/default/badge';
+import { Button } from '@/components/ui/default/button';
 
 interface TrackStepCardProps {
   track: LearnerTrack;
@@ -63,109 +66,108 @@ export function TrackStepCard({
         )}
       </div>
 
-      <div
-        className={`mb-5 min-w-0 overflow-hidden rounded-lg border bg-surface-container-lowest p-5 shadow-sm transition-all ${
+      <Card
+        className={`mb-5 min-w-0 overflow-hidden shadow-sm transition-all ${
           isLocked
-            ? 'border-dashed border-outline-variant opacity-70'
+            ? 'border-dashed border-outline-variant opacity-70 bg-surface-container-lowest'
             : isInProgress
-              ? 'border-primary ring-1 ring-primary/20'
-              : 'border-outline-variant hover:border-primary/40'
+              ? 'border-primary ring-1 ring-primary/20 bg-primary/5'
+              : 'border-outline-variant hover:border-primary/40 bg-surface-container-lowest'
         }`}
       >
-        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <span className="label-sm uppercase text-on-surface-variant">
-              Milestone {String(index + 1).padStart(2, '0')}
-            </span>
-            <h2 className="mt-1 headline-sm line-clamp-2 break-words text-on-surface">{track.title}</h2>
-            <p className="mt-2 body-sm line-clamp-3 break-words text-on-surface-variant">
-              {track.description}
-            </p>
-          </div>
-
-          <span
-            className={`inline-flex w-fit max-w-full items-center gap-1 rounded-full px-3 py-1 label-sm ${
-              isLocked
-                ? 'bg-surface-container text-outline'
-                : isCompleted
-                  ? 'bg-green-50 text-green-700'
-                  : 'bg-primary-fixed text-primary'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[15px]">
-              {statusIcon[track.status]}
-            </span>
-            <span className="min-w-0 truncate">{statusCopy[track.status]}</span>
-          </span>
-        </div>
-
-        <div className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <div className="min-w-0">
-            <div className="flex min-w-0 flex-wrap gap-3 label-sm text-on-surface-variant">
-              <span className="inline-flex min-w-0 max-w-full items-center gap-1">
-                <span className="material-symbols-outlined text-[16px]">schedule</span>
-                <span className="min-w-0 truncate">{track.estimatedTime}</span>
+        <CardContent className="p-5">
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <span className="label-sm uppercase text-on-surface-variant font-bold text-xs tracking-wider">
+                Milestone {String(index + 1).padStart(2, '0')}
               </span>
-              <span className="inline-flex min-w-0 max-w-full items-center gap-1">
-                <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                <span className="min-w-0 truncate">{track.lessonCount} lessons</span>
-              </span>
-              <span className="inline-flex min-w-0 max-w-full items-center gap-1">
-                <span className="material-symbols-outlined text-[16px]">task_alt</span>
-                <span className="min-w-0 truncate">{track.lessonsCompleted}/{track.lessonCount} done</span>
-              </span>
+              <h2 className="mt-1 text-xl font-bold line-clamp-2 break-words text-on-surface">{track.title}</h2>
+              <p className="mt-2 text-sm line-clamp-3 break-words text-on-surface-variant">
+                {track.description}
+              </p>
             </div>
 
-            <div className="mt-4 max-w-md">
-              <div className="mb-1.5 flex items-center justify-between label-sm text-on-surface-variant">
-                <span>Progress</span>
-                <span className="text-on-surface">{progress}%</span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-surface-container">
-                <div
-                  className={`h-full rounded-full ${isCompleted ? 'bg-green-500' : 'bg-primary'}`}
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
+            <Badge
+              variant={isLocked ? 'outline' : isCompleted ? 'secondary' : 'default'}
+              className={`flex items-center gap-1 ${
+                isLocked
+                  ? 'bg-surface-container text-outline border-outline-variant'
+                  : isCompleted
+                    ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                    : 'bg-primary text-on-primary'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[15px]">
+                {statusIcon[track.status]}
+              </span>
+              <span className="min-w-0 truncate">{statusCopy[track.status]}</span>
+            </Badge>
           </div>
 
-          <button
-            type="button"
-            onClick={() => onOpenTrack(track)}
-            disabled={isLocked || isOpening}
-            className={`inline-flex h-11 max-w-full items-center justify-center gap-1.5 rounded-lg px-4 label-sm transition-colors ${
-              isLocked
-                ? 'cursor-not-allowed bg-surface-container text-outline'
-                : isInProgress
-                  ? 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
-                  : 'cursor-pointer border border-outline-variant text-on-surface hover:bg-surface-container-low'
-            } disabled:opacity-60`}
-          >
-            {isOpening ? (
-              <>
-                <span className="material-symbols-outlined text-[18px]">progress_activity</span>
-                Opening
-              </>
-            ) : isCompleted ? (
-              <>
-                Review
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </>
-            ) : isInProgress ? (
-              <>
-                Continue
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </>
-            ) : (
-              <>
-                Locked
-                <span className="material-symbols-outlined text-[16px]">lock</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+          <div className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <div className="min-w-0">
+              <div className="flex min-w-0 flex-wrap gap-3 text-sm text-on-surface-variant font-medium">
+                <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+                  <span className="material-symbols-outlined text-[16px]">schedule</span>
+                  <span className="min-w-0 truncate">{track.estimatedTime}</span>
+                </span>
+                <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+                  <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                  <span className="min-w-0 truncate">{track.lessonCount} lessons</span>
+                </span>
+                <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+                  <span className="material-symbols-outlined text-[16px]">task_alt</span>
+                  <span className="min-w-0 truncate">{track.lessonsCompleted}/{track.lessonCount} done</span>
+                </span>
+              </div>
+
+              <div className="mt-4 max-w-md">
+                <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-on-surface-variant">
+                  <span>Progress</span>
+                  <span className="text-on-surface">{progress}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-surface-container">
+                  <div
+                    className={`h-full rounded-full transition-all ${isCompleted ? 'bg-green-500' : 'bg-primary'}`}
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => onOpenTrack(track)}
+              disabled={isLocked || isOpening}
+              variant={isLocked ? 'outline' : isInProgress ? 'default' : 'outline'}
+              className={`flex items-center gap-1.5 w-full sm:w-auto h-11 ${
+                isInProgress ? 'shadow-md' : ''
+              }`}
+            >
+              {isOpening ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  Opening
+                </>
+              ) : isCompleted ? (
+                <>
+                  Review
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </>
+              ) : isInProgress ? (
+                <>
+                  Continue
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </>
+              ) : (
+                <>
+                  Locked
+                  <span className="material-symbols-outlined text-[16px]">lock</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </article>
   );
 }

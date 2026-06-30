@@ -144,7 +144,7 @@ client.interceptors.error.use(async (error, response, request) => {
     const url = new URL(request.url);
 
     // Chặn refresh loop cho chính endpoint auth
-    const isAuthEndpoint = url.pathname.includes('/auth/');
+    const isAuthEndpoint = url.pathname.includes('/auth/refresh') || url.pathname.includes('/auth/login') || url.pathname.includes('/auth/register');
 
     if (!isAuthEndpoint) {
       if (!refreshPromise) {

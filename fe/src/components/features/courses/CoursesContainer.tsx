@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { fetchCourses } from '@/components/features/tracks/learner/courseLearningApi';
 import { getErrorMessage } from '@/components/features/tracks/learner/utils';
 import type { LearnerTrack } from '@/components/features/tracks/learner/types';
-import Skeleton from '@/components/ui/loading/Skeleton';
+import { Skeleton } from '@/components/ui/default/skeleton';
 import { CoursesView } from './CoursesView';
 import {
   DEFAULT_FILTER,
@@ -17,12 +17,12 @@ import {
 
 function CoursesLoadingState() {
   return (
-    <div className="mx-auto max-w-container-max px-gutter py-8">
-      <Skeleton width={240} height={32} className="mb-6" />
-      <Skeleton height={64} className="mb-6" />
+    <div className="w-full mx-auto max-w-container-max px-gutter py-8">
+      <Skeleton className="w-[240px] h-8 mb-6" />
+      <Skeleton className="w-full h-16 mb-6" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} height={220} />
+          <Skeleton key={i} className="w-full h-[220px]" />
         ))}
       </div>
     </div>

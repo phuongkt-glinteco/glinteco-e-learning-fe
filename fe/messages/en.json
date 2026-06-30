@@ -32,7 +32,6 @@
     "GOOGLE_AUTH_CONFIGURATION": "Google OAuth is not configured correctly. Add a valid AUTH_GOOGLE_SECRET to fe/.env.local.",
     "GOOGLE_AUTH_FAILED": "Google sign-in did not complete. Please try again."
   },
-
   "LandingPage": {
     "brandName": "RAMP UP",
     "cta": {
@@ -55,7 +54,7 @@
       }
     },
     "hero": {
-      "headline": "Help new engineers ramp\u00a0up with clear learning tracks, GitHub PR review, and measurable progress.",
+      "headline": "Help new engineers ramp up with clear learning tracks, GitHub PR review, and measurable progress.",
       "description": "RAMP UP turns engineering onboarding into a guided system: courses, docs, exercises, GitHub submissions, and mentor feedback."
     },
     "dashboardPreview": {
@@ -347,7 +346,9 @@
     "unread": "{count} Unread",
     "recentDocuments": "Recent Documents",
     "viewed": "Viewed {time}",
-    "noRecentDocuments": "No recent documents yet"
+    "noRecentDocuments": "No recent documents yet",
+    "recentlyAccessed": "Recently Accessed",
+    "documentCount": "{count} {count, plural, =1 {Document} other {Documents}}"
   },
   "DocumentsPage": {
     "visitLink": "Visit Link",
@@ -730,6 +731,11 @@
     "NOT_FOUND": "The requested resource could not be found.",
     "EXERCISE_TITLE_EXISTS": "An exercise with this title already exists in this track.",
     "UNKNOWN_ERROR": "An unexpected error occurred. Please try again."
+  },
+  "CourseDetailView": {
+    "dashboard": "Dashboard",
+    "myCourses": "My Courses",
+    "learningTracks": "Learning Tracks"
   },
   "ApiErrors": {
     "titleVALIDATION_ERROR": "Validation Error",

@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, type ReactNode, Suspense } from 'react';
-import Sidebar from './Sidebar';
+import { useState, useEffect, type ReactNode } from 'react';
+import { SidebarProvider, SidebarInset } from '@/components/ui/default/sidebar';
+import { AppSidebar } from './AppSidebar';
 import Header from './Header';
-import MobileHeader from './MobileHeader';
-import MobileSideBar from './MobileSideBar';
-import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useAuth } from '@/providers/AuthProvider';
 import LoadingPage from '../ui/loading/LoadingPage';
 
 interface AppShellProps {
@@ -13,41 +12,28 @@ interface AppShellProps {
 }
 
 export default function AppShell({ children }: AppShellProps) {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { loading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
-  
-
-  const isMobile = useMediaQuery('(max-width: 768px)');
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const showMobile = isMounted && isMobile;
+  if (!isMounted || loading) {
+    return <div className="flex items-center justify-center h-screen">
+        <LoadingPage />
+      </div>;
+  }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {showMobile ? (
-        <MobileSideBar
-          isOpen={isMobileSidebarOpen}
-          onClose={() => setIsMobileSidebarOpen(false)}
-        />
-      ) : (
-        <Sidebar />
-      )}
-
-      <div className="flex-1 flex flex-col md:ml-[256px] h-full overflow-hidden">
-        {showMobile ? (
-          <MobileHeader onOpenSidebar={() => setIsMobileSidebarOpen(true)} />
-        ) : (
-          <Header />
-        )}
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="overflow-hidden bg-background">
+        <Header />
         <main className="flex-1 overflow-y-auto">
-          <Suspense fallback={<LoadingPage />}>
-            {children}
-          </Suspense>
+          {children}
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

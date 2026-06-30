@@ -5,6 +5,7 @@ import { ApiErrorProvider } from '@/providers/ApiErrorProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import SessionProvider from '@/providers/SessionProvider';
 import { ApiErrorContainer } from '@/components/ui/containers/ApiErrorContainer';
+import { TooltipProvider } from '@/components/ui/default/tooltip';
 import type { ReactNode } from 'react';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -34,12 +35,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <SessionProvider>
           <LanguageProvider initialLocale={locale}>
-            <ApiErrorProvider>
-              <AuthProvider>
-                {children}
-                <ApiErrorContainer />
-              </AuthProvider>
-            </ApiErrorProvider>
+            <TooltipProvider>
+              <ApiErrorProvider>
+                <AuthProvider>
+                  {children}
+                  <ApiErrorContainer />
+                </AuthProvider>
+              </ApiErrorProvider>
+            </TooltipProvider>
           </LanguageProvider>
         </SessionProvider>
       </body>

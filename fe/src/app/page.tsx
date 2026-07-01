@@ -1,4 +1,4 @@
-import LandingPageContainer from '@/features/landing/containers/landing-page-container';
+import LandingPageContainer from '@/components/features/landing/containers/landing-page-container';
 import { auth } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';

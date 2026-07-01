@@ -35,6 +35,7 @@ import CourseDetailContainer from './CourseDetailContainer.json';
 import LessonDetailContainer from './LessonDetailContainer.json';
 import ExerciseDetailContainer from './ExerciseDetailContainer.json';
 import TracksTimeline from './TracksTimeline.json';
+import LinkedExercisesCard from './LinkedExercisesCard.json';
 
 const messages: Record<string, unknown> = {
   LogoutPage,
@@ -72,6 +73,7 @@ const messages: Record<string, unknown> = {
   LessonDetailContainer,
   ExerciseDetailContainer,
   TracksTimeline,
+  LinkedExercisesCard,
 };
 
 export default messages;

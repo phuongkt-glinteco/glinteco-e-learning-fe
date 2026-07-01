@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 import { Icon } from '@iconify/react';
 import { useTracks } from '@/hooks/useTracks';
 import { tracksControllerDelete } from '@/services/api-client';
@@ -94,6 +95,12 @@ const LIMIT_OPTIONS = [10, 20, 50] as const;
 
 export default function TrackListTable() {
   const t = useTranslations('TracksPage');
+  const { setTree } = useBreadcrumbStore();
+
+  useEffect(() => {
+    setTree([{ label: t('title', { defaultValue: 'Tracks' }), href: '/admin/tracks' }]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t, setTree]);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);

@@ -14,24 +14,7 @@ import {
 import type { LearnerSubmissionFormValues } from './types';
 import { getErrorMessage, getLearnerRouteBase, getRouteParam } from './utils';
 
-const EXERCISE_RETURN_KEY = 'learnerExerciseReturnTo';
-
-function getStoredExerciseReturnTo(exerciseId: string): string | null {
-  const rawReturnTo = window.sessionStorage.getItem(EXERCISE_RETURN_KEY);
-  if (!rawReturnTo) return null;
-
-  try {
-    const parsed = JSON.parse(rawReturnTo) as { exerciseId?: unknown; returnTo?: unknown };
-    if (parsed.exerciseId === exerciseId && typeof parsed.returnTo === 'string') {
-      return parsed.returnTo;
-    }
-  } catch {
-    window.sessionStorage.removeItem(EXERCISE_RETURN_KEY);
-  }
-
-  return null;
-}
-
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 function validatePullRequestUrl(value: string): string | null {
   if (!value) return 'Please enter a pull request URL.';
 
@@ -143,6 +126,7 @@ export default function ExerciseDetailContainer() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+  const { pushNode, setTree, getBackHref, tree } = useBreadcrumbStore();
 
   const loadExercise = useCallback(async () => {
     if (!exerciseId) {
@@ -162,12 +146,29 @@ export default function ExerciseDetailContainer() {
       setPageData(nextPageData);
       setFormValues({ prUrl: nextPageData.submission.prUrl ?? '' });
       setStartError(null);
+
+      if (isStandaloneRoute) {
+        if (tree.length === 0) {
+          setTree([{ label: t('exercises', { defaultValue: 'Exercises' }), href: '/exercises' }]);
+        }
+      } else {
+        if (tree.length === 0) {
+          setTree([
+            { label: t('tracks', { defaultValue: 'Learning Tracks' }), href: `/${routeBase}` },
+            { label: nextPageData.course.title, href: `/${routeBase}/${courseId}` },
+            { label: nextPageData.activeLesson.title, href: `/${routeBase}/${courseId}/lessons/${lessonId}` }
+          ]);
+        }
+      }
+      
+      pushNode({ label: nextPageData.exercise.title, href: window.location.pathname });
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, t('loadFailed', { defaultValue: 'Failed to load exercise details.' })));
     } finally {
       setLoading(false);
     }
-  }, [courseId, lessonId, exerciseId, isStandaloneRoute, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId, lessonId, exerciseId, isStandaloneRoute, routeBase, t, setTree, pushNode, tree.length]);
 
   useEffect(() => {
     loadExercise();
@@ -215,36 +216,11 @@ export default function ExerciseDetailContainer() {
     );
   }
 
-  function handleBackToLesson() {
-    if (exerciseId) {
-      const storedReturnTo = getStoredExerciseReturnTo(exerciseId);
-      if (storedReturnTo) {
-        window.sessionStorage.removeItem(EXERCISE_RETURN_KEY);
-        router.push(storedReturnTo);
-        return;
-      }
-    }
-
-    if (isStandaloneRoute) {
-      router.push('/exercises');
-      return;
-    }
-
-    if (!courseId || !lessonId) {
-      router.push(`/${routeBase}`);
-      return;
-    }
-    router.push(`/${routeBase}/${courseId}/lessons/${lessonId}`);
-  }
-
-  function getBackHref() {
-    if (exerciseId) {
-      const storedReturnTo = getStoredExerciseReturnTo(exerciseId);
-      if (storedReturnTo) return storedReturnTo;
-    }
-    if (isStandaloneRoute) return '/exercises';
-    if (!courseId || !lessonId) return `/${routeBase}`;
-    return `/${routeBase}/${courseId}/lessons/${lessonId}`;
+  function getBackHrefPath() {
+    const fallbackHref = isStandaloneRoute
+      ? '/exercises'
+      : (!courseId || !lessonId) ? `/${routeBase}` : `/${routeBase}/${courseId}/lessons/${lessonId}`;
+    return getBackHref(fallbackHref);
   }
 
   if (loading) return <ExerciseLoadingState />;
@@ -254,7 +230,7 @@ export default function ExerciseDetailContainer() {
       <ExerciseErrorState
         title={t('notAvailableTitle', { defaultValue: 'Exercise not available' })}
         message={error ?? t('notFoundMessage', { defaultValue: 'This exercise does not exist in the selected lesson.' })}
-        backHref={getBackHref()}
+        backHref={getBackHrefPath() || ''}
         backLabel={isStandaloneRoute ? t('backToExercises', { defaultValue: 'Back to Exercises' }) : t('backToLesson', { defaultValue: 'Back to Lesson' })}
         onRetry={loadExercise}
       />
@@ -272,8 +248,6 @@ export default function ExerciseDetailContainer() {
       startError={startError}
       submitError={submitError}
       submitMessage={submitMessage}
-      backLabel={isStandaloneRoute ? t('backToExercises', { defaultValue: 'Exercises' }) : pageData.activeLesson.title}
-      onBackToLesson={handleBackToLesson}
       onPrUrlChange={(value) => setFormValues({ prUrl: value })}
       onStartExercise={handleStartExercise}
       onSubmit={handleSubmit}

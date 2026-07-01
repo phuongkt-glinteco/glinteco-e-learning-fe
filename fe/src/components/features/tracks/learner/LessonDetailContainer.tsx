@@ -15,6 +15,7 @@ import {
 
 import { RedirectToParent } from '@/components/ui';
 import { useTranslations } from 'next-intl';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 
 function LessonLoadingState() {
   return (
@@ -115,6 +116,7 @@ export default function LessonDetailContainer() {
   const [completing, setCompleting] = useState(false);
   const [completionMessage, setCompletionMessage] = useState<string | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
 
   const loadLessonData = useCallback(async () => {
     if (!courseId || !lessonId) {
@@ -133,12 +135,22 @@ export default function LessonDetailContainer() {
       setTrack(lessonPage.course);
       setActiveLesson(lessonPage.activeLesson);
       setExercises(lessonPage.exercises);
+      
+      if (tree.length === 0) {
+        setTree([
+          { label: t('tracks', { defaultValue: 'Learning Tracks' }), href: `/${routeBase}` },
+          { label: lessonPage.course.title, href: `/${routeBase}/${courseId}` }
+        ]);
+      }
+      
+      pushNode({ label: lessonPage.activeLesson.title, href: window.location.pathname });
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, t('loadFailed', { defaultValue: 'Failed to load lesson details.' })));
     } finally {
       setLoading(false);
     }
-  }, [courseId, lessonId, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId, lessonId, routeBase, t, setTree, pushNode, tree.length]);
 
   useEffect(() => {
     loadLessonData();
@@ -182,13 +194,6 @@ export default function LessonDetailContainer() {
 
   function handleOpenExercise(exerciseId: string) {
     if (!courseId || !lessonId || !exerciseId) return;
-    window.sessionStorage.setItem(
-      'learnerExerciseReturnTo',
-      JSON.stringify({
-        exerciseId,
-        returnTo: `/${routeBase}/${courseId}/lessons/${lessonId}`,
-      })
-    );
     router.push(`/${routeBase}/${courseId}/lessons/${lessonId}/exercises/${exerciseId}`);
   }
 

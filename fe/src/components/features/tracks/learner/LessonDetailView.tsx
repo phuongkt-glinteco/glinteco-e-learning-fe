@@ -1,6 +1,7 @@
 import { StatusBadge, TimeBadge } from '@/components/ui';
 import CircleMeter from '@/components/ui/CircleMeter';
 import { MarkdownRenderer } from '@/lib/md-renderer';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 
 interface LessonDetailViewProps {
@@ -46,6 +47,10 @@ export function LessonDetailView({
           <span className="min-w-0 break-words">{completionMessage}</span>
         </div>
       )}
+
+      <div className="mb-[-8px]">
+        <DynamicBreadcrumbs />
+      </div>
 
       <header className="bg-surface border border-outline-variant rounded-lg p-4 flex min-w-0 items-center justify-between gap-4 flex-wrap shadow-sm">
         <div className="flex min-w-0 items-center gap-3">

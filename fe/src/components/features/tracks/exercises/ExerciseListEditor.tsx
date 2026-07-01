@@ -3,6 +3,9 @@
 import { useWatch } from 'react-hook-form';
 import type { FieldErrors, UseFormSetValue, Control } from 'react-hook-form';
 import type { CreateExerciseFormInput } from '@/schemas';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/default/card';
+import { Button } from '@/components/ui/default/button';
+import { Input } from '@/components/ui/default/input';
 
 interface ExerciseListEditorProps {
   fieldName: keyof CreateExerciseFormInput;
@@ -46,63 +49,66 @@ export default function ExerciseListEditor({
   }
 
   return (
-    <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+    <Card className="shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary">{icon}</span>
-          <h3 className="font-headline-sm text-on-surface">{label}</h3>
+          <CardTitle className="text-lg">{label}</CardTitle>
         </div>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={addItem}
-          className="flex items-center gap-1.5 px-3 py-1.5 border border-primary/20 text-primary font-label-sm rounded-lg hover:bg-primary/5 transition-colors cursor-pointer"
+          className="text-primary border-primary/20 hover:bg-primary/5"
         >
-          <span className="material-symbols-outlined text-[16px]">add</span>
+          <span className="material-symbols-outlined text-[16px] mr-1">add</span>
           {addLabel}
-        </button>
-      </div>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {items.length === 0 ? (
+          <div
+            onClick={addItem}
+            className="border-2 border-dashed border-outline-variant rounded-lg py-8 text-center text-muted-foreground font-label-sm hover:border-primary/40 hover:text-primary/60 transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[32px] block mb-1">playlist_add</span>
+            {emptyText}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {items.map((item, i) => (
+              <div key={i} className="flex items-center gap-2 group">
+                <span className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center text-sm text-secondary shrink-0">
+                  {i + 1}
+                </span>
+                <Input
+                  className={errors[fieldName] ? 'border-destructive focus-visible:ring-destructive flex-1' : 'flex-1'}
+                  placeholder={placeholder}
+                  value={item}
+                  onChange={(e) => updateItem(i, e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeItem(i)}
+                  className="opacity-0 group-hover:opacity-100 h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {items.length === 0 ? (
-        <div
-          onClick={addItem}
-          className="border-2 border-dashed border-outline-variant rounded-lg py-8 text-center text-outline font-label-sm hover:border-primary/40 hover:text-primary/60 transition-colors cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[32px] block mb-1">playlist_add</span>
-          {emptyText}
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {items.map((item, i) => (
-            <div key={i} className="flex items-center gap-2 group">
-              <span className="w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center text-label-sm text-outline shrink-0">
-                {i + 1}
-              </span>
-              <input
-                className={`flex-1 border rounded-lg px-md py-sm text-body-base focus:ring-0 transition-colors outline-none bg-surface-container-lowest ${
-                  errors[fieldName] ? 'border-error' : 'border-outline-variant focus:border-primary'
-                }`}
-                placeholder={placeholder}
-                value={item}
-                onChange={(e) => updateItem(i, e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => removeItem(i)}
-                className="p-1.5 text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {errors[fieldName] && (
-        <p className="text-error text-[12px] mt-2 flex items-center gap-1">
-          <span className="material-symbols-outlined text-[14px]">error</span>
-          {t((errors[fieldName] as { message?: string })?.message ?? '')}
-        </p>
-      )}
-    </section>
+        {errors[fieldName] && (
+          <p className="text-destructive text-[12px] mt-2 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">error</span>
+            {t((errors[fieldName] as { message?: string })?.message ?? '')}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

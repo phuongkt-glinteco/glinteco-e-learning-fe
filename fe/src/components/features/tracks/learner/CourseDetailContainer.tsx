@@ -99,6 +99,7 @@ function CourseDetailErrorState({
 }
 
 import { useTranslations } from 'next-intl';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 
 export default function CourseDetailContainer() {
   const params = useParams();
@@ -112,6 +113,7 @@ export default function CourseDetailContainer() {
   const [lessons, setLessons] = useState<TrackLessonPreview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
 
   const loadCourseDetail = useCallback(async () => {
     if (!courseId) {
@@ -127,12 +129,26 @@ export default function CourseDetailContainer() {
       const courseDetail = await fetchCourseDetail(courseId);
       setLessons(courseDetail.lessons);
       setTrack(courseDetail.course);
+      
+      // If starting fresh or jumping from outside, initialize base
+      if (tree.length === 0) {
+        if (fromQuery === 'dashboard') {
+          setTree([{ label: t('dashboard', { defaultValue: 'Dashboard' }), href: '/dashboard/learner' }]);
+        } else if (fromQuery === 'my-courses') {
+          setTree([{ label: t('myCourses', { defaultValue: 'My Courses' }), href: '/my-courses' }]);
+        } else {
+          setTree([{ label: t('learningTracks', { defaultValue: 'Learning Tracks' }), href: `/${routeBase}` }]);
+        }
+      }
+      
+      pushNode({ label: courseDetail.course.title, href: window.location.pathname });
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, t('loadFailed', { defaultValue: 'Failed to load course details.' })));
     } finally {
       setLoading(false);
     }
-  }, [courseId, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId, searchParams, t, setTree, pushNode, tree.length]);
 
   useEffect(() => {
     loadCourseDetail();

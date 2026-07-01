@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { tracksControllerCreate } from '@/services/api-client';
@@ -12,6 +12,8 @@ import { BasicInfoCard } from './components/BasicInfoCard';
 import { InstructionCard } from './components/InstructionCard';
 import { TrackPicker } from './components/TrackPicker';
 import { CreateTrackSummaryCard } from './components/CreateTrackSummaryCard';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 
 export default function CreateTrackPage() {
   const t = useTranslations('CreateTrackPage');
@@ -22,6 +24,14 @@ export default function CreateTrackPage() {
   const [previousTrack, setPreviousTrack] = useState<TrackSummaryDto | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
+
+  useEffect(() => {
+    if (tree.length === 0) {
+      setTree([{ label: t('breadcrumbTracks', { defaultValue: 'Tracks' }), href: '/admin/tracks' }]);
+    }
+    pushNode({ label: t('title', { defaultValue: 'Create Track' }), href: window.location.pathname });
+  }, [t, setTree, pushNode, tree.length]);
 
   async function handleSave() {
     if (!title.trim()) return;
@@ -83,8 +93,11 @@ export default function CreateTrackPage() {
 
   return (
     <main className="flex-1 overflow-y-auto bg-background px-2 pt-4 pb-24 lg:px-8 lg:pt-8 xl:pt-12 2xl:px-16">
-      <div className="lg:max-w-[760px] mx-auto px-gutter py-stack-lg">
-        <header className="mb-stack-lg">
+      <div className=" mx-auto px-gutter py-stack-lg">
+        <div className="mb-4">
+          <DynamicBreadcrumbs />
+        </div>
+        <header className="mb-stack-lg mb-6">
           <h2 className="headline-lg text-on-surface mb-2">{t('title')}</h2>
           <p className="text-body-base text-secondary">{t('subtitle')}</p>
         </header>
@@ -96,7 +109,7 @@ export default function CreateTrackPage() {
           </div>
         )}
 
-        <div className="space-y-6">
+        <div className="m-0 space-y-6 lg:max-w-[800px] xl:max-w-[960px] 2xl:max-w-[calc(100%-32px)] 2xl:grid-cols-2 grid grid-cols-1  gap-6">
           <BasicInfoCard
             title={title}
             description={description}
@@ -107,12 +120,14 @@ export default function CreateTrackPage() {
             selectedTrackId={previousTrack?.id ?? ''}
             onSelectTrack={setPreviousTrack}
           />
-          <CreateTrackSummaryCard
-            title={title}
-            description={description}
-            previousTrackTitle={previousTrack?.title}
-          />
-          <InstructionCard ready={title.trim().length > 0} />
+          <div className="flex flex-col 2xl:col-span-2 gap-6">
+            <CreateTrackSummaryCard
+              title={title}
+              description={description}
+              previousTrackTitle={previousTrack?.title}
+            />
+            <InstructionCard ready={title.trim().length > 0} />
+          </div>
         </div>
 
         <footer className="fixed bottom-0 left-0 md:left-[256px] right-0 bg-surface-container-lowest border-t border-outline-variant px-gutter py-4 z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">

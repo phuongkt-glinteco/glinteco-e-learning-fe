@@ -7,6 +7,8 @@ import { fetchMyExercises } from './courseLearningApi';
 import { MyExercisesView, type ExerciseFeedTab } from './MyExercisesView';
 import type { LearnerExerciseFeedItem } from './types';
 import { getErrorMessage } from './utils';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { useTranslations } from 'next-intl';
 
 function MyExercisesLoadingState() {
   return (
@@ -50,6 +52,8 @@ export default function MyExercisesContainer() {
   const [activeTab, setActiveTab] = useState<ExerciseFeedTab>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { setTree } = useBreadcrumbStore();
+  const t = useTranslations('MyExercisesContainer');
 
   const loadExercises = useCallback(async () => {
     setLoading(true);
@@ -68,12 +72,12 @@ export default function MyExercisesContainer() {
     loadExercises();
   }, [loadExercises]);
 
-  function handleOpenExercise(exercise: LearnerExerciseFeedItem) {
-    window.sessionStorage.setItem(
-      'learnerExerciseReturnTo',
-      JSON.stringify({ exerciseId: exercise.id, returnTo: '/exercises' })
-    );
+  useEffect(() => {
+    setTree([{ label: t('title', { defaultValue: 'Exercises' }), href: '/exercises' }]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t, setTree]);
 
+  function handleOpenExercise(exercise: LearnerExerciseFeedItem) {
     if (exercise.trackId && exercise.lessonId) {
       router.push(`/tracks/${exercise.trackId}/lessons/${exercise.lessonId}/exercises/${exercise.id}`);
       return;

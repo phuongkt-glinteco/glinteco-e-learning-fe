@@ -11,6 +11,8 @@ import { DocumentNavigationEditor } from './DocumentNavigationEditor';
 import { DocumentProceduralEditor } from './DocumentProceduralEditor';
 import { buildContentString } from './content-builder';
 import { PageContainer, PageHeader } from '@/components/ui';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 
 const KIND_OPTIONS = [
   { value: 'Guide', label: 'Guide' },
@@ -25,6 +27,7 @@ export default function DocumentCreate() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [allTags, setAllTags] = useState<TagResponseDto[]>([]);
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
 
   const [kind, setKind] = useState('Guide');
   const [title, setTitle] = useState('');
@@ -58,6 +61,12 @@ export default function DocumentCreate() {
     documentsControllerFindAllTags({ throwOnError: true })
       .then((res) => setAllTags((res.data as TagResponseDto[] | undefined) ?? []))
       .catch(() => {});
+      
+    if (tree.length === 0) {
+      setTree([{ label: 'Documents', href: '/documents' }]);
+    }
+    pushNode({ label: 'Create', href: window.location.pathname });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleCreate() {
@@ -102,12 +111,11 @@ export default function DocumentCreate() {
 
   return (
     <PageContainer>
+      <div className="mb-2">
+        <DynamicBreadcrumbs />
+      </div>
       <PageHeader
         title={t('createTitle')}
-        breadcrumbs={[
-          { label: 'Documents', href: '/documents' },
-          { label: 'Create' }
-        ]}
         actions={
           <>
             <button

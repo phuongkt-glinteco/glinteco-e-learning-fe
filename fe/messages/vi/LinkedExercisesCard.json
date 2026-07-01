@@ -1,0 +1,9 @@
+{
+  "title": "Bài tập liên kết",
+  "addExercise": "Thêm bài tập",
+  "disabledText": "Có thể liên kết bài tập sau khi lộ trình được tạo.",
+  "noExercises": "Chưa có bài tập nào được liên kết.",
+  "showLess": "Thu gọn",
+  "showMore": "Xem thêm {count} bài tập",
+  "showMorePlural": "Xem thêm {count} bài tập"
+}

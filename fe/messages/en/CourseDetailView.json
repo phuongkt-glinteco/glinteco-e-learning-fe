@@ -13,5 +13,8 @@
   "allLessonsCompleted": "All Lessons Completed",
   "noLessonsYet": "No lessons yet.",
   "courseProgress": "Course Progress",
-  "lessonsCompletedLabel": "Lessons completed"
+  "lessonsCompletedLabel": "Lessons completed",
+  "nextTrack": "Next Track: ",
+  "viewNextTrack": "View Next Track",
+  "goToCourse": "Go to Course"
 }

@@ -32,5 +32,9 @@
   "titleREGISTER_PASSWORD_INVALID": "Mật Khẩu Không Hợp Lệ",
   "contentREGISTER_PASSWORD_INVALID": "Mật khẩu không đáp ứng yêu cầu.",
   "titleREGISTER_NOT_ALLOWED": "Không Được Phép Đăng Ký",
-  "contentREGISTER_NOT_ALLOWED": "Việc đăng ký hiện không được phép."
+  "contentREGISTER_NOT_ALLOWED": "Việc đăng ký hiện không được phép.",
+  "titleSUBMIT_EXERCISE_FAILED": "Nộp Bài Thất Bại",
+  "contentSUBMIT_EXERCISE_FAILED": "Nộp bài tập thất bại. Vui lòng kiểm tra lại đường dẫn pull request và thử lại.",
+  "titleEXERCISE_TITLE_EXISTS": "Tiêu Đề Đã Tồn Tại",
+  "contentEXERCISE_TITLE_EXISTS": "Bài tập với tiêu đề này đã tồn tại. Vui lòng chọn tiêu đề khác."
 }

@@ -95,36 +95,7 @@ export async function attemptTokenRefresh(): Promise<boolean> {
   }
 }
 
-function getErrorStatus(error: unknown): number | null {
-  if (error instanceof Response) return error.status;
-  if (error instanceof ApiError) return error.status ?? null;
-  if (typeof error !== 'object' || error === null) return null;
 
-  const status = (error as { status?: unknown; statusCode?: unknown }).status
-    ?? (error as { response?: { status?: unknown } }).response?.status
-    ?? (error as { statusCode?: unknown }).statusCode;
-
-  return typeof status === 'number' ? status : null;
-}
-
-function shouldRetryAfterRefresh(error: unknown) {
-  return (error instanceof Response && error.ok) || getErrorStatus(error) === 401;
-}
-
-export async function withAuthRetry<T>(operation: () => Promise<T>): Promise<T> {
-  try {
-    return await operation();
-  } catch (error) {
-    if (!shouldRetryAfterRefresh(error)) throw error;
-
-    const refreshed = error instanceof Response && error.ok
-      ? true
-      : await attemptTokenRefresh();
-
-    if (!refreshed) throw error;
-    return operation();
-  }
-}
 
 function dispatchErrorItems(items: UiShowError[], request?: Request) {
   if (typeof window === 'undefined' || items.length === 0) return;
@@ -140,6 +111,10 @@ function dispatchErrorItems(items: UiShowError[], request?: Request) {
 }
 
 client.interceptors.error.use(async (error, response, request) => {
+  if (response && response.ok) {
+    return error;
+  }
+
   if (response?.status === 401 && request) {
     const url = new URL(request.url);
 

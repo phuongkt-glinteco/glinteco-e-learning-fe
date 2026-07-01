@@ -21,7 +21,7 @@ interface AuthContextValue {
   user: UserProfileDto | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<UserProfileDto | null>;
   loginWithGoogle: (callbackUrl?: string) => Promise<void>;
   logout: () => void;
 }
@@ -140,17 +140,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const profileRes = await authControllerMe({ throwOnError: true });
         const profile = profileRes.data as UserProfileDto | undefined;
 
+        if (!profile) {
+          throw new Error('Failed to retrieve user profile');
+        }
+
         if (refreshToken) {
           saveTokens(accessToken, refreshToken);
         } else {
           localStorage.setItem('accessToken', accessToken);
           setTokenCookie(accessToken);
         }
-        setAuthCookie(profile?.role ?? 'learner');
+        setAuthCookie(profile.role ?? 'learner');
         setToken(accessToken);
-        setUser(profile ?? null);
+        setUser(profile);
+        return profile;
       } catch (err) {
+        clearTokens();
+        clearAuthCookie();
         setClientToken('');
+        setToken(null);
+        setUser(null);
         throw err;
       }
     },

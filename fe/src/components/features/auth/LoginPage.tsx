@@ -68,7 +68,10 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      await login(data.email, data.password);
+      const loggedInUser = await login(data.email, data.password);
+      if (loggedInUser) {
+        router.replace(getDashboardPath(loggedInUser.role));
+      }
     } catch (err) {
       if (isUiShowError(err)) {
         if (err.errorCode === 'LOGIN_INVALID_CREDENTIALS') {

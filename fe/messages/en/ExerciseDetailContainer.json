@@ -9,5 +9,6 @@
   "backToExercises": "Back to Exercises",
   "backToLesson": "Back to Lesson",
   "retry": "Retry",
-  "tracks": "Learning Tracks"
+  "tracks": "Learning Tracks",
+  "SUBMIT_EXERCISE_FAILED": "Failed to submit exercise. Please check your pull request URL and try again."
 }

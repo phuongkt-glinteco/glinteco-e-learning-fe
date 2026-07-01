@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl';
 import { StatusBadge, TimeBadge } from '@/components/ui';
 import CircleMeter from '@/components/ui/CircleMeter';
 import { MarkdownRenderer } from '@/lib/md-renderer';
@@ -35,6 +36,7 @@ export function LessonDetailView({
   onOpenExercise,
   onCompleteLesson,
 }: LessonDetailViewProps) {
+  const t = useTranslations('LessonDetailContainer');
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
@@ -54,17 +56,9 @@ export function LessonDetailView({
 
       <header className="bg-surface border border-outline-variant rounded-lg p-4 flex min-w-0 items-center justify-between gap-4 flex-wrap shadow-sm">
         <div className="flex min-w-0 items-center gap-3">
-          <button
-            type="button"
-            onClick={onBackToTracks}
-            className="w-9 h-9 border border-outline-variant hover:bg-surface-container-low rounded-lg flex items-center justify-center text-on-surface-variant transition-colors cursor-pointer"
-            aria-label="Back to course"
-          >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          </button>
           <div className="min-w-0">
             <span className="label-sm text-primary uppercase">
-              Course Lesson
+              {t('courseLesson', { defaultValue: 'Course Lesson' })}
             </span>
             <h1 className="headline-sm line-clamp-2 break-words text-on-surface">{track.title}</h1>
           </div>
@@ -76,12 +70,12 @@ export function LessonDetailView({
         <aside className="lg:col-span-1 bg-surface border border-outline-variant rounded-lg p-4 shadow-sm flex min-w-0 flex-col gap-4">
           <div className="border-b border-outline-variant pb-3">
             <h2 className="label-sm text-on-surface-variant uppercase">
-              Lessons Playlist
+              {t('lessonsPlaylist', { defaultValue: 'Lessons Playlist' })}
             </h2>
             <div className="flex items-center justify-between label-sm text-outline mt-1.5">
-              <span>Progress</span>
+              <span>{t('progress', { defaultValue: 'Progress' })}</span>
               <span>
-                {track.lessonsCompleted}/{track.lessonCount} done
+                {t('lessonsDone', { completed: track.lessonsCompleted, total: track.lessonCount, defaultValue: `${track.lessonsCompleted}/${track.lessonCount} done` })}
               </span>
             </div>
           </div>
@@ -125,7 +119,7 @@ export function LessonDetailView({
           <div className="border-b border-outline-variant pb-4">
             <div className="flex items-center gap-2 flex-wrap mb-2">
               <span className="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-primary-container/20 text-primary border border-primary-container/30">
-                Lesson {activeLesson.order}
+                {t('lesson', { defaultValue: 'Lesson' })} {activeLesson.order}
               </span>
               <span className="px-2 py-0.5 text-[10px] font-bold rounded uppercase bg-surface-container text-on-surface-variant border border-outline-variant">
                 {activeLesson.type}
@@ -138,7 +132,7 @@ export function LessonDetailView({
               {activeLesson.completed && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded label-sm bg-green-50 text-green-700 border border-green-200">
                   <span className="material-symbols-outlined text-[14px]">check</span>
-                  Completed
+                  {t('completed', { defaultValue: 'Completed' })}
                 </span>
               )}
             </div>
@@ -156,16 +150,16 @@ export function LessonDetailView({
             </article>
           ) : (
             <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-6">
-              <h3 className="headline-sm text-on-surface">Lesson content is not available yet</h3>
+              <h3 className="headline-sm text-on-surface">{t('contentNotAvailable', { defaultValue: 'Lesson content is not available yet' })}</h3>
               <p className="mt-2 body-sm text-on-surface-variant">
-                You can still review the lesson order and mark progress when the API provides content.
+                {t('contentNotAvailableDesc', { defaultValue: 'You can still review the lesson order and mark progress when the API provides content.' })}
               </p>
             </div>
           )}
 
           <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h3 className="headline-sm text-on-surface">Exercises</h3>
+              <h3 className="headline-sm text-on-surface">{t('exercises', { defaultValue: 'Exercises' })}</h3>
               <span className="rounded-full bg-primary-fixed px-3 py-1 label-sm text-primary">
                 {exercises.length}
               </span>
@@ -233,37 +227,51 @@ export function LessonDetailView({
                 className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
               >
                 <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                Previous
+                {t('previous', { defaultValue: 'Previous' })}
               </button>
-              <button
-                type="button"
-                onClick={() => nextLessonId && onSelectLesson(nextLessonId)}
-                disabled={!nextLessonId}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
-              >
-                Next
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </button>
+              {!activeLesson.completed && (
+                <button
+                  type="button"
+                  onClick={() => nextLessonId && onSelectLesson(nextLessonId)}
+                  disabled={!nextLessonId}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
+                >
+                  {t('next', { defaultValue: 'Next' })}
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
+              )}
             </div>
 
             <button
               type="button"
-              onClick={onCompleteLesson}
-              disabled={completing || activeLesson.completed}
-              className={`inline-flex items-center gap-1.5 px-5 py-2.5 label-sm rounded-lg transition-colors select-none ${
-                activeLesson.completed
-                  ? 'bg-surface-container text-outline border border-outline-variant cursor-not-allowed'
-                  : 'bg-primary text-on-primary hover:opacity-90 shadow-sm cursor-pointer'
-              } disabled:opacity-60 disabled:cursor-not-allowed`}
+              onClick={() => {
+                if (activeLesson.completed) {
+                  if (nextLessonId) {
+                    onSelectLesson(nextLessonId);
+                  } else {
+                    onBackToTracks();
+                  }
+                } else {
+                  onCompleteLesson();
+                }
+              }}
+              disabled={!activeLesson.completed && completing}
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 label-sm rounded-lg transition-colors select-none bg-primary text-on-primary hover:opacity-90 shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-[18px]">
-                {completing ? 'progress_activity' : 'check_circle'}
+                {activeLesson.completed
+                  ? (!nextLessonId ? 'school' : 'arrow_forward')
+                  : (completing ? 'progress_activity' : 'check_circle')}
               </span>
               {activeLesson.completed
-                ? 'Lesson Completed'
-                : completing
-                  ? 'Completing...'
-                  : 'Complete Lesson'}
+                ? (!nextLessonId
+                    ? t('goToCourse', { defaultValue: 'Go to Course' })
+                    : nextLessonId.startsWith('track:')
+                      ? t('viewNextTrack', { defaultValue: 'View Next Track' })
+                      : t('nextLesson', { defaultValue: 'Next Lesson' }))
+                : (completing
+                    ? t('completing', { defaultValue: 'Completing...' })
+                    : t('completeLesson', { defaultValue: 'Complete Lesson' }))}
             </button>
           </div>
         </main>
@@ -271,25 +279,25 @@ export function LessonDetailView({
         <aside className="lg:col-span-1 flex min-w-0 flex-col gap-6">
           <div className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm flex flex-col items-center gap-3">
             <h2 className="label-sm text-on-surface-variant uppercase text-center border-b border-outline-variant w-full pb-2">
-              Track Progress
+              {t('trackProgress', { defaultValue: 'Track Progress' })}
             </h2>
             <div className="py-2">
-              <CircleMeter value={progressPercent} size={144} label="Completed" />
+              <CircleMeter value={progressPercent} size={144} label={t('completed', { defaultValue: 'Completed' })} />
             </div>
             <p className="label-sm text-outline text-center leading-normal">
-              Finish lessons to unlock the next milestone and claim XP.
+              {t('finishLessonsUnlock', { defaultValue: 'Finish lessons to unlock the next milestone and claim XP.' })}
             </p>
           </div>
 
           <div className="bg-surface border border-outline-variant rounded-lg p-5 shadow-sm flex min-w-0 flex-col gap-3">
             <h2 className="label-sm text-on-surface-variant uppercase border-b border-outline-variant pb-2">
-              Track Summary
+              {t('trackSummary', { defaultValue: 'Track Summary' })}
             </h2>
             <p className="body-sm break-words text-on-surface-variant leading-relaxed">
               {track.description}
             </p>
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 label-sm text-on-surface-variant">
-              <span>Estimated time</span>
+              <span>{t('estimatedTime', { defaultValue: 'Estimated time' })}</span>
               <span className="min-w-0 break-words text-on-surface">{track.estimatedTime}</span>
             </div>
           </div>

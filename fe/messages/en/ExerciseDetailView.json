@@ -46,5 +46,8 @@
   "statusInReview": "In Review",
   "statusNotStarted": "Not Started",
   "parentBreadcrumb": "{title}",
-  "currentBreadcrumb": "{title}"
+  "currentBreadcrumb": "{title}",
+  "backToTrack": "Back to Track",
+  "viewNextTrack": "View Next Track",
+  "goToCourse": "Go to Course"
 }

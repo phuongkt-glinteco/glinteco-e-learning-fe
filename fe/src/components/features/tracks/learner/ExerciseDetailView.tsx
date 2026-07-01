@@ -26,6 +26,7 @@ interface ExerciseDetailViewProps {
   onPrUrlChange: (value: string) => void;
   onStartExercise: () => void;
   onSubmit: () => void;
+  onBackToTrack?: () => void;
 }
 
 function formatDateTime(value: string | null) {
@@ -277,15 +278,19 @@ function SubmitPanel({
 
 function SubmittedState({
   submission,
+  onBackToTrack,
 }: {
   submission: LearnerSubmissionState;
+  onBackToTrack?: () => void;
 }) {
   const t = useTranslations('ExerciseDetailView');
   return (
     <section className="rounded-lg border border-outline-variant bg-surface p-8 text-center shadow-sm">
-      <span className="material-symbols-outlined mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-tertiary-fixed/40 text-[36px] text-tertiary">
-        check_circle
-      </span>
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-tertiary-fixed/40">
+        <span className="material-symbols-outlined text-[36px] text-tertiary">
+          check_circle
+        </span>
+      </div>
       <h2 className="headline-lg mt-6 text-on-surface">{t('submissionReceived')}</h2>
       <p className="body-md mt-2 text-on-surface-variant">{t('waitingMentorReview')}</p>
       <div className="mx-auto mt-6 max-w-[680px] rounded-lg border border-outline-variant bg-surface-container-low p-4 text-left">
@@ -300,6 +305,18 @@ function SubmittedState({
           </a>
         )}
       </div>
+      {onBackToTrack && (
+        <div className="mt-8 flex justify-center">
+          <button
+            type="button"
+            onClick={onBackToTrack}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 label-md text-on-primary shadow hover:opacity-90 transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            {t('backToTrack', { defaultValue: 'Back to Track' })}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -308,10 +325,12 @@ function ApprovedState({
   exercise,
   submission,
   track,
+  onBackToTrack,
 }: {
   exercise: LearnerExerciseDetail;
   submission: LearnerSubmissionState;
   track: LearnerTrack;
+  onBackToTrack?: () => void;
 }) {
   const t = useTranslations('ExerciseDetailView');
   return (
@@ -330,6 +349,18 @@ function ApprovedState({
           <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
           {t('xpAwarded', { xp: exercise.xp })}
         </div>
+        {onBackToTrack && (
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={onBackToTrack}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 label-md text-on-primary shadow hover:opacity-90 transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+              {t('backToTrack', { defaultValue: 'Back to Track' })}
+            </button>
+          </div>
+        )}
       </section>
 
       <InfoSection icon="mode_comment" title={t('mentorFeedback')}>
@@ -414,6 +445,7 @@ export function ExerciseDetailView({
   onPrUrlChange,
   onStartExercise,
   onSubmit,
+  onBackToTrack,
 }: ExerciseDetailViewProps) {
   const t = useTranslations('ExerciseDetailView');
   const isNotStarted = submission.status === 'pending';
@@ -458,13 +490,13 @@ export function ExerciseDetailView({
 
       {isApproved ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <ApprovedState exercise={exercise} submission={submission} track={track} />
+          <ApprovedState exercise={exercise} submission={submission} track={track} onBackToTrack={onBackToTrack} />
           <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
         </div>
       ) : isSubmitted ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex flex-col gap-6">
-            <SubmittedState submission={submission}  />
+            <SubmittedState submission={submission} onBackToTrack={onBackToTrack} />
             <InfoSection icon="article" title={t('instructions')}>
               <ExerciseContent exercise={exercise} />
             </InfoSection>
@@ -504,6 +536,18 @@ export function ExerciseDetailView({
               onPrUrlChange={onPrUrlChange}
               onSubmit={onSubmit}
             />
+            {onBackToTrack && (
+              <div className="mt-2 flex justify-start">
+                <button
+                  type="button"
+                  onClick={onBackToTrack}
+                  className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-5 py-2 label-md text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  {t('backToTrack', { defaultValue: 'Back to Track' })}
+                </button>
+              </div>
+            )}
           </main>
           <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
         </div>
@@ -515,7 +559,7 @@ export function ExerciseDetailView({
           <aside className="flex min-w-0 flex-col gap-6">
             <section className="rounded-lg border border-outline-variant bg-surface p-5 text-center shadow-sm">
               <span className={`rounded-full border px-3 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
-                Status: {getStatusLabel(submission.status, t)}
+                {t('status')}: {t(getStatusLabel(submission.status))}
               </span>
               <h2 className="headline-sm mt-4 text-on-surface">{startCardTitle}</h2>
               <p className="body-sm mt-2 text-on-surface-variant">{startCardCopy}</p>

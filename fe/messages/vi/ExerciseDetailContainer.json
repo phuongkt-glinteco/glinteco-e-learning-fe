@@ -9,5 +9,6 @@
   "backToExercises": "Quay lại Bài tập",
   "backToLesson": "Quay lại Bài học",
   "retry": "Thử lại",
-  "tracks": "Lộ Trình Học"
+  "tracks": "Lộ Trình Học",
+  "SUBMIT_EXERCISE_FAILED": "Nộp bài tập thất bại. Vui lòng kiểm tra lại đường dẫn pull request và thử lại."
 }

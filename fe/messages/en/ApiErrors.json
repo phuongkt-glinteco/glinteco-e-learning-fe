@@ -32,5 +32,9 @@
   "titleREGISTER_PASSWORD_INVALID": "Invalid Password",
   "contentREGISTER_PASSWORD_INVALID": "The password does not meet the requirements.",
   "titleREGISTER_NOT_ALLOWED": "Registration Not Allowed",
-  "contentREGISTER_NOT_ALLOWED": "Registration is not allowed at this time."
+  "contentREGISTER_NOT_ALLOWED": "Registration is not allowed at this time.",
+  "titleSUBMIT_EXERCISE_FAILED": "Submission Failed",
+  "contentSUBMIT_EXERCISE_FAILED": "Failed to submit exercise. Please check your pull request URL and try again.",
+  "titleEXERCISE_TITLE_EXISTS": "Title Already Exists",
+  "contentEXERCISE_TITLE_EXISTS": "An exercise with this title already exists. Please choose a different title."
 }

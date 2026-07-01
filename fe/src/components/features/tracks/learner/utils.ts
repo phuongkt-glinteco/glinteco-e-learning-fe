@@ -10,6 +10,7 @@ import type {
   TrackSummaryDto,
 } from '@/services/api-client';
 import { normalizeTrackIcon } from '@/utils/track-icons';
+import { isUiShowError } from '@/services/errors';
 import type {
   LearnerLesson,
   LearnerExercise,
@@ -109,6 +110,9 @@ export function getLearnerRouteBase(trackId: string | string[] | undefined) {
 }
 
 export function getErrorMessage(error: unknown, fallback: string) {
+  if (isUiShowError(error)) {
+    return fallback;
+  }
   if (error instanceof Error) return error.message;
   if (typeof error === 'object' && error !== null && 'message' in error) {
     const message = (error as { message?: unknown }).message;
@@ -336,6 +340,16 @@ export function normalizeTrackSummaries(tracks: TrackSummaryContract[]): Learner
     .sort((a, b) => a.order - b.order);
 }
 
+function extractNextTrack(track: unknown): { id?: string; title?: string } | null {
+  if (track && typeof track === 'object') {
+    const obj = track as Record<string, unknown>;
+    const id = typeof obj.id === 'string' ? obj.id : undefined;
+    const title = typeof obj.title === 'string' ? obj.title : undefined;
+    if (id || title) return { id, title };
+  }
+  return null;
+}
+
 export function normalizeTrackDetail(
   track: TrackDetailContract,
   trackId: string,
@@ -361,6 +375,7 @@ export function normalizeTrackDetail(
     currentLessonId: normalizeNullableString(track.currentLessonId),
     level: track.level?.trim() || 'General',
     thumbnail: normalizeThumbnail(track.thumbnail),
+    nextTrack: extractNextTrack(track.nextTrack),
   };
 }
 
@@ -392,6 +407,7 @@ export function normalizeTrackDetailWithCount(
     currentLessonId: normalizeNullableString(track.currentLessonId),
     level: track.level?.trim() || 'General',
     thumbnail: normalizeThumbnail(track.thumbnail),
+    nextTrack: extractNextTrack(track.nextTrack),
   };
 }
 

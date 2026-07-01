@@ -13,6 +13,7 @@ import {
 } from './courseLearningApi';
 import type { LearnerSubmissionFormValues } from './types';
 import { getErrorMessage, getLearnerRouteBase, getRouteParam } from './utils';
+import { isUiShowError } from '@/services/errors';
 
 import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 function validatePullRequestUrl(value: string): string | null {
@@ -199,7 +200,12 @@ export default function ExerciseDetailContainer() {
       setFormValues({ prUrl: nextSubmission.prUrl ?? nextPrUrl });
       setSubmitMessage(t('submissionSuccess', { defaultValue: 'Submission saved successfully.' }));
     } catch (submitFailure: unknown) {
-      setSubmitError(getErrorMessage(submitFailure, t('submitFailed', { defaultValue: 'Failed to submit exercise.' })));
+      console.error('Submit exercise error:', submitFailure);
+      if (isUiShowError(submitFailure) && submitFailure.errorCode === 'SUBMIT_EXERCISE_FAILED') {
+        setSubmitError(t('SUBMIT_EXERCISE_FAILED', { defaultValue: t('submitFailed', { defaultValue: 'Failed to submit exercise.' }) }));
+      } else {
+        setSubmitError(getErrorMessage(submitFailure, t('submitFailed', { defaultValue: 'Failed to submit exercise.' })));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -250,6 +256,14 @@ export default function ExerciseDetailContainer() {
       onPrUrlChange={(value) => setFormValues({ prUrl: value })}
       onStartExercise={handleStartExercise}
       onSubmit={handleSubmit}
+      onBackToTrack={() => {
+        const targetTrackId = pageData.exercise.trackId || pageData.course.id;
+        if (targetTrackId) {
+          router.push(`/${routeBase}/${targetTrackId}`);
+        } else {
+          router.push(`/${routeBase}`);
+        }
+      }}
     />
   );
 }

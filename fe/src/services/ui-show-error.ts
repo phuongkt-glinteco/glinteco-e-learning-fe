@@ -65,4 +65,16 @@ export function registerUiShowErrors(
       action: 'FINAL_THROW',
     }),
   );
+
+  // Exercise submission errors → inline
+  pipeline.injectHandler(
+    createHandler({
+      name: 'submit-exercise-error',
+      priority: 1,
+      requestPath: '/submissions',
+      statusCode: '4XX,5XX',
+      errorCode: 'SUBMIT_EXERCISE_FAILED',
+      action: 'FINAL_THROW',
+    }),
+  );
 }

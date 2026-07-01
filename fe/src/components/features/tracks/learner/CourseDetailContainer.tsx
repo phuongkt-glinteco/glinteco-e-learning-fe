@@ -108,6 +108,7 @@ export default function CourseDetailContainer() {
   const courseId = getRouteParam(params.courseId ?? params.trackId);
   const routeBase = getLearnerRouteBase(params.trackId);
   const t = useTranslations('CourseDetailContainer');
+  const fromQuery = searchParams.get('from');
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<TrackLessonPreview[]>([]);
@@ -158,14 +159,19 @@ export default function CourseDetailContainer() {
     [lessons, track?.currentLessonId]
   );
 
+  const nextTrack = track?.nextTrack && track.nextTrack.id ? track.nextTrack : null;
+
   function handleOpenLesson(lessonId: string) {
     if (!courseId || !lessonId) return;
     router.push(`/${routeBase}/${courseId}/lessons/${lessonId}`);
   }
 
   function handleContinueCourse() {
-    if (!continueLessonId) return;
-    handleOpenLesson(continueLessonId);
+    if (continueLessonId) {
+      handleOpenLesson(continueLessonId);
+    } else if (nextTrack?.id) {
+      router.push(`/${routeBase}/${nextTrack.id}`);
+    }
   }
 
   if (loading) return <CourseDetailLoadingState />;
@@ -191,6 +197,7 @@ export default function CourseDetailContainer() {
       track={track}
       lessons={lessons}
       continueLessonId={continueLessonId}
+      nextTrack={nextTrack}
       from={searchParams.get('from')}
       routeBase={routeBase}
       onBackToTracks={() => router.push(`/${routeBase}`)}

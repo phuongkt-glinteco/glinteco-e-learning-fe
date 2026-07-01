@@ -92,6 +92,9 @@ export interface CreateHandlerParams {
 }
 
 function buildStatusMatcher(pattern: string): (status: number) => boolean {
+  if (pattern === 'ERROR' || pattern === '4XX,5XX') {
+    return (s) => Number(s) >= 400;
+  }
   if (pattern.endsWith('XX')) {
     const prefix = pattern[0];
     return (s) => String(s).startsWith(prefix);
@@ -213,10 +216,10 @@ export function classify(
 
   const statusCode = getErrorField(error, 'statusCode');
   const status = getErrorField(error, 'status');
-  const sc = response?.status
+  const sc = (response && !response.ok ? response.status : undefined)
     || (typeof statusCode === 'number' ? statusCode : undefined)
     || (typeof status === 'number' ? status : undefined);
-  if (sc) {
+  if (sc && sc >= 400) {
     const msg = extractMessage(error);
     const code = STATUS_MAP[sc] || 'UNKNOWN_ERROR';
     return new ApiError(code, msg, sc, requestPath);

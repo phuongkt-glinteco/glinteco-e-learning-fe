@@ -11,7 +11,6 @@ import {
   lessonsControllerFindLessons,
   lessonsControllerFindOneLesson,
   lessonsControllerCompleteLesson,
-  withAuthRetry,
 } from '@/services/api-client';
 import type {
   LearnerExercise,
@@ -121,7 +120,7 @@ function createFallbackLesson(exercise: LearnerExerciseDetail): LearnerLesson {
 }
 
 export async function fetchCourses(): Promise<LearnerTrack[]> {
-  const response = await withAuthRetry(() => tracksControllerFindAll({ throwOnError: true }));
+  const response = await tracksControllerFindAll({ throwOnError: true });
   return normalizeTrackSummaries(
     extractDataArray<TrackSummaryContract>(response.data as unknown as TrackSummaryContract[] | { data?: TrackSummaryContract[] })
   );
@@ -138,13 +137,11 @@ async function hydrateSubmissionDetail(
   if (!submission.id || !shouldHydrateSubmission(submission)) return submission;
 
   try {
-    const response = await withAuthRetry(() =>
-      submissionsControllerFindOne({
-        path: { id: submission.id },
-        throwOnError: true,
-        ...silentErrorToastOptions,
-      })
-    );
+    const response = await submissionsControllerFindOne({
+      path: { id: submission.id },
+      throwOnError: true,
+      ...silentErrorToastOptions,
+    });
 
     return (response.data as unknown as SubmissionDetailContract | undefined) ?? submission;
   } catch (error) {
@@ -154,16 +151,14 @@ async function hydrateSubmissionDetail(
 }
 
 export async function fetchMyExercises(): Promise<MyExercisesData> {
-  const [exerciseResponse, submissionResponse] = await withAuthRetry(() =>
-    Promise.all([
-      exercisesControllerFindAll({
-        query: { limit: 100 },
-        throwOnError: true,
-        ...silentErrorToastOptions,
-      }),
-      submissionsControllerFindMine({ throwOnError: true, ...silentErrorToastOptions }),
-    ])
-  );
+  const [exerciseResponse, submissionResponse] = await Promise.all([
+    exercisesControllerFindAll({
+      query: { limit: 100 },
+      throwOnError: true,
+      ...silentErrorToastOptions,
+    }),
+    submissionsControllerFindMine({ throwOnError: true, ...silentErrorToastOptions }),
+  ]);
 
   const exercises = extractDataArray<ExerciseSummaryContract>(
     exerciseResponse.data as unknown as ExerciseSummaryContract[] | { data?: ExerciseSummaryContract[] }
@@ -199,20 +194,18 @@ export async function fetchMyExercises(): Promise<MyExercisesData> {
 }
 
 export async function fetchCourseDetail(courseId: string): Promise<CourseDetailData> {
-  const [courseResponse, lessonsResponse] = await withAuthRetry(() =>
-    Promise.all([
-      tracksControllerFindOne({
-        path: { id: courseId },
-        throwOnError: true,
-        ...silentErrorToastOptions,
-      }),
-      lessonsControllerFindLessons({
-        path: { id: courseId },
-        throwOnError: true,
-        ...silentErrorToastOptions,
-      }),
-    ])
-  );
+  const [courseResponse, lessonsResponse] = await Promise.all([
+    tracksControllerFindOne({
+      path: { id: courseId },
+      throwOnError: true,
+      ...silentErrorToastOptions,
+    }),
+    lessonsControllerFindLessons({
+      path: { id: courseId },
+      throwOnError: true,
+      ...silentErrorToastOptions,
+    }),
+  ]);
 
   if (!courseResponse.data) throw new Error('Course not found');
 
@@ -230,13 +223,11 @@ export async function fetchCourseDetail(courseId: string): Promise<CourseDetailD
 
 async function fetchLessonDetail(lessonId: string): Promise<LessonDetailContract | null> {
   try {
-    const response = await withAuthRetry(() =>
-      lessonsControllerFindOneLesson({
-        path: { id: lessonId },
-        throwOnError: true,
-        ...silentErrorToastOptions,
-      })
-    );
+    const response = await lessonsControllerFindOneLesson({
+      path: { id: lessonId },
+      throwOnError: true,
+      ...silentErrorToastOptions,
+    });
 
     return (response.data as LessonDetailContract | undefined) ?? null;
   } catch (error) {
@@ -249,13 +240,11 @@ async function fetchLessonExercises(
   courseId: string,
   lessonId: string
 ): Promise<ExerciseSummaryContract[]> {
-  const lessonExercisesResponse = await withAuthRetry(() =>
-    exercisesControllerFindAll({
-      query: { lessonId },
-      throwOnError: true,
-      ...silentErrorToastOptions,
-    })
-  );
+  const lessonExercisesResponse = await exercisesControllerFindAll({
+    query: { lessonId },
+    throwOnError: true,
+    ...silentErrorToastOptions,
+  });
   const lessonExercises = extractDataArray<ExerciseSummaryContract>(
     lessonExercisesResponse.data as unknown as ExerciseSummaryContract[] | { data?: ExerciseSummaryContract[] }
   );
@@ -266,13 +255,11 @@ async function fetchLessonExercises(
   if (exercisesWithMatchingLessonId.length > 0) return exercisesWithMatchingLessonId;
   if (lessonExercises.length > 0) return lessonExercises;
 
-  const trackExercisesResponse = await withAuthRetry(() =>
-    exercisesControllerFindAll({
-      query: { trackId: courseId },
-      throwOnError: true,
-      ...silentErrorToastOptions,
-    })
-  );
+  const trackExercisesResponse = await exercisesControllerFindAll({
+    query: { trackId: courseId },
+    throwOnError: true,
+    ...silentErrorToastOptions,
+  });
   const trackExercises = extractDataArray<ExerciseSummaryContract>(
     trackExercisesResponse.data as unknown as { data?: ExerciseSummaryContract[] }
   );
@@ -351,12 +338,10 @@ export async function fetchLessonPage(
 }
 
 export async function completeLesson(lessonId: string): Promise<CompleteLessonResult> {
-  const response = await withAuthRetry(() =>
-    lessonsControllerCompleteLesson({
-      path: { id: lessonId },
-      throwOnError: true,
-    })
-  );
+  const response = await lessonsControllerCompleteLesson({
+    path: { id: lessonId },
+    throwOnError: true,
+  });
 
   const data = response.data;
   if (!data) return {};
@@ -368,13 +353,11 @@ export async function completeLesson(lessonId: string): Promise<CompleteLessonRe
 }
 
 async function fetchExerciseDetail(exerciseId: string): Promise<LearnerExerciseDetail> {
-  const response = await withAuthRetry(() =>
-    exercisesControllerFindOne({
-      path: { id: exerciseId },
-      throwOnError: true,
-      ...silentErrorToastOptions,
-    })
-  );
+  const response = await exercisesControllerFindOne({
+    path: { id: exerciseId },
+    throwOnError: true,
+    ...silentErrorToastOptions,
+  });
 
   const exercise = normalizeExerciseDetail(response.data as unknown as ExerciseDetailContract);
   if (!exercise) throw new Error('Exercise not found');
@@ -385,9 +368,7 @@ async function fetchMySubmissionForExercise(
   exerciseId: string
 ): Promise<SubmissionFeedItemContract | SubmissionDetailContract | null> {
   try {
-    const response = await withAuthRetry(() =>
-      submissionsControllerFindMine({ throwOnError: true, ...silentErrorToastOptions })
-    );
+    const response = await submissionsControllerFindMine({ throwOnError: true, ...silentErrorToastOptions });
     const submissions = extractDataArray<SubmissionFeedItemContract>(
       response.data as unknown as { data?: SubmissionFeedItemContract[] }
     );
@@ -461,34 +442,37 @@ export async function fetchStandaloneExercisePage(exerciseId: string): Promise<E
   };
 }
 
+function extractSubmissionContract(raw: unknown): SubmissionDetailContract {
+  if (raw && typeof raw === 'object' && 'data' in raw && raw.data && typeof raw.data === 'object') {
+    return raw.data as SubmissionDetailContract;
+  }
+  return raw as SubmissionDetailContract;
+}
+
 export async function submitExercise(
   exerciseId: string,
   prUrl: string
 ): Promise<LearnerSubmissionState> {
-  const response = await withAuthRetry(() =>
-    submissionsControllerSubmit({
-      path: { id: exerciseId },
-      body: { prUrl },
-      throwOnError: true,
-      ...silentErrorToastOptions,
-    })
-  );
+  const response = await submissionsControllerSubmit({
+    path: { id: exerciseId },
+    body: { prUrl },
+    throwOnError: true,
+    ...silentErrorToastOptions,
+  });
 
-  return normalizeSubmissionState(response.data as unknown as SubmissionDetailContract);
+  return normalizeSubmissionState(extractSubmissionContract(response.data));
 }
 
 export async function resubmitExercise(
   exerciseId: string,
   prUrl: string
 ): Promise<LearnerSubmissionState> {
-  const response = await withAuthRetry(() =>
-    submissionsControllerResubmit({
-      path: { id: exerciseId },
-      body: { prUrl },
-      throwOnError: true,
-      ...silentErrorToastOptions,
-    })
-  );
+  const response = await submissionsControllerResubmit({
+    path: { id: exerciseId },
+    body: { prUrl },
+    throwOnError: true,
+    ...silentErrorToastOptions,
+  });
 
-  return normalizeSubmissionState(response.data as unknown as SubmissionDetailContract);
+  return normalizeSubmissionState(extractSubmissionContract(response.data));
 }

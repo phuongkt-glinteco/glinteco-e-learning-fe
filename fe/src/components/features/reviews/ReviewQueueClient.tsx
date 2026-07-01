@@ -139,7 +139,7 @@ export default function ReviewQueueClient({ initialData, initialNextCursor, init
 
   function formatRelative(iso: string): string {
     try {
-      return format.relativeTime(new Date(iso));
+      return format.relativeTime(new Date(iso), new Date());
     } catch {
       return '';
     }

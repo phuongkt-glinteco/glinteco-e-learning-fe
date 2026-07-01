@@ -13,5 +13,8 @@
   "allLessonsCompleted": "Đã Hoàn Thành Tất Cả Bài Học",
   "noLessonsYet": "Chưa có bài học nào.",
   "courseProgress": "Tiến Độ Khóa Học",
-  "lessonsCompletedLabel": "Bài học đã hoàn thành"
+  "lessonsCompletedLabel": "Bài học đã hoàn thành",
+  "nextTrack": "Lộ trình tiếp theo: ",
+  "viewNextTrack": "Xem lộ trình tiếp theo",
+  "goToCourse": "Về trang khóa học"
 }

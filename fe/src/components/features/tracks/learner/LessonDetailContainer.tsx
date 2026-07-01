@@ -160,6 +160,8 @@ export default function LessonDetailContainer() {
     [lessons, lessonId]
   );
 
+  const nextTrack = track?.nextTrack && track.nextTrack.id ? track.nextTrack : null;
+
   async function handleCompleteLesson() {
     if (!activeLesson || activeLesson.completed || !track) return;
 
@@ -186,9 +188,15 @@ export default function LessonDetailContainer() {
     }
   }
 
-  function handleSelectLesson(nextLessonId: string) {
-    if (!courseId || !nextLessonId) return;
-    router.push(`/${routeBase}/${courseId}/lessons/${nextLessonId}`);
+  function handleSelectLesson(targetLessonId: string) {
+    if (!targetLessonId) return;
+    if (targetLessonId.startsWith('track:')) {
+      const targetTrackId = targetLessonId.replace('track:', '');
+      router.push(`/${routeBase}/${targetTrackId}`);
+      return;
+    }
+    if (!courseId) return;
+    router.push(`/${routeBase}/${courseId}/lessons/${targetLessonId}`);
   }
 
   function handleOpenExercise(exerciseId: string) {
@@ -228,7 +236,7 @@ export default function LessonDetailContainer() {
       lessons={lessons}
       activeLesson={activeLesson}
       previousLessonId={previousLessonId}
-      nextLessonId={nextLessonId}
+      nextLessonId={nextLessonId ?? (nextTrack ? 'track:' + nextTrack.id : null)}
       exercises={exercises}
       completing={completing}
       completionMessage={completionMessage}

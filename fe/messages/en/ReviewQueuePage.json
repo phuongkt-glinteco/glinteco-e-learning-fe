@@ -38,5 +38,14 @@
   "errorApproving": "Failed to approve submission.",
   "errorRequestingChanges": "Failed to request changes.",
   "retry": "Retry",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "rejected": "Rejected",
+  "unknown": "Unknown",
+  "optional": "Optional",
+  "loadMore": "Load More",
+  "SUBMIT_EXERCISE_FAILED": "Failed to review submission.",
+  "NOT_FOUND": "Submission not found.",
+  "FORBIDDEN": "You do not have permission to perform this action.",
+  "UNAUTHORIZED": "Please log in to continue.",
+  "INTERNAL_SERVER_ERROR": "An internal server error occurred."
 }

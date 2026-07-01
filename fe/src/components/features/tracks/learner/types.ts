@@ -19,6 +19,7 @@ export interface LearnerTrack {
   currentLessonId: string | null;
   level: string;
   thumbnail: string | null;
+  nextTrack?: { id?: string; title?: string } | null;
 }
 
 export interface LearnerLesson {

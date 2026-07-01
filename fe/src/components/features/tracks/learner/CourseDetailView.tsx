@@ -9,6 +9,7 @@ interface CourseDetailViewProps {
   track: LearnerTrack;
   lessons: TrackLessonPreview[];
   continueLessonId: string | null;
+  nextTrack?: { id?: string; title?: string } | null;
   from?: string | null;
   routeBase?: string;
   onBackToTracks: () => void;
@@ -20,6 +21,7 @@ export function CourseDetailView({
   track,
   lessons,
   continueLessonId,
+  nextTrack,
   from,
   routeBase = 'tracks',
   onBackToTracks,
@@ -99,15 +101,19 @@ export function CourseDetailView({
                 <button
                   type="button"
                   onClick={onContinueCourse}
-                  disabled={isLocked || !continueLessonId}
+                  disabled={isLocked || (!continueLessonId && !nextTrack)}
                   className={`mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 label-sm transition-colors ${
-                    isLocked || !continueLessonId
+                    isLocked || (!continueLessonId && !nextTrack)
                       ? 'cursor-not-allowed bg-surface-container text-outline'
                       : 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
                   }`}
                 >
-                  {continueLessonId ? t('continueCourse', { defaultValue: 'Continue Course' }) : t('allLessonsCompleted', { defaultValue: 'All Lessons Completed' })}
-                  {continueLessonId && (
+                  {continueLessonId
+                    ? t('continueCourse', { defaultValue: 'Continue Course' })
+                    : nextTrack
+                      ? `${t('nextTrack', { defaultValue: 'Next Track: ' })} ${nextTrack.title || ''}`.trim()
+                      : t('allLessonsCompleted', { defaultValue: 'All Lessons Completed' })}
+                  {(continueLessonId || nextTrack) && (
                     <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   )}
                 </button>

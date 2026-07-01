@@ -51,5 +51,7 @@
   "lessonDocumentCreateFailed": "Không thể tạo tài liệu.",
   "FORBIDDEN": "Bạn không có quyền thực hiện hành động này.",
   "NOT_FOUND": "Không tìm thấy tài nguyên yêu cầu.",
-  "UNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+  "UNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+  "viewNextTrack": "Xem lộ trình tiếp theo",
+  "nextTrack": "Lộ trình tiếp theo: "
 }

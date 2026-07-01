@@ -89,11 +89,11 @@ export function MyCourseCard({ track, onOpen }: MyCourseCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="p-5 pt-0 mt-auto">
+      <CardFooter className="mt-auto flex min-h-16 items-center justify-center px-5 py-4">
         <Button
           variant={isCompleted ? 'outline' : 'default'}
           onClick={() => onOpen(track.id, track.currentLessonId)}
-          className="w-full gap-1.5"
+          className="h-10 w-full justify-center gap-1.5"
         >
           {isCompleted ? t('review') : t('continue')}
           <span className="material-symbols-outlined text-[16px]">arrow_forward</span>

@@ -102,7 +102,7 @@ export default function ContinueLearningSection() {
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         </Button>
       </SectionHead>
-      <Card className="border-primary/50 shadow-md bg-gradient-to-r from-primary/5 to-transparent relative overflow-hidden">
+      <Card className="relative overflow-hidden border-primary/50 bg-gradient-to-r from-primary/5 to-transparent shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:from-primary/10 hover:to-primary/5 hover:shadow-lg">
         <CardContent className="p-6 flex flex-col lg:flex-row gap-6 lg:items-center relative z-10">
           <div className="w-16 h-16 bg-primary/20 rounded-xl flex shrink-0 items-center justify-center text-primary border border-primary/30">
             <span className="material-symbols-outlined text-[32px]">{icon}</span>

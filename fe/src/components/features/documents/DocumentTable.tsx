@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { DocumentResponseDto } from '@/services/api-client';
 import { BookmarkButton } from './BookmarkButton';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/default/badge';
@@ -9,9 +8,15 @@ import { Button } from '@/components/ui/default/button';
 import { Edit2Icon, Trash2Icon } from 'lucide-react';
 import { toTitleCase } from '@/lib/utils';
 import { DataTable, type ColumnDef } from '@/components/ui/data-display/DataTable';
+import { EmptyState } from '@/components/ui/fallback/EmptyState';
+import type { DocumentListItem } from './types';
 
 interface DocumentTableProps {
-  documents: DocumentResponseDto[];
+  documents: DocumentListItem[];
+  emptyTitle: string;
+  emptyDescription: string;
+  emptyActionLabel?: string;
+  onEmptyAction?: () => void;
   onBookmarkToggle: (id: string, bookmarked: boolean) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -25,10 +30,19 @@ const KIND_STYLES: Record<string, { bg: string; text: string }> = {
   Link: { bg: 'bg-gray-100', text: 'text-gray-600' },
 };
 
-export function DocumentTable({ documents, onBookmarkToggle, onEdit, onDelete }: DocumentTableProps) {
+export function DocumentTable({
+  documents,
+  emptyTitle,
+  emptyDescription,
+  emptyActionLabel,
+  onEmptyAction,
+  onBookmarkToggle,
+  onEdit,
+  onDelete,
+}: DocumentTableProps) {
   const t = useTranslations('DocumentsPage');
 
-  const columns: ColumnDef<DocumentResponseDto>[] = [
+  const columns: ColumnDef<DocumentListItem>[] = [
     {
       key: 'bookmark',
       headerClassName: 'w-12',
@@ -56,7 +70,7 @@ export function DocumentTable({ documents, onBookmarkToggle, onEdit, onDelete }:
       headerClassName: 'font-caption-bold text-on-surface-variant uppercase tracking-wider',
       header: t('urlLabel'),
       cell: (doc) => {
-        const urlRaw = doc.url as unknown as string;
+        const urlRaw = doc.url;
         return urlRaw ? (
           <a
             className="flex items-center gap-2 text-primary hover:underline font-label-sm"
@@ -142,7 +156,14 @@ export function DocumentTable({ documents, onBookmarkToggle, onEdit, onDelete }:
     <DataTable
       data={documents}
       columns={columns}
-      emptyMessage={<span className="font-label-md text-on-surface-variant">{t('noDocuments')}</span>}
+      emptyMessage={(
+        <EmptyState
+          title={emptyTitle}
+          description={emptyDescription}
+          actionLabel={emptyActionLabel}
+          onAction={onEmptyAction}
+        />
+      )}
       rowKey={(doc) => doc.id}
     />
   );

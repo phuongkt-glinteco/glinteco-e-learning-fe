@@ -2,40 +2,53 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import type { DocumentResponseDto } from '@/services/api-client';
 import { DocumentGrid } from './DocumentGrid';
 import { DocumentTable } from './DocumentTable';
 import { Loader2 } from 'lucide-react';
+import type { DocumentListItem } from './types';
 
 interface DocumentsViewProps {
-  documents: DocumentResponseDto[];
+  documents: DocumentListItem[];
   isAdmin: boolean;
   loading: boolean;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
   onBookmarkToggle: (id: string, bookmarked: boolean) => void;
   onDelete: (id: string) => void;
 }
 
-export function DocumentsView({ documents, isAdmin, loading, onBookmarkToggle, onDelete }: DocumentsViewProps) {
+export function DocumentsView({
+  documents,
+  isAdmin,
+  loading,
+  hasActiveFilters,
+  onClearFilters,
+  onBookmarkToggle,
+  onDelete,
+}: DocumentsViewProps) {
   const t = useTranslations('DocumentsPage');
   const router = useRouter();
-
-  // if (documents.length === 0 && !loading) {
-  //   return (
-  //     <div className="py-20 text-center">
-  //       <p className="text-on-surface-variant font-label-md">{t('noDocuments')}</p>
-  //     </div>
-  //   );
-  // }
 
   const content = isAdmin ? (
     <DocumentTable
       documents={documents}
+      emptyTitle={hasActiveFilters ? t('emptySearchTitle') : t('emptyDataTitle')}
+      emptyDescription={hasActiveFilters ? t('emptySearchDescription') : t('emptyDataDescription')}
+      emptyActionLabel={hasActiveFilters ? t('clearFilters') : undefined}
+      onEmptyAction={hasActiveFilters ? onClearFilters : undefined}
       onBookmarkToggle={onBookmarkToggle}
       onEdit={(id) => router.push(`/admin/documents/${id}/edit`)}
       onDelete={onDelete}
     />
   ) : (
-    <DocumentGrid documents={documents} onBookmarkToggle={onBookmarkToggle} />
+    <DocumentGrid
+      documents={documents}
+      emptyTitle={hasActiveFilters ? t('emptySearchTitle') : t('emptyDataTitle')}
+      emptyDescription={hasActiveFilters ? t('emptySearchDescription') : t('emptyDataDescription')}
+      emptyActionLabel={hasActiveFilters ? t('clearFilters') : undefined}
+      onEmptyAction={hasActiveFilters ? onClearFilters : undefined}
+      onBookmarkToggle={onBookmarkToggle}
+    />
   );
 
   if (loading) {

@@ -11,7 +11,7 @@ export interface DataGridProps<T> {
 export function DataGrid<T>({ data, renderItem, emptyMessage = 'No data found.', className }: DataGridProps<T>) {
   if (data.length === 0) {
     return (
-      <div className="py-20 text-center text-muted-foreground border rounded-xl border-dashed">
+      <div className="text-center text-muted-foreground">
         {emptyMessage}
       </div>
     );

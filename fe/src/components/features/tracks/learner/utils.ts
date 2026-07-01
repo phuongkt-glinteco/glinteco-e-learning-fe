@@ -533,7 +533,7 @@ export function normalizeSubmissionState(
       (submission as SubmissionDetailContract | undefined)?.reviewedAt,
       ['date', 'at', 'reviewedAt']
     ),
-    canSubmit: !prUrl && status === 'in_progress',
+    canSubmit: !prUrl && (status === 'pending' || status === 'in_progress'),
     canResubmit: status === 'changes' || status === 'rejected',
   };
 }

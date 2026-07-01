@@ -1,10 +1,5 @@
-import LoadingPage from '@/components/ui/loading/LoadingPage';
+import { RouteLoadingState } from '@/components/ui/fallback/RouteLoadingState';
 
-
-export default function AdminDashboardLoading() {
-  return (
-    <div className="flex flex-col justify-center items-center h-full w-full">
-    <LoadingPage/>
-    </div>
-  );
+export default function Loading() {
+  return <RouteLoadingState variant="dashboard" />;
 }

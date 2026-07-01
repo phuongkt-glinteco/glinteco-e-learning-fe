@@ -6,7 +6,14 @@ import {
   documentsControllerFindAllTags,
   documentsControllerDelete,
 } from '@/services/api-client';
-import type { DocumentResponseDto, TagResponseDto, DocumentListResponseDto } from '@/services/api-client';
+import type { DocumentListResponseDto } from '@/services/api-client';
+import {
+  normalizeDocumentListItems,
+  normalizeDocumentTags,
+  type DocumentKind,
+  type DocumentListItem,
+  type DocumentTag,
+} from './types';
 
 interface UseDocumentsOptions {
   search: string;
@@ -16,8 +23,8 @@ interface UseDocumentsOptions {
 }
 
 export function useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly }: UseDocumentsOptions) {
-  const [documents, setDocuments] = useState<DocumentResponseDto[]>([]);
-  const [tags, setTags] = useState<TagResponseDto[]>([]);
+  const [documents, setDocuments] = useState<DocumentListItem[]>([]);
+  const [tags, setTags] = useState<DocumentTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -35,14 +42,15 @@ export function useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly
           cursor: cursor || undefined,
           limit: 20,
           q: search || undefined,
-          kind: (selectedKind as DocumentResponseDto['kind']) || undefined,
+          kind: (selectedKind as DocumentKind) || undefined,
           tags: selectedTag || undefined,
           bookmarked: bookmarkedOnly || undefined,
         } as never,
         throwOnError: true,
       });
       const data = res.data as DocumentListResponseDto;
-      setDocuments((prev) => (append ? [...prev, ...(data.data || [])] : (data.data || [])));
+      const normalizedDocuments = normalizeDocumentListItems(data);
+      setDocuments((prev) => (append ? [...prev, ...normalizedDocuments] : normalizedDocuments));
       setHasMore(data.hasMore);
       setNextCursor(data.nextCursor as unknown as string | null);
     } catch {
@@ -60,7 +68,7 @@ export function useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly
 
   useEffect(() => {
     documentsControllerFindAllTags({ throwOnError: true })
-      .then((res) => setTags((res.data as TagResponseDto[] | undefined) ?? []))
+      .then((res) => setTags(normalizeDocumentTags(res.data)))
       .catch(() => setTags([]));
   }, []);
 

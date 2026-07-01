@@ -26,7 +26,8 @@ import {
 
 export default async function LandingPageContainer() {
   const t = await getTranslations('LandingPage');
-  const primaryCta = { label: t('cta.primary'), href: '/login' };
+  const authenticatedEntryHref = '/dashboard';
+  const primaryCta = { label: t('cta.primary'), href: authenticatedEntryHref };
   const secondaryCta = { label: t('cta.secondary'), href: '#product' };
 
   const navLinks: LandingNavLink[] = landingNavLinkItems.map((link) => ({
@@ -130,7 +131,7 @@ export default async function LandingPageContainer() {
       <LandingHeader
         brandName={t('brandName')}
         navLinks={navLinks}
-        signInCta={{ label: t('header.signIn'), href: '/login' }}
+        signInCta={{ label: t('header.signIn'), href: authenticatedEntryHref }}
         primaryCta={landingHero.primaryCta}
         navigationLabel={t('nav.ariaLabel')}
         mobileNavigationLabel={t('nav.mobileAriaLabel')}

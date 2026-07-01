@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
 import { useDocuments } from './useDocuments';
@@ -8,7 +8,7 @@ import { DocumentsFilters } from './DocumentsFilters';
 import { DocumentsView } from './DocumentsView';
 import { DocumentsPagination } from './DocumentsPagination';
 import Modal from '@/components/ui/Modal';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/default/button';
 import { Loader2, PlusIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/default/tabs';
@@ -19,20 +19,46 @@ export default function DocumentsContainer() {
   const { user, loading: authLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const [search, setSearch] = useState('');
+  const search = useMemo(
+    () => searchParams.get('q') ?? searchParams.get('search') ?? '',
+    [searchParams],
+  );
   const [selectedKind, setSelectedKind] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const hasActiveFilters = Boolean(search || selectedKind || selectedTag || bookmarkedOnly);
 
+  const replaceSearchQuery = useCallback(
+    (nextSearch: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const normalizedSearch = nextSearch.trim();
+
+      params.delete('search');
+      if (normalizedSearch) {
+        params.set('q', normalizedSearch);
+      } else {
+        params.delete('q');
+      }
+
+      const currentQuery = searchParams.toString();
+      const nextQuery = params.toString();
+      if (nextQuery === currentQuery) return;
+
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
   function handleClearFilters() {
-    setSearch('');
+    replaceSearchQuery('');
     setSelectedKind('');
     setSelectedTag('');
     setBookmarkedOnly(false);
@@ -99,7 +125,7 @@ export default function DocumentsContainer() {
 
       <DocumentsFilters
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={replaceSearchQuery}
         selectedKind={selectedKind}
         onKindChange={setSelectedKind}
         selectedTag={selectedTag}

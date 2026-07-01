@@ -1,6 +1,7 @@
 import type { TrackLessonPreview } from './types';
 import { Badge } from '@/components/ui/default/badge';
 import { Button } from '@/components/ui/default/button';
+import { useTranslations } from 'next-intl';
 
 interface CourseRoadmapProps {
   lessons: TrackLessonPreview[];
@@ -21,12 +22,14 @@ export function CourseRoadmap({
   disabled,
   onOpenLesson,
 }: CourseRoadmapProps) {
+  const t = useTranslations('CourseRoadmap');
+
   if (lessons.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-8 text-center shadow-sm">
-        <h2 className="headline-sm text-on-surface">No lessons yet</h2>
+        <h2 className="headline-sm text-on-surface">{t('noLessonsTitle', { defaultValue: 'No lessons yet' })}</h2>
         <p className="mt-2 body-sm text-on-surface-variant">
-          This course does not have published lessons yet.
+          {t('noLessons', { defaultValue: 'This course does not have published lessons yet.' })}
         </p>
       </div>
     );
@@ -37,14 +40,14 @@ export function CourseRoadmap({
       <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
         <div>
           <h2 className="font-headline-md text-headline-md text-primary">
-            Course Roadmap
+            {t('title', { defaultValue: 'Course Roadmap' })}
           </h2>
           <p className="mt-1 text-sm text-on-surface-variant">
-            Follow the lessons in order and continue from your current step.
+            {t('subtitle', { defaultValue: 'Follow the lessons in order and continue from your current step.' })}
           </p>
         </div>
         <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-semibold">
-          {lessons.length} {lessons.length === 1 ? 'Lesson' : 'Lessons'}
+          {lessons.length} {lessons.length === 1 ? t('lesson', { defaultValue: 'Lesson' }) : t('lessons', { defaultValue: 'Lessons' })}
         </Badge>
       </div>
 
@@ -95,7 +98,7 @@ export function CourseRoadmap({
                       </Badge>
                       {isCurrent && (
                         <Badge variant="secondary" className="bg-primary/10 text-primary px-2 py-1 uppercase text-[10px] tracking-wider shrink-0 border-none">
-                          Up Next
+                          {t('upNext', { defaultValue: 'Up Next' })}
                         </Badge>
                       )}
                     </div>
@@ -123,7 +126,7 @@ export function CourseRoadmap({
                       variant={isCurrent ? 'default' : 'outline'}
                       className={`flex items-center gap-1.5 h-9 px-4 ${isCurrent ? 'shadow-md' : ''}`}
                     >
-                      {isCompleted ? 'Review' : isCurrent ? 'Continue' : 'Locked'}
+                      {isCompleted ? t('review', { defaultValue: 'Review' }) : isCurrent ? t('continue', { defaultValue: 'Continue' }) : t('locked', { defaultValue: 'Locked' })}
                       <span className="material-symbols-outlined text-[16px]">
                         {isCompleted || isCurrent ? 'arrow_forward' : 'lock'}
                       </span>

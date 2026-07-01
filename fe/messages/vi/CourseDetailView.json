@@ -1,5 +1,17 @@
 {
   "dashboard": "Bảng Điều Khiển",
   "myCourses": "Khóa Học Của Tôi",
-  "learningTracks": "Lộ Trình Học Tập"
+  "learningTracks": "Lộ Trình Học Tập",
+  "courseLocked": "Khóa học bị khóa",
+  "learningTrack": "Lộ trình học",
+  "lessons": "bài học",
+  "completed": "đã hoàn thành",
+  "completedLabel": "Hoàn thành",
+  "nextStep": "Bước Tiếp Theo",
+  "nextStepDesc": "Tiếp tục bài học tiếp theo cần bạn hoàn thành.",
+  "continueCourse": "Tiếp Tục Khóa Học",
+  "allLessonsCompleted": "Đã Hoàn Thành Tất Cả Bài Học",
+  "noLessonsYet": "Chưa có bài học nào.",
+  "courseProgress": "Tiến Độ Khóa Học",
+  "lessonsCompletedLabel": "Bài học đã hoàn thành"
 }

@@ -45,7 +45,7 @@ export function CourseDetailView({
               <span className="material-symbols-outlined text-[17px]">
                 {track.icon || 'route'}
               </span>
-              {isLocked ? 'Course locked' : 'Learning Track'}
+              {isLocked ? t('courseLocked', { defaultValue: 'Course locked' }) : t('learningTrack', { defaultValue: 'Learning Track' })}
             </div>
             <h1 className="headline-lg break-words text-primary">{track.title}</h1>
             <p className="mt-3 max-w-[760px] min-w-0 break-words body-md text-on-surface-variant">
@@ -59,11 +59,11 @@ export function CourseDetailView({
               </span>
               <span className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-2">
                 <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                {track.lessonCount} lessons
+                {track.lessonCount} {t('lessons', { defaultValue: 'lessons' })}
               </span>
               <span className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-2">
                 <span className="material-symbols-outlined text-[16px]">task_alt</span>
-                {track.lessonsCompleted} completed
+                {track.lessonsCompleted} {t('completed', { defaultValue: 'completed' })}
               </span>
             </div>
 
@@ -75,7 +75,7 @@ export function CourseDetailView({
           </div>
 
           <div className="flex items-center justify-center">
-            <CircleMeter value={progressPercent} size={168} label="Completed" />
+            <CircleMeter value={progressPercent} size={168} label={t('completedLabel', { defaultValue: 'Completed' })} />
           </div>
         </div>
       </header>
@@ -90,11 +90,11 @@ export function CourseDetailView({
 
         <aside className="flex flex-col gap-4">
           <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
-            <h2 className="headline-sm text-on-surface">Next Step</h2>
+            <h2 className="headline-sm text-on-surface">{t('nextStep', { defaultValue: 'Next Step' })}</h2>
             {lessons.length > 0 ? (
               <>
                 <p className="mt-2 body-sm text-on-surface-variant">
-                  Continue to the next lesson that needs your attention.
+                  {t('nextStepDesc', { defaultValue: 'Continue to the next lesson that needs your attention.' })}
                 </p>
                 <button
                   type="button"
@@ -106,22 +106,22 @@ export function CourseDetailView({
                       : 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
                   }`}
                 >
-                  {continueLessonId ? 'Continue Course' : 'All Lessons Completed'}
+                  {continueLessonId ? t('continueCourse', { defaultValue: 'Continue Course' }) : t('allLessonsCompleted', { defaultValue: 'All Lessons Completed' })}
                   {continueLessonId && (
                     <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   )}
                 </button>
               </>
             ) : (
-              <p className="mt-2 body-sm text-on-surface-variant">No lessons yet.</p>
+              <p className="mt-2 body-sm text-on-surface-variant">{t('noLessonsYet', { defaultValue: 'No lessons yet.' })}</p>
             )}
           </section>
 
           <section className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
-            <h2 className="headline-sm text-on-surface">Course Progress</h2>
+            <h2 className="headline-sm text-on-surface">{t('courseProgress', { defaultValue: 'Course Progress' })}</h2>
             <div className="mt-4 space-y-3">
               <div className="flex items-center justify-between label-sm text-on-surface-variant">
-                <span>Lessons completed</span>
+                <span>{t('lessonsCompletedLabel', { defaultValue: 'Lessons completed' })}</span>
                 <span className="text-on-surface">
                   {track.lessonsCompleted}/{track.lessonCount}
                 </span>

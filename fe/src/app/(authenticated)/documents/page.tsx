@@ -13,8 +13,7 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     setTree([{ label: t('title', { defaultValue: 'Documents' }), href: '/documents' }]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, setTree]);
+  }, [setTree]);
 
   return (
     <PageContainer scrollable>

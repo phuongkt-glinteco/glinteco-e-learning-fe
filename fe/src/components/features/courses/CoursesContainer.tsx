@@ -63,7 +63,7 @@ export default function CoursesContainer() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<CourseFilterState>(DEFAULT_FILTER);
   const { setTree } = useBreadcrumbStore();
-  const t = useTranslations();
+  const t = useTranslations('CoursesPage');
 
   const loadCourses = useCallback(async () => {
     setLoading(true);
@@ -84,8 +84,7 @@ export default function CoursesContainer() {
 
   useEffect(() => {
     setTree([{ label: t('courses', { defaultValue: 'Courses' }), href: '/courses' }]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, setTree]);
+  }, [setTree]);
 
   const filtered = useMemo(() => filterCourses(tracks, filter), [tracks, filter]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));

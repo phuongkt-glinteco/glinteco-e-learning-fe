@@ -5,5 +5,8 @@
   "notAvailableTitle": "Course not available",
   "notFoundMessage": "Track was not found.",
   "backToTracks": "Back to tracks",
-  "retry": "Retry"
+  "retry": "Retry",
+  "dashboard": "Dashboard",
+  "myCourses": "My Courses",
+  "learningTracks": "Learning Tracks"
 }

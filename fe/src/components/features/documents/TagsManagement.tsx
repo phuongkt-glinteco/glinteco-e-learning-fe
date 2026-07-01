@@ -113,7 +113,7 @@ export function TagsManagement({ onTagsUpdated }: TagsManagementProps) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     fetchTags();

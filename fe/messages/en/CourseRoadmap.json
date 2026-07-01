@@ -4,5 +4,10 @@
   "lessons": "Lessons",
   "noLessons": "No lessons added to this track yet.",
   "upNext": "Up Next",
-  "resources": "Resources"
+  "resources": "Resources",
+  "subtitle": "Follow the lessons in order and continue from your current step.",
+  "noLessonsTitle": "No lessons yet",
+  "review": "Review",
+  "continue": "Continue",
+  "locked": "Locked"
 }

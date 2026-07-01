@@ -74,8 +74,7 @@ export default function MyExercisesContainer() {
 
   useEffect(() => {
     setTree([{ label: t('title', { defaultValue: 'Exercises' }), href: '/exercises' }]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, setTree]);
+  }, [setTree]);
 
   function handleOpenExercise(exercise: LearnerExerciseFeedItem) {
     if (exercise.trackId && exercise.lessonId) {

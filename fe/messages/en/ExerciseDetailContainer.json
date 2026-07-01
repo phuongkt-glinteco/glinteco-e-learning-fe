@@ -8,5 +8,6 @@
   "notFoundMessage": "This exercise does not exist in the selected lesson.",
   "backToExercises": "Back to Exercises",
   "backToLesson": "Back to Lesson",
-  "retry": "Retry"
+  "retry": "Retry",
+  "tracks": "Learning Tracks"
 }

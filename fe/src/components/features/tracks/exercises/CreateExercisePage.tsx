@@ -102,7 +102,7 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
       ]);
     }
     pushNode({ label: isEditMode ? t('breadcrumbEdit', { defaultValue: 'Edit' }) : t('breadcrumbCreate', { defaultValue: 'Create' }), href: window.location.pathname });
-  }, [isEditMode, trackId, t, setTree, pushNode, tree.length]);
+  }, [isEditMode, trackId, setTree, pushNode, tree.length]);
 
   async function onSubmit(data: CreateExerciseFormInput) {
     setSaving(true);

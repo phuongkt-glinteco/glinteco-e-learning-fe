@@ -147,8 +147,7 @@ export default function CourseDetailContainer() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, searchParams, t, setTree, pushNode, tree.length]);
+  }, [courseId, searchParams, setTree, pushNode, tree.length]);
 
   useEffect(() => {
     loadCourseDetail();

@@ -107,8 +107,8 @@ export default function AdminTracksContainer() {
       setLoadError(err instanceof Error ? err.message : t('loadError'));
     } finally {
       setLoading(false);
-    }
-  }, [t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     loadTracks(pagination.page, pagination.limit);

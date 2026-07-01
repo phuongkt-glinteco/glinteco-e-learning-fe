@@ -98,7 +98,8 @@ export default function TrackReorderPage({ initialTracks }: TrackReorderPageProp
     } catch {
       setSubmitError(t('applyError'));
     }
-  }, [apply, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apply]);
 
   const handleBrowseReorder = useCallback(
     (ordered: TrackSummaryDto[]) => {

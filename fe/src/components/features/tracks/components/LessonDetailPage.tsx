@@ -61,15 +61,14 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
       }
       pushNode({ label: lesson.title, href: window.location.pathname });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lesson?.id, trackId, t, setTree, pushNode, tree.length]);
+  }, [lesson?.id, trackId, setTree, pushNode, tree.length]);
 
   const handleAddDocuments = useCallback(async (docIds: string[]) => {
     if (!lesson || docIds.length === 0) return;
     setAddingDoc(true);
     setDocError(t('lessonDocumentLinkUnsupported'));
     setAddingDoc(false);
-  }, [lesson, t]);
+  }, [lesson]);
 
   const handleCreateDocument = useCallback(async () => {
     setAddingDoc(true);
@@ -95,7 +94,7 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
     } finally {
       setAddingDoc(false);
     }
-  }, [handleAddDocuments, t]);
+  }, [handleAddDocuments]);
 
   if (loading) {
     return (

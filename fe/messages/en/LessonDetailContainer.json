@@ -7,5 +7,6 @@
   "notFoundTitle": "Lesson not found",
   "notFoundMessage": "This lesson does not exist in the selected track.",
   "backToTracks": "Back to tracks",
-  "retry": "Retry"
+  "retry": "Retry",
+  "tracks": "Learning Tracks"
 }

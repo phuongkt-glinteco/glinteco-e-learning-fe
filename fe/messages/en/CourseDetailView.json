@@ -1,5 +1,17 @@
 {
   "dashboard": "Dashboard",
   "myCourses": "My Courses",
-  "learningTracks": "Learning Tracks"
+  "learningTracks": "Learning Tracks",
+  "courseLocked": "Course locked",
+  "learningTrack": "Learning Track",
+  "lessons": "lessons",
+  "completed": "completed",
+  "completedLabel": "Completed",
+  "nextStep": "Next Step",
+  "nextStepDesc": "Continue to the next lesson that needs your attention.",
+  "continueCourse": "Continue Course",
+  "allLessonsCompleted": "All Lessons Completed",
+  "noLessonsYet": "No lessons yet.",
+  "courseProgress": "Course Progress",
+  "lessonsCompletedLabel": "Lessons completed"
 }

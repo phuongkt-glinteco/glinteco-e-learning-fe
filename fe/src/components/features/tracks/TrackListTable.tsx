@@ -99,8 +99,7 @@ export default function TrackListTable() {
 
   useEffect(() => {
     setTree([{ label: t('title', { defaultValue: 'Tracks' }), href: '/admin/tracks' }]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, setTree]);
+  }, [setTree]);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);

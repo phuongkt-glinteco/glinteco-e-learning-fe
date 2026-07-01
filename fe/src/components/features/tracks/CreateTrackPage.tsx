@@ -31,7 +31,7 @@ export default function CreateTrackPage() {
       setTree([{ label: t('breadcrumbTracks', { defaultValue: 'Tracks' }), href: '/admin/tracks' }]);
     }
     pushNode({ label: t('title', { defaultValue: 'Create Track' }), href: window.location.pathname });
-  }, [t, setTree, pushNode, tree.length]);
+  }, [setTree, pushNode, tree.length]);
 
   async function handleSave() {
     if (!title.trim()) return;

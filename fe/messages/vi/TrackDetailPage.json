@@ -3,6 +3,7 @@
   "failedToLoad": "Không thể tải thông tin lộ trình",
   "retry": "Thử lại",
   "breadcrumbTracks": "Lộ Trình",
+  "breadcrumbDetail": "Chi Tiết",
   "duration": "{time}",
   "noDescription": "Không có mô tả.",
   "editTrack": "Sửa Lộ Trình",

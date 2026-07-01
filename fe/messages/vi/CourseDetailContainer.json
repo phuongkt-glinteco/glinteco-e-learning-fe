@@ -5,5 +5,8 @@
   "notAvailableTitle": "Khóa học không có sẵn",
   "notFoundMessage": "Không tìm thấy track.",
   "backToTracks": "Quay lại danh sách Track",
-  "retry": "Thử lại"
+  "retry": "Thử lại",
+  "dashboard": "Bảng Điều Khiển",
+  "myCourses": "Khóa Học Của Tôi",
+  "learningTracks": "Lộ Trình Học"
 }

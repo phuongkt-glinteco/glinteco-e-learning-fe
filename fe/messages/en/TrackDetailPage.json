@@ -3,6 +3,7 @@
   "failedToLoad": "Failed to load track",
   "retry": "Retry",
   "breadcrumbTracks": "Tracks",
+  "breadcrumbDetail": "Detail",
   "duration": "{time} Duration",
   "noDescription": "No description.",
   "editTrack": "Edit Track",

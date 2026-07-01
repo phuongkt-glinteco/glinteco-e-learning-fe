@@ -4,5 +4,10 @@
   "lessons": "Bài học",
   "noLessons": "Chưa có bài học nào được thêm vào lộ trình.",
   "upNext": "Tiếp theo",
-  "resources": "Tài nguyên"
+  "resources": "Tài nguyên",
+  "subtitle": "Học theo thứ tự các bài học và tiếp tục từ bước hiện tại của bạn.",
+  "noLessonsTitle": "Chưa có bài học nào",
+  "review": "Ôn tập",
+  "continue": "Tiếp tục",
+  "locked": "Bị khóa"
 }

@@ -7,5 +7,6 @@
   "notFoundTitle": "Không tìm thấy bài học",
   "notFoundMessage": "Bài học này không tồn tại trong track đã chọn.",
   "backToTracks": "Quay lại danh sách Track",
-  "retry": "Thử lại"
+  "retry": "Thử lại",
+  "tracks": "Lộ Trình Học"
 }

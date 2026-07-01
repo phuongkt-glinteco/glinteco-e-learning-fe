@@ -167,8 +167,7 @@ export default function ExerciseDetailContainer() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, lessonId, exerciseId, isStandaloneRoute, routeBase, t, setTree, pushNode, tree.length]);
+  }, [courseId, lessonId, exerciseId, isStandaloneRoute, routeBase, setTree, pushNode, tree.length]);
 
   useEffect(() => {
     loadExercise();

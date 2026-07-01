@@ -149,8 +149,7 @@ export default function LessonDetailContainer() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseId, lessonId, routeBase, t, setTree, pushNode, tree.length]);
+  }, [courseId, lessonId, routeBase, setTree, pushNode, tree.length]);
 
   useEffect(() => {
     loadLessonData();

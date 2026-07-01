@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { defaultLocale, isLocale, type Locale } from '@/i18n/locales';
 
 interface LanguageContextType {
@@ -19,6 +20,7 @@ export function LanguageProvider({
   children,
   initialLocale,
 }: LanguageProviderProps) {
+  const router = useRouter();
   const [locale, setLocale] = useState<Locale>(
     isLocale(initialLocale) ? initialLocale : defaultLocale,
   );
@@ -26,7 +28,8 @@ export function LanguageProvider({
   const changeLanguage = useCallback((nextLocale: Locale) => {
     document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
     setLocale(nextLocale);
-  }, []);
+    router.refresh();
+  }, [router]);
 
   return (
     <LanguageContext.Provider value={{ locale, changeLanguage }}>

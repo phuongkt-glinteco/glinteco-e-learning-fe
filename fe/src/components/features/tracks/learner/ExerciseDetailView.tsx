@@ -515,7 +515,7 @@ export function ExerciseDetailView({
           <aside className="flex min-w-0 flex-col gap-6">
             <section className="rounded-lg border border-outline-variant bg-surface p-5 text-center shadow-sm">
               <span className={`rounded-full border px-3 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
-                Status: {getStatusLabel(submission.status)}
+                Status: {getStatusLabel(submission.status, t)}
               </span>
               <h2 className="headline-sm mt-4 text-on-surface">{startCardTitle}</h2>
               <p className="body-sm mt-2 text-on-surface-variant">{startCardCopy}</p>

@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import NotificationIcon from './NotificationIcon';
 import UserProfileAvatar from './UserProfileAvatar';
 import { useTranslations } from 'next-intl';
 import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { useAuth } from '@/providers/AuthProvider';
 import { SidebarTrigger } from '@/components/ui/default/sidebar';
+import { NotificationPopoverContainer } from '@/components/features/notifications/containers/NotificationPopoverContainer';
 
 export default function Header() {
   const t = useTranslations('AppShell');
@@ -47,7 +47,7 @@ export default function Header() {
         {/* Language Switcher Toggle (VI/EN) - Only on PC Header */}
         <LanguageToggle size="sm" />
 
-        <NotificationIcon />
+        <NotificationPopoverContainer />
 
         <div className="relative" ref={dropdownRef}>
           <div onClick={() => setDropdownOpen(!dropdownOpen)} className="cursor-pointer">

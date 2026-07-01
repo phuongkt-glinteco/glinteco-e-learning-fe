@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import type { TagResponseDto } from '@/services/api-client';
+import type { DocumentTag } from './types';
 import {
   Select,
   SelectContent,
@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/default/select';
-import { SearchIcon, StarIcon } from 'lucide-react';
+import { StarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/default/button';
 import { toTitleCase } from '@/lib/utils';
 import { SearchInput } from '@/components/ui/forms/SearchInput';
@@ -24,7 +24,7 @@ interface DocumentsFiltersProps {
   onTagChange: (value: string) => void;
   bookmarkedOnly: boolean;
   onBookmarkedToggle: () => void;
-  tags: TagResponseDto[];
+  tags: DocumentTag[];
 }
 
 export function DocumentsFilters({

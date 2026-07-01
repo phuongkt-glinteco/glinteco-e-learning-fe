@@ -27,6 +27,14 @@ export default function DocumentsContainer() {
   const [selectedTag, setSelectedTag] = useState('');
   const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const hasActiveFilters = Boolean(search || selectedKind || selectedTag || bookmarkedOnly);
+
+  function handleClearFilters() {
+    setSearch('');
+    setSelectedKind('');
+    setSelectedTag('');
+    setBookmarkedOnly(false);
+  }
 
   // Consistent: treat as learner while loading to avoid hydration mismatch
   // Admin header is rendered only when auth has resolved and user is confirmed admin
@@ -102,6 +110,8 @@ export default function DocumentsContainer() {
         documents={documents}
         isAdmin={isAdmin}
         loading={loading}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={handleClearFilters}
         onBookmarkToggle={handleBookmarkToggle}
         onDelete={(id) => setDeleteConfirmId(id)}
       />

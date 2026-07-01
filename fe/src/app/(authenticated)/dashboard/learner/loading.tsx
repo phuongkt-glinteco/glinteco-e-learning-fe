@@ -1,5 +1,5 @@
-import LoadingPage from '@/components/ui/loading/LoadingPage';
+import { RouteLoadingState } from '@/components/ui/fallback/RouteLoadingState';
 
 export default function Loading() {
-  return <LoadingPage />;
+  return <RouteLoadingState variant="dashboard" />;
 }

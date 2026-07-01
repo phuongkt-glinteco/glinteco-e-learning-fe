@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { DocumentResponseDto } from '@/services/api-client';
 import { BookmarkButton } from './BookmarkButton';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/default/badge';
@@ -10,9 +9,15 @@ import { ArrowRightIcon } from 'lucide-react';
 import { toTitleCase } from '@/lib/utils';
 import { DataGrid } from '@/components/ui/data-display/DataGrid';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/default/card';
+import { EmptyState } from '@/components/ui/fallback/EmptyState';
+import type { DocumentListItem } from './types';
 
 interface DocumentGridProps {
-  documents: DocumentResponseDto[];
+  documents: DocumentListItem[];
+  emptyTitle: string;
+  emptyDescription: string;
+  emptyActionLabel?: string;
+  onEmptyAction?: () => void;
   onBookmarkToggle: (id: string, bookmarked: boolean) => void;
 }
 
@@ -24,16 +29,30 @@ const KIND_STYLES: Record<string, { bg: string; text: string }> = {
   Link: { bg: 'bg-gray-100', text: 'text-gray-600' },
 };
 
-export function DocumentGrid({ documents, onBookmarkToggle }: DocumentGridProps) {
+export function DocumentGrid({
+  documents,
+  emptyTitle,
+  emptyDescription,
+  emptyActionLabel,
+  onEmptyAction,
+  onBookmarkToggle,
+}: DocumentGridProps) {
   const t = useTranslations('DocumentsPage');
 
   return (
     <DataGrid
       data={documents}
-      emptyMessage={<span className="font-label-md text-on-surface-variant">{t('noDocuments')}</span>}
+      emptyMessage={(
+        <EmptyState
+          title={emptyTitle}
+          description={emptyDescription}
+          actionLabel={emptyActionLabel}
+          onAction={onEmptyAction}
+        />
+      )}
       renderItem={(doc) => {
         const style = KIND_STYLES[doc.kind] || KIND_STYLES.Link;
-        const urlStr = doc.url as unknown as string;
+        const urlStr = doc.url;
         
         return (
           <Card className="flex flex-col h-full hover:shadow-md transition-all group relative border-outline-variant bg-surface-container-lowest">

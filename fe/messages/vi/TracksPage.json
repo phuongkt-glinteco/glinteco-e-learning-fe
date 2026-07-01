@@ -1,0 +1,38 @@
+{
+  "title": "Lộ Trình",
+  "createTrack": "Tạo Lộ Trình",
+  "reorder": "Sắp Xếp",
+  "table": {
+    "titleDescription": "Tiêu đề & Mô tả",
+    "contentStructure": "Cấu trúc nội dung",
+    "status": "Trạng thái",
+    "actions": "Thao tác",
+    "lessons": "{count} Bài học",
+    "exercises": "{count} Bài tập"
+  },
+  "filter": {
+    "allStatuses": "Tất cả trạng thái",
+    "active": "Đang hoạt động",
+    "completed": "Đã hoàn thành",
+    "locked": "Đã khóa"
+  },
+  "pagination": {
+    "showing": "Hiển thị {start} đến {end} trên tổng số {total} lộ trình",
+    "perPage": "Mỗi trang"
+  },
+  "actions": {
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa lộ trình này?",
+    "cancel": "Hủy",
+    "deleteTitle": "Xóa Lộ Trình",
+    "deleting": "Đang xóa..."
+  },
+  "retry": "Thử lại",
+  "empty": "Không tìm thấy lộ trình nào.",
+  "loading": "Đang tải lộ trình...",
+  "error": "Không thể tải danh sách lộ trình. Vui lòng thử lại.",
+  "subtitle": "Quản lý và sắp xếp các lộ trình học tập cho học viên.",
+  "deleteSuccess": "Xóa lộ trình thành công.",
+  "deleteFailed": "Xóa lộ trình thất bại."
+}

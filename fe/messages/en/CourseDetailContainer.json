@@ -1,0 +1,9 @@
+{
+  "missingRouteParam": "Missing course route parameter.",
+  "loadFailed": "Failed to load course details.",
+  "notFoundTitle": "Course not found",
+  "notAvailableTitle": "Course not available",
+  "notFoundMessage": "Track was not found.",
+  "backToTracks": "Back to tracks",
+  "retry": "Retry"
+}

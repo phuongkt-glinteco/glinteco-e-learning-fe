@@ -1,0 +1,9 @@
+{
+  "missingRouteParam": "Thiếu tham số định tuyến của khóa học.",
+  "loadFailed": "Không thể tải chi tiết khóa học.",
+  "notFoundTitle": "Không tìm thấy khóa học",
+  "notAvailableTitle": "Khóa học không có sẵn",
+  "notFoundMessage": "Không tìm thấy track.",
+  "backToTracks": "Quay lại danh sách Track",
+  "retry": "Thử lại"
+}

@@ -1,0 +1,13 @@
+{
+  "title": "Lộ trình học tập",
+  "description": "Thực hiện từng cột mốc theo thứ tự, tiếp tục các bài học hiện tại và mở khóa track tiếp theo khi bạn tiến bộ.",
+  "progressTitle": "Tiến độ lộ trình",
+  "milestonesCleared": "Đã hoàn thành {completed}/{total} cột mốc",
+  "percentComplete": "{progress}% hoàn thành",
+  "noTracksTitle": "Không tìm thấy lộ trình học tập nào",
+  "noTracksDesc": "Lộ trình học tập của bạn chưa được phát hành.",
+  "start": "Bắt đầu",
+  "startDesc": "Bắt đầu với cột mốc đầu tiên có sẵn và tiếp tục thực hiện theo trình tự track.",
+  "readyTitle": "Sẵn sàng làm việc",
+  "readyDesc": "Hoàn thành tất cả các cột mốc để kết thúc quá trình làm quen này."
+}

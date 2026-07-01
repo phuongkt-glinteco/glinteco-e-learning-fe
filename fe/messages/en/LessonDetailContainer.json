@@ -1,0 +1,11 @@
+{
+  "missingRouteParam": "Missing course or lesson route parameters.",
+  "loadFailed": "Failed to load lesson details.",
+  "lessonCompleted": "Lesson completed. +{xp} XP awarded.",
+  "completeFailed": "Failed to complete lesson.",
+  "notAvailableTitle": "Lesson not available",
+  "notFoundTitle": "Lesson not found",
+  "notFoundMessage": "This lesson does not exist in the selected track.",
+  "backToTracks": "Back to tracks",
+  "retry": "Retry"
+}

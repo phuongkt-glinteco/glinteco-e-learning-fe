@@ -3,6 +3,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Input } from '@/components/ui/forms';
 import { MarkdownRenderer } from '@/lib/md-renderer';
+import { useTranslations } from 'next-intl';
+import { PageHeader } from '@/components/ui/containers/PageHeader';
+import { Checkbox } from '@/components/ui/default/checkbox';
 import type {
   LearnerExerciseDetail,
   LearnerLesson,
@@ -34,19 +37,19 @@ function formatDateTime(value: string | null) {
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
-function getStatusLabel(status: LearnerSubmissionState['status']) {
+function getStatusLabel(status: LearnerSubmissionState['status'], t: any) {
   switch (status) {
     case 'in_progress':
-      return 'In Progress';
+      return t('statusInProgress');
     case 'approved':
-      return 'Completed';
+      return t('statusCompleted');
     case 'changes':
     case 'rejected':
-      return 'Action Required';
+      return t('actionRequired');
     case 'submitted':
-      return 'In Review';
+      return t('statusInReview');
     case 'pending':
-      return 'Not Started';
+      return t('statusNotStarted');
   }
 }
 
@@ -90,6 +93,7 @@ function InfoSection({
 
 function AcceptanceCriteriaList({ exercise }: { exercise: LearnerExerciseDetail }) {
   const [checkedItems, setCheckedItems] = useState<boolean[]>(() => exercise.steps.map(() => false));
+  const t = useTranslations('ExerciseDetailView');
 
   useEffect(() => {
     setCheckedItems(exercise.steps.map(() => false));
@@ -102,7 +106,7 @@ function AcceptanceCriteriaList({ exercise }: { exercise: LearnerExerciseDetail 
   }
 
   if (exercise.steps.length === 0) {
-    return <p className="body-sm text-on-surface-variant">Criteria are being prepared.</p>;
+    return <p className="body-sm text-on-surface-variant">{t('criteriaPrepared')}</p>;
   }
 
   return (
@@ -117,12 +121,11 @@ function AcceptanceCriteriaList({ exercise }: { exercise: LearnerExerciseDetail 
               htmlFor={inputId}
               className="flex min-w-0 cursor-pointer items-start gap-3 px-4 py-3 body-sm text-on-surface transition-colors hover:bg-primary/5"
             >
-              <input
+              <Checkbox
                 id={inputId}
-                type="checkbox"
                 checked={checked}
-                onChange={() => toggleItem(index)}
-                className="mt-0.5 h-5 w-5 shrink-0 rounded border-outline text-primary focus:ring-2 focus:ring-primary/30"
+                onCheckedChange={() => toggleItem(index)}
+                className="mt-0.5 h-5 w-5 shrink-0 border-outline"
               />
               <span className={`min-w-0 break-words ${checked ? 'text-on-surface-variant line-through' : ''}`}>
                 {step}
@@ -136,9 +139,10 @@ function AcceptanceCriteriaList({ exercise }: { exercise: LearnerExerciseDetail 
 }
 
 function ExerciseContent({ exercise }: { exercise: LearnerExerciseDetail }) {
+  const t = useTranslations('ExerciseDetailView');
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <InfoSection icon="flag" title="Learning Objectives">
+      <InfoSection icon="flag" title={t('learningObjectives')}>
         {exercise.objectives.length > 0 ? (
           <ol className="space-y-4">
             {exercise.objectives.map((objective, index) => (
@@ -151,25 +155,25 @@ function ExerciseContent({ exercise }: { exercise: LearnerExerciseDetail }) {
             ))}
           </ol>
         ) : (
-          <p className="body-sm text-on-surface-variant">Objectives are being prepared.</p>
+          <p className="body-sm text-on-surface-variant">{t('objectivesPrepared')}</p>
         )}
       </InfoSection>
 
-      <InfoSection icon="integration_instructions" title="Instructions">
+      <InfoSection icon="integration_instructions" title={t('instructions')}>
         {exercise.overview.trim() ? (
           <article className="min-w-0 break-words text-on-surface-variant">
             <MarkdownRenderer content={exercise.overview} />
           </article>
         ) : (
-          <p className="body-sm text-on-surface-variant">Exercise details are being prepared.</p>
+          <p className="body-sm text-on-surface-variant">{t('exerciseDetailsPrepared')}</p>
         )}
       </InfoSection>
 
-      <InfoSection icon="fact_check" title="Acceptance Criteria">
+      <InfoSection icon="fact_check" title={t('acceptanceCriteria')}>
         <AcceptanceCriteriaList exercise={exercise} />
       </InfoSection>
 
-      <InfoSection icon="library_books" title="Resources">
+      <InfoSection icon="library_books" title={t('resources')}>
         {exercise.resources.length > 0 ? (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {exercise.resources.map((resource) => (
@@ -195,7 +199,7 @@ function ExerciseContent({ exercise }: { exercise: LearnerExerciseDetail }) {
             ))}
           </div>
         ) : (
-          <p className="body-sm text-on-surface-variant">No linked resources for this exercise yet.</p>
+          <p className="body-sm text-on-surface-variant">{t('noResources')}</p>
         )}
       </InfoSection>
     </div>
@@ -221,8 +225,9 @@ function SubmitPanel({
   onPrUrlChange: (value: string) => void;
   onSubmit: () => void;
 }) {
-  const title = mode === 'resubmit' ? 'Resubmit Work' : 'Submit PR';
-  const buttonLabel = mode === 'resubmit' ? 'Resubmit Exercise' : 'Submit for Review';
+  const t = useTranslations('ExerciseDetailView');
+  const title = mode === 'resubmit' ? t('resubmitTitle') : t('submitTitle');
+  const buttonLabel = mode === 'resubmit' ? t('resubmitButton') : t('submitButton');
 
   return (
     <section className={`rounded-lg border border-outline-variant bg-surface p-5 shadow-sm ${disabled ? 'opacity-55' : ''}`}>
@@ -239,7 +244,7 @@ function SubmitPanel({
       >
         <Input
           id="exercise-pr-url"
-          label={mode === 'resubmit' ? 'New Pull Request URL *' : 'Pull Request URL'}
+          label={mode === 'resubmit' ? t('resubmitPrUrlLabel') : t('prUrlLabel')}
           type="url"
           value={prUrl}
           onChange={(event) => onPrUrlChange(event.target.value)}
@@ -265,7 +270,7 @@ function SubmitPanel({
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 label-sm text-on-primary transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-surface-container disabled:text-outline"
         >
           <span className="material-symbols-outlined text-[18px]">{submitting ? 'progress_activity' : 'upload'}</span>
-          {submitting ? 'Submitting...' : buttonLabel}
+          {submitting ? t('submitting') : buttonLabel}
         </button>
       </form>
     </section>
@@ -281,16 +286,17 @@ function SubmittedState({
   backLabel: string;
   onBackToLesson: () => void;
 }) {
+  const t = useTranslations('ExerciseDetailView');
   return (
     <section className="rounded-lg border border-outline-variant bg-surface p-8 text-center shadow-sm">
       <span className="material-symbols-outlined mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-tertiary-fixed/40 text-[36px] text-tertiary">
         check_circle
       </span>
-      <h2 className="headline-lg mt-6 text-on-surface">Submission Received</h2>
-      <p className="body-md mt-2 text-on-surface-variant">Waiting for mentor review</p>
+      <h2 className="headline-lg mt-6 text-on-surface">{t('submissionReceived')}</h2>
+      <p className="body-md mt-2 text-on-surface-variant">{t('waitingMentorReview')}</p>
       <div className="mx-auto mt-6 max-w-[680px] rounded-lg border border-outline-variant bg-surface-container-low p-4 text-left">
         <div className="flex justify-between gap-3 border-b border-outline-variant pb-3 label-sm text-on-surface">
-          <span>Submitted</span>
+          <span>{t('submitted')}</span>
           <span>{formatDateTime(submission.submittedAt)}</span>
         </div>
         {submission.prUrl && (
@@ -300,11 +306,6 @@ function SubmittedState({
           </a>
         )}
       </div>
-      <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <button type="button" onClick={onBackToLesson} className="rounded-lg bg-primary px-6 py-2.5 label-sm text-on-primary hover:opacity-90">
-          {backLabel}
-        </button>
-      </div>
     </section>
   );
 }
@@ -313,50 +314,39 @@ function ApprovedState({
   exercise,
   submission,
   track,
-  backLabel,
-  onBackToLesson,
 }: {
   exercise: LearnerExerciseDetail;
   submission: LearnerSubmissionState;
   track: LearnerTrack;
-  backLabel: string;
-  onBackToLesson: () => void;
 }) {
+  const t = useTranslations('ExerciseDetailView');
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <section className="rounded-lg border border-tertiary-container bg-tertiary-fixed/20 p-8 text-center shadow-sm">
         <span className="material-symbols-outlined mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-tertiary text-[44px] text-on-tertiary">
           check
         </span>
-        <h2 className="headline-lg mt-6 text-on-surface">Exercise Passed!</h2>
+        <h2 className="headline-lg mt-6 text-on-surface">{t('exercisePassed')}</h2>
         <p className="body-md mx-auto mt-3 max-w-xl text-on-surface-variant">
-          Outstanding work. Your pull request met the technical requirements.
+          {t('outstandingWork')}
         </p>
         <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-secondary-fixed bg-secondary-fixed/50 px-5 py-2 label-md text-secondary">
           <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-          XP Awarded: +{exercise.xp} XP
-        </div>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button type="button" className="rounded-lg bg-primary px-6 py-2.5 label-sm text-on-primary hover:opacity-90">
-            Next Lesson
-          </button>
-          <button type="button" onClick={onBackToLesson} className="rounded-lg border border-primary px-6 py-2.5 label-sm text-primary hover:bg-primary-fixed">
-            {backLabel}
-          </button>
+          {t('xpAwarded', { xp: exercise.xp })}
         </div>
       </section>
 
-      <InfoSection icon="mode_comment" title="Mentor Feedback">
+      <InfoSection icon="mode_comment" title={t('mentorFeedback')}>
         <p className="body-sm break-words text-on-surface-variant">
-          {submission.reviewNote ?? 'Great job. Your submission has been approved.'}
+          {submission.reviewNote ?? t('defaultFeedback')}
         </p>
       </InfoSection>
 
       {submission.prUrl && (
         <a href={submission.prUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-lg border border-outline-variant bg-surface p-5 label-md text-on-surface shadow-sm hover:border-primary/40">
-          <span className="min-w-0 truncate">Pull request approved for {track.title}</span>
+          <span className="min-w-0 truncate">{t('prApprovedFor', { trackTitle: track.title })}</span>
           <span className="inline-flex shrink-0 items-center gap-1 text-primary">
-            View PR
+            {t('viewPr')}
             <span className="material-symbols-outlined text-[16px]">open_in_new</span>
           </span>
         </a>
@@ -376,32 +366,33 @@ function StatusAside({
   exercise: LearnerExerciseDetail;
   submission: LearnerSubmissionState;
 }) {
+  const t = useTranslations('ExerciseDetailView');
   return (
     <aside className="flex min-w-0 flex-col gap-6">
       <section className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
         <div className="border-b border-outline-variant pb-3">
-          <h2 className="headline-sm text-on-surface">Status</h2>
+          <h2 className="headline-sm text-on-surface">{t('status')}</h2>
         </div>
         <div className="mt-4 space-y-3 body-sm text-on-surface-variant">
           <div className="flex items-center justify-between gap-3">
-            <span>Current State</span>
+            <span>{t('currentState')}</span>
             <span className={`rounded-full border px-2.5 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
-              {getStatusLabel(submission.status)}
+              {getStatusLabel(submission.status, t)}
             </span>
           </div>
           <div className="flex justify-between gap-3">
-            <span>Submitted</span>
+            <span>{t('submitted')}</span>
             <span className="text-right text-on-surface">{formatDateTime(submission.submittedAt)}</span>
           </div>
           <div className="flex justify-between gap-3">
-            <span>Reviewed</span>
+            <span>{t('reviewed')}</span>
             <span className="text-right text-on-surface">{formatDateTime(submission.reviewedAt)}</span>
           </div>
         </div>
       </section>
 
       <section className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
-        <h2 className="label-sm uppercase text-on-surface-variant">Context</h2>
+        <h2 className="label-sm uppercase text-on-surface-variant">{t('context')}</h2>
         <p className="mt-2 headline-sm break-words text-on-surface">{track.title}</p>
         <p className="mt-1 body-sm break-words text-on-surface-variant">{activeLesson.title}</p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -430,35 +421,42 @@ export function ExerciseDetailView({
   onStartExercise,
   onSubmit,
 }: ExerciseDetailViewProps) {
+  const t = useTranslations('ExerciseDetailView');
   const isNotStarted = submission.status === 'pending';
   const isInProgress = submission.status === 'in_progress';
   const isSubmitted = submission.status === 'submitted';
   const isChangesRequested = submission.status === 'changes' || submission.status === 'rejected';
   const isApproved = submission.status === 'approved';
-  const startCardTitle = isInProgress ? 'Exercise in progress' : 'Ready to begin?';
+  const startCardTitle = isInProgress ? t('exerciseInProgress') : t('readyToBegin');
   const startCardCopy = isInProgress
-    ? 'Your progress is saved. Submit your pull request when the work is ready for review.'
-    : 'Start the exercise to clock your time and unlock the submission form.';
+    ? t('progressSaved')
+    : t('startExerciseToClock');
 
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-8 px-gutter py-8">
       <header className="flex flex-col gap-4 border-b border-outline-variant pb-6">
-        <button
-          type="button"
-          onClick={onBackToLesson}
-          className="inline-flex w-fit items-center gap-2 label-sm text-on-surface-variant hover:text-on-surface cursor-pointer"
-        >
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          {backLabel}
-        </button>
+        <div className="flex items-center gap-1 label-sm text-on-surface-variant">
+          <button
+            type="button"
+            onClick={onBackToLesson}
+            className="hover:text-primary transition-colors cursor-pointer max-w-[200px] truncate"
+            title={backLabel}
+          >
+            {backLabel.length > 25 ? `${backLabel.slice(0, 25)}...` : backLabel}
+          </button>
+          <span className="material-symbols-outlined text-[16px] opacity-50">chevron_right</span>
+          <span className="font-medium text-on-surface max-w-[300px] truncate" title={exercise.title}>
+            {exercise.title.length > 25 ? `${exercise.title.slice(0, 25)}...` : exercise.title}
+          </span>
+        </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className={`rounded-full border px-3 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
-                {getStatusLabel(submission.status)}
+                {getStatusLabel(submission.status, t)}
               </span>
               <span className="label-sm uppercase text-on-surface-variant">
-                Module {activeLesson.order} - Exercise
+                {t('moduleExercise', { order: activeLesson.order })}
               </span>
             </div>
             <h1 className="headline-lg break-words text-on-surface">{exercise.title}</h1>
@@ -477,14 +475,14 @@ export function ExerciseDetailView({
 
       {isApproved ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <ApprovedState exercise={exercise} submission={submission} track={track} backLabel={backLabel} onBackToLesson={onBackToLesson} />
+          <ApprovedState exercise={exercise} submission={submission} track={track} />
           <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
         </div>
       ) : isSubmitted ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex flex-col gap-6">
             <SubmittedState submission={submission} backLabel={backLabel} onBackToLesson={onBackToLesson} />
-            <InfoSection icon="article" title="Exercise Instructions">
+            <InfoSection icon="article" title={t('instructions')}>
               <ExerciseContent exercise={exercise} />
             </InfoSection>
           </div>
@@ -496,17 +494,17 @@ export function ExerciseDetailView({
             <section className="rounded-lg border border-error bg-surface p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3 border-b border-outline-variant pb-4">
                 <div>
-                  <h2 className="headline-sm text-on-surface">Mentor Feedback</h2>
-                  <p className="body-sm mt-1 text-on-surface-variant">Update your PR based on this feedback.</p>
+                  <h2 className="headline-sm text-on-surface">{t('mentorFeedback')}</h2>
+                  <p className="body-sm mt-1 text-on-surface-variant">{t('mentorFeedbackUpdate')}</p>
                 </div>
-                <span className="rounded-md bg-error-container px-2.5 py-1 label-sm text-on-error-container">Action Required</span>
+                <span className="rounded-md bg-error-container px-2.5 py-1 label-sm text-on-error-container">{t('actionRequired')}</span>
               </div>
               <p className="body-md mt-4 break-words text-on-surface">
-                {submission.reviewNote ?? 'Please address the requested changes and resubmit your work.'}
+                {submission.reviewNote ?? t('pleaseAddressChanges')}
               </p>
               {submission.prUrl && (
                 <div className="mt-5 rounded-lg border border-outline-variant bg-surface-container-low p-3 label-sm text-on-surface-variant">
-                  Previous Submission:{' '}
+                  {t('previousSubmission')}{' '}
                   <a href={submission.prUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">
                     {submission.prUrl}
                   </a>
@@ -551,7 +549,7 @@ export function ExerciseDetailView({
                 className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 label-sm text-on-primary hover:opacity-90 disabled:cursor-not-allowed disabled:bg-surface-container disabled:text-outline"
               >
                 <span className="material-symbols-outlined text-[18px]">play_arrow</span>
-                {isInProgress ? 'Exercise Started' : 'Start Exercise'}
+                {isInProgress ? t('exerciseStarted') : t('startExercise')}
               </button>
             </section>
             <SubmitPanel

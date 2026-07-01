@@ -3,6 +3,7 @@ import { useTranslations } from 'next-intl';
 import type { LearnerTrack } from '@/components/features/tracks/learner/types';
 import { MyCourseCard } from './MyCourseCard';
 import type { MyCourseTab } from './types';
+import { Button } from '@/components/ui/default/button';
 
 interface MyCoursesViewProps {
   tracks: LearnerTrack[];
@@ -34,20 +35,19 @@ export function MyCoursesView({
     return (
       <div className="mx-auto max-w-container-max px-gutter py-8">
         <header className="mb-6">
-          <h1 className="headline-lg text-primary">{t('title')}</h1>
-          <p className="mt-2 body-md text-on-surface-variant">{t('subtitle')}</p>
+          <h1 className="text-[32px] font-bold text-primary">{t('title')}</h1>
+          <p className="mt-2 text-[16px] text-on-surface-variant">{t('subtitle')}</p>
         </header>
-        <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-10 text-center">
+        <div className="rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest p-10 text-center">
           <span className="material-symbols-outlined text-[40px] text-outline">school</span>
-          <h2 className="mt-2 headline-sm text-on-surface">{t('emptyTitle')}</h2>
-          <p className="mt-1 body-sm text-on-surface-variant">{t('emptyDescription')}</p>
-          <Link
-            href="/tracks"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[16px]">route</span>
-            {t('exploreTracks')}
-          </Link>
+          <h2 className="mt-2 text-[20px] font-semibold text-on-surface">{t('emptyTitle')}</h2>
+          <p className="mt-1 text-[14px] text-on-surface-variant">{t('emptyDescription')}</p>
+          <Button asChild className="mt-4 gap-2">
+            <Link href="/tracks">
+              <span className="material-symbols-outlined text-[16px]">route</span>
+              {t('exploreTracks')}
+            </Link>
+          </Button>
         </div>
       </div>
     );
@@ -58,24 +58,20 @@ export function MyCoursesView({
   return (
     <div className="mx-auto max-w-container-max px-gutter py-8">
       <header className="mb-6">
-        <h1 className="headline-lg text-primary">{t('title')}</h1>
-        <p className="mt-2 body-md text-on-surface-variant">{t('subtitle')}</p>
+        <h1 className="text-[32px] font-bold text-primary">{t('title')}</h1>
+        <p className="mt-2 text-[16px] text-on-surface-variant">{t('subtitle')}</p>
       </header>
 
-      <div className="mb-6 flex gap-2 rounded-lg border border-outline-variant/70 bg-surface-container-lowest p-2 shadow-sm w-fit">
+      <div className="mb-6 flex gap-2 rounded-xl border border-outline-variant/70 bg-surface-container-lowest p-2 shadow-sm w-fit">
         {tabs.map((tab) => {
           const active = activeTab === tab.value;
           const count = tab.value === 'in_progress' ? inProgressCount : completedCount;
           return (
-            <button
+            <Button
               key={tab.value}
-              type="button"
+              variant={active ? "default" : "ghost"}
               onClick={() => onTabChange(tab.value)}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 label-sm transition-all cursor-pointer ${
-                active
-                  ? 'bg-white text-primary shadow-sm ring-1 ring-primary/20'
-                  : 'bg-transparent text-on-surface-variant hover:bg-primary/8 hover:text-primary'
-              }`}
+              className={`rounded-full px-4 py-1.5 h-8 text-[14px] ${active ? 'bg-white text-primary shadow-sm ring-1 ring-primary/20 hover:bg-white hover:text-primary' : 'text-on-surface-variant hover:text-primary'}`}
             >
               <span className="material-symbols-outlined text-[15px]">{tab.icon}</span>
               {t(tab.labelKey)}
@@ -86,39 +82,38 @@ export function MyCoursesView({
               >
                 {count}
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>
 
       {tracks.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-10 text-center">
+        <div className="rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest p-10 text-center">
           <span className="material-symbols-outlined text-[40px] text-outline">
             {activeTab === 'in_progress' ? 'play_circle' : 'workspace_premium'}
           </span>
-          <h2 className="mt-2 headline-sm text-on-surface">
+          <h2 className="mt-2 text-[20px] font-semibold text-on-surface">
             {activeTab === 'in_progress'
               ? t('emptyInProgressTitle')
               : t('emptyCompletedTitle')}
           </h2>
-          <p className="mt-1 body-sm text-on-surface-variant">
+          <p className="mt-1 text-[14px] text-on-surface-variant">
             {activeTab === 'in_progress'
               ? t('emptyInProgressDescription')
               : t('emptyCompletedDescription')}
           </p>
           {activeTab === 'in_progress' && (
-            <Link
-              href="/tracks"
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-outline-variant px-4 py-2 label-sm text-on-surface hover:bg-surface-container-low cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">route</span>
-              {t('exploreTracks')}
-            </Link>
+            <Button asChild variant="outline" className="mt-4 gap-2">
+              <Link href="/tracks">
+                <span className="material-symbols-outlined text-[16px]">route</span>
+                {t('exploreTracks')}
+              </Link>
+            </Button>
           )}
         </div>
       ) : (
         <>
-          <div className="mb-4 label-sm text-on-surface-variant">
+          <div className="mb-4 text-[14px] font-medium text-on-surface-variant">
             {t('resultCount', { count: countForTab })}
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

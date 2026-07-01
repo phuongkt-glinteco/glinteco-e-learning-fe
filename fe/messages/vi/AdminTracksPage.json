@@ -1,0 +1,23 @@
+{
+  "title": "Quản lý track",
+  "subtitle": "Quản lý danh sách track, thứ tự hiển thị và trạng thái nội dung onboarding.",
+  "createTrack": "Thêm track",
+  "loadError": "Không thể tải danh sách track.",
+  "deleteError": "Không thể xóa track.",
+  "reorderError": "Không thể sắp xếp lại track.",
+  "deleteConfirm": "Xóa track này? Hành động này không thể hoàn tác.",
+  "retry": "Thử lại",
+  "emptyTitle": "Chưa có track",
+  "emptyDescription": "Tạo track đầu tiên để bắt đầu xây dựng lộ trình onboarding.",
+  "paginationSummary": "Hiển thị {start}-{end} trong {total} track. Trang {page}/{lastPage}, {limit} mục mỗi trang.",
+  "previousPage": "Trước",
+  "nextPage": "Sau",
+  "pageLabel": "{page}/{lastPage}",
+  "orderLabel": "Thứ tự {order}",
+  "lessonCount": "{count, plural, =0 {0 bài học} =1 {1 bài học} other {# bài học}}",
+  "moveUp": "Đưa lên",
+  "moveDown": "Đưa xuống",
+  "edit": "Sửa",
+  "delete": "Xóa",
+  "deleting": "Đang xóa..."
+}

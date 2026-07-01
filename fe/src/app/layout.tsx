@@ -1,5 +1,6 @@
 import './globals.css';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
 import { LanguageProvider } from '@/providers/LanguageProvider';
 import { ApiErrorProvider } from '@/providers/ApiErrorProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
@@ -19,6 +20,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning className={cn("font-sans", geist.variable)}>
@@ -33,18 +35,20 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
 
       <body>
-        <SessionProvider>
-          <LanguageProvider initialLocale={locale}>
-            <TooltipProvider>
-              <ApiErrorProvider>
-                <AuthProvider>
-                  {children}
-                  <ApiErrorContainer />
-                </AuthProvider>
-              </ApiErrorProvider>
-            </TooltipProvider>
-          </LanguageProvider>
-        </SessionProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <SessionProvider>
+            <LanguageProvider initialLocale={locale}>
+              <TooltipProvider>
+                <ApiErrorProvider>
+                  <AuthProvider>
+                    {children}
+                    <ApiErrorContainer />
+                  </AuthProvider>
+                </ApiErrorProvider>
+              </TooltipProvider>
+            </LanguageProvider>
+          </SessionProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

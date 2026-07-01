@@ -1,0 +1,20 @@
+{
+  "dashboard": "Bảng điều khiển",
+  "courses": "Khóa học",
+  "myCourses": "Khóa học của tôi",
+  "exercises": "Bài tập",
+  "trackManager": "Quản lý track",
+  "reviews": "Hàng chờ chấm bài",
+  "documentation": "Tài liệu",
+  "settings": "Cài đặt",
+  "support": "Hỗ trợ",
+  "notifications": "Thông báo",
+  "trackManagement": "Quản Lý Lộ Trình",
+  "engineeringPortal": "Cổng thông tin kỹ thuật",
+  "searchPlaceholder": "Tìm kiếm...",
+  "profile": "Hồ sơ",
+  "help": "Trợ giúp",
+  "role": "Kỹ sư Backend",
+  "subLogoTitle": "Cổng thông tin kỹ thuật",
+  "logout": "Đăng xuất"
+}

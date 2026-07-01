@@ -1,0 +1,11 @@
+{
+  "missingRouteParam": "Thiếu tham số định tuyến của khóa học hoặc bài học.",
+  "loadFailed": "Không thể tải chi tiết bài học.",
+  "lessonCompleted": "Đã hoàn thành bài học. Được thưởng +{xp} XP.",
+  "completeFailed": "Không thể hoàn thành bài học.",
+  "notAvailableTitle": "Bài học không có sẵn",
+  "notFoundTitle": "Không tìm thấy bài học",
+  "notFoundMessage": "Bài học này không tồn tại trong track đã chọn.",
+  "backToTracks": "Quay lại danh sách Track",
+  "retry": "Thử lại"
+}

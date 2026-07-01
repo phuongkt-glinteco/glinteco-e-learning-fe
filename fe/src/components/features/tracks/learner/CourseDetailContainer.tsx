@@ -14,6 +14,8 @@ import {
   getRouteParam,
 } from './utils';
 
+import { RedirectToParent } from '@/components/ui';
+
 function CourseDetailLoadingState() {
   return (
     <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
@@ -63,35 +65,32 @@ function CourseDetailLoadingState() {
 function CourseDetailErrorState({
   title,
   message,
-  onBack,
   onRetry,
+  backHref,
+  backLabel,
 }: {
   title: string;
   message: string;
-  onBack: () => void;
   onRetry: () => void;
+  backHref: string;
+  backLabel: string;
 }) {
+  const t = useTranslations('CourseDetailContainer');
+
   return (
     <section className="mx-auto max-w-container-max px-gutter py-8">
       <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-4 py-2 label-sm text-on-surface hover:bg-surface-container-low cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-            Back to tracks
-          </button>
+          <RedirectToParent href={backHref} label={backLabel} />
           <button
             type="button"
             onClick={onRetry}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">refresh</span>
-            Retry
+            {t('retry', { defaultValue: 'Retry' })}
           </button>
         </div>
       </div>
@@ -99,12 +98,15 @@ function CourseDetailErrorState({
   );
 }
 
+import { useTranslations } from 'next-intl';
+
 export default function CourseDetailContainer() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const courseId = getRouteParam(params.courseId ?? params.trackId);
   const routeBase = getLearnerRouteBase(params.trackId);
+  const t = useTranslations('CourseDetailContainer');
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<TrackLessonPreview[]>([]);
@@ -113,7 +115,7 @@ export default function CourseDetailContainer() {
 
   const loadCourseDetail = useCallback(async () => {
     if (!courseId) {
-      setError('Missing course route parameter.');
+      setError(t('missingRouteParam', { defaultValue: 'Missing course route parameter.' }));
       setLoading(false);
       return;
     }
@@ -126,11 +128,11 @@ export default function CourseDetailContainer() {
       setLessons(courseDetail.lessons);
       setTrack(courseDetail.course);
     } catch (loadError: unknown) {
-      setError(getErrorMessage(loadError, 'Failed to load course details.'));
+      setError(getErrorMessage(loadError, t('loadFailed', { defaultValue: 'Failed to load course details.' })));
     } finally {
       setLoading(false);
     }
-  }, [courseId]);
+  }, [courseId, t]);
 
   useEffect(() => {
     loadCourseDetail();
@@ -155,14 +157,15 @@ export default function CourseDetailContainer() {
 
   if (error || !track) {
     const errorTitle = getErrorStatus(error) === 404 || /not found/i.test(error ?? '')
-      ? 'Course not found'
-      : 'Course not available';
+      ? t('notFoundTitle', { defaultValue: 'Course not found' })
+      : t('notAvailableTitle', { defaultValue: 'Course not available' });
 
     return (
       <CourseDetailErrorState
         title={errorTitle}
-        message={error ?? 'Track was not found.'}
-        onBack={() => router.push(`/${routeBase}`)}
+        message={error ?? t('notFoundMessage', { defaultValue: 'Track was not found.' })}
+        backHref={`/${routeBase}`}
+        backLabel={t('backToTracks', { defaultValue: 'Back to tracks' })}
         onRetry={loadCourseDetail}
       />
     );

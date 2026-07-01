@@ -4,14 +4,14 @@ export function registerUiShowErrors(
   pipeline: ErrorProcessorPipeline,
   createHandler: (params: CreateHandlerParams) => ErrorHandler,
 ) {
-  // Register: email already exists → inline
+  // Register: email already exists or invalid data → inline
   pipeline.injectHandler(
     createHandler({
       name: 'register-email-exists',
       priority: 1,
       requestPath: '/auth/register',
-      statusCode: '409',
-      messageIncludes: ['email'],
+      statusCode: '400',
+      messageIncludes: ['email', 'tồn tại'],
       errorCode: 'REGISTER_EMAIL_EXISTS',
       action: 'FINAL_THROW',
     }),
@@ -34,9 +34,9 @@ export function registerUiShowErrors(
     createHandler({
       name: 'create-exercise-title-exists',
       priority: 1,
-      statusCode: '409',
+      statusCode: '400',
       requestPath: '/exercises',
-      messageIncludes: ['title'],
+      messageIncludes: ['title', 'tồn tại'],
       errorCode: 'EXERCISE_TITLE_EXISTS',
       action: 'FINAL_THROW',
     }),

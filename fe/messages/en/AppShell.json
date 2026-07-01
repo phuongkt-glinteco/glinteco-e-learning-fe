@@ -1,0 +1,20 @@
+{
+  "dashboard": "Dashboard",
+  "courses": "Courses",
+  "myCourses": "My Courses",
+  "exercises": "Exercises",
+  "trackManager": "Track Manager",
+  "reviews": "Review Queue",
+  "documentation": "Documentation",
+  "settings": "Settings",
+  "support": "Support",
+  "notifications": "Notifications",
+  "trackManagement": "Track Management",
+  "engineeringPortal": "Engineering Portal",
+  "searchPlaceholder": "Search...",
+  "profile": "Profile",
+  "help": "Help",
+  "role": "Backend Engineer",
+  "subLogoTitle": "Engineering Portal",
+  "logout": "Logout"
+}

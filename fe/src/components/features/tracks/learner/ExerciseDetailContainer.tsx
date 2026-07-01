@@ -52,6 +52,9 @@ function validatePullRequestUrl(value: string): string | null {
   return null;
 }
 
+import { RedirectToParent } from '@/components/ui';
+import { useTranslations } from 'next-intl';
+
 function ExerciseLoadingState() {
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
@@ -90,35 +93,31 @@ function ExerciseLoadingState() {
 function ExerciseErrorState({
   title,
   message,
-  onBack,
   onRetry,
+  backHref,
+  backLabel,
 }: {
   title: string;
   message: string;
-  onBack: () => void;
   onRetry: () => void;
+  backHref: string;
+  backLabel: string;
 }) {
+  const t = useTranslations('ExerciseDetailContainer');
   return (
     <section className="mx-auto max-w-container-max px-gutter py-8">
       <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-4 py-2 label-sm text-on-surface hover:bg-surface-container-low cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-            Back to lesson
-          </button>
+          <RedirectToParent href={backHref} label={backLabel} />
           <button
             type="button"
             onClick={onRetry}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">refresh</span>
-            Retry
+            {t('retry', { defaultValue: 'Retry' })}
           </button>
         </div>
       </div>
@@ -134,6 +133,7 @@ export default function ExerciseDetailContainer() {
   const exerciseId = getRouteParam(params.exerciseId);
   const routeBase = getLearnerRouteBase(params.trackId);
   const isStandaloneRoute = !courseId || !lessonId;
+  const t = useTranslations('ExerciseDetailContainer');
 
   const [pageData, setPageData] = useState<ExercisePageData | null>(null);
   const [formValues, setFormValues] = useState<LearnerSubmissionFormValues>({ prUrl: '' });
@@ -146,7 +146,7 @@ export default function ExerciseDetailContainer() {
 
   const loadExercise = useCallback(async () => {
     if (!exerciseId) {
-      setError('Missing exercise route parameter.');
+      setError(t('missingRouteParam', { defaultValue: 'Missing exercise route parameter.' }));
       setLoading(false);
       return;
     }
@@ -163,11 +163,11 @@ export default function ExerciseDetailContainer() {
       setFormValues({ prUrl: nextPageData.submission.prUrl ?? '' });
       setStartError(null);
     } catch (loadError: unknown) {
-      setError(getErrorMessage(loadError, 'Failed to load exercise details.'));
+      setError(getErrorMessage(loadError, t('loadFailed', { defaultValue: 'Failed to load exercise details.' })));
     } finally {
       setLoading(false);
     }
-  }, [courseId, lessonId, exerciseId, isStandaloneRoute]);
+  }, [courseId, lessonId, exerciseId, isStandaloneRoute, t]);
 
   useEffect(() => {
     loadExercise();
@@ -179,7 +179,7 @@ export default function ExerciseDetailContainer() {
     const nextPrUrl = formValues.prUrl.trim();
     const validationError = validatePullRequestUrl(nextPrUrl);
     if (validationError) {
-      setSubmitError(validationError);
+      setSubmitError(validationError); // Could also translate these if needed
       return;
     }
 
@@ -197,9 +197,9 @@ export default function ExerciseDetailContainer() {
         submission: nextSubmission,
       });
       setFormValues({ prUrl: nextSubmission.prUrl ?? nextPrUrl });
-      setSubmitMessage('Submission saved successfully.');
+      setSubmitMessage(t('submissionSuccess', { defaultValue: 'Submission saved successfully.' }));
     } catch (submitFailure: unknown) {
-      setSubmitError(getErrorMessage(submitFailure, 'Failed to submit exercise.'));
+      setSubmitError(getErrorMessage(submitFailure, t('submitFailed', { defaultValue: 'Failed to submit exercise.' })));
     } finally {
       setSubmitting(false);
     }
@@ -211,7 +211,7 @@ export default function ExerciseDetailContainer() {
     // TODO: Replace this with a learner-scoped start mutation when the backend exposes one,
     // e.g. PATCH /api/v1/learner/exercises/:exerciseId/start returning status IN_PROGRESS.
     setStartError(
-      'Starting an exercise cannot be saved yet because the backend API does not expose a learner exercise start endpoint.'
+      t('startError', { defaultValue: 'Starting an exercise cannot be saved yet because the backend API does not expose a learner exercise start endpoint.' })
     );
   }
 
@@ -237,14 +237,25 @@ export default function ExerciseDetailContainer() {
     router.push(`/${routeBase}/${courseId}/lessons/${lessonId}`);
   }
 
+  function getBackHref() {
+    if (exerciseId) {
+      const storedReturnTo = getStoredExerciseReturnTo(exerciseId);
+      if (storedReturnTo) return storedReturnTo;
+    }
+    if (isStandaloneRoute) return '/exercises';
+    if (!courseId || !lessonId) return `/${routeBase}`;
+    return `/${routeBase}/${courseId}/lessons/${lessonId}`;
+  }
+
   if (loading) return <ExerciseLoadingState />;
 
   if (error || !pageData) {
     return (
       <ExerciseErrorState
-        title="Exercise not available"
-        message={error ?? 'This exercise does not exist in the selected lesson.'}
-        onBack={handleBackToLesson}
+        title={t('notAvailableTitle', { defaultValue: 'Exercise not available' })}
+        message={error ?? t('notFoundMessage', { defaultValue: 'This exercise does not exist in the selected lesson.' })}
+        backHref={getBackHref()}
+        backLabel={isStandaloneRoute ? t('backToExercises', { defaultValue: 'Back to Exercises' }) : t('backToLesson', { defaultValue: 'Back to Lesson' })}
         onRetry={loadExercise}
       />
     );
@@ -261,7 +272,7 @@ export default function ExerciseDetailContainer() {
       startError={startError}
       submitError={submitError}
       submitMessage={submitMessage}
-      backLabel={isStandaloneRoute ? 'Back to Exercises' : 'Back to Lesson'}
+      backLabel={isStandaloneRoute ? t('backToExercises', { defaultValue: 'Exercises' }) : pageData.activeLesson.title}
       onBackToLesson={handleBackToLesson}
       onPrUrlChange={(value) => setFormValues({ prUrl: value })}
       onStartExercise={handleStartExercise}

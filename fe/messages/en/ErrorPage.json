@@ -1,0 +1,7 @@
+{
+  "title": "Something went wrong",
+  "defaultMessage": "An unexpected error occurred. Please try again.",
+  "errorCode": "Error code",
+  "goHome": "Go to Home",
+  "goToLogin": "Go to Sign In"
+}

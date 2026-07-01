@@ -1,0 +1,12 @@
+{
+  "missingRouteParam": "Missing exercise route parameter.",
+  "loadFailed": "Failed to load exercise details.",
+  "submissionSuccess": "Submission saved successfully.",
+  "submitFailed": "Failed to submit exercise.",
+  "startError": "Starting an exercise cannot be saved yet because the backend API does not expose a learner exercise start endpoint.",
+  "notAvailableTitle": "Exercise not available",
+  "notFoundMessage": "This exercise does not exist in the selected lesson.",
+  "backToExercises": "Back to Exercises",
+  "backToLesson": "Back to Lesson",
+  "retry": "Retry"
+}

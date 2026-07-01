@@ -1,0 +1,38 @@
+{
+  "title": "Tracks",
+  "createTrack": "Create Track",
+  "reorder": "Reorder",
+  "table": {
+    "titleDescription": "Title & Description",
+    "contentStructure": "Content Structure",
+    "status": "Status",
+    "actions": "Actions",
+    "lessons": "{count} Lessons",
+    "exercises": "{count} Exercises"
+  },
+  "filter": {
+    "allStatuses": "All Statuses",
+    "active": "Active",
+    "completed": "Completed",
+    "locked": "Locked"
+  },
+  "pagination": {
+    "showing": "Showing {start} to {end} of {total} tracks",
+    "perPage": "Per page"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirmDelete": "Are you sure you want to delete this track?",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete Track",
+    "deleting": "Deleting..."
+  },
+  "retry": "Retry",
+  "empty": "No tracks found.",
+  "loading": "Loading tracks...",
+  "error": "Failed to load tracks. Please try again.",
+  "subtitle": "Manage and organize learning tracks for your learners.",
+  "deleteSuccess": "Track deleted successfully.",
+  "deleteFailed": "Failed to delete track."
+}

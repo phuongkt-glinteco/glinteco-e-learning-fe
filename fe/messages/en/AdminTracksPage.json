@@ -1,0 +1,23 @@
+{
+  "title": "Track Manager",
+  "subtitle": "Manage learning tracks, ordering, and track availability for the onboarding program.",
+  "createTrack": "Add track",
+  "loadError": "Failed to load tracks.",
+  "deleteError": "Failed to delete track.",
+  "reorderError": "Failed to reorder tracks.",
+  "deleteConfirm": "Delete this track? This action cannot be undone.",
+  "retry": "Retry",
+  "emptyTitle": "No tracks yet",
+  "emptyDescription": "Create the first learning track to start building the onboarding path.",
+  "paginationSummary": "Showing {start}-{end} of {total} tracks. Page {page} of {lastPage}, {limit} per page.",
+  "previousPage": "Previous",
+  "nextPage": "Next",
+  "pageLabel": "{page}/{lastPage}",
+  "orderLabel": "Order {order}",
+  "lessonCount": "{count, plural, =0 {0 lessons} =1 {1 lesson} other {# lessons}}",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "edit": "Edit",
+  "delete": "Delete",
+  "deleting": "Deleting..."
+}

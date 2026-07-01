@@ -13,6 +13,9 @@ import {
   getRouteParam,
 } from './utils';
 
+import { RedirectToParent } from '@/components/ui';
+import { useTranslations } from 'next-intl';
+
 function LessonLoadingState() {
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
@@ -63,35 +66,31 @@ function LessonLoadingState() {
 function LessonErrorState({
   title,
   message,
-  onBack,
   onRetry,
+  backHref,
+  backLabel,
 }: {
   title: string;
   message: string;
-  onBack: () => void;
   onRetry: () => void;
+  backHref: string;
+  backLabel: string;
 }) {
+  const t = useTranslations('LessonDetailContainer');
   return (
     <section className="mx-auto max-w-container-max px-gutter py-8">
       <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>
         <div className="flex gap-3 flex-wrap mt-4">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-4 py-2 label-sm text-on-surface hover:bg-surface-container-low cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-            Back to tracks
-          </button>
+          <RedirectToParent href={backHref} label={backLabel} />
           <button
             type="button"
             onClick={onRetry}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">refresh</span>
-            Retry
+            {t('retry', { defaultValue: 'Retry' })}
           </button>
         </div>
       </div>
@@ -105,6 +104,7 @@ export default function LessonDetailContainer() {
   const courseId = getRouteParam(params.courseId ?? params.trackId);
   const lessonId = getRouteParam(params.lessonId);
   const routeBase = getLearnerRouteBase(params.trackId);
+  const t = useTranslations('LessonDetailContainer');
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<LearnerLesson[]>([]);
@@ -118,7 +118,7 @@ export default function LessonDetailContainer() {
 
   const loadLessonData = useCallback(async () => {
     if (!courseId || !lessonId) {
-      setError('Missing course or lesson route parameters.');
+      setError(t('missingRouteParam', { defaultValue: 'Missing course or lesson route parameters.' }));
       setLoading(false);
       return;
     }
@@ -134,11 +134,11 @@ export default function LessonDetailContainer() {
       setActiveLesson(lessonPage.activeLesson);
       setExercises(lessonPage.exercises);
     } catch (loadError: unknown) {
-      setError(getErrorMessage(loadError, 'Failed to load lesson details.'));
+      setError(getErrorMessage(loadError, t('loadFailed', { defaultValue: 'Failed to load lesson details.' })));
     } finally {
       setLoading(false);
     }
-  }, [courseId, lessonId]);
+  }, [courseId, lessonId, t]);
 
   useEffect(() => {
     loadLessonData();
@@ -164,12 +164,12 @@ export default function LessonDetailContainer() {
         ?? Math.min(track.lessonsCompleted + 1, track.lessonCount);
       const nextStatus = response.trackStatus
         ?? (nextCompletedCount >= track.lessonCount ? 'completed' : 'in_progress');
-      setCompletionMessage(`Lesson completed. +${xpAwarded} XP awarded.`);
+      setCompletionMessage(t('lessonCompleted', { xp: xpAwarded, defaultValue: `Lesson completed. +${xpAwarded} XP awarded.` }));
       setActiveLesson({ ...activeLesson, completed: true });
       setTrack({ ...track, lessonsCompleted: nextCompletedCount, status: nextStatus });
       await loadLessonData();
     } catch (completeError: unknown) {
-      setCompletionError(getErrorMessage(completeError, 'Failed to complete lesson.'));
+      setCompletionError(getErrorMessage(completeError, t('completeFailed', { defaultValue: 'Failed to complete lesson.' })));
     } finally {
       setCompleting(false);
     }
@@ -197,9 +197,10 @@ export default function LessonDetailContainer() {
   if (error) {
     return (
       <LessonErrorState
-        title="Lesson not available"
+        title={t('notAvailableTitle', { defaultValue: 'Lesson not available' })}
         message={error}
-        onBack={() => router.push(`/${routeBase}`)}
+        backHref={`/${routeBase}`}
+        backLabel={t('backToTracks', { defaultValue: 'Back to tracks' })}
         onRetry={loadLessonData}
       />
     );
@@ -208,9 +209,10 @@ export default function LessonDetailContainer() {
   if (!track || !activeLesson) {
     return (
       <LessonErrorState
-        title="Lesson not found"
-        message="This lesson does not exist in the selected track."
-        onBack={() => router.push(`/${routeBase}`)}
+        title={t('notFoundTitle', { defaultValue: 'Lesson not found' })}
+        message={t('notFoundMessage', { defaultValue: 'This lesson does not exist in the selected track.' })}
+        backHref={`/${routeBase}`}
+        backLabel={t('backToTracks', { defaultValue: 'Back to tracks' })}
         onRetry={loadLessonData}
       />
     );

@@ -1,0 +1,12 @@
+{
+  "missingRouteParam": "Thiếu tham số định tuyến của bài tập.",
+  "loadFailed": "Không thể tải chi tiết bài tập.",
+  "submissionSuccess": "Đã lưu bài nộp thành công.",
+  "submitFailed": "Gửi bài tập thất bại.",
+  "startError": "Chưa thể lưu việc bắt đầu bài tập vì API backend chưa hỗ trợ chức năng này cho học viên.",
+  "notAvailableTitle": "Bài tập không có sẵn",
+  "notFoundMessage": "Bài tập này không tồn tại trong bài học đã chọn.",
+  "backToExercises": "Quay lại Bài tập",
+  "backToLesson": "Quay lại Bài học",
+  "retry": "Thử lại"
+}

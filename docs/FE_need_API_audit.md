@@ -45,4 +45,4 @@ FE impact sau khi backend hỗ trợ:
 - `/exercises` nên lấy danh sách assigned exercises của learner, không phải toàn bộ catalog.
 - Exercise detail nên trả 403/404 nếu learner chưa được assign.
 - Nút `Start Exercise` gọi endpoint start, sau đó refetch detail/list.
-- Form submit PR chỉ unlock khi status là `in
+- Form submit PR chỉ unlock khi status là `in_progress`; sau khi submit thành công thì backend chuyển status sang `submitted`.

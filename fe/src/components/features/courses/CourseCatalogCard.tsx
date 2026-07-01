@@ -108,7 +108,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
         )}
       </CardContent>
 
-      <CardFooter className="p-5 pt-0 mt-auto">
+      <CardFooter className="p-5 mt-auto">
         {isLocked ? (
           <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2 text-[14px] font-medium text-outline cursor-not-allowed">
             <span className="material-symbols-outlined text-[16px]">lock</span>

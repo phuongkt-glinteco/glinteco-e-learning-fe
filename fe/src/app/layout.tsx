@@ -7,6 +7,7 @@ import { AuthProvider } from '@/providers/AuthProvider';
 import SessionProvider from '@/providers/SessionProvider';
 import { ApiErrorContainer } from '@/components/ui/containers/ApiErrorContainer';
 import { TooltipProvider } from '@/components/ui/default/tooltip';
+import { Toaster } from '@/components/ui/default/sonner';
 import type { ReactNode } from 'react';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <AuthProvider>
                     {children}
                     <ApiErrorContainer />
+                    <Toaster position="top-right" />
                   </AuthProvider>
                 </ApiErrorProvider>
               </TooltipProvider>

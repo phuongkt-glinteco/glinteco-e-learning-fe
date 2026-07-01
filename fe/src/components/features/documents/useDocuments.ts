@@ -66,11 +66,15 @@ export function useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly
     fetchDocuments(null, false);
   }, [fetchDocuments]);
 
-  useEffect(() => {
+  const fetchTags = useCallback(() => {
     documentsControllerFindAllTags({ throwOnError: true })
       .then((res) => setTags(normalizeDocumentTags(res.data)))
       .catch(() => setTags([]));
   }, []);
+
+  useEffect(() => {
+    fetchTags();
+  }, [fetchTags]);
 
   function handleBookmarkToggle(id: string, bookmarked: boolean) {
     setDocuments((prev) =>
@@ -102,6 +106,7 @@ export function useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly
     hasMore,
     nextCursor,
     fetchDocuments,
+    fetchTags,
     handleBookmarkToggle,
     loadMore,
     handleDelete,

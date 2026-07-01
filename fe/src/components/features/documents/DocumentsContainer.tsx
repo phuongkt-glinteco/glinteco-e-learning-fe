@@ -10,7 +10,9 @@ import { DocumentsPagination } from './DocumentsPagination';
 import Modal from '@/components/ui/Modal';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/default/button';
-import {Loader2, PlusIcon} from 'lucide-react';
+import { Loader2, PlusIcon } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/default/tabs';
+import { TagsManagement } from './TagsManagement';
 
 export default function DocumentsContainer() {
   const t = useTranslations('DocumentsPage');
@@ -49,6 +51,7 @@ export default function DocumentsContainer() {
     error,
     hasMore,
     fetchDocuments,
+    fetchTags,
     handleBookmarkToggle,
     loadMore,
     handleDelete,
@@ -79,13 +82,13 @@ export default function DocumentsContainer() {
     );
   }
 
-  return (
-    <div className="px-gutter py-6 max-w-container-max mx-auto w-full space-y-6">
+  const documentsViewContent = (
+    <div className="space-y-6">
       {isAdmin && (
         <div className="flex justify-end">
           {(() => {
             return (
-              <Button onClick={() => router.push('/admin/documents/create')} className="gap-2 rounded-xl h-10 px-6">
+              <Button onClick={() => router.push('/admin/documents/create')} className="gap-2 rounded-xl h-10 px-6 font-semibold shadow-sm hover:shadow transition-all">
                 <PlusIcon className="w-4 h-4" />
                 {t('newDocument')}
               </Button>
@@ -123,6 +126,48 @@ export default function DocumentsContainer() {
           onLoadMore={loadMore}
         />
       )}
+    </div>
+  );
+
+  return (
+    <div className="px-gutter py-6 max-w-container-max mx-auto w-full space-y-6">
+      {isAdmin ? (
+        <Tabs defaultValue="documents" className="w-full space-y-6">
+          <div className="border-b border-outline-variant flex items-center justify-between flex-wrap gap-4">
+            <TabsList className="bg-transparent h-auto p-0 border-b-0 space-x-8 rounded-none">
+              <TabsTrigger
+                value="documents"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none py-3.5 px-2 font-bold text-base bg-transparent data-[state=active]:bg-transparent transition-all flex items-center gap-2.5 text-on-surface-variant data-[state=active]:text-primary"
+              >
+                <span className="material-symbols-outlined text-[20px]">description</span>
+                <span>{t('adminTitle', { defaultValue: 'Document Management' })}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="tags"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none py-3.5 px-2 font-bold text-base bg-transparent data-[state=active]:bg-transparent transition-all flex items-center gap-2.5 text-on-surface-variant data-[state=active]:text-primary"
+              >
+                <span className="material-symbols-outlined text-[20px]">label</span>
+                <span>{t('tagsManagement', { defaultValue: 'Tags Management' })}</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="documents" className="m-0 border-none outline-none focus:outline-none">
+            {documentsViewContent}
+          </TabsContent>
+
+          <TabsContent value="tags" className="m-0 border-none outline-none focus:outline-none">
+            <TagsManagement
+              onTagsUpdated={() => {
+                fetchTags();
+                fetchDocuments(null, false);
+              }}
+            />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        documentsViewContent
+      )}
 
       <Modal
         open={!!deleteConfirmId}
@@ -132,7 +177,6 @@ export default function DocumentsContainer() {
         <p className="text-foreground text-sm mb-6">{t('deleteConfirmBody')}</p>
         <div className="flex justify-end gap-3">
           {(() => {
-            
             return (
               <>
                 <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>

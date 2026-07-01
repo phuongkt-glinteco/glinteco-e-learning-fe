@@ -3,6 +3,7 @@ import { CourseRoadmap } from './CourseRoadmap';
 import type { LearnerTrack, TrackLessonPreview } from './types';
 import { PageHeader } from '@/components/ui';
 import { useTranslations } from 'next-intl';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 
 interface CourseDetailViewProps {
   track: LearnerTrack;
@@ -31,24 +32,11 @@ export function CourseDetailView({
     : 0;
   const isLocked = track.status === 'locked';
 
-  const breadcrumbs = from === 'dashboard'
-    ? [
-        { label: t('dashboard', { defaultValue: 'Dashboard' }), href: '/dashboard/learner' },
-        { label: track.title }
-      ]
-    : from === 'my-courses'
-      ? [
-          { label: t('myCourses', { defaultValue: 'My Courses' }), href: '/my-courses' },
-          { label: track.title }
-        ]
-      : [
-          { label: t('learningTracks', { defaultValue: 'Learning Tracks' }), href: `/${routeBase}` },
-          { label: track.title }
-        ];
-
   return (
     <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
-      <PageHeader title="" breadcrumbs={breadcrumbs} className="mb-0" />
+      <div className="mb-[-8px]">
+        <DynamicBreadcrumbs />
+      </div>
 
       <header className="rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
         <div className="grid gap-6 lg:grid-cols-[1fr_220px] lg:items-center">

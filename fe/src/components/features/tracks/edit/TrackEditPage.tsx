@@ -20,6 +20,8 @@ import { CurriculumSection } from '../components/CurriculumSection';
 import { SummaryCard } from '../components/SummaryCard';
 import { TrackPreview } from '../detail/TrackPreview';
 import { LinkedExercisesCard } from '../components/LinkedExercisesCard';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 
 interface TrackEditPageProps {
   trackId: string;
@@ -45,6 +47,7 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [existingLessons, setExistingLessons] = useState<ExistingLesson[]>([]);
   const [exercises, setExercises] = useState<ExerciseSummaryDto[]>([]);
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +85,17 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
           }))
         );
         setExercises(exerciseList);
+        
+        if (track) {
+          const hasTrackDetail = tree.some(n => n.href === `/admin/tracks/${track.id}`);
+          if (!hasTrackDetail) {
+            setTree([
+              { label: t('breadcrumbTracks', { defaultValue: 'Tracks' }), href: '/admin/tracks' },
+              { label: track.title, href: `/admin/tracks/${track.id}` }
+            ]);
+          }
+          pushNode({ label: t('breadcrumbEdit', { defaultValue: 'Edit Track' }), href: window.location.pathname });
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to load track.');
@@ -205,6 +219,9 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
   return (
     <main className="flex-1 overflow-y-auto bg-background px-2 pt-4 pb-24 lg:px-8 lg:pt-8 xl:pt-12 2xl:px-16">
       <div className="lg:max-w-[1200px] mx-auto px-gutter py-stack-lg">
+        <div className="mb-4">
+          <DynamicBreadcrumbs />
+        </div>
         <header className="mb-stack-lg flex justify-between items-end">
           <div>
             <h2 className="headline-lg text-on-surface mb-2">{t('editTitle')}</h2>
@@ -227,6 +244,7 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
               trackId={trackId}
               exercises={exercises}
               onRemove={handleDeleteExercise}
+              onAdd={() => router.push(`/admin/tracks/${trackId}/exercises/new`)}
             />
           </div>
 

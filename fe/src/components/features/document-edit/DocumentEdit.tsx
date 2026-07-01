@@ -12,6 +12,8 @@ import { DocumentProceduralEditor } from './DocumentProceduralEditor';
 import { buildContentString } from './content-builder';
 import { getDocumentContent, getDocumentUrl } from '../document-detail/content-helper';
 import { PageContainer, PageHeader } from '@/components/ui';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 
 const KIND_OPTIONS = [
   { value: 'Guide', label: 'Guide' },
@@ -29,6 +31,7 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
   const t = useTranslations('DocumentEdit');
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
 
   const initialContent = useMemo(() => getDocumentContent(document), [document]);
   const initialUrl = useMemo(() => getDocumentUrl(document), [document]);
@@ -98,7 +101,16 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
         );
       })
       .catch(() => {});
-  }, [document.tags]);
+      
+    if (tree.length === 0) {
+      setTree([
+        { label: 'Documents', href: '/documents' },
+        { label: document.title, href: `/documents/${document.id}` }
+      ]);
+    }
+    pushNode({ label: 'Edit', href: window.location.pathname });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [document.tags, document.title, document.id]);
 
   async function handleSave() {
     if (saving) return;
@@ -143,13 +155,11 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
 
   return (
     <PageContainer>
+      <div className="mb-2">
+        <DynamicBreadcrumbs />
+      </div>
       <PageHeader
         title={title || t('untitled')}
-        breadcrumbs={[
-          { label: 'Documents', href: '/documents' },
-          { label: document.title, href: `/documents/${document.id}` },
-          { label: 'Edit' }
-        ]}
         actions={
           <>
             <button

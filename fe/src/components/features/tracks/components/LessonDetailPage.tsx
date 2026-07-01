@@ -7,6 +7,8 @@ import { MarkdownRenderer } from '@/lib/md-renderer';
 import { lessonsControllerFindOneLesson, lessonsControllerFindExercisesByLesson, documentsControllerCreate } from '@/services/api-client';
 import type { LessonDetailDto, ExerciseSummaryDto, DocumentResponseDto } from '@/services/api-client';
 import ResourceDocumentPickerDialog from '@/components/features/tracks/exercises/ResourceDocumentPickerDialog';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 
 const TYPE_ICON: Record<string, string> = {
   video: 'play_circle',
@@ -22,6 +24,7 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
   const [exercises, setExercises] = useState<ExerciseSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [addingDoc, setAddingDoc] = useState(false);
@@ -47,6 +50,19 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (lesson) {
+      if (tree.length === 0) {
+        setTree([
+          { label: t('breadcrumbTracks', { defaultValue: 'Tracks' }), href: '/admin/tracks' },
+          { label: t('breadcrumbDetail', { defaultValue: 'Detail' }), href: `/admin/tracks/${trackId}` }
+        ]);
+      }
+      pushNode({ label: lesson.title, href: window.location.pathname });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson?.id, trackId, t, setTree, pushNode, tree.length]);
 
   const handleAddDocuments = useCallback(async (docIds: string[]) => {
     if (!lesson || docIds.length === 0) return;
@@ -111,13 +127,9 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
 
   return (
     <div className="px-gutter py-6 max-w-[1200px] mx-auto w-full">
-      <nav className="flex items-center gap-2 text-outline font-label-sm mb-6">
-        <Link href="/admin/tracks" className="hover:text-primary transition-colors">{t('breadcrumbTracks')}</Link>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <Link href={`/admin/tracks/${trackId}`} className="hover:text-primary transition-colors">{lesson.title}</Link>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <span className="text-primary">{lesson.title}</span>
-      </nav>
+      <div className="mb-4">
+        <DynamicBreadcrumbs />
+      </div>
 
       <div className="grid grid-cols-12 gap-lg">
         <div className="col-span-12 lg:col-span-8 space-y-lg">

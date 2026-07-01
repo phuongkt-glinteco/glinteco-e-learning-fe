@@ -4,8 +4,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Input } from '@/components/ui/forms';
 import { MarkdownRenderer } from '@/lib/md-renderer';
 import { useTranslations } from 'next-intl';
-import { PageHeader } from '@/components/ui/containers/PageHeader';
 import { Checkbox } from '@/components/ui/default/checkbox';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import type {
   LearnerExerciseDetail,
   LearnerLesson,
@@ -23,8 +23,6 @@ interface ExerciseDetailViewProps {
   startError: string | null;
   submitError: string | null;
   submitMessage: string | null;
-  backLabel: string;
-  onBackToLesson: () => void;
   onPrUrlChange: (value: string) => void;
   onStartExercise: () => void;
   onSubmit: () => void;
@@ -37,19 +35,19 @@ function formatDateTime(value: string | null) {
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
-function getStatusLabel(status: LearnerSubmissionState['status'], t: any) {
+function getStatusLabel(status: LearnerSubmissionState['status']) {
   switch (status) {
     case 'in_progress':
-      return t('statusInProgress');
+      return 'statusInProgress';
     case 'approved':
-      return t('statusCompleted');
+      return 'statusCompleted';
     case 'changes':
     case 'rejected':
-      return t('actionRequired');
+      return 'actionRequired';
     case 'submitted':
-      return t('statusInReview');
+      return 'statusInReview';
     case 'pending':
-      return t('statusNotStarted');
+      return 'statusNotStarted';
   }
 }
 
@@ -279,12 +277,8 @@ function SubmitPanel({
 
 function SubmittedState({
   submission,
-  backLabel,
-  onBackToLesson,
 }: {
   submission: LearnerSubmissionState;
-  backLabel: string;
-  onBackToLesson: () => void;
 }) {
   const t = useTranslations('ExerciseDetailView');
   return (
@@ -323,9 +317,11 @@ function ApprovedState({
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <section className="rounded-lg border border-tertiary-container bg-tertiary-fixed/20 p-8 text-center shadow-sm">
-        <span className="material-symbols-outlined mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-tertiary text-[44px] text-on-tertiary">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-tertiary-container">
+          <span className="material-symbols-outlined  text-[44px] text-on-tertiary">
           check
-        </span>
+          </span>
+        </div>
         <h2 className="headline-lg mt-6 text-on-surface">{t('exercisePassed')}</h2>
         <p className="body-md mx-auto mt-3 max-w-xl text-on-surface-variant">
           {t('outstandingWork')}
@@ -377,7 +373,7 @@ function StatusAside({
           <div className="flex items-center justify-between gap-3">
             <span>{t('currentState')}</span>
             <span className={`rounded-full border px-2.5 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
-              {getStatusLabel(submission.status, t)}
+              {t(getStatusLabel(submission.status))}
             </span>
           </div>
           <div className="flex justify-between gap-3">
@@ -415,8 +411,6 @@ export function ExerciseDetailView({
   startError,
   submitError,
   submitMessage,
-  backLabel,
-  onBackToLesson,
   onPrUrlChange,
   onStartExercise,
   onSubmit,
@@ -435,25 +429,14 @@ export function ExerciseDetailView({
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-8 px-gutter py-8">
       <header className="flex flex-col gap-4 border-b border-outline-variant pb-6">
-        <div className="flex items-center gap-1 label-sm text-on-surface-variant">
-          <button
-            type="button"
-            onClick={onBackToLesson}
-            className="hover:text-primary transition-colors cursor-pointer max-w-[200px] truncate"
-            title={backLabel}
-          >
-            {backLabel.length > 25 ? `${backLabel.slice(0, 25)}...` : backLabel}
-          </button>
-          <span className="material-symbols-outlined text-[16px] opacity-50">chevron_right</span>
-          <span className="font-medium text-on-surface max-w-[300px] truncate" title={exercise.title}>
-            {exercise.title.length > 25 ? `${exercise.title.slice(0, 25)}...` : exercise.title}
-          </span>
+        <div className="mb-2">
+          <DynamicBreadcrumbs />
         </div>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className={`rounded-full border px-3 py-1 label-sm ${getStatusBadgeClass(submission.status)}`}>
-                {getStatusLabel(submission.status, t)}
+                {t(getStatusLabel(submission.status))}
               </span>
               <span className="label-sm uppercase text-on-surface-variant">
                 {t('moduleExercise', { order: activeLesson.order })}
@@ -481,7 +464,7 @@ export function ExerciseDetailView({
       ) : isSubmitted ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex flex-col gap-6">
-            <SubmittedState submission={submission} backLabel={backLabel} onBackToLesson={onBackToLesson} />
+            <SubmittedState submission={submission}  />
             <InfoSection icon="article" title={t('instructions')}>
               <ExerciseContent exercise={exercise} />
             </InfoSection>

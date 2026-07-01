@@ -6,6 +6,7 @@ import type { LessonProgressItemDto, ExerciseSummaryDto } from '@/services/api-c
 import { TrackHero } from './TrackHero';
 import { CourseRoadmap } from './CourseRoadmap';
 import { TrackExercisesCard } from './TrackExercisesCard';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { PrerequisitesCard } from './PrerequisitesCard';
 import { PotentialRewardsCard } from './PotentialRewardsCard';
 import { PreviewFooter } from './PreviewFooter';
@@ -54,11 +55,9 @@ export function TrackPreview({
       {/* Main Content Area */}
       <main className="flex-1 p-margin-mobile md:p-gutter max-w-[1200px] mx-auto w-full pb-32">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 mb-6 font-label-md text-label-md text-on-surface-variant">
-          <span className="hover:text-primary transition-colors cursor-pointer">Tracks</span>
-          <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-          <span className="text-primary font-bold">{title || 'Untitled Track'}</span>
-        </nav>
+        <div className="mb-6">
+          <DynamicBreadcrumbs />
+        </div>
 
         {/* 2-Column Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl">

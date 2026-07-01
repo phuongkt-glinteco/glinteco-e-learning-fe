@@ -1,0 +1,9 @@
+{
+  "title": "Linked Exercises",
+  "addExercise": "Add Exercise",
+  "disabledText": "Exercises can be linked after the track is created.",
+  "noExercises": "No linked exercises yet.",
+  "showLess": "Show less",
+  "showMore": "Show {count} more exercise",
+  "showMorePlural": "Show {count} more exercises"
+}

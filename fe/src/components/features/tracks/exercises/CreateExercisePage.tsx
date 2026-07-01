@@ -13,6 +13,10 @@ import ExerciseBasicInfo from './ExerciseBasicInfo';
 import ExerciseDescription from './ExerciseDescription';
 import ExerciseListEditor from './ExerciseListEditor';
 import ExerciseHint from './ExerciseHint';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/default/card';
+import { Button } from '@/components/ui/default/button';
 import ResourceDocumentPickerDialog from './ResourceDocumentPickerDialog';
 
 export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { trackId: string; lessonId?: string; exerciseId?: string }) {
@@ -22,6 +26,8 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
   const [resourceDocIds, setResourceDocIds] = useState<string[]>([]);
   const [resourceDocs, setResourceDocs] = useState<DocumentResponseDto[]>([]);
   const [showResourcePicker, setShowResourcePicker] = useState(false);
@@ -88,6 +94,16 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
       .finally(() => setLoading(false));
   }, [exerciseId, reset]);
 
+  useEffect(() => {
+    if (tree.length === 0) {
+      setTree([
+        { label: t('breadcrumbTracks', { defaultValue: 'Tracks' }), href: '/admin/tracks' },
+        { label: t('breadcrumbDetail', { defaultValue: 'Detail' }), href: `/admin/tracks/${trackId}` }
+      ]);
+    }
+    pushNode({ label: isEditMode ? t('breadcrumbEdit', { defaultValue: 'Edit' }) : t('breadcrumbCreate', { defaultValue: 'Create' }), href: window.location.pathname });
+  }, [isEditMode, trackId, t, setTree, pushNode, tree.length]);
+
   async function onSubmit(data: CreateExerciseFormInput) {
     setSaving(true);
     setServerError(null);
@@ -126,25 +142,9 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
   return (
     <div className="px-gutter py-6 max-w-[1200px] mx-auto w-full pb-32">
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-outline font-label-sm mb-6">
-        <button
-          type="button"
-          onClick={() => router.push('/admin/tracks')}
-          className="hover:text-primary transition-colors cursor-pointer"
-        >
-          {t('breadcrumbTracks')}
-        </button>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <button
-          type="button"
-          onClick={() => router.push(`/admin/tracks/${trackId}`)}
-          className="hover:text-primary transition-colors cursor-pointer"
-        >
-          {t('breadcrumbDetail')}
-        </button>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <span className="text-primary">{isEditMode ? t('breadcrumbEdit') : t('breadcrumbCreate')}</span>
-      </nav>
+      <div className="mb-4">
+        <DynamicBreadcrumbs />
+      </div>
 
       <h1 className="font-headline-lg text-headline-lg text-on-surface mb-8">{isEditMode ? t('editTitle') : t('title')}</h1>
       {lessonId && (
@@ -204,50 +204,55 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
               {/* Right Column */}
               <div className="col-span-12 lg:col-span-4 space-y-lg">
                 {/* Resource Documents */}
-                <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
+                <Card className="shadow-sm">
+                  <CardHeader className="flex flex-row items-center justify-between pb-4">
                     <div className="flex items-center gap-2">
                       <span className="material-symbols-outlined text-primary">folder</span>
-                      <h3 className="font-headline-sm text-on-surface">{t('resourcesTitle')}</h3>
+                      <CardTitle className="text-lg">{t('resourcesTitle')}</CardTitle>
                     </div>
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => setShowResourcePicker(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 border border-primary/20 text-primary font-label-sm rounded-lg hover:bg-primary/5 transition-colors cursor-pointer"
+                      className="text-primary border-primary/20 hover:bg-primary/5"
                     >
-                      <span className="material-symbols-outlined text-[16px]">add</span>
+                      <span className="material-symbols-outlined text-[16px] mr-1">add</span>
                       {t('resourcesAdd')}
-                    </button>
-                  </div>
-
-                  {resourceDocIds.length === 0 ? (
-                    <p className="text-label-sm text-outline">{t('resourcesEmpty')}</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {resourceDocIds.map((id) => (
-                        <div
-                          key={id}
-                          className="flex items-center gap-2 px-3 py-2 bg-surface-container-low rounded-lg border border-outline-variant"
-                        >
-                          <span className="material-symbols-outlined text-primary text-[18px]">description</span>
-                          <span className="text-label-sm text-on-surface flex-1 truncate">
-                            {resourceDocs.find((doc) => doc.id === id)?.title ?? t('selectedDocument')}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setResourceDocIds((prev) => prev.filter((i) => i !== id));
-                              setResourceDocs((prev) => prev.filter((doc) => doc.id !== id));
-                            }}
-                            className="material-symbols-outlined text-[16px] text-outline hover:text-error cursor-pointer"
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {resourceDocIds.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">{t('resourcesEmpty')}</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {resourceDocIds.map((id) => (
+                          <div
+                            key={id}
+                            className="flex items-center gap-2 px-3 py-2 bg-secondary/10 rounded-lg border border-border"
                           >
-                            close
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
+                            <span className="material-symbols-outlined text-primary text-[18px]">description</span>
+                            <span className="text-sm text-foreground flex-1 truncate">
+                              {resourceDocs.find((doc) => doc.id === id)?.title ?? t('selectedDocument')}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setResourceDocIds((prev) => prev.filter((i) => i !== id));
+                                setResourceDocs((prev) => prev.filter((doc) => doc.id !== id));
+                              }}
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">close</span>
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
 
                 <ExerciseHint register={register} t={t} />
               </div>
@@ -256,20 +261,21 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
             {/* Sticky Footer */}
             <footer className="fixed bottom-0 left-0 md:left-[256px] right-0 z-40 bg-surface-container-lowest border-t border-outline-variant px-gutter py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
               <div className="max-w-[1200px] mx-auto flex justify-between items-center">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => router.back()}
-                  className="px-6 py-2 border border-outline-variant rounded-lg font-label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
+                  className="px-6"
                 >
                   {t('cancel')}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
                   disabled={saving}
-                  className="px-8 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:opacity-95 shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                  className="px-8"
                 >
                   {saving ? t('saving') : isEditMode ? t('update') : t('submit')}
-                </button>
+                </Button>
               </div>
             </footer>
           </form>

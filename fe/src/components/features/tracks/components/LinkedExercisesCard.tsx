@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
+import { useTranslations } from 'next-intl';
 import type { ExerciseSummaryDto } from '@/services/api-client';
 
 interface LinkedExercisesCardProps {
@@ -34,33 +35,34 @@ export function LinkedExercisesCard({
   disabled = false,
 }: LinkedExercisesCardProps) {
   const [showAll, setShowAll] = useState(false);
+  const t = useTranslations('LinkedExercisesCard');
   const display = showAll ? exercises : exercises.slice(0, 3);
   const hiddenCount = exercises.length - display.length;
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm sticky top-24">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="headline-sm text-on-surface">Linked Exercises</h3>
+        <h3 className="headline-sm text-on-surface">{t('title')}</h3>
         {!disabled && (
           <button
             onClick={onAdd}
             className="bg-primary text-on-primary px-3 py-1.5 rounded-lg text-label-sm font-label-sm flex items-center gap-1 hover:opacity-90 transition-opacity cursor-pointer"
           >
             <Icon icon="lucide:plus" className="text-[18px]" />
-            Add Exercise
+            {t('addExercise')}
           </button>
         )}
       </div>
 
       {disabled && (
         <p className="body-sm text-secondary text-center py-6">
-          Exercises can be linked after the track is created.
+          {t('disabledText')}
         </p>
       )}
 
       {!disabled && exercises.length === 0 && (
         <p className="body-sm text-secondary text-center py-6">
-          No linked exercises yet.
+          {t('noExercises')}
         </p>
       )}
 
@@ -100,7 +102,7 @@ export function LinkedExercisesCard({
               className="w-full flex items-center justify-center gap-2 py-2 text-secondary hover:text-primary hover:bg-primary/5 rounded-lg transition-all mt-2 border border-dashed border-outline-variant cursor-pointer"
             >
               <span className="label-sm">
-                {showAll ? 'Show less' : `Show ${hiddenCount} more exercise${hiddenCount > 1 ? 's' : ''}`}
+                {showAll ? t('showLess') : hiddenCount > 1 ? t('showMorePlural', { count: hiddenCount }) : t('showMore', { count: hiddenCount })}
               </span>
               <Icon
                 icon={showAll ? 'lucide:chevron-up' : 'lucide:chevron-down'}

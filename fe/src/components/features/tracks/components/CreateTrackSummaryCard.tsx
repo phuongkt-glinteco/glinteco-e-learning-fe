@@ -18,7 +18,7 @@ export function CreateTrackSummaryCard({ title, description, previousTrackTitle 
         <h3 className="headline-sm text-on-surface">{t('summaryTitle')}</h3>
       </div>
 
-      <dl className="space-y-4">
+      <dl className="space-y-4 2xl:grid 2xl:grid-cols-3">
         <div>
           <dt className="label-sm text-outline mb-1">{t('trackTitle')}</dt>
           <dd className="text-body-base text-on-surface font-medium">{title.trim() || t('emptyTitle')}</dd>
@@ -35,7 +35,7 @@ export function CreateTrackSummaryCard({ title, description, previousTrackTitle 
             {previousTrackTitle || t('appendToEnd')}
           </dd>
         </div>
-        <div className="grid grid-cols-2 gap-3 pt-2">
+        <div className="grid grid-cols-2 gap-3 pt-2 2xl:col-span-3">
           <div className="rounded-lg bg-surface-container-low p-3">
             <p className="label-sm text-outline">{t('summaryLessons')}</p>
             <p className="text-[24px] font-bold text-on-surface">0</p>

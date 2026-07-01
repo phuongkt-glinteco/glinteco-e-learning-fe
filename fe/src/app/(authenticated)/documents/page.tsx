@@ -4,19 +4,23 @@ import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import DocumentsContainer from '@/components/features/documents/DocumentsContainer';
 import { PageContainer, PageHeader } from '@/components/ui';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { useEffect } from 'react';
 
 export default function DocumentsPage() {
   const t = useTranslations('DocumentsPage');
+  const { setTree } = useBreadcrumbStore();
+
+  useEffect(() => {
+    setTree([{ label: t('title', { defaultValue: 'Documents' }), href: '/documents' }]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t, setTree]);
 
   return (
     <PageContainer scrollable>
       <PageHeader 
         title={t('title')} 
         description={t('description')}
-        breadcrumbs={[
-          { label: 'Home', href: '/' },
-          { label: 'Documents' }
-        ]}
       />
       <DocumentsContainer />
     </PageContainer>

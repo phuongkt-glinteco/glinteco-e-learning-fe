@@ -18,11 +18,12 @@ import {
 interface UseDocumentsOptions {
   search: string;
   selectedKind: string;
-  selectedTag: string;
+  selectedTags: string[];
   bookmarkedOnly: boolean;
 }
 
-export function useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly }: UseDocumentsOptions) {
+export function useDocuments({ search, selectedKind, selectedTags, bookmarkedOnly }: UseDocumentsOptions) {
+  const tagsQuery = selectedTags.length > 0 ? selectedTags.join(',') : undefined;
   const [documents, setDocuments] = useState<DocumentListItem[]>([]);
   const [tags, setTags] = useState<DocumentTag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +44,7 @@ export function useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly
           limit: 20,
           q: search || undefined,
           kind: (selectedKind as DocumentKind) || undefined,
-          tags: selectedTag || undefined,
+          tags: tagsQuery,
           bookmarked: bookmarkedOnly || undefined,
         } as never,
         throwOnError: true,
@@ -60,7 +61,7 @@ export function useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly
       setLoadingMore(false);
       setInitialLoading(false);
     }
-  }, [search, selectedKind, selectedTag, bookmarkedOnly]);
+  }, [search, selectedKind, tagsQuery, bookmarkedOnly]);
 
   useEffect(() => {
     fetchDocuments(null, false);

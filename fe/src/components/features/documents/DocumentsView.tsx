@@ -10,6 +10,7 @@ import type { DocumentListItem } from './types';
 interface DocumentsViewProps {
   documents: DocumentListItem[];
   isAdmin: boolean;
+  viewMode: 'grid' | 'list';
   loading: boolean;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
@@ -20,6 +21,7 @@ interface DocumentsViewProps {
 export function DocumentsView({
   documents,
   isAdmin,
+  viewMode,
   loading,
   hasActiveFilters,
   onClearFilters,
@@ -29,9 +31,10 @@ export function DocumentsView({
   const t = useTranslations('DocumentsPage');
   const router = useRouter();
 
-  const content = isAdmin ? (
+  const content = viewMode === 'list' ? (
     <DocumentTable
       documents={documents}
+      isAdmin={isAdmin}
       emptyTitle={hasActiveFilters ? t('emptySearchTitle') : t('emptyDataTitle')}
       emptyDescription={hasActiveFilters ? t('emptySearchDescription') : t('emptyDataDescription')}
       emptyActionLabel={hasActiveFilters ? t('clearFilters') : undefined}
@@ -43,11 +46,14 @@ export function DocumentsView({
   ) : (
     <DocumentGrid
       documents={documents}
+      isAdmin={isAdmin}
       emptyTitle={hasActiveFilters ? t('emptySearchTitle') : t('emptyDataTitle')}
       emptyDescription={hasActiveFilters ? t('emptySearchDescription') : t('emptyDataDescription')}
       emptyActionLabel={hasActiveFilters ? t('clearFilters') : undefined}
       onEmptyAction={hasActiveFilters ? onClearFilters : undefined}
       onBookmarkToggle={onBookmarkToggle}
+      onEdit={(id) => router.push(`/admin/documents/${id}/edit`)}
+      onDelete={onDelete}
     />
   );
 
@@ -67,3 +73,4 @@ export function DocumentsView({
 
   return content;
 }
+

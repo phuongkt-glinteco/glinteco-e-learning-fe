@@ -80,5 +80,22 @@
   "deleteTagTooltip": "Xóa thẻ",
   "preview": "Xem trước:",
   "creating": "Đang tạo...",
-  "deleting": "Đang xóa..."
+  "deleting": "Đang xóa...",
+  "filterByTags": "Lọc theo Thẻ",
+  "selectedTagsLabel": "Đã chọn:",
+  "availableTags": "Thẻ chưa chọn",
+  "selectedTags": "Thẻ đã chọn",
+  "clickToRemove": "Nhấn để xóa thẻ",
+  "clearAll": "Xóa tất cả",
+  "searchTagsPlaceholder": "Tìm kiếm thẻ theo tên...",
+  "collapseTags": "Thu gọn",
+  "noAvailableTags": "Đã chọn tất cả thẻ.",
+  "noSelectedTags": "Chưa có thẻ nào được chọn. Nhấn từ danh sách chưa chọn để thêm.",
+  "viewMode": "Hiển thị:",
+  "gridView": "Lưới",
+  "listView": "Danh sách",
+  "searchTags": "Tìm kiếm thẻ...",
+  "noTagsFound": "Không tìm thấy thẻ nào.",
+  "clearTags": "Xóa các thẻ đã chọn"
 }
+

@@ -1,7 +1,6 @@
 import { HttpError, ApiError, UiShowError } from './errors';
 import { registerAddItemErrors } from './add-item-error';
 import { registerUiShowErrors } from './ui-show-error';
-
 // ───  A c t i o n   &   H a n d l e r  ─────────────────────────────
 
 export type HandlerAction =
@@ -146,6 +145,10 @@ export function createHandler(
       }
       if (action === 'CONTINUE') {
         return { type: 'CONTINUE', error };
+      }
+      window?.console?.error(`Unhandled error: ${error.message}`, error.stack, error.name, error.cause?.toString());
+      if (!window) {
+        return { type: 'FINAL_THROW', error: new UiShowError(params.errorCode, 'UwU') };
       }
       return { type: 'FINAL_THROW', error: new UiShowError(params.errorCode, params.name) };
     },

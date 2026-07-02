@@ -80,5 +80,22 @@
   "deleteTagTooltip": "Delete Tag",
   "preview": "Preview:",
   "creating": "Creating...",
-  "deleting": "Deleting..."
+  "deleting": "Deleting...",
+  "filterByTags": "Filter by Tags",
+  "selectedTagsLabel": "Selected:",
+  "availableTags": "Available Tags",
+  "selectedTags": "Selected Tags",
+  "clickToRemove": "Click to remove tag",
+  "clearAll": "Clear all",
+  "searchTagsPlaceholder": "Search tags by name...",
+  "collapseTags": "Close",
+  "noAvailableTags": "All tags have been selected.",
+  "noSelectedTags": "No tags selected yet. Click from available tags to select.",
+  "viewMode": "View:",
+  "gridView": "Grid",
+  "listView": "List",
+  "searchTags": "Search tags...",
+  "noTagsFound": "No tags found.",
+  "clearTags": "Clear selected tags"
 }
+

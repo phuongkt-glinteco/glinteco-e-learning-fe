@@ -30,22 +30,52 @@ export default function DocumentsContainer() {
     () => searchParams.get('q') ?? searchParams.get('search') ?? '',
     [searchParams],
   );
-  const [selectedKind, setSelectedKind] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
-  const [bookmarkedOnly, setBookmarkedOnly] = useState(false);
+  const selectedKind = useMemo(() => searchParams.get('kind') ?? '', [searchParams]);
+  const selectedTags = useMemo(() => {
+    const tagsParam = searchParams.get('tags');
+    return tagsParam ? tagsParam.split(',').map((t) => t.trim()).filter(Boolean) : [];
+  }, [searchParams]);
+  const bookmarkedOnly = useMemo(() => searchParams.get('bookmarked') === 'true', [searchParams]);
+
+  const urlViewMode = useMemo(() => {
+    const v = searchParams.get('view');
+    return v === 'grid' || v === 'list' ? (v as 'grid' | 'list') : null;
+  }, [searchParams]);
+
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const hasActiveFilters = Boolean(search || selectedKind || selectedTag || bookmarkedOnly);
+  const hasActiveFilters = Boolean(search || selectedKind || selectedTags.length > 0 || bookmarkedOnly);
 
-  const replaceSearchQuery = useCallback(
-    (nextSearch: string) => {
+  const updateUrlParams = useCallback(
+    (updates: {
+      q?: string;
+      kind?: string;
+      tags?: string[];
+      bookmarked?: boolean;
+      view?: 'grid' | 'list';
+    }) => {
       const params = new URLSearchParams(searchParams.toString());
-      const normalizedSearch = nextSearch.trim();
 
-      params.delete('search');
-      if (normalizedSearch) {
-        params.set('q', normalizedSearch);
-      } else {
-        params.delete('q');
+      if (updates.q !== undefined) {
+        params.delete('search');
+        const normalized = updates.q.trim();
+        if (normalized) params.set('q', normalized);
+        else params.delete('q');
+      }
+      if (updates.kind !== undefined) {
+        if (updates.kind) params.set('kind', updates.kind);
+        else params.delete('kind');
+      }
+      if (updates.tags !== undefined) {
+        if (updates.tags.length > 0) params.set('tags', updates.tags.join(','));
+        else params.delete('tags');
+      }
+      if (updates.bookmarked !== undefined) {
+        if (updates.bookmarked) params.set('bookmarked', 'true');
+        else params.delete('bookmarked');
+      }
+      if (updates.view !== undefined) {
+        if (updates.view) params.set('view', updates.view);
+        else params.delete('view');
       }
 
       const currentQuery = searchParams.toString();
@@ -57,16 +87,45 @@ export default function DocumentsContainer() {
     [pathname, router, searchParams],
   );
 
+  const handleSearchChange = useCallback((val: string) => updateUrlParams({ q: val }), [updateUrlParams]);
+  const handleKindChange = useCallback((val: string) => updateUrlParams({ kind: val }), [updateUrlParams]);
+  const handleTagsChange = useCallback((val: string[]) => updateUrlParams({ tags: val }), [updateUrlParams]);
+  const handleBookmarkedToggle = useCallback(() => updateUrlParams({ bookmarked: !bookmarkedOnly }), [updateUrlParams, bookmarkedOnly]);
+
   function handleClearFilters() {
-    replaceSearchQuery('');
-    setSelectedKind('');
-    setSelectedTag('');
-    setBookmarkedOnly(false);
+    updateUrlParams({ q: '', kind: '', tags: [], bookmarked: false });
   }
 
   // Consistent: treat as learner while loading to avoid hydration mismatch
   // Admin header is rendered only when auth has resolved and user is confirmed admin
   const isAdmin = mounted && !authLoading && user?.role === 'admin';
+
+  const [localViewMode, setLocalViewMode] = useState<'grid' | 'list'>('grid');
+  const [hasInitializedView, setHasInitializedView] = useState(false);
+
+  useEffect(() => {
+    if (mounted && !authLoading && !hasInitializedView) {
+      const savedMode = localStorage.getItem('documents_view_mode') as 'grid' | 'list' | null;
+      if (savedMode === 'grid' || savedMode === 'list') {
+        setLocalViewMode(savedMode);
+      } else if (user?.role === 'admin') {
+        setLocalViewMode('list');
+      } else {
+        setLocalViewMode('grid');
+      }
+      setHasInitializedView(true);
+    }
+  }, [mounted, authLoading, user?.role, hasInitializedView]);
+
+  const viewMode = urlViewMode || localViewMode;
+
+  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
+    setLocalViewMode(mode);
+    updateUrlParams({ view: mode });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('documents_view_mode', mode);
+    }
+  }, [updateUrlParams]);
 
   const {
     documents,
@@ -81,7 +140,7 @@ export default function DocumentsContainer() {
     handleBookmarkToggle,
     loadMore,
     handleDelete,
-  } = useDocuments({ search, selectedKind, selectedTag, bookmarkedOnly });
+  } = useDocuments({ search, selectedKind, selectedTags, bookmarkedOnly });
 
   if (initialLoading) {
     return (
@@ -125,19 +184,22 @@ export default function DocumentsContainer() {
 
       <DocumentsFilters
         search={search}
-        onSearchChange={replaceSearchQuery}
+        onSearchChange={handleSearchChange}
         selectedKind={selectedKind}
-        onKindChange={setSelectedKind}
-        selectedTag={selectedTag}
-        onTagChange={setSelectedTag}
+        onKindChange={handleKindChange}
+        selectedTags={selectedTags}
+        onTagsChange={handleTagsChange}
         bookmarkedOnly={bookmarkedOnly}
-        onBookmarkedToggle={() => setBookmarkedOnly((prev) => !prev)}
+        onBookmarkedToggle={handleBookmarkedToggle}
         tags={tags}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
       />
 
       <DocumentsView
         documents={documents}
         isAdmin={isAdmin}
+        viewMode={viewMode}
         loading={loading}
         hasActiveFilters={hasActiveFilters}
         onClearFilters={handleClearFilters}

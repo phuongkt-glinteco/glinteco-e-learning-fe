@@ -13,13 +13,14 @@ import type { DocumentListItem } from './types';
 
 interface DocumentTableProps {
   documents: DocumentListItem[];
+  isAdmin?: boolean;
   emptyTitle: string;
   emptyDescription: string;
   emptyActionLabel?: string;
   onEmptyAction?: () => void;
   onBookmarkToggle: (id: string, bookmarked: boolean) => void;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const KIND_STYLES: Record<string, { bg: string; text: string }> = {
@@ -32,6 +33,7 @@ const KIND_STYLES: Record<string, { bg: string; text: string }> = {
 
 export function DocumentTable({
   documents,
+  isAdmin,
   emptyTitle,
   emptyDescription,
   emptyActionLabel,
@@ -106,10 +108,15 @@ export function DocumentTable({
       header: t('tagsLabel'),
       cell: (doc) => {
         return (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 max-w-[260px]">
             {doc.tags.length > 0 ? (
               doc.tags.map((tag) => (
-                <Badge key={tag.id} variant="secondary" className="font-caption-bold">
+                <Badge
+                  key={tag.id}
+                  variant="secondary"
+                  className="font-caption-bold max-w-[140px] truncate block text-xs"
+                  title={toTitleCase(tag.name)}
+                >
                   #{toTitleCase(tag.name)}
                 </Badge>
               ))
@@ -120,7 +127,10 @@ export function DocumentTable({
         );
       },
     },
-    {
+  ];
+
+  if (isAdmin && onEdit && onDelete) {
+    columns.push({
       key: 'actions',
       headerClassName: 'font-caption-bold text-on-surface-variant uppercase tracking-wider text-right',
       cellClassName: 'text-right',
@@ -149,8 +159,8 @@ export function DocumentTable({
           </div>
         );
       },
-    },
-  ];
+    });
+  }
 
   return (
     <DataTable

@@ -1,6 +1,7 @@
 import {
   exercisesControllerFindAll,
   exercisesControllerFindOne,
+  submissionsControllerFindHistory,
   submissionsControllerFindMine,
   submissionsControllerFindOne,
   submissionsControllerResubmit,
@@ -17,6 +18,7 @@ import type {
   LearnerExerciseFeedItem,
   LearnerExerciseDetail,
   LearnerLesson,
+  LearnerSubmissionHistoryItem,
   LearnerSubmissionState,
   LearnerTrack,
   TrackLessonPreview,
@@ -33,6 +35,7 @@ import {
   normalizeLessons,
   normalizeLessonsPreview,
   normalizeLessonId,
+  normalizeSubmissionHistory,
   normalizeSubmissionState,
   normalizeTrackDetail,
   normalizeTrackDetailWithCount,
@@ -44,6 +47,7 @@ import {
   type LessonSummaryContract,
   type SubmissionDetailContract,
   type SubmissionFeedItemContract,
+  type SubmissionHistoryResponseContract,
   type TrackDetailContract,
   type TrackSummaryContract,
 } from './utils';
@@ -475,4 +479,16 @@ export async function resubmitExercise(
   });
 
   return normalizeSubmissionState(extractSubmissionContract(response.data));
+}
+
+export async function fetchSubmissionHistory(
+  submissionId: string
+): Promise<LearnerSubmissionHistoryItem[]> {
+  const response = await submissionsControllerFindHistory({
+    path: { id: submissionId },
+    throwOnError: true,
+    ...silentErrorToastOptions,
+  });
+
+  return normalizeSubmissionHistory(response.data as unknown as SubmissionHistoryResponseContract);
 }

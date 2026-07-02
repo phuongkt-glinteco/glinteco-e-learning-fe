@@ -10,5 +10,6 @@
   "backToLesson": "Back to Lesson",
   "retry": "Retry",
   "tracks": "Learning Tracks",
+  "historyLoadFailed": "Failed to load submission history.",
   "SUBMIT_EXERCISE_FAILED": "Failed to submit exercise. Please check your pull request URL and try again."
 }

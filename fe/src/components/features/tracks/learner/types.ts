@@ -87,6 +87,19 @@ export interface LearnerSubmissionState {
   canResubmit: boolean;
 }
 
+export type LearnerSubmissionHistoryEventType = 'submission' | 'review';
+
+export interface LearnerSubmissionHistoryItem {
+  id: string;
+  eventType: LearnerSubmissionHistoryEventType;
+  prUrl: string | null;
+  status: LearnerSubmissionStatus;
+  submittedAt: string | null;
+  reviewerId: string | null;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+}
+
 export interface LearnerSubmissionFormValues {
   prUrl: string;
 }

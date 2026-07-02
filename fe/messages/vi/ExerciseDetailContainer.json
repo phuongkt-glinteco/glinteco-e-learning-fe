@@ -10,5 +10,6 @@
   "backToLesson": "Quay lại Bài học",
   "retry": "Thử lại",
   "tracks": "Lộ Trình Học",
+  "historyLoadFailed": "Không thể tải lịch sử nộp bài.",
   "SUBMIT_EXERCISE_FAILED": "Nộp bài tập thất bại. Vui lòng kiểm tra lại đường dẫn pull request và thử lại."
 }

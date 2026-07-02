@@ -6,12 +6,13 @@ import Skeleton from '@/components/ui/loading/Skeleton';
 import { ExerciseDetailView } from './ExerciseDetailView';
 import {
   fetchExercisePage,
+  fetchSubmissionHistory,
   fetchStandaloneExercisePage,
   resubmitExercise,
   submitExercise,
   type ExercisePageData,
 } from './courseLearningApi';
-import type { LearnerSubmissionFormValues } from './types';
+import type { LearnerSubmissionFormValues, LearnerSubmissionHistoryItem } from './types';
 import { getErrorMessage, getLearnerRouteBase, getRouteParam } from './utils';
 import { isUiShowError } from '@/services/errors';
 
@@ -127,7 +128,32 @@ export default function ExerciseDetailContainer() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+  const [historyItems, setHistoryItems] = useState<LearnerSubmissionHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const { pushNode, setTree, getBackHref, tree } = useBreadcrumbStore();
+
+  const loadSubmissionHistory = useCallback(async (submissionId: string | null) => {
+    if (!submissionId) {
+      setHistoryItems([]);
+      setHistoryError(null);
+      setHistoryLoading(false);
+      return;
+    }
+
+    setHistoryLoading(true);
+    setHistoryError(null);
+    setHistoryItems([]);
+
+    try {
+      const nextHistory = await fetchSubmissionHistory(submissionId);
+      setHistoryItems(nextHistory);
+    } catch (historyFailure: unknown) {
+      setHistoryError(getErrorMessage(historyFailure, t('historyLoadFailed', { defaultValue: 'Failed to load submission history.' })));
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [t]);
 
   const loadExercise = useCallback(async () => {
     if (!exerciseId) {
@@ -146,6 +172,7 @@ export default function ExerciseDetailContainer() {
         : await fetchExercisePage(courseId, lessonId, exerciseId);
       setPageData(nextPageData);
       setFormValues({ prUrl: nextPageData.submission.prUrl ?? '' });
+      void loadSubmissionHistory(nextPageData.submission.id);
       setStartError(null);
 
       if (isStandaloneRoute) {
@@ -168,7 +195,7 @@ export default function ExerciseDetailContainer() {
     } finally {
       setLoading(false);
     }
-  }, [courseId, lessonId, exerciseId, isStandaloneRoute, routeBase, setTree, pushNode, tree.length]);
+  }, [courseId, lessonId, exerciseId, isStandaloneRoute, routeBase, setTree, pushNode, tree.length, loadSubmissionHistory]);
 
   useEffect(() => {
     loadExercise();
@@ -198,6 +225,7 @@ export default function ExerciseDetailContainer() {
         submission: nextSubmission,
       });
       setFormValues({ prUrl: nextSubmission.prUrl ?? nextPrUrl });
+      void loadSubmissionHistory(nextSubmission.id);
       setSubmitMessage(t('submissionSuccess', { defaultValue: 'Submission saved successfully.' }));
     } catch (submitFailure: unknown) {
       console.error('Submit exercise error:', submitFailure);
@@ -253,9 +281,13 @@ export default function ExerciseDetailContainer() {
       startError={startError}
       submitError={submitError}
       submitMessage={submitMessage}
+      historyItems={historyItems}
+      historyLoading={historyLoading}
+      historyError={historyError}
       onPrUrlChange={(value) => setFormValues({ prUrl: value })}
       onStartExercise={handleStartExercise}
       onSubmit={handleSubmit}
+      onRetryHistory={() => loadSubmissionHistory(pageData.submission.id)}
       onBackToTrack={() => {
         const targetTrackId = pageData.exercise.trackId || pageData.course.id;
         if (targetTrackId) {

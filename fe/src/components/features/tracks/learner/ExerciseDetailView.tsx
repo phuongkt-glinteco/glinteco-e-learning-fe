@@ -9,6 +9,7 @@ import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumb
 import type {
   LearnerExerciseDetail,
   LearnerLesson,
+  LearnerSubmissionHistoryItem,
   LearnerSubmissionState,
   LearnerTrack,
 } from './types';
@@ -23,9 +24,13 @@ interface ExerciseDetailViewProps {
   startError: string | null;
   submitError: string | null;
   submitMessage: string | null;
+  historyItems: LearnerSubmissionHistoryItem[];
+  historyLoading: boolean;
+  historyError: string | null;
   onPrUrlChange: (value: string) => void;
   onStartExercise: () => void;
   onSubmit: () => void;
+  onRetryHistory: () => void;
   onBackToTrack?: () => void;
 }
 
@@ -43,8 +48,9 @@ function getStatusLabel(status: LearnerSubmissionState['status']) {
     case 'approved':
       return 'statusCompleted';
     case 'changes':
-    case 'rejected':
       return 'actionRequired';
+    case 'rejected':
+      return 'statusRejected';
     case 'submitted':
       return 'statusInReview';
     case 'pending':
@@ -321,6 +327,133 @@ function SubmittedState({
   );
 }
 
+function ReviewHistorySection({
+  items,
+  loading,
+  error,
+  onRetry,
+}: {
+  items: LearnerSubmissionHistoryItem[];
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
+}) {
+  const t = useTranslations('ExerciseDetailView');
+
+  return (
+    <section className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-outline-variant pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="material-symbols-outlined text-[20px] text-primary">history</span>
+          <div className="min-w-0">
+            <h2 className="headline-sm text-on-surface">{t('reviewHistory')}</h2>
+            <p className="body-sm text-on-surface-variant">{t('reviewHistoryDescription')}</p>
+          </div>
+        </div>
+        {error && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-outline-variant px-3 py-2 label-sm text-on-surface hover:bg-surface-container-low"
+          >
+            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            {t('retryHistory')}
+          </button>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="mt-4 space-y-3">
+          {[0, 1, 2].map((item) => (
+            <div key={item} className="rounded-lg border border-outline-variant p-4">
+              <div className="h-4 w-36 rounded bg-surface-container" />
+              <div className="mt-3 h-3 w-full max-w-[520px] rounded bg-surface-container" />
+              <div className="mt-2 h-3 w-2/3 rounded bg-surface-container" />
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="mt-4 rounded-lg border border-error-container bg-error-container/30 p-4 text-on-error-container">
+          <p className="flex items-start gap-2 label-sm">
+            <span className="material-symbols-outlined mt-0.5 text-[16px]">error</span>
+            <span className="min-w-0 break-words">{error}</span>
+          </p>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="mt-4 rounded-lg border border-dashed border-outline-variant bg-surface-container-low p-5 text-center">
+          <span className="material-symbols-outlined text-[28px] text-on-surface-variant">history_toggle_off</span>
+          <p className="label-md mt-2 text-on-surface">{t('historyEmptyTitle')}</p>
+          <p className="body-sm mt-1 text-on-surface-variant">{t('historyEmptyDescription')}</p>
+        </div>
+      ) : (
+        <ol className="mt-4 space-y-4">
+          {items.map((item) => {
+            const isReviewEvent = item.eventType === 'review';
+            const eventTime = isReviewEvent ? item.reviewedAt : item.submittedAt;
+
+            return (
+              <li key={item.id} className="relative flex min-w-0 gap-3">
+                <div className="flex flex-col items-center">
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-full ${isReviewEvent ? 'bg-secondary-fixed text-secondary' : 'bg-primary-fixed text-primary'}`}>
+                    <span className="material-symbols-outlined text-[19px]">
+                      {isReviewEvent ? 'rate_review' : 'upload_file'}
+                    </span>
+                  </span>
+                </div>
+                <article className="min-w-0 flex-1 rounded-lg border border-outline-variant bg-surface-container-low p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="label-md text-on-surface">
+                        {isReviewEvent ? t('historyReviewEvent') : t('historySubmissionEvent')}
+                      </p>
+                      <p className="body-sm text-on-surface-variant">{formatDateTime(eventTime)}</p>
+                    </div>
+                    <span className={`w-fit rounded-full border px-2.5 py-1 label-sm ${getStatusBadgeClass(item.status)}`}>
+                      {t(getStatusLabel(item.status))}
+                    </span>
+                  </div>
+
+                  {item.prUrl && (
+                    <a
+                      href={item.prUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex max-w-full min-w-0 items-center gap-1 text-primary hover:underline"
+                    >
+                      <span className="min-w-0 truncate">{item.prUrl}</span>
+                      <span className="material-symbols-outlined shrink-0 text-[16px]">open_in_new</span>
+                    </a>
+                  )}
+
+                  {isReviewEvent && (
+                    <div className="mt-3 space-y-2 border-t border-outline-variant pt-3 body-sm text-on-surface-variant">
+                      {item.reviewerId && (
+                        <p className="break-words">
+                          <span className="font-medium text-on-surface">{t('reviewer')}:</span> {item.reviewerId}
+                        </p>
+                      )}
+                      {item.reviewNote && (
+                        <p className="break-words">
+                          <span className="font-medium text-on-surface">{t('reviewNote')}:</span> {item.reviewNote}
+                        </p>
+                      )}
+                      {item.submittedAt && (
+                        <p>
+                          <span className="font-medium text-on-surface">{t('submitted')}:</span> {formatDateTime(item.submittedAt)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </article>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
+  );
+}
+
 function ApprovedState({
   exercise,
   submission,
@@ -442,16 +575,21 @@ export function ExerciseDetailView({
   startError,
   submitError,
   submitMessage,
+  historyItems,
+  historyLoading,
+  historyError,
   onPrUrlChange,
   onStartExercise,
   onSubmit,
+  onRetryHistory,
   onBackToTrack,
 }: ExerciseDetailViewProps) {
   const t = useTranslations('ExerciseDetailView');
   const isNotStarted = submission.status === 'pending';
   const isInProgress = submission.status === 'in_progress';
   const isSubmitted = submission.status === 'submitted';
-  const isChangesRequested = submission.status === 'changes' || submission.status === 'rejected';
+  const isChangesRequested = submission.status === 'changes';
+  const isRejected = submission.status === 'rejected';
   const isApproved = submission.status === 'approved';
   const startCardTitle = isInProgress ? t('exerciseInProgress') : t('readyToBegin');
   const startCardCopy = isInProgress
@@ -520,7 +658,7 @@ export function ExerciseDetailView({
               {submission.prUrl && (
                 <div className="mt-5 rounded-lg border border-outline-variant bg-surface-container-low p-3 label-sm text-on-surface-variant">
                   {t('previousSubmission')}{' '}
-                  <a href={submission.prUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                  <a href={submission.prUrl} target="_blank" rel="noreferrer" className="break-all text-primary hover:underline">
                     {submission.prUrl}
                   </a>
                 </div>
@@ -536,6 +674,44 @@ export function ExerciseDetailView({
               onPrUrlChange={onPrUrlChange}
               onSubmit={onSubmit}
             />
+            {onBackToTrack && (
+              <div className="mt-2 flex justify-start">
+                <button
+                  type="button"
+                  onClick={onBackToTrack}
+                  className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-5 py-2 label-md text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  {t('backToTrack', { defaultValue: 'Back to Track' })}
+                </button>
+              </div>
+            )}
+          </main>
+          <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
+        </div>
+      ) : isRejected ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <main className="flex min-w-0 flex-col gap-6">
+            <section className="rounded-lg border border-error bg-surface p-5 shadow-sm">
+              <div className="flex items-start justify-between gap-3 border-b border-outline-variant pb-4">
+                <div>
+                  <h2 className="headline-sm text-on-surface">{t('mentorFeedback')}</h2>
+                  <p className="body-sm mt-1 text-on-surface-variant">{t('submissionRejectedDescription')}</p>
+                </div>
+                <span className="rounded-md bg-error-container px-2.5 py-1 label-sm text-on-error-container">{t('statusRejected')}</span>
+              </div>
+              <p className="body-md mt-4 break-words text-on-surface">
+                {submission.reviewNote ?? t('submissionRejectedFallback')}
+              </p>
+              {submission.prUrl && (
+                <div className="mt-5 rounded-lg border border-outline-variant bg-surface-container-low p-3 label-sm text-on-surface-variant">
+                  {t('previousSubmission')}{' '}
+                  <a href={submission.prUrl} target="_blank" rel="noreferrer" className="break-all text-primary hover:underline">
+                    {submission.prUrl}
+                  </a>
+                </div>
+              )}
+            </section>
             {onBackToTrack && (
               <div className="mt-2 flex justify-start">
                 <button
@@ -592,6 +768,13 @@ export function ExerciseDetailView({
           </aside>
         </div>
       )}
+
+      <ReviewHistorySection
+        items={historyItems}
+        loading={historyLoading}
+        error={historyError}
+        onRetry={onRetryHistory}
+      />
     </div>
   );
 }

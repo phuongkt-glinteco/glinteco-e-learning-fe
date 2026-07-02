@@ -49,5 +49,17 @@
   "currentBreadcrumb": "{title}",
   "backToTrack": "Back to Track",
   "viewNextTrack": "View Next Track",
-  "goToCourse": "Go to Course"
+  "goToCourse": "Go to Course",
+  "reviewHistory": "Review History",
+  "reviewHistoryDescription": "Submission and review activity for this exercise.",
+  "retryHistory": "Retry",
+  "historyEmptyTitle": "No history yet",
+  "historyEmptyDescription": "Submission and review events will appear here after work is submitted.",
+  "historyReviewEvent": "Review event",
+  "historySubmissionEvent": "Submission event",
+  "reviewer": "Reviewer",
+  "reviewNote": "Review note",
+  "statusRejected": "Rejected",
+  "submissionRejectedDescription": "This submission is closed and cannot be resubmitted from here.",
+  "submissionRejectedFallback": "This submission was rejected. Review the history for details."
 }

@@ -49,5 +49,17 @@
   "currentBreadcrumb": "{title}",
   "backToTrack": "Quay lại Khóa Học",
   "viewNextTrack": "Xem lộ trình tiếp theo",
-  "goToCourse": "Về trang khóa học"
+  "goToCourse": "Về trang khóa học",
+  "reviewHistory": "Lịch sử review",
+  "reviewHistoryDescription": "Hoạt động nộp bài và review của bài tập này.",
+  "retryHistory": "Thử lại",
+  "historyEmptyTitle": "Chưa có lịch sử",
+  "historyEmptyDescription": "Các lần nộp bài và review sẽ xuất hiện tại đây sau khi có submission.",
+  "historyReviewEvent": "Sự kiện review",
+  "historySubmissionEvent": "Sự kiện nộp bài",
+  "reviewer": "Reviewer",
+  "reviewNote": "Nhận xét",
+  "statusRejected": "Từ chối",
+  "submissionRejectedDescription": "Submission này đã đóng và không thể nộp lại từ màn hình này.",
+  "submissionRejectedFallback": "Submission này đã bị từ chối. Xem lịch sử để biết chi tiết."
 }

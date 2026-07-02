@@ -6,6 +6,8 @@ import type {
   LessonProgressItemDto,
   SubmissionDetailDto,
   SubmissionFeedItemDto,
+  SubmissionHistoryItemDto,
+  SubmissionHistoryResponseDto,
   TrackDetailDto,
   TrackSummaryDto,
 } from '@/services/api-client';
@@ -17,6 +19,7 @@ import type {
   LearnerExerciseFeedItem,
   LearnerExerciseDetail,
   LearnerExerciseResource,
+  LearnerSubmissionHistoryItem,
   LearnerSubmissionState,
   LearnerSubmissionStatus,
   LearnerTrack,
@@ -98,6 +101,20 @@ export type SubmissionFeedItemContract = Omit<SubmissionFeedItemDto, 'prUrl' | '
   status?: unknown;
   submittedAt?: unknown;
   exercise?: unknown;
+};
+export type SubmissionHistoryItemContract = Omit<
+  SubmissionHistoryItemDto,
+  'prUrl' | 'reviewNote' | 'reviewerId' | 'reviewedAt' | 'submittedAt' | 'status'
+> & {
+  prUrl?: unknown;
+  reviewNote?: unknown;
+  reviewerId?: unknown;
+  reviewedAt?: unknown;
+  submittedAt?: unknown;
+  status?: unknown;
+};
+export type SubmissionHistoryResponseContract = Omit<SubmissionHistoryResponseDto, 'history'> & {
+  history?: unknown;
 };
 
 export function getRouteParam(value: string | string[] | undefined) {
@@ -283,6 +300,19 @@ function normalizeSubmissionStatus(value: NullableUnknown): LearnerSubmissionSta
     return status;
   }
   return 'pending';
+}
+
+function getSubmissionHistoryEventType(
+  status: LearnerSubmissionStatus,
+  reviewerId: string | null,
+  reviewNote: string | null,
+  reviewedAt: string | null
+): LearnerSubmissionHistoryItem['eventType'] {
+  if (status === 'changes' || status === 'approved' || status === 'rejected') {
+    return 'review';
+  }
+
+  return reviewedAt || reviewerId || reviewNote ? 'review' : 'submission';
 }
 
 function normalizeResource(resource: unknown): LearnerExerciseResource | null {
@@ -550,8 +580,53 @@ export function normalizeSubmissionState(
       ['date', 'at', 'reviewedAt']
     ),
     canSubmit: !prUrl && (status === 'pending' || status === 'in_progress'),
-    canResubmit: status === 'changes' || status === 'rejected',
+    canResubmit: status === 'changes',
   };
+}
+
+export function normalizeSubmissionHistoryItem(
+  item: SubmissionHistoryItemContract
+): LearnerSubmissionHistoryItem | null {
+  const id = normalizeNullableString(item.id);
+  if (!id) return null;
+
+  const reviewNote = normalizeStringFromFlexibleValue(item.reviewNote, ['note', 'comment', 'message', 'content', 'text']);
+  const reviewerId = normalizeStringFromFlexibleValue(item.reviewerId, ['id', 'reviewerId', 'uuid', 'name', 'email']);
+  const reviewedAt = normalizeStringFromFlexibleValue(item.reviewedAt, ['date', 'at', 'reviewedAt']);
+  const status = normalizeSubmissionStatus(item.status);
+
+  return {
+    id,
+    eventType: getSubmissionHistoryEventType(status, reviewerId, reviewNote, reviewedAt),
+    prUrl: normalizeUrl(item.prUrl),
+    status,
+    submittedAt: normalizeNullableString(item.submittedAt),
+    reviewerId,
+    reviewNote,
+    reviewedAt,
+  };
+}
+
+export function normalizeSubmissionHistory(
+  response: SubmissionHistoryResponseContract | SubmissionHistoryItemContract[] | null | undefined
+): LearnerSubmissionHistoryItem[] {
+  const rawHistory = Array.isArray(response)
+    ? response
+    : Array.isArray(response?.history)
+      ? response.history
+      : [];
+
+  return rawHistory
+    .map((item) => normalizeSubmissionHistoryItem(item as SubmissionHistoryItemContract))
+    .filter((item): item is LearnerSubmissionHistoryItem => Boolean(item))
+    .sort((a, b) => {
+      const aDate = new Date(a.reviewedAt ?? a.submittedAt ?? '').getTime();
+      const bDate = new Date(b.reviewedAt ?? b.submittedAt ?? '').getTime();
+      if (Number.isNaN(aDate) && Number.isNaN(bDate)) return 0;
+      if (Number.isNaN(aDate)) return 1;
+      if (Number.isNaN(bDate)) return -1;
+      return bDate - aDate;
+    });
 }
 
 export function getSubmissionExerciseId(submission: SubmissionFeedItemContract | SubmissionDetailContract): string | null {

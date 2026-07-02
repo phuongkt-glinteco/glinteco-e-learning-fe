@@ -1,7 +1,10 @@
 'use client';
 
+import React from 'react';
 import type { DocumentKind } from './types';
-import { BookmarkButton } from './BookmarkButton';
+import { DocumentActionsMenu } from './DocumentActionsMenu';
+import { Badge } from '@/components/ui/default/badge';
+import { toTitleCase } from '@/lib/utils';
 
 interface DocumentCardProps {
   id: string;
@@ -16,12 +19,12 @@ interface DocumentCardProps {
   onDelete?: (id: string) => void;
 }
 
-const KIND_STYLES: Record<DocumentKind, { icon: string; color: string }> = {
-  Guide: { icon: 'book', color: 'text-primary' },
-  Reference: { icon: 'search', color: 'text-secondary' },
-  Runbook: { icon: 'emergency', color: 'text-error' },
-  Tutorial: { icon: 'school', color: 'text-tertiary' },
-  Link: { icon: 'open_in_new', color: 'text-on-surface-variant' },
+const KIND_STYLES: Record<string, { bg: string; text: string }> = {
+  Guide: { bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-700 dark:text-blue-300' },
+  Reference: { bg: 'bg-purple-50 dark:bg-purple-950/40', text: 'text-purple-700 dark:text-purple-300' },
+  Runbook: { bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-700 dark:text-amber-300' },
+  Tutorial: { bg: 'bg-green-50 dark:bg-green-950/40', text: 'text-green-700 dark:text-green-300' },
+  Link: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-300' },
 };
 
 export function DocumentCard({
@@ -30,7 +33,6 @@ export function DocumentCard({
   kind,
   tags,
   isBookmarked,
-  url,
   onBookmarkToggle,
   isAdmin = false,
   onEdit,
@@ -39,71 +41,44 @@ export function DocumentCard({
   const style = KIND_STYLES[kind] || KIND_STYLES.Link;
 
   return (
-    <div className="group bg-surface-container-lowest border border-outline-variant rounded-xl p-lg transition-all hover:shadow-md hover:border-primary/30 flex flex-col h-full">
-      <div className="flex items-center justify-between gap-md">
-        <div className="flex items-center gap-sm">
-          <span className={`material-symbols-outlined text-[24px] ${style.color}`}>
-            {style.icon}
-          </span>
-          <span className="text-label-sm font-semibold px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant truncate max-w-[140px]">
-            {kind}
-          </span>
-        </div>
-        <BookmarkButton
+    <div className="group bg-surface-container-lowest border border-outline-variant rounded-xl p-5 transition-all hover:shadow-md hover:border-primary/30 flex flex-col h-full">
+      <div className="flex items-start justify-between gap-3 pb-2">
+        <h3 className="font-headline-sm text-lg font-bold text-on-surface line-clamp-2 group-hover:text-primary transition-colors flex-grow">
+          {title}
+        </h3>
+        <DocumentActionsMenu
           documentId={id}
-          initialState={isBookmarked}
-          onToggle={onBookmarkToggle}
+          isBookmarked={isBookmarked}
+          title={title}
+          isAdmin={isAdmin}
+          onBookmarkToggle={onBookmarkToggle}
+          onEdit={onEdit}
+          onDeleteRequest={(docId) => onDelete?.(docId)}
         />
       </div>
 
-      <div className="flex-grow">
-        <h3 className="font-headline-sm text-headline-sm text-on-surface mt-3 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-          {title}
-        </h3>
-
-        {url && (
-          <p className="text-body-sm text-on-surface-variant truncate mb-3 max-w-full">
-            {url}
-          </p>
-        )}
+      <div className="flex-grow p-0 flex flex-col justify-end mt-4 pt-3 border-t border-outline-variant/40 gap-3">
+        <div className="flex items-center gap-2">
+          <span className={`px-2.5 py-0.5 ${style.bg} ${style.text} text-xs font-semibold rounded-full uppercase tracking-wider`}>
+            {kind}
+          </span>
+        </div>
 
         {tags.length > 0 && (
-          <div className="flex flex-wrap gap-xs mt-2">
+          <div className="flex flex-wrap gap-1.5">
             {tags.map((tag) => (
-              <span
+              <Badge
                 key={tag.name}
-                className="text-label-sm px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant max-w-[140px] truncate block"
-                title={`#${tag.name}`}
+                variant="secondary"
+                className="max-w-[150px] truncate block font-medium text-xs bg-surface-container text-on-surface-variant"
+                title={`#${toTitleCase(tag.name)}`}
               >
-                #{tag.name}
-              </span>
+                #{toTitleCase(tag.name)}
+              </Badge>
             ))}
           </div>
         )}
       </div>
-
-      {isAdmin && (onEdit || onDelete) && (
-        <div className="flex items-center justify-end gap-xs mt-4 pt-3 border-t border-outline-variant/40">
-          {onEdit && (
-            <button
-              onClick={() => onEdit(id)}
-              className="p-sm hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer text-on-surface-variant"
-              title="Edit"
-            >
-              <span className="material-symbols-outlined text-[18px]">edit</span>
-            </button>
-          )}
-          {onDelete && (
-            <button
-              onClick={() => onDelete(id)}
-              className="p-sm hover:bg-error/10 rounded-lg transition-colors cursor-pointer text-error"
-              title="Delete"
-            >
-              <span className="material-symbols-outlined text-[18px]">delete</span>
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }

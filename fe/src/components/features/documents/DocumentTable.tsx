@@ -1,14 +1,23 @@
 'use client';
 
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { BookmarkButton } from './BookmarkButton';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/default/badge';
-import { Button } from '@/components/ui/default/button';
-import { Edit2Icon, Trash2Icon } from 'lucide-react';
 import { toTitleCase } from '@/lib/utils';
 import { DataTable, type ColumnDef } from '@/components/ui/data-display/DataTable';
 import { EmptyState } from '@/components/ui/fallback/EmptyState';
+import { DocumentActionsMenu } from './DocumentActionsMenu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/default/alert-dialog';
 import type { DocumentListItem } from './types';
 
 interface DocumentTableProps {
@@ -24,11 +33,11 @@ interface DocumentTableProps {
 }
 
 const KIND_STYLES: Record<string, { bg: string; text: string }> = {
-  Guide: { bg: 'bg-blue-50', text: 'text-blue-700' },
-  Reference: { bg: 'bg-purple-50', text: 'text-purple-700' },
-  Runbook: { bg: 'bg-amber-50', text: 'text-amber-700' },
-  Tutorial: { bg: 'bg-green-50', text: 'text-green-700' },
-  Link: { bg: 'bg-gray-100', text: 'text-gray-600' },
+  Guide: { bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-700 dark:text-blue-300' },
+  Reference: { bg: 'bg-purple-50 dark:bg-purple-950/40', text: 'text-purple-700 dark:text-purple-300' },
+  Runbook: { bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-700 dark:text-amber-300' },
+  Tutorial: { bg: 'bg-green-50 dark:bg-green-950/40', text: 'text-green-700 dark:text-green-300' },
+  Link: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-300' },
 };
 
 export function DocumentTable({
@@ -43,20 +52,9 @@ export function DocumentTable({
   onDelete,
 }: DocumentTableProps) {
   const t = useTranslations('DocumentsPage');
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   const columns: ColumnDef<DocumentListItem>[] = [
-    {
-      key: 'bookmark',
-      headerClassName: 'w-12',
-      header: <span className="material-symbols-outlined text-on-surface-variant text-[18px]">bookmark</span>,
-      cell: (doc) => (
-        <BookmarkButton
-          documentId={doc.id}
-          initialState={doc.isBookmarked}
-          onToggle={onBookmarkToggle}
-        />
-      ),
-    },
     {
       key: 'title',
       headerClassName: 'font-caption-bold text-on-surface-variant uppercase tracking-wider',
@@ -68,35 +66,13 @@ export function DocumentTable({
       ),
     },
     {
-      key: 'url',
-      headerClassName: 'font-caption-bold text-on-surface-variant uppercase tracking-wider',
-      header: t('urlLabel'),
-      cell: (doc) => {
-        const urlRaw = doc.url;
-        return urlRaw ? (
-          <a
-            className="flex items-center gap-2 text-primary hover:underline font-label-sm"
-            href={urlRaw}
-            target="_blank"
-            rel="noreferrer"
-            title={urlRaw}
-          >
-            <span className="material-symbols-outlined text-[16px]">public</span>
-            {t('visitLink') || 'Visit Link'}
-          </a>
-        ) : (
-          <span className="font-label-sm text-on-surface-variant opacity-50">—</span>
-        );
-      },
-    },
-    {
       key: 'type',
       headerClassName: 'font-caption-bold text-on-surface-variant uppercase tracking-wider',
       header: t('typeLabel'),
       cell: (doc) => {
         const style = KIND_STYLES[doc.kind] || KIND_STYLES.Link;
         return (
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-caption-bold uppercase ${style.bg} ${style.text}`}>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${style.bg} ${style.text}`}>
             {t(doc.kind.toLowerCase())}
           </span>
         );
@@ -114,9 +90,9 @@ export function DocumentTable({
                 <Badge
                   key={tag.id}
                   variant="secondary"
-                  className="font-caption-bold max-w-[140px] truncate block text-xs"
+                  className="font-caption-bold max-w-[140px] truncate block text-xs bg-surface-container text-on-surface-variant"
                   title={toTitleCase(tag.name)}
-                >
+                 >
                   #{toTitleCase(tag.name)}
                 </Badge>
               ))
@@ -127,54 +103,75 @@ export function DocumentTable({
         );
       },
     },
+    {
+      key: 'actions',
+      headerClassName: 'w-10 px-2',
+      cellClassName: 'w-10 px-2 text-right',
+      header: null,
+      cell: (doc) => (
+        <DocumentActionsMenu
+          documentId={doc.id}
+          isBookmarked={doc.isBookmarked}
+          title={doc.title}
+          isAdmin={isAdmin}
+          onBookmarkToggle={onBookmarkToggle}
+          onEdit={onEdit}
+          onDeleteRequest={(id, title) => setDeleteTarget({ id, title })}
+        />
+      ),
+    },
   ];
 
-  if (isAdmin && onEdit && onDelete) {
-    columns.push({
-      key: 'actions',
-      headerClassName: 'font-caption-bold text-on-surface-variant uppercase tracking-wider text-right',
-      cellClassName: 'text-right',
-      header: t('actions'),
-      cell: (doc) => {
-        return (
-          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(doc.id)}
-              className="text-on-surface-variant hover:text-primary transition-colors"
-              title={t('edit')}
-            >
-              <Edit2Icon className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(doc.id)}
-              className="text-on-surface-variant hover:text-error-red transition-colors"
-              title={t('delete')}
-            >
-              <Trash2Icon className="w-4 h-4" />
-            </Button>
-          </div>
-        );
-      },
-    });
-  }
-
   return (
-    <DataTable
-      data={documents}
-      columns={columns}
-      emptyMessage={(
-        <EmptyState
-          title={emptyTitle}
-          description={emptyDescription}
-          actionLabel={emptyActionLabel}
-          onAction={onEmptyAction}
-        />
-      )}
-      rowKey={(doc) => doc.id}
-    />
+    <>
+      <DataTable
+        data={documents}
+        columns={columns}
+        emptyMessage={(
+          <EmptyState
+            title={emptyTitle}
+            description={emptyDescription}
+            actionLabel={emptyActionLabel}
+            onAction={onEmptyAction}
+          />
+        )}
+        rowKey={(doc) => doc.id}
+      />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent className="bg-surface-container-lowest border-outline-variant">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-on-surface font-bold text-lg flex items-center gap-2">
+              <span className="material-symbols-outlined text-error">warning</span>
+              {t('deleteConfirmTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-on-surface-variant text-sm">
+              {t('deleteConfirmBody')}
+              {deleteTarget && (
+                <span className="block mt-2 font-semibold text-on-surface p-2 bg-surface-container rounded border border-outline-variant/50">
+                  &quot;{deleteTarget.title}&quot;
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-surface border-outline-variant text-on-surface hover:bg-surface-container">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteTarget && onDelete) {
+                  onDelete(deleteTarget.id);
+                  setDeleteTarget(null);
+                }
+              }}
+              className="bg-error hover:bg-error/90 text-white font-bold"
+            >
+              {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

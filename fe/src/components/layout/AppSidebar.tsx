@@ -49,11 +49,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   asChild 
                   isActive={active} 
                   tooltip={translatedLabel}
-                  className={`flex items-center gap-3 rounded-lg font-semibold h-10 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center ${
+                  className={`flex items-center gap-3 rounded-lg font-semibold h-10 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center transition-all ${
                     active
-                      ? `bg-primary/10 text-primary border-primary hover:bg-primary/20 hover:text-primary ${
-                          state === 'expanded' || isMobile ? 'border-r-4' : 'border-1'
-                        }`
+                      ? '!bg-primary !text-primary-foreground data-[active=true]:!bg-primary data-[active=true]:!text-primary-foreground hover:!bg-primary/90 hover:!text-primary-foreground shadow-sm border-0 font-bold'
                       : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
                   }`}
                 >
@@ -83,11 +81,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   asChild 
                   isActive={active} 
                   tooltip={translatedLabel}
-                  className={`flex items-center gap-3 rounded-lg font-semibold h-10 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center ${
+                  className={`flex items-center gap-3 rounded-lg font-semibold h-10 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center transition-all ${
                     active
-                      ? `bg-primary/10 text-primary border-primary hover:bg-primary/20 hover:text-primary ${
-                          state === 'expanded' || isMobile ? 'border-r-4' : 'border-1'
-                        }`
+                      ? '!bg-primary !text-primary-foreground data-[active=true]:!bg-primary data-[active=true]:!text-primary-foreground hover:!bg-primary/90 hover:!text-primary-foreground shadow-sm border-0 font-bold'
                       : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
                   }`}
                 >

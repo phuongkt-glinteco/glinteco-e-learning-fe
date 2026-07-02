@@ -44,7 +44,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <AuthProvider>
                     {children}
                     <ApiErrorContainer />
-                    <Toaster position="top-right" />
+                    <Toaster position="bottom-right" richColors closeButton expand />
                   </AuthProvider>
                 </ApiErrorProvider>
               </TooltipProvider>

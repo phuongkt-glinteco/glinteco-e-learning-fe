@@ -68,16 +68,16 @@ export function SubmissionDetail({
 
       <Tabs defaultValue="review" className="flex flex-col flex-1 min-h-0">
         <div className="px-6 border-b">
-          <TabsList className="bg-transparent w-full justify-start h-auto p-0 border-b-0 space-x-6 rounded-none">
+          <TabsList className="bg-transparent w-full justify-start h-auto p-0 border-b-0 gap-4 rounded-none">
             <TabsTrigger
               value="review"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none py-3 px-0 bg-transparent data-[state=active]:bg-transparent"
+              className="rounded-none !border-t-0 !border-l-0 !border-r-0 border-b-2 border-transparent data-[state=active]:!border-b-primary data-[state=active]:shadow-none py-3 px-1 bg-transparent hover:bg-transparent data-[state=active]:bg-transparent focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none transition-all text-on-surface-variant hover:text-on-surface data-[state=active]:text-primary"
             >
               {t('reviewActions')}
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none py-3 px-0 bg-transparent data-[state=active]:bg-transparent"
+              className="rounded-none !border-t-0 !border-l-0 !border-r-0 border-b-2 border-transparent data-[state=active]:!border-b-primary data-[state=active]:shadow-none py-3 px-1 bg-transparent hover:bg-transparent data-[state=active]:bg-transparent focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none transition-all text-on-surface-variant hover:text-on-surface data-[state=active]:text-primary"
             >
               {t('history')}
             </TabsTrigger>

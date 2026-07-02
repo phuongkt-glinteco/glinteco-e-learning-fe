@@ -222,17 +222,17 @@ export default function DocumentsContainer() {
       {isAdmin ? (
         <Tabs defaultValue="documents" className="w-full space-y-6">
           <div className="border-b border-outline-variant flex items-center justify-between flex-wrap gap-4">
-            <TabsList className="bg-transparent h-auto p-0 border-b-0 space-x-8 rounded-none">
+            <TabsList className="bg-transparent h-auto p-0 border-b-0 gap-0 rounded-none">
               <TabsTrigger
                 value="documents"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none py-3.5 px-2 font-bold text-base bg-transparent data-[state=active]:bg-transparent transition-all flex items-center gap-2.5 text-on-surface-variant data-[state=active]:text-primary"
+                className="rounded-none !border-t-0 !border-l-0 !border-r-0 border-b-3 border-transparent data-[state=active]:!border-b-primary data-[state=active]:shadow-none py-3.5 px-2 font-bold text-base bg-transparent hover:bg-transparent data-[state=active]:bg-transparent focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none transition-all flex items-center gap-2.5 text-on-surface-variant hover:text-on-surface data-[state=active]:text-primary"
               >
                 <span className="material-symbols-outlined text-[20px]">description</span>
                 <span>{t('adminTitle', { defaultValue: 'Document Management' })}</span>
               </TabsTrigger>
               <TabsTrigger
                 value="tags"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none py-3.5 px-2 font-bold text-base bg-transparent data-[state=active]:bg-transparent transition-all flex items-center gap-2.5 text-on-surface-variant data-[state=active]:text-primary"
+                className="rounded-none !border-t-0 !border-l-0 !border-r-0 border-b-2 border-transparent data-[state=active]:!border-b-primary data-[state=active]:shadow-none py-3.5 px-2 font-bold text-base bg-transparent hover:bg-transparent data-[state=active]:bg-transparent focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none transition-all flex items-center gap-2.5 text-on-surface-variant hover:text-on-surface data-[state=active]:text-primary"
               >
                 <span className="material-symbols-outlined text-[20px]">label</span>
                 <span>{t('tagsManagement', { defaultValue: 'Tags Management' })}</span>

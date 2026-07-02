@@ -22,10 +22,12 @@ export default function DocumentDetail({ document }: DocumentDetailProps) {
 
   const toc = useMemo(() => {
     if (document.kind === 'Guide') {
-      return extractTocFromBlocks((content as GuideContent).body);
+      const guideContent = content as GuideContent;
+      return extractTocFromBlocks(guideContent.steps || guideContent.body || '');
     }
     if (document.kind === 'Reference') {
-      return (content as ReferenceContent).sections.map((s) => ({
+      const refContent = content as ReferenceContent;
+      return (refContent.sections || []).map((s) => ({
         id: s.heading.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         label: s.heading,
         level: 2 as const,

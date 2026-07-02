@@ -19,8 +19,9 @@ export function RunbookContentBlock({ content, documentTitle }: { content: Runbo
     });
   };
 
-  const totalSteps = content.phases.reduce((sum, p) => sum + p.steps.length, 0);
-  const doneSteps = content.phases.reduce((sum, p, pi) => sum + p.steps.filter((_, si) => completedSteps.has(`${pi}-${si}`)).length, 0);
+  const phases = content.phases || [];
+  const totalSteps = phases.reduce((sum, p) => sum + (p.steps?.length || 0), 0);
+  const doneSteps = phases.reduce((sum, p, pi) => sum + (p.steps || []).filter((_, si) => completedSteps.has(`${pi}-${si}`)).length, 0);
   const progress = totalSteps > 0 ? Math.round((doneSteps / totalSteps) * 100) : 0;
 
   return (
@@ -43,9 +44,7 @@ export function RunbookContentBlock({ content, documentTitle }: { content: Runbo
           <h1 className="font-headline-lg text-headline-lg text-on-error-container">
             {documentTitle || 'Runbook'}
           </h1>
-          {content.background && (
-            <p className="font-body-lg text-body-lg text-on-error-container max-w-2xl">{content.background}</p>
-          )}
+          <p className="font-body-lg text-body-lg text-on-error-container max-w-2xl">{content.background || content.trigger || 'No description provided.'}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-md mt-md">
             <div className="bg-white/50 backdrop-blur p-md rounded-lg">
               <p className="text-label-sm text-on-error-container font-semibold uppercase tracking-wider">Est. Resolution Time</p>
@@ -72,22 +71,61 @@ export function RunbookContentBlock({ content, documentTitle }: { content: Runbo
         </div>
       </section>
 
+      {/* Metadata */}
+      {(content.incidentId || content.estimatedTime || content.status) && (
+        <section className="grid grid-cols-3 gap-md bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
+          {content.incidentId && (
+            <div>
+              <span className="text-xs text-on-surface-variant font-medium">Incident ID</span>
+              <p className="text-sm font-semibold text-on-surface font-code mt-0.5">{content.incidentId}</p>
+            </div>
+          )}
+          {content.estimatedTime && (
+            <div>
+              <span className="text-xs text-on-surface-variant font-medium">Estimated MTTR</span>
+              <p className="text-sm font-semibold text-on-surface mt-0.5">{content.estimatedTime}</p>
+            </div>
+          )}
+          {content.status && (
+            <div>
+              <span className="text-xs text-on-surface-variant font-medium">Status</span>
+              <p className="text-sm font-semibold text-on-surface mt-0.5 capitalize">{content.status}</p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Symptoms */}
+      {content.symptoms && content.symptoms.length > 0 && (
+        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
+          <h3 className="font-title-md text-title-md text-on-surface mb-md flex items-center gap-sm">
+            <span className="material-symbols-outlined text-error">medical_information</span>
+            Symptoms & Indicators
+          </h3>
+          <ul className="list-disc list-inside space-y-sm text-body-md text-on-surface-variant">
+            {content.symptoms.map((sym, idx) => (
+              <li key={idx}>{sym}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Progress Bar */}
       {totalSteps > 0 && (
-        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-label-md text-on-surface">{t('progress')}</span>
-            <span className="font-bold text-primary">{progress}%</span>
+        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
+          <div className="flex items-center justify-between mb-sm">
+            <span className="text-sm font-semibold text-on-surface">Execution Progress</span>
+            <span className="text-sm font-bold text-primary">{progress}%</span>
           </div>
-          <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
-            <div className="bg-primary h-full transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+            <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
           <p className="text-xs text-on-surface-variant mt-2">{doneSteps}/{totalSteps} steps completed</p>
         </section>
       )}
 
       {/* Phases */}
-      {content.phases.map((phase, pIndex) => (
+      {phases.map((phase, pIndex) => (
         <section key={pIndex} id={phase.name.toLowerCase().replace(/\s+/g, '-')} className="space-y-md">
           <div className="flex items-center gap-md">
             <div className={pIndex === 0 ? 'bg-surface-container-high p-sm rounded-lg' : 'bg-primary text-on-primary p-sm rounded-lg'}>
@@ -98,14 +136,14 @@ export function RunbookContentBlock({ content, documentTitle }: { content: Runbo
             </h2>
           </div>
 
-          {phase.steps.length === 0 && (
+          {(phase.steps || []).length === 0 && (
             <p className="font-body-md text-body-md text-on-surface-variant mb-md">
               {phase.name ? `Verify the situation before proceeding.` : ''}
             </p>
           )}
 
           <div className="space-y-md">
-            {phase.steps.map((step, sIndex) => {
+            {(phase.steps || []).map((step: any, sIndex: number) => {
               const key = `${pIndex}-${sIndex}`;
               const isCompleted = completedSteps.has(key);
               return (

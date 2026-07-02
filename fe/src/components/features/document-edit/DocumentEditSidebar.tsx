@@ -1,6 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/default/select';
+import { Input } from '@/components/ui/default/input';
+import { Label } from '@/components/ui/default/label';
+import { TagSelector } from './TagSelector';
 
 interface DocumentEditSidebarProps {
   kind: string;
@@ -31,74 +35,57 @@ export function DocumentEditSidebar({
 
   return (
     <div className="col-span-4 flex flex-col gap-6">
-      <div className="bg-white border border-outline-variant rounded-xl p-6 shadow-sm">
-        <h3 className="font-label-md text-on-surface mb-4 border-b border-outline-variant pb-2">
-          {t('properties')}
+      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm space-y-6">
+        <h3 className="font-title-md text-title-md text-on-surface border-b border-outline-variant/60 pb-3 flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary">tune</span>
+          <span>{t('properties')}</span>
         </h3>
+
         <div className="space-y-4">
-          <div>
-            <label className="block font-label-sm text-on-surface-variant mb-1.5">{t('kind')}</label>
-            <div className="relative">
-              <select
-                value={kind}
-                onChange={(e) => onKindChange(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-on-surface appearance-none focus:border-primary focus:ring-1 focus:ring-primary"
-              >
+          <div className="space-y-1.5">
+            <Label className="text-sm font-semibold text-on-surface">{t('kind')}</Label>
+            <Select value={kind} onValueChange={onKindChange}>
+              <SelectTrigger className="w-full h-10 bg-surface-container-lowest border-outline-variant">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
                 {kinds.map((k) => (
-                  <option key={k.value} value={k.value}>{k.label}</option>
+                  <SelectItem key={k.value} value={k.value}>
+                    {k.label}
+                  </SelectItem>
                 ))}
-              </select>
-              <span className="material-symbols-outlined absolute right-2 top-2 text-on-surface-variant pointer-events-none">expand_more</span>
-            </div>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label className="block font-label-sm text-on-surface-variant mb-1.5">{t('title')}</label>
-            <input
+          <div className="space-y-1.5">
+            <Label className="text-sm font-semibold text-on-surface">{t('title')}</Label>
+            <Input
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary"
+              className="w-full bg-surface-container-lowest"
               type="text"
             />
           </div>
 
-          <div>
-            <label className="block font-label-sm text-on-surface-variant mb-1.5">{t('url')}</label>
-            <input
+          <div className="space-y-1.5">
+            <Label className="text-sm font-semibold text-on-surface">{t('url')}</Label>
+            <Input
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
-              className="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary"
+              className="w-full bg-surface-container-lowest font-code text-xs"
               type="text"
               placeholder="https://..."
             />
           </div>
 
-          <div>
-            <label className="block font-label-sm text-on-surface-variant mb-1.5">{t('tags')}</label>
-            <div className="flex flex-wrap gap-2 p-2 bg-surface-container-low border border-outline-variant rounded-lg min-h-[42px]">
-              {tagOptions.length === 0 && (
-                <span className="text-label-sm text-on-surface-variant opacity-50 px-1">{t('noTags')}</span>
-              )}
-              {tagOptions.map((tag) => {
-                const selected = selectedTagIds.includes(tag.id);
-                return (
-                  <button
-                    key={tag.id}
-                    onClick={() => onTagToggle(tag.id)}
-                    className={`flex items-center gap-1 px-2 py-0.5 rounded font-label-sm transition-colors ${
-                      selected
-                        ? 'bg-primary-container text-on-primary-container'
-                        : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high'
-                    }`}
-                  >
-                    {tag.name}
-                    {selected && (
-                      <span className="material-symbols-outlined text-[14px] cursor-pointer">close</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="pt-2 border-t border-outline-variant/60">
+            <TagSelector
+              label={t('tags')}
+              tagOptions={tagOptions}
+              selectedTagIds={selectedTagIds}
+              onTagToggle={onTagToggle}
+            />
           </div>
         </div>
       </div>

@@ -34,7 +34,7 @@ export function DocumentDetailSidebar({
 
   const navItems: Array<{ id: string; label: string; icon: string }> = [];
 
-  if (isRunbook && runbookContent) {
+  if (isRunbook && runbookContent?.phases) {
     runbookContent.phases.forEach((p) => {
       navItems.push({
         id: p.name.toLowerCase().replace(/\s+/g, '-'),
@@ -48,7 +48,7 @@ export function DocumentDetailSidebar({
                 ? 'fact_check'
                 : 'chevron_right',
       });
-      p.steps.forEach((s, si) => {
+      (p.steps || []).forEach((s, si) => {
         navItems.push({
           id: `${p.name.toLowerCase().replace(/\s+/g, '-')}-step-${si + 1}`,
           label: `  Step ${si + 1}: ${s.title || `Step ${si + 1}`}`,
@@ -59,7 +59,8 @@ export function DocumentDetailSidebar({
   }
 
   if (isTutorial && tutorialContent) {
-    tutorialContent.steps.forEach((s, si) => {
+    const stepsArr = Array.isArray(tutorialContent.steps) ? tutorialContent.steps : (tutorialContent.legacySteps || []);
+    stepsArr.forEach((s: any, si: number) => {
       navItems.push({
         id: `step-${si + 1}`,
         label: `Step ${si + 1}: ${s.title || `Step ${si + 1}`}`,
@@ -146,7 +147,7 @@ export function DocumentDetailSidebar({
                 <div className="flex justify-between text-label-sm opacity-70">
                   <span>Progress</span>
                   <span>{Math.round(
-                    (runbookContent.phases.reduce((sum, p) => sum + p.steps.length, 0) > 0
+                    ((runbookContent?.phases || []).reduce((sum, p) => sum + (p.steps?.length || 0), 0) > 0
                       ? 0
                       : 0)
                   )}%</span>

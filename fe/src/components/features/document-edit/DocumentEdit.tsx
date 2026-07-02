@@ -6,14 +6,18 @@ import { useTranslations } from 'next-intl';
 import type { DocumentResponseDto, TagResponseDto } from '@/services/api-client';
 import { documentsControllerUpdate, documentsControllerFindAllTags } from '@/services/api-client';
 import { DocumentEditSidebar } from './DocumentEditSidebar';
-import { DocumentReadingEditor } from './DocumentReadingEditor';
-import { DocumentNavigationEditor } from './DocumentNavigationEditor';
-import { DocumentProceduralEditor } from './DocumentProceduralEditor';
+import { GuideEditor, type GuideEditorData } from './GuideEditor';
+import { TutorialEditor, type TutorialEditorData } from './TutorialEditor';
+import { RunbookEditor, type RunbookEditorData } from './RunbookEditor';
+import { ReferenceEditor, type ReferenceEditorData } from './ReferenceEditor';
+import { LinkEditor, type LinkEditorData } from './LinkEditor';
 import { buildContentString } from './content-builder';
 import { getDocumentContent, getDocumentUrl } from '../document-detail/content-helper';
 import { PageContainer, PageHeader } from '@/components/ui';
 import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
+import { isUiShowError } from '@/services/errors';
+import { toast } from 'sonner';
 
 const KIND_OPTIONS = [
   { value: 'Guide', label: 'Guide' },
@@ -42,54 +46,81 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<TagResponseDto[]>([]);
 
-  // Guide
-  const [guideBody, setGuideBody] = useState(
-    document.kind === 'Guide' ? (initialContent as { body: string }).body : ''
-  );
+  // Editor states
+  const [guideData, setGuideData] = useState<GuideEditorData>(() => {
+    if (document.kind !== 'Guide') return {};
+    const gc = initialContent as any;
+    return {
+      objective: gc.objective,
+      prerequisites: gc.prerequisites,
+      steps: gc.steps || gc.body,
+      expectedResult: gc.expectedResult,
+      relatedDocs: gc.relatedDocs,
+    };
+  });
 
-  // Tutorial
-  const [tutorialExplanation, setTutorialExplanation] = useState(
-    document.kind === 'Tutorial' ? (initialContent as { explanation: string }).explanation : ''
-  );
-  const [tutorialSteps, setTutorialSteps] = useState(
-    document.kind === 'Tutorial' ? (initialContent as { steps: Array<{ title: string; body: string }> }).steps : []
-  );
+  const [tutorialData, setTutorialData] = useState<TutorialEditorData>(() => {
+    if (document.kind !== 'Tutorial') return {};
+    const tc = initialContent as any;
+    return {
+      learningObjectives: tc.learningObjectives,
+      prerequisites: tc.prerequisites,
+      duration: tc.duration,
+      difficulty: tc.difficulty,
+      explanation: tc.explanation,
+      stepsStr: tc.steps,
+      exercises: tc.exercises,
+      summary: tc.summary,
+      legacySteps: tc.legacySteps,
+    };
+  });
 
-  // Runbook
-  const [runbookBackground, setRunbookBackground] = useState(
-    document.kind === 'Runbook' ? (initialContent as { background: string }).background : ''
-  );
-  const [runbookSeverity, setRunbookSeverity] = useState(
-    document.kind === 'Runbook' ? (initialContent as { severity?: string }).severity ?? '' : ''
-  );
-  const [runbookIncidentId, setRunbookIncidentId] = useState(
-    document.kind === 'Runbook' ? (initialContent as { incidentId?: string }).incidentId ?? '' : ''
-  );
-  const [runbookEstimatedTime, setRunbookEstimatedTime] = useState(
-    document.kind === 'Runbook' ? (initialContent as { estimatedTime?: string }).estimatedTime ?? '' : ''
-  );
-  const [runbookSymptoms, setRunbookSymptoms] = useState<string[]>(
-    document.kind === 'Runbook' ? (initialContent as { symptoms?: string[] }).symptoms ?? [] : []
-  );
-  const [runbookStatus, setRunbookStatus] = useState(
-    document.kind === 'Runbook' ? (initialContent as { status?: string }).status ?? '' : ''
-  );
-  const [runbookPhases, setRunbookPhases] = useState(
-    document.kind === 'Runbook' ? (initialContent as { phases: Array<{ name: string; steps: Array<{ title: string; body: string }> }> }).phases : []
-  );
+  const [runbookData, setRunbookData] = useState<RunbookEditorData>(() => {
+    if (document.kind !== 'Runbook') return {};
+    const rc = initialContent as any;
+    return {
+      trigger: rc.trigger || rc.background,
+      impact: rc.impact,
+      prerequisites: rc.prerequisites,
+      procedure: rc.procedure,
+      validation: rc.validation,
+      rollback: rc.rollback,
+      escalation: rc.escalation,
+      relatedDocs: rc.relatedDocs,
+      background: rc.background,
+      severity: rc.severity,
+      incidentId: rc.incidentId,
+      estimatedTime: rc.estimatedTime,
+      symptoms: rc.symptoms,
+      status: rc.status,
+      phases: rc.phases,
+    };
+  });
 
-  // Reference
-  const [referenceSections, setReferenceSections] = useState(
-    document.kind === 'Reference' ? (initialContent as { sections: Array<{ heading: string; body: string }> }).sections : []
-  );
+  const [referenceData, setReferenceData] = useState<ReferenceEditorData>(() => {
+    if (document.kind !== 'Reference') return {};
+    const refc = initialContent as any;
+    return {
+      category: refc.category,
+      version: refc.version,
+      properties: refc.properties,
+      examples: refc.examples,
+      notes: refc.notes,
+      sections: refc.sections,
+    };
+  });
 
-  // Link
-  const [linkDescription, setLinkDescription] = useState(
-    document.kind === 'Link' ? (initialContent as { description: string }).description : ''
-  );
-  const [linkOverview, setLinkOverview] = useState(
-    document.kind === 'Link' ? (initialContent as { overview: string }).overview : ''
-  );
+  const [linkData, setLinkData] = useState<LinkEditorData>(() => {
+    if (document.kind !== 'Link') return {};
+    const lc = initialContent as any;
+    return {
+      provider: lc.provider,
+      type: lc.type,
+      openInNewTab: lc.openInNewTab,
+      description: lc.description,
+      overview: lc.overview,
+    };
+  });
 
   useEffect(() => {
     documentsControllerFindAllTags({ throwOnError: true })
@@ -118,19 +149,53 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
     try {
       const contentStr = buildContentString({
         kind,
-        guideBody,
-        tutorialExplanation,
-        tutorialSteps,
-        runbookBackground,
-        runbookSeverity,
-        runbookIncidentId,
-        runbookEstimatedTime,
-        runbookSymptoms,
-        runbookStatus,
-        runbookPhases,
-        referenceSections,
-        linkDescription,
-        linkOverview,
+        // Guide
+        guideObjective: guideData.objective,
+        guidePrerequisites: guideData.prerequisites,
+        guideSteps: guideData.steps,
+        guideExpectedResult: guideData.expectedResult,
+        guideRelatedDocs: guideData.relatedDocs,
+        guideBody: guideData.steps,
+        // Tutorial
+        tutorialLearningObjectives: tutorialData.learningObjectives,
+        tutorialPrerequisites: tutorialData.prerequisites,
+        tutorialDuration: typeof tutorialData.duration === 'number' ? tutorialData.duration : Number(tutorialData.duration) || undefined,
+        tutorialDifficulty: tutorialData.difficulty,
+        tutorialStepsStr: tutorialData.stepsStr,
+        tutorialExercises: tutorialData.exercises,
+        tutorialSummary: tutorialData.summary,
+        tutorialExplanation: tutorialData.explanation,
+        tutorialSteps: tutorialData.legacySteps,
+        // Runbook
+        runbookTrigger: runbookData.trigger,
+        runbookImpact: runbookData.impact,
+        runbookPrerequisites: runbookData.prerequisites,
+        runbookProcedure: runbookData.procedure,
+        runbookValidation: runbookData.validation,
+        runbookRollback: runbookData.rollback,
+        runbookEscalation: runbookData.escalation,
+        runbookRelatedDocs: runbookData.relatedDocs,
+        runbookBackground: runbookData.background || runbookData.trigger,
+        runbookSeverity: runbookData.severity,
+        runbookIncidentId: runbookData.incidentId,
+        runbookEstimatedTime: runbookData.estimatedTime,
+        runbookSymptoms: runbookData.symptoms,
+        runbookStatus: runbookData.status,
+        runbookPhases: runbookData.phases,
+        // Reference
+        referenceCategory: referenceData.category,
+        referenceVersion: referenceData.version,
+        referenceProperties: referenceData.properties,
+        referenceExamples: referenceData.examples,
+        referenceNotes: referenceData.notes,
+        referenceSections: referenceData.sections,
+        // Link
+        linkUrl: url,
+        linkProvider: linkData.provider,
+        linkType: linkData.type,
+        linkOpenInNewTab: linkData.openInNewTab,
+        linkDescription: linkData.description,
+        linkOverview: linkData.overview,
       });
 
       await documentsControllerUpdate({
@@ -146,8 +211,10 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
       });
 
       router.push('/documents');
-    } catch {
-      // silent
+    } catch (err: any) {
+      if (isUiShowError(err)) {
+        toast.error(t(`errors.${err.errorCode}`) || err.message);
+      }
     } finally {
       setSaving(false);
     }
@@ -208,74 +275,17 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
   function renderEditor() {
     switch (kind) {
       case 'Guide':
-        return <DocumentReadingEditor body={guideBody} onChange={setGuideBody} />;
+        return <GuideEditor data={guideData} onChange={setGuideData} />;
       case 'Tutorial':
-        return (
-          <DocumentProceduralEditor
-            kind="Tutorial"
-            explanationOrBackground={tutorialExplanation}
-            onExplanationOrBackgroundChange={setTutorialExplanation}
-            steps={tutorialSteps}
-            onStepsChange={setTutorialSteps}
-          />
-        );
+        return <TutorialEditor data={tutorialData} onChange={setTutorialData} />;
       case 'Runbook':
-        return (
-          <DocumentProceduralEditor
-            kind="Runbook"
-            explanationOrBackground={runbookBackground}
-            onExplanationOrBackgroundChange={setRunbookBackground}
-            phases={runbookPhases}
-            onPhasesChange={setRunbookPhases}
-            severity={runbookSeverity}
-            onSeverityChange={setRunbookSeverity}
-            incidentId={runbookIncidentId}
-            onIncidentIdChange={setRunbookIncidentId}
-            estimatedTime={runbookEstimatedTime}
-            onEstimatedTimeChange={setRunbookEstimatedTime}
-            symptoms={runbookSymptoms}
-            onSymptomsChange={setRunbookSymptoms}
-            status={runbookStatus}
-            onStatusChange={setRunbookStatus}
-          />
-        );
+        return <RunbookEditor data={runbookData} onChange={setRunbookData} />;
       case 'Reference':
-        return (
-          <DocumentNavigationEditor
-            description=""
-            onDescriptionChange={() => {}}
-            overview={referenceSections.map((s) => `## ${s.heading}\n\n${s.body}`).join('\n\n')}
-            onOverviewChange={(val) => {
-              const sections: Array<{ heading: string; body: string }> = [];
-              const headingRegex = /^##\s+(.+)$/gm;
-              let lastIndex = 0;
-              let match: RegExpExecArray | null;
-              while ((match = headingRegex.exec(val)) !== null) {
-                if (lastIndex > 0) {
-                  const body = val.slice(lastIndex, match.index).replace(/^##\s+.*$/, '').trim();
-                  sections[sections.length - 1].body = body;
-                }
-                sections.push({ heading: match[1].trim(), body: '' });
-                lastIndex = match.index + match[0].length;
-              }
-              if (sections.length > 0) {
-                sections[sections.length - 1].body = val.slice(lastIndex).trim();
-              }
-              setReferenceSections(sections);
-            }}
-          />
-        );
+        return <ReferenceEditor data={referenceData} onChange={setReferenceData} />;
       case 'Link':
-        return (
-          <DocumentNavigationEditor
-            description={linkDescription}
-            onDescriptionChange={setLinkDescription}
-            overview={linkOverview}
-            onOverviewChange={setLinkOverview}
-          />
-        );
+        return <LinkEditor data={linkData} onChange={setLinkData} />;
       default:
-        return <DocumentReadingEditor body={guideBody} onChange={setGuideBody} />;
+        return <GuideEditor data={guideData} onChange={setGuideData} />;
     }
   }
 }

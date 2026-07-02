@@ -6,7 +6,7 @@ import type { ReferenceContent } from './types';
 export function ReferenceContentBlock({ content }: { content: ReferenceContent }) {
   return (
     <div className="space-y-lg">
-      {content.sections.map((section, index) => {
+      {(content.sections || []).map((section, index) => {
         const id = section.heading.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         return (
           <section key={index} id={id} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg scroll-mt-20">

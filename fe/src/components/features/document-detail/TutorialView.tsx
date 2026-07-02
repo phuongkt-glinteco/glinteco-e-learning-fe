@@ -18,7 +18,8 @@ export function TutorialContentBlock({ content }: { content: TutorialContent }) 
     });
   };
 
-  const totalSteps = content.steps.length;
+  const steps = Array.isArray(content.steps) ? content.steps : (content.legacySteps || []);
+  const totalSteps = steps.length;
   const doneSteps = completedSteps.size;
   const progress = totalSteps > 0 ? Math.round((doneSteps / totalSteps) * 100) : 0;
 
@@ -44,7 +45,7 @@ export function TutorialContentBlock({ content }: { content: TutorialContent }) 
       )}
 
       <div className="space-y-md">
-        {content.steps.map((step, index) => {
+        {steps.map((step: any, index: number) => {
           const isCompleted = completedSteps.has(index);
           return (
             <div key={index} id={`step-${index + 1}`} className={`bg-white rounded-xl border border-outline-variant p-lg shadow-sm relative transition-all hover:border-primary ${isCompleted ? 'opacity-60' : ''}`}>

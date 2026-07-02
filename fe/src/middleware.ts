@@ -28,10 +28,6 @@ export default auth((req: AuthMiddlewareRequest) => {
     (session?.user as { role?: string } | undefined)?.role ??
     authCookie?.value;
 
-  if (pathname === '/' && isAuthenticated) {
-    return NextResponse.redirect(getDashboardUrl(role, req));
-  }
-
   // Allow public routes, next-auth API, static assets
   if (publicRoutes.includes(pathname) || pathname.startsWith(apiAuthPath)) {
     return;

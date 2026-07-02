@@ -558,6 +558,32 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
+  :where(
+    a[href],
+    button:not(:disabled),
+    summary,
+    label[for],
+    select,
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    input[type="checkbox"],
+    input[type="radio"],
+    [role="button"],
+    [role="link"],
+    [role="tab"],
+    [role="menuitem"],
+    [role="option"],
+    [data-slot="button"]
+  ):not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  :where(button:disabled, [aria-disabled="true"]) {
+    cursor: default;
+  }
+
   body {
     @apply bg-background text-foreground;
   }

@@ -36,5 +36,7 @@
   "titleSUBMIT_EXERCISE_FAILED": "Nộp Bài Thất Bại",
   "contentSUBMIT_EXERCISE_FAILED": "Nộp bài tập thất bại. Vui lòng kiểm tra lại đường dẫn pull request và thử lại.",
   "titleEXERCISE_TITLE_EXISTS": "Tiêu Đề Đã Tồn Tại",
-  "contentEXERCISE_TITLE_EXISTS": "Bài tập với tiêu đề này đã tồn tại. Vui lòng chọn tiêu đề khác."
+  "contentEXERCISE_TITLE_EXISTS": "Bài tập với tiêu đề này đã tồn tại. Vui lòng chọn tiêu đề khác.",
+  "titleBOOKMARK_FAILED": "Đánh Dấu Thất Bại",
+  "contentBOOKMARK_FAILED": "Không thể cập nhật trạng thái đánh dấu. Vui lòng thử lại."
 }

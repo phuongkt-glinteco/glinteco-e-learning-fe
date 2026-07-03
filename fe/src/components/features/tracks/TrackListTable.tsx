@@ -172,7 +172,7 @@ export default function TrackListTable() {
   }
 
   return (
-    <div className="space-y-xl">
+    <div className="space-y-xl w-full">
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-md flex-wrap">
         <div className="flex items-center gap-2">
@@ -210,11 +210,11 @@ export default function TrackListTable() {
       </div>
 
       {/* Table Card */}
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-lg card-shadow overflow-hidden">
+      <div className="bg-surface-container-lowest border border-outline-variant rounded-lg card-shadow overflow-hidden w-full">
         {loading ? (
-          <div className="p-lg space-y-md">
+          <div className="p-lg space-y-md w-full">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} height={48} rounded="rounded-lg" />
+              <Skeleton key={i} height={48} rounded="rounded-lg" className="w-full" />
             ))}
           </div>
         ) : error ? (

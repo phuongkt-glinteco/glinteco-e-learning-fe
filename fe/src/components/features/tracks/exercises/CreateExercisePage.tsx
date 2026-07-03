@@ -162,7 +162,7 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
+        <div className="flex items-center justify-center py-20 w-full">
           <span className="material-symbols-outlined animate-spin text-primary text-[32px]">sync</span>
         </div>
       ) : (

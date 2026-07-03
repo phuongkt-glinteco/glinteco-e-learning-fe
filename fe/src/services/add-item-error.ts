@@ -38,6 +38,17 @@ export function registerAddItemErrors(
     }),
   );
 
+  // Bookmark/Unbookmark error → toast
+  pipeline.injectHandler(
+    createHandler({
+      name: 'bookmark-error',
+      priority: 1,
+      requestPath: '/bookmark',
+      errorCode: 'BOOKMARK_FAILED',
+      action: 'ADD_TO_ITEMS',
+    }),
+  );
+
   // Catch-all → toast
   pipeline.injectHandler(
     createHandler({

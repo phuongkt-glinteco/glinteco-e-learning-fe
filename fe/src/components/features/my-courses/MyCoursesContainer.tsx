@@ -15,12 +15,12 @@ import {
 
 function MyCoursesLoadingState() {
   return (
-    <div className="mx-auto max-w-container-max px-gutter py-8">
+    <div className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <Skeleton width={240} height={32} className="mb-6" />
       <Skeleton height={48} className="mb-6 w-fit" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} height={220} />
+          <Skeleton key={i} height={220} className="w-full" />
         ))}
       </div>
     </div>
@@ -35,7 +35,7 @@ function MyCoursesErrorState({
   onRetry: () => void;
 }) {
   return (
-    <div className="mx-auto max-w-container-max px-gutter py-8">
+    <div className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h2 className="headline-sm">Error loading your courses</h2>
         <p className="body-sm mt-2">{message}</p>

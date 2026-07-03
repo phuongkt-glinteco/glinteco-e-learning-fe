@@ -8,53 +8,128 @@ import type {
 
 export function buildContentString(data: {
   kind: string;
-  guideBody?: string;
-  tutorialExplanation?: string;
-  tutorialSteps?: Array<{ title: string; body: string }>;
-  runbookBackground?: string;
+  description?: string;
+  // Guide
+  guideObjective?: string;
+  guidePrerequisites?: Array<{ id: string; name?: string; title?: string }>;
+  guideSteps?: string;
+  guideExpectedResult?: string;
+  guideRelatedDocs?: Array<{ id: string; title?: string; name?: string; kind?: string }>;
+  guideBody?: string; // legacy fallback
+
+  // Tutorial
+  tutorialLearningObjectives?: string[];
+  tutorialPrerequisites?: Array<{ id: string; name?: string; title?: string }>;
+  tutorialDuration?: number;
+  tutorialDifficulty?: string;
+  tutorialStepsStr?: string;
+  tutorialExercises?: string[];
+  tutorialSummary?: string;
+  tutorialExplanation?: string; // legacy fallback
+  tutorialSteps?: Array<{ title: string; body: string }>; // legacy fallback
+
+  // Runbook
+  runbookTrigger?: string;
+  runbookImpact?: string;
+  runbookPrerequisites?: string[] | Array<{ id: string; name?: string; title?: string }>;
+  runbookProcedure?: string;
+  runbookValidation?: string;
+  runbookRollback?: string;
+  runbookEscalation?: string;
+  runbookRelatedDocs?: Array<{ id: string; title?: string; name?: string; kind?: string }>;
+  runbookBackground?: string; // legacy fallback
   runbookSeverity?: string;
   runbookIncidentId?: string;
   runbookEstimatedTime?: string;
   runbookSymptoms?: string[];
   runbookStatus?: string;
   runbookPhases?: Array<{ name: string; steps: Array<{ title: string; body: string }> }>;
-  referenceSections?: Array<{ heading: string; body: string }>;
+
+  // Reference
+  referenceCategory?: string;
+  referenceVersion?: string;
+  referenceProperties?: Array<{ name: string; type?: string; required?: boolean; description?: string; defaultValue?: string }>;
+  referenceExamples?: string;
+  referenceNotes?: string;
+  referenceSections?: Array<{ heading: string; body: string }>; // legacy fallback
+
+  // Link
+  linkUrl?: string;
+  linkProvider?: string;
+  linkType?: string;
+  linkOpenInNewTab?: boolean;
   linkDescription?: string;
-  linkOverview?: string;
+  linkOverview?: string; // legacy fallback
 }): string {
+  const commonDescription = data.description || data.linkDescription;
   switch (data.kind) {
     case 'Guide':
-      return JSON.stringify({ body: data.guideBody ?? '' } satisfies GuideContent);
+      return JSON.stringify({
+        description: commonDescription || undefined,
+        objective: data.guideObjective || undefined,
+        prerequisites: data.guidePrerequisites?.length ? data.guidePrerequisites : undefined,
+        steps: data.guideSteps ?? data.guideBody ?? '',
+        expectedResult: data.guideExpectedResult || undefined,
+        relatedDocs: data.guideRelatedDocs?.length ? data.guideRelatedDocs : undefined,
+        body: data.guideBody || undefined,
+      } satisfies GuideContent);
 
     case 'Tutorial':
       return JSON.stringify({
-        explanation: data.tutorialExplanation ?? '',
-        steps: data.tutorialSteps ?? [],
+        description: commonDescription || undefined,
+        learningObjectives: data.tutorialLearningObjectives?.length ? data.tutorialLearningObjectives : undefined,
+        prerequisites: data.tutorialPrerequisites?.length ? data.tutorialPrerequisites : undefined,
+        duration: data.tutorialDuration || undefined,
+        difficulty: data.tutorialDifficulty || undefined,
+        steps: data.tutorialStepsStr ?? data.tutorialExplanation ?? '',
+        exercises: data.tutorialExercises?.length ? data.tutorialExercises : undefined,
+        summary: data.tutorialSummary || undefined,
+        explanation: data.tutorialExplanation || undefined,
+        legacySteps: data.tutorialSteps?.length ? data.tutorialSteps : undefined,
       } satisfies TutorialContent);
 
     case 'Runbook':
       return JSON.stringify({
-        background: data.runbookBackground ?? '',
+        description: commonDescription || undefined,
+        trigger: data.runbookTrigger ?? data.runbookBackground ?? '',
+        impact: data.runbookImpact || undefined,
+        prerequisites: data.runbookPrerequisites?.length ? data.runbookPrerequisites : undefined,
+        procedure: data.runbookProcedure ?? '',
+        validation: data.runbookValidation || undefined,
+        rollback: data.runbookRollback || undefined,
+        escalation: data.runbookEscalation || undefined,
+        relatedDocs: data.runbookRelatedDocs?.length ? data.runbookRelatedDocs : undefined,
+        background: data.runbookBackground || undefined,
         severity: data.runbookSeverity || undefined,
         incidentId: data.runbookIncidentId || undefined,
         estimatedTime: data.runbookEstimatedTime || undefined,
-        symptoms: data.runbookSymptoms && data.runbookSymptoms.length > 0 ? data.runbookSymptoms : undefined,
+        symptoms: data.runbookSymptoms?.length ? data.runbookSymptoms : undefined,
         status: data.runbookStatus || undefined,
-        phases: data.runbookPhases ?? [],
+        phases: data.runbookPhases?.length ? data.runbookPhases : undefined,
       } satisfies RunbookContent);
 
     case 'Reference':
       return JSON.stringify({
-        sections: data.referenceSections ?? [],
+        description: commonDescription || undefined,
+        category: data.referenceCategory || undefined,
+        version: data.referenceVersion || undefined,
+        properties: data.referenceProperties?.length ? data.referenceProperties : undefined,
+        examples: data.referenceExamples || undefined,
+        notes: data.referenceNotes || undefined,
+        sections: data.referenceSections?.length ? data.referenceSections : undefined,
       } satisfies ReferenceContent);
 
     case 'Link':
       return JSON.stringify({
-        description: data.linkDescription ?? '',
-        overview: data.linkOverview ?? '',
+        description: commonDescription || undefined,
+        url: data.linkUrl || undefined,
+        provider: data.linkProvider || undefined,
+        type: data.linkType || undefined,
+        openInNewTab: data.linkOpenInNewTab ?? false,
+        overview: data.linkOverview || undefined,
       } satisfies LinkContent);
 
     default:
-      return JSON.stringify({ body: '' });
+      return JSON.stringify({ steps: '' });
   }
 }

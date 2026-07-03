@@ -158,16 +158,16 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-8 w-full">
         <Skeleton width={240} height={32} className="mb-6" />
-        <div className="grid grid-cols-12 gap-8">
+        <div className="grid grid-cols-12 gap-8 w-full">
           <div className="col-span-12 xl:col-span-7 space-y-6">
-            <Skeleton height={200} />
-            <Skeleton height={300} />
+            <Skeleton height={200} className="w-full" />
+            <Skeleton height={300} className="w-full" />
           </div>
           <div className="col-span-12 xl:col-span-5 space-y-6">
-            <Skeleton height={160} />
-            <Skeleton height={120} />
+            <Skeleton height={160} className="w-full" />
+            <Skeleton height={120} className="w-full" />
           </div>
         </div>
       </div>
@@ -176,7 +176,7 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
 
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-8 w-full">
         <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
           <h2 className="headline-sm">{t('loadError')}</h2>
           <p className="body-sm mt-2">{error}</p>

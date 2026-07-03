@@ -5,7 +5,7 @@ export default async function TracksPage() {
   const t = await getTranslations('TracksPage');
 
   return (
-    <div className="p-gutter max-w-7xl mx-auto space-y-xl">
+    <div className="p-gutter max-w-7xl mx-auto space-y-xl w-full flex-1">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>

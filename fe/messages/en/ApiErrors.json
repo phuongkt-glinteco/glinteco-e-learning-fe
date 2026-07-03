@@ -36,5 +36,7 @@
   "titleSUBMIT_EXERCISE_FAILED": "Submission Failed",
   "contentSUBMIT_EXERCISE_FAILED": "Failed to submit exercise. Please check your pull request URL and try again.",
   "titleEXERCISE_TITLE_EXISTS": "Title Already Exists",
-  "contentEXERCISE_TITLE_EXISTS": "An exercise with this title already exists. Please choose a different title."
+  "contentEXERCISE_TITLE_EXISTS": "An exercise with this title already exists. Please choose a different title.",
+  "titleBOOKMARK_FAILED": "Bookmark Failed",
+  "contentBOOKMARK_FAILED": "Could not update bookmark status. Please try again."
 }

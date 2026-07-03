@@ -177,7 +177,7 @@ export function DocumentReadingEditor({ body, onChange }: DocumentReadingEditorP
                 !showPreview ? 'bg-white shadow-sm text-on-surface' : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              Write
+              {t('write')}
             </button>
             <button
               type="button"
@@ -186,7 +186,7 @@ export function DocumentReadingEditor({ body, onChange }: DocumentReadingEditorP
                 showPreview ? 'bg-white shadow-sm text-on-surface' : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
-              Preview
+              {t('preview')}
             </button>
           </div>
         </div>
@@ -202,7 +202,7 @@ export function DocumentReadingEditor({ body, onChange }: DocumentReadingEditorP
             onKeyDown={handleKeyDown}
             className="w-full min-h-[600px] p-8 font-code text-body-md text-on-surface focus:ring-0 border-none resize-none flex-1"
             spellCheck={false}
-            placeholder="Write your content in Markdown..."
+            placeholder={t('markdownPlaceholder')}
           />
         </div>
         {showPreview && (
@@ -213,7 +213,7 @@ export function DocumentReadingEditor({ body, onChange }: DocumentReadingEditorP
               </article>
             ) : (
               <div className="flex items-center justify-center h-full text-center">
-                <p className="text-body-sm text-secondary italic">Nothing to preview</p>
+                <p className="text-body-sm text-secondary italic">{t('nothingToPreview')}</p>
               </div>
             )}
           </div>

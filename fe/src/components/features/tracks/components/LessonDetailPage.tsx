@@ -98,7 +98,7 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] w-full">
         <div className="flex flex-col items-center gap-3">
           <span className="material-symbols-outlined text-[32px] text-outline animate-spin">refresh</span>
           <p className="text-outline font-label-md">{t('loading')}</p>
@@ -109,7 +109,7 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
 
   if (error || !lesson) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] w-full">
         <div className="flex flex-col items-center gap-4 text-center">
           <span className="material-symbols-outlined text-[48px] text-error">error</span>
           <p className="text-on-surface font-label-lg">{t('failedToLoad')}</p>

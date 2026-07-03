@@ -585,9 +585,18 @@ body {
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground h-svh max-h-svh overflow-hidden w-full;
   }
   html {
-    @apply font-sans;
+    @apply font-sans h-svh max-h-svh overflow-hidden w-full;
   }
 }
+
+/* Prevent Radix UI / React Remove Scroll from shifting layout when modals or selects open */
+body[data-scroll-locked],
+html[data-scroll-locked],
+[data-radix-scroll-lock] {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+

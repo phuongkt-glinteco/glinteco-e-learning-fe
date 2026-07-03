@@ -152,14 +152,14 @@ export default function AdminDashboardPage({
   if (authLoading || !mounted) return null;
   if (error && !cohortList.length) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] w-full">
         <p className="text-gray-500">{t('loadError')}</p>
       </div>
     );
   }
   if (!selectedCohortId) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] w-full">
         <p className="text-gray-500">{t('noCohort')}</p>
       </div>
     );
@@ -239,7 +239,7 @@ export default function AdminDashboardPage({
     .sort((a, b) => new Date(a.submittedAt!).getTime() - new Date(b.submittedAt!).getTime())[0];
 
   return (
-    <div className="max-w-container-max mx-auto flex flex-col gap-lg p-16">
+    <div className="max-w-container-max mx-auto flex flex-col gap-lg p-16 w-full">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-headline-lg-mobile md:text-headline-lg text-primary font-bold">

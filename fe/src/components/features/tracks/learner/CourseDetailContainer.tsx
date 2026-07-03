@@ -18,11 +18,11 @@ import { RedirectToParent } from '@/components/ui';
 
 function CourseDetailLoadingState() {
   return (
-    <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
+    <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8 w-full">
       <Skeleton width={260} height={32} rounded="rounded-lg" />
-      <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm">
-        <div className="grid gap-6 lg:grid-cols-[1fr_220px] lg:items-center">
-          <div className="min-w-0">
+      <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-6 shadow-sm w-full">
+        <div className="grid gap-6 lg:grid-cols-[1fr_220px] lg:items-center w-full">
+          <div className="min-w-0 w-full">
             <Skeleton width={140} height={28} rounded="rounded-full" className="mb-4" />
             <Skeleton width="72%" height={44} rounded="rounded" />
             <Skeleton width="88%" height={20} rounded="rounded" className="mt-4" />
@@ -38,8 +38,8 @@ function CourseDetailLoadingState() {
           </div>
         </div>
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1fr_320px] xl:items-start">
-        <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm">
+      <div className="grid gap-6 xl:grid-cols-[1fr_320px] xl:items-start w-full">
+        <div className="rounded-lg border border-outline-variant bg-surface-container-lowest p-5 shadow-sm w-full">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
             <div>
               <Skeleton width={180} height={24} rounded="rounded" />
@@ -47,15 +47,15 @@ function CourseDetailLoadingState() {
             </div>
             <Skeleton width={92} height={28} rounded="rounded-full" />
           </div>
-          <div className="space-y-4">
-            <Skeleton height={116} rounded="rounded-lg" />
-            <Skeleton height={116} rounded="rounded-lg" />
-            <Skeleton height={116} rounded="rounded-lg" />
+          <div className="space-y-4 w-full">
+            <Skeleton height={116} rounded="rounded-lg" className="w-full" />
+            <Skeleton height={116} rounded="rounded-lg" className="w-full" />
+            <Skeleton height={116} rounded="rounded-lg" className="w-full" />
           </div>
         </div>
-        <div className="flex flex-col gap-4">
-          <Skeleton height={150} rounded="rounded-lg" />
-          <Skeleton height={132} rounded="rounded-lg" />
+        <div className="flex flex-col gap-4 w-full">
+          <Skeleton height={150} rounded="rounded-lg" className="w-full" />
+          <Skeleton height={132} rounded="rounded-lg" className="w-full" />
         </div>
       </div>
     </section>
@@ -78,7 +78,7 @@ function CourseDetailErrorState({
   const t = useTranslations('CourseDetailContainer');
 
   return (
-    <section className="mx-auto max-w-container-max px-gutter py-8">
+    <section className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>

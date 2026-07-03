@@ -165,7 +165,7 @@ export function DocumentDetailSidebar({
             <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-sm mb-md">
               {t('tags')}
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {tags.map((tag) => (
                 <span
                   key={tag.id}

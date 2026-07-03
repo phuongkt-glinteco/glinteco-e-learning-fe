@@ -1,4 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+import { getConfiguredApiBaseUrl } from '@/services/api-base';
+
+const API_URL = getConfiguredApiBaseUrl();
 
 export interface ApiResponse<T> {
   data?: T;

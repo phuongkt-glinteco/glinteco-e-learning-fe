@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Bảng thi đua",
+  "title": "Bảng xếp hạng",
+  "description": "Theo dõi thứ hạng học viên theo Level, XP và Streak, rồi chuyển nhanh giữa phạm vi cohort của bạn và toàn hệ thống.",
+  "scopeLabel": "Phạm vi xếp hạng",
+  "myCohort": "Cohort của tôi",
+  "global": "Toàn hệ thống",
+  "myCohortTitle": "Xếp hạng trong cohort",
+  "globalTitle": "Xếp hạng toàn hệ thống",
+  "rank": "Hạng",
+  "learner": "Học viên",
+  "level": "Level",
+  "xp": "XP",
+  "streak": "Streak",
+  "streakDaysValue": "{count, plural, =0 {0 ngày} one {# ngày} other {# ngày}}",
+  "you": "Bạn",
+  "learnerRowHint": "Sắp xếp theo Level, XP và Streak.",
+  "errorTitle": "Không thể tải bảng xếp hạng",
+  "retry": "Thử lại",
+  "emptyTitle": "Chưa có học viên nào trên bảng xếp hạng này",
+  "emptyDescription": "Dữ liệu thi đua sẽ xuất hiện tại đây khi học viên bắt đầu tiến độ trong lộ trình học."
+}

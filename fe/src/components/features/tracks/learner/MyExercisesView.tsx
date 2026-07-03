@@ -102,6 +102,13 @@ export function MyExercisesView({
   const visibleExercises = activeMeta.statuses
     ? exercises.filter((exercise) => activeMeta.statuses?.includes(exercise.status))
     : exercises;
+  const tabButtonBaseClass =
+    'h-[38px] rounded-full border px-4 gap-1.5 text-[14px] font-medium shadow-none transition-colors duration-150 ease-out';
+  const activeTabClass =
+    'border-0 bg-primary text-primary-foreground shadow-sm font-bold hover:bg-primary/90 hover:text-primary-foreground';
+  const inactiveTabClass =
+    'border-transparent bg-surface-container-lowest text-on-surface-variant hover:border-outline-variant hover:bg-surface-container-low hover:text-on-surface dark:bg-surface-container-low dark:hover:bg-surface-container-lowest dark:hover:text-on-surface';
+  const badgeBaseClass = 'inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0 text-[11px] font-semibold leading-5 transition-colors duration-150 ease-out';
 
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-8 px-gutter py-8">
@@ -120,26 +127,24 @@ export function MyExercisesView({
         </Button>
       </header>
 
-      <div className="flex flex-wrap gap-2 border-b border-outline-variant/70">
+      <div className="flex flex-wrap gap-6">
         {tabMeta.map((tab) => {
           const count = getTabCount(exercises, tab.id);
           const isActive = tab.id === activeTab;
           return (
-            <button
+            <Button
               key={tab.id}
               type="button"
+              variant="ghost"
               onClick={() => onTabChange(tab.id)}
-              className={`-mb-px inline-flex items-center gap-2 border-b-2 px-3 py-3 text-[14px] font-medium transition-colors cursor-pointer ${
-                isActive
-                  ? 'border-primary bg-primary/8 text-primary'
-                  : 'border-transparent text-on-surface-variant hover:bg-primary/5 hover:text-primary'
-              }`}
+              aria-pressed={isActive}
+              className={`${tabButtonBaseClass} ${isActive ? activeTabClass : inactiveTabClass}`}
             >
-              {tab.label}
-              <Badge variant={isActive ? "default" : "secondary"} className="text-[11px] px-2 py-0">
+              <span className="whitespace-nowrap">{tab.label}</span>
+              <span className={`${badgeBaseClass} ${isActive ? 'bg-white/15 text-primary-foreground' : 'bg-surface-container text-on-surface-variant'}`}>
                 {count}
-              </Badge>
-            </button>
+              </span>
+            </Button>
           );
         })}
       </div>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { DocumentResponseDto } from '@/services/api-client';
-import type { RunbookContent, TutorialContent, GuideContent } from './types';
+import type { RunbookContent, TutorialContent, GuideContent, ReferenceContent } from './types';
 
 interface TocItem {
   id: string;
@@ -18,6 +18,7 @@ interface DocumentDetailSidebarProps {
   runbookContent?: RunbookContent;
   tutorialContent?: TutorialContent;
   guideContent?: GuideContent;
+  referenceContent?: ReferenceContent;
 }
 
 export function DocumentDetailSidebar({
@@ -27,6 +28,7 @@ export function DocumentDetailSidebar({
   runbookContent,
   tutorialContent,
   guideContent,
+  referenceContent,
 }: DocumentDetailSidebarProps) {
   const t = useTranslations('DocumentDetail');
   const [activeNav, setActiveNav] = useState<string>('');
@@ -34,6 +36,7 @@ export function DocumentDetailSidebar({
   const isRunbook = kind === 'Runbook';
   const isTutorial = kind === 'Tutorial';
   const isGuide = kind === 'Guide';
+  const isReference = kind === 'Reference';
 
   const navItems: Array<{ id: string; label: string; icon: string }> = [];
 
@@ -80,20 +83,54 @@ export function DocumentDetailSidebar({
   }
 
   if (isTutorial && tutorialContent) {
+    if ((tutorialContent.learningObjectives || []).length > 0) {
+      navItems.push({ id: 'tutorial-objectives', label: t('learningObjectives'), icon: 'school' });
+    }
+    if ((tutorialContent.prerequisites || []).length > 0) {
+      navItems.push({ id: 'tutorial-prerequisites', label: t('prerequisites'), icon: 'checklist' });
+    }
+    if (typeof tutorialContent.steps === 'string' && tutorialContent.steps) {
+      navItems.push({ id: 'tutorial-steps', label: t('steps'), icon: 'format_list_numbered' });
+    }
     const stepsArr = Array.isArray(tutorialContent.steps) ? tutorialContent.steps : (tutorialContent.legacySteps || []);
-    stepsArr.forEach((s: any, si: number) => {
-      navItems.push({
-        id: `step-${si + 1}`,
-        label: `${t('step')} ${si + 1}: ${s.title || `${t('step')} ${si + 1}`}`,
-        icon: 'subdirectory_arrow_right',
+    if (stepsArr.length > 0) {
+      navItems.push({ id: 'tutorial-interactive-steps', label: t('progress'), icon: 'playlist_add_check' });
+      stepsArr.forEach((s: any, si: number) => {
+        navItems.push({
+          id: `step-${si + 1}`,
+          label: `${t('step')} ${si + 1}: ${s.title || `${t('step')} ${si + 1}`}`,
+          icon: 'subdirectory_arrow_right',
+        });
       });
+    }
+    if ((tutorialContent.exercises || []).length > 0) {
+      navItems.push({ id: 'tutorial-exercises', label: t('exercises'), icon: 'fitness_center' });
+    }
+    if (tutorialContent.summary) {
+      navItems.push({ id: 'tutorial-summary', label: t('summary'), icon: 'emoji_events' });
+    }
+  }
+
+  if (isReference && referenceContent) {
+    if ((referenceContent.properties || []).length > 0) {
+      navItems.push({ id: 'reference-properties', label: t('properties'), icon: 'tune' });
+    }
+    if (referenceContent.examples) {
+      navItems.push({ id: 'reference-examples', label: t('examples'), icon: 'code' });
+    }
+    if (referenceContent.notes) {
+      navItems.push({ id: 'reference-notes', label: t('notes'), icon: 'info' });
+    }
+    (referenceContent.sections || []).forEach((s) => {
+      const id = s.heading.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      navItems.push({ id, label: s.heading, icon: 'label' });
     });
   }
 
   return (
     <aside>
       <div className="sticky top-24 space-y-6">
-        {/* Quick Navigation — for Runbook / Tutorial / Guide */}
+        {/* Quick Navigation — for Runbook / Tutorial / Guide / Reference */}
         {navItems.length > 0 && (
           <div className="bg-white rounded-xl border border-outline-variant p-md shadow-sm">
             <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-3 mb-4">
@@ -124,8 +161,8 @@ export function DocumentDetailSidebar({
           </div>
         )}
 
-        {/* Standard TOC — for Reference */}
-        {!isRunbook && !isTutorial && !isGuide && toc.length > 0 && (
+        {/* Standard TOC — for fallback */}
+        {!isRunbook && !isTutorial && !isGuide && !isReference && toc.length > 0 && (
           <div className="bg-white rounded-xl border border-outline-variant p-md shadow-sm">
             <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-3 mb-4">
               {t('onThisPage')}

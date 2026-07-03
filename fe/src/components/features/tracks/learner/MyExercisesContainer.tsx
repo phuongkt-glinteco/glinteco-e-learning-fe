@@ -12,15 +12,15 @@ import { useTranslations } from 'next-intl';
 
 function MyExercisesLoadingState() {
   return (
-    <div className="mx-auto flex max-w-container-max flex-col gap-8 px-gutter py-8">
+    <div className="mx-auto flex max-w-container-max flex-col gap-8 px-gutter py-8 w-full">
       <div>
         <Skeleton width={220} height={40} rounded="rounded" />
         <Skeleton width="42%" height={20} rounded="rounded" className="mt-3" />
       </div>
       <Skeleton height={46} rounded="rounded" />
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2 w-full">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} height={300} rounded="rounded-lg" />
+          <Skeleton key={index} height={300} rounded="rounded-lg" className="w-full" />
         ))}
       </div>
     </div>
@@ -29,7 +29,7 @@ function MyExercisesLoadingState() {
 
 function MyExercisesErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <section className="mx-auto max-w-container-max px-gutter py-8">
+    <section className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">Exercises could not be loaded</h1>
         <p className="body-sm mt-2">{message}</p>

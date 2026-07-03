@@ -42,9 +42,9 @@ import { useTranslations } from 'next-intl';
 
 function ExerciseLoadingState() {
   return (
-    <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
-      <div className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm">
-        <div className="flex min-w-0 items-center gap-3">
+    <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8 w-full">
+      <div className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm w-full">
+        <div className="flex min-w-0 items-center gap-3 w-full">
           <Skeleton width={36} height={36} rounded="rounded-lg" />
           <div className="min-w-0 flex-1">
             <Skeleton width={90} height={16} rounded="rounded" />
@@ -53,22 +53,23 @@ function ExerciseLoadingState() {
           <Skeleton width={120} height={30} rounded="rounded-full" />
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
-        <div className="rounded-lg border border-outline-variant bg-surface p-6 shadow-sm">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] w-full">
+        <div className="rounded-lg border border-outline-variant bg-surface p-6 shadow-sm w-full">
           <div className="mb-4 flex flex-wrap gap-2">
             <Skeleton width={84} height={24} rounded="rounded" />
+            <Skeleton width={96} height={24} rounded="rounded" />
             <Skeleton width={96} height={24} rounded="rounded" />
             <Skeleton width={76} height={24} rounded="rounded" />
           </div>
           <Skeleton width="72%" height={32} rounded="rounded" />
           <Skeleton width="94%" height={18} rounded="rounded" className="mt-4" />
           <Skeleton width="82%" height={18} rounded="rounded" className="mt-2" />
-          <Skeleton height={180} rounded="rounded-lg" className="mt-6" />
-          <Skeleton height={140} rounded="rounded-lg" className="mt-6" />
+          <Skeleton height={180} rounded="rounded-lg" className="mt-6 w-full" />
+          <Skeleton height={140} rounded="rounded-lg" className="mt-6 w-full" />
         </div>
-        <div className="flex flex-col gap-6">
-          <Skeleton height={188} rounded="rounded-lg" />
-          <Skeleton height={230} rounded="rounded-lg" />
+        <div className="flex flex-col gap-6 w-full">
+          <Skeleton height={188} rounded="rounded-lg" className="w-full" />
+          <Skeleton height={230} rounded="rounded-lg" className="w-full" />
         </div>
       </div>
     </div>
@@ -90,7 +91,7 @@ function ExerciseErrorState({
 }) {
   const t = useTranslations('ExerciseDetailContainer');
   return (
-    <section className="mx-auto max-w-container-max px-gutter py-8">
+    <section className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>

@@ -27,7 +27,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex justify-between items-center px-4 py-sm w-full bg-surface border-b border-outline-variant shadow-sm h-[72px]">
+    <header className="flex-shrink-0 sticky top-0 z-30 flex justify-between items-center px-4 py-sm w-full bg-surface border-b border-outline-variant shadow-sm h-[72px]">
       <div className="flex items-center gap-sm">
         <SidebarTrigger className="mr-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high" />
       </div>

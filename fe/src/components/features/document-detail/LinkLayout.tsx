@@ -48,7 +48,7 @@ export function LinkLayout({
           <div className="bg-surface-container-low border border-outline-variant rounded-xl p-lg">
             <h3 className="text-primary font-headline-sm text-headline-sm flex items-center gap-sm mb-md">
               <span className="material-symbols-outlined text-primary">info</span>
-              Quick Overview
+              {t('overview')}
             </h3>
             <div className="text-body-md text-on-surface-variant">
               <MarkdownRenderer content={content.overview} />

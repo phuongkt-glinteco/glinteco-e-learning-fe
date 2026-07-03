@@ -68,16 +68,18 @@ export function DocumentEditSidebar({
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-sm font-semibold text-on-surface">{t('url')}</Label>
-            <Input
-              value={url}
-              onChange={(e) => onUrlChange(e.target.value)}
-              className="w-full bg-surface-container-lowest font-code text-xs"
-              type="text"
-              placeholder="https://..."
-            />
-          </div>
+          {(kind === 'Link' || kind === 'Reference') && (
+            <div className="space-y-1.5 animate-fadeIn">
+              <Label className="text-sm font-semibold text-on-surface">{t('url')}</Label>
+              <Input
+                value={url}
+                onChange={(e) => onUrlChange(e.target.value)}
+                className="w-full bg-surface-container-lowest font-code text-xs"
+                type="text"
+                placeholder="https://..."
+              />
+            </div>
+          )}
 
           <div className="pt-2 border-t border-outline-variant/60">
             <TagSelector

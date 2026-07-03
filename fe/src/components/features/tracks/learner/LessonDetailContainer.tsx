@@ -19,9 +19,9 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 
 function LessonLoadingState() {
   return (
-    <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
-      <div className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm">
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+    <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8 w-full">
+      <div className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm w-full">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-4 w-full">
           <div className="flex min-w-0 items-center gap-3">
             <Skeleton width={36} height={36} rounded="rounded-lg" />
             <div>
@@ -32,18 +32,18 @@ function LessonLoadingState() {
           <Skeleton width={104} height={30} rounded="rounded-full" />
         </div>
       </div>
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4">
-        <div className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-4 w-full">
+        <div className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm w-full">
           <Skeleton width={140} height={18} rounded="rounded" />
-          <Skeleton width="100%" height={1} rounded="rounded-none" className="my-3" />
-          <div className="space-y-2">
-            <Skeleton height={40} rounded="rounded-lg" />
-            <Skeleton height={40} rounded="rounded-lg" />
-            <Skeleton height={40} rounded="rounded-lg" />
-            <Skeleton height={40} rounded="rounded-lg" />
+          <Skeleton width="100%" height={1} rounded="rounded-none" className="my-3 w-full" />
+          <div className="space-y-2 w-full">
+            <Skeleton height={40} rounded="rounded-lg" className="w-full" />
+            <Skeleton height={40} rounded="rounded-lg" className="w-full" />
+            <Skeleton height={40} rounded="rounded-lg" className="w-full" />
+            <Skeleton height={40} rounded="rounded-lg" className="w-full" />
           </div>
         </div>
-        <div className="rounded-lg border border-outline-variant bg-surface p-6 shadow-sm lg:col-span-2">
+        <div className="rounded-lg border border-outline-variant bg-surface p-6 shadow-sm lg:col-span-2 w-full">
           <div className="mb-4 flex flex-wrap gap-2">
             <Skeleton width={82} height={24} rounded="rounded" />
             <Skeleton width={68} height={24} rounded="rounded" />
@@ -52,12 +52,12 @@ function LessonLoadingState() {
           <Skeleton width="78%" height={34} rounded="rounded" />
           <Skeleton width="92%" height={18} rounded="rounded" className="mt-3" />
           <Skeleton width="64%" height={18} rounded="rounded" className="mt-2" />
-          <Skeleton height={180} rounded="rounded-lg" className="mt-6" />
-          <Skeleton height={150} rounded="rounded-lg" className="mt-6" />
+          <Skeleton height={180} rounded="rounded-lg" className="mt-6 w-full" />
+          <Skeleton height={150} rounded="rounded-lg" className="mt-6 w-full" />
         </div>
-        <div className="flex flex-col gap-6">
-          <Skeleton height={245} rounded="rounded-lg" />
-          <Skeleton height={180} rounded="rounded-lg" />
+        <div className="flex flex-col gap-6 w-full">
+          <Skeleton height={245} rounded="rounded-lg" className="w-full" />
+          <Skeleton height={180} rounded="rounded-lg" className="w-full" />
         </div>
       </div>
     </div>
@@ -79,7 +79,7 @@ function LessonErrorState({
 }) {
   const t = useTranslations('LessonDetailContainer');
   return (
-    <section className="mx-auto max-w-container-max px-gutter py-8">
+    <section className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <div className="max-w-[760px] rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h1 className="headline-sm">{title}</h1>
         <p className="body-sm mt-2">{message}</p>

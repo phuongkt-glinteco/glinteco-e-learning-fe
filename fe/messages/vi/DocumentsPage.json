@@ -110,6 +110,23 @@
   "batchBookmark": "Đánh dấu ({count})",
   "batchUnbookmark": "Bỏ đánh dấu ({count})",
   "batchDelete": "Xóa ({count})",
-  "clearSelection": "Bỏ chọn tất cả"
+  "clearSelection": "Bỏ chọn tất cả",
+  "deleteErrorTitle": "Xóa thất bại một số tài liệu",
+  "deleteErrorHeader": "Không thể xóa các tài liệu dưới đây",
+  "deleteErrorDesc": "Hệ thống đã xóa thành công các tài liệu khác, nhưng các tài liệu bên dưới gặp lỗi hoặc bị giới hạn tốc độ (rate limit). Bạn có thể thử lại hoặc đóng hộp thoại.",
+  "deleteSingleErrorBody": "Tài liệu này không thể xóa được ở lần thử trước. Bạn có muốn thử xóa lại không?",
+  "deleteMultiErrorBody": "Còn {count} tài liệu chưa xóa được. Bạn có muốn thử xóa lại không?",
+  "retryDelete": "Thử lại ({count})",
+  "close": "Đóng",
+  "deleteSuccessModalTitle": "Xóa tài liệu thành công",
+  "deleteResultModalTitle": "Kết quả xóa tài liệu",
+  "deletingProgress": "Đang xử lý {processed}/{total} tài liệu...",
+  "deleteSuccessTitle": "Đã xóa thành công {count} tài liệu",
+  "deleteSuccessDesc": "Các tài liệu đã được xóa vĩnh viễn khỏi hệ thống.",
+  "deletePartialHeader": "Đã xóa thành công {success} bài, {failed} bài thất bại",
+  "deletePartialDesc": "Các bài thất bại có thể do kết nối gián đoạn hoặc bị giới hạn tốc độ (rate limit). Bạn có thể thử lại ngay dưới đây.",
+  "deleteAllFailedHeader": "Không thể xóa {count} tài liệu",
+  "deleteAllFailedDesc": "Vui lòng kiểm tra lại kết nối hoặc giới hạn từ máy chủ rồi thử lại.",
+  "remainingFailedList": "Danh sách tài liệu chưa xóa được"
 }
 

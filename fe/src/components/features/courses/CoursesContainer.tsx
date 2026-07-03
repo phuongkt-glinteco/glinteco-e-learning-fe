@@ -24,7 +24,7 @@ function CoursesLoadingState() {
     <div className="w-full mx-auto max-w-container-max px-gutter py-8">
       <Skeleton className="w-[240px] h-8 mb-6" />
       <Skeleton className="w-full h-16 mb-6" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full">
         {Array.from({ length: 8 }).map((_, i) => (
           <Skeleton key={i} className="w-full h-[220px]" />
         ))}
@@ -41,7 +41,7 @@ function CoursesErrorState({
   onRetry: () => void;
 }) {
   return (
-    <div className="mx-auto max-w-container-max px-gutter py-8">
+    <div className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h2 className="headline-sm">Error loading courses</h2>
         <p className="body-sm mt-2">{message}</p>

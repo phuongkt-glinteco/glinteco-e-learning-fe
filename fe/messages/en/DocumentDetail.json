@@ -25,5 +25,16 @@
   "objective": "Objective",
   "expectedResult": "Expected Result",
   "relatedDocs": "Related Documents",
-  "steps": "Steps"
+  "steps": "Steps",
+  "overview": "Overview",
+  "learningObjectives": "Learning Objectives",
+  "duration": "Duration",
+  "difficulty": "Difficulty",
+  "exercises": "Practice Exercises",
+  "summary": "Summary",
+  "properties": "Properties & Configuration",
+  "examples": "Code Examples",
+  "notes": "Notes & Callouts",
+  "category": "Category",
+  "version": "Version"
 }

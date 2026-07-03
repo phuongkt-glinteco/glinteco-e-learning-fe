@@ -42,7 +42,7 @@ function TracksErrorState({
   onRetry: () => void;
 }) {
   return (
-    <section className="mx-auto max-w-container-max px-gutter py-8">
+    <section className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <div className="rounded-lg border border-error-container bg-error-container/40 p-6 text-error">
         <h2 className="headline-sm">Error loading tracks</h2>
         <p className="body-sm mt-2">{message}</p>

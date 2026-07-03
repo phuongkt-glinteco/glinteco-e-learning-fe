@@ -110,7 +110,7 @@ export default function TrackReorderPage({ initialTracks }: TrackReorderPageProp
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
+      <div className="flex items-center justify-center h-screen bg-background w-full">
         <div className="flex flex-col items-center gap-md">
           <div className="w-10 h-10 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
           <p className="text-body-sm text-on-surface-variant">{t('loading')}</p>
@@ -121,7 +121,7 @@ export default function TrackReorderPage({ initialTracks }: TrackReorderPageProp
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background gap-md">
+      <div className="flex flex-col items-center justify-center h-screen bg-background gap-md w-full">
         <div className="w-12 h-12 rounded-lg bg-error/10 flex items-center justify-center">
           <svg
             className="w-6 h-6 text-error"

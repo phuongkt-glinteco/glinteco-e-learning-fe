@@ -15,6 +15,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/default/collapsible';
+import { ScrollArea } from '@/components/ui/default/scroll-area';
 import { Badge } from '@/components/ui/default/badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/default/toggle-group';
 import {
@@ -288,31 +289,33 @@ export function DocumentsFilters({
                       {unselectedTags.length}
                     </Badge>
                   </div>
-                  <div className="p-3 max-h-[220px] overflow-y-auto space-y-1 custom-scrollbar min-h-[120px]">
-                    {unselectedTags.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {unselectedTags.map((tag) => (
-                          <button
-                            key={tag.id}
-                            type="button"
-                            onClick={() => onTagsChange([...selectedTags, tag.name])}
-                            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/70 hover:bg-primary hover:text-primary-foreground border border-border/60 hover:border-primary transition-all text-left shadow-2xs hover:shadow-sm"
-                          >
-                            <PlusIcon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary-foreground transition-colors shrink-0" />
-                            <span className="truncate max-w-[160px]">#{toTitleCase(tag.name)}</span>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="h-full flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                        <span className="text-xs font-medium">
-                          {tagSearchQuery
-                            ? t('noMatchingTags', { defaultValue: 'No tags matching your search.' })
-                            : t('noAvailableTags', { defaultValue: 'All tags have been selected.' })}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <ScrollArea className="max-h-[220px] min-h-[120px] w-full">
+                    <div className="p-3 space-y-1">
+                      {unselectedTags.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {unselectedTags.map((tag) => (
+                            <button
+                              key={tag.id}
+                              type="button"
+                              onClick={() => onTagsChange([...selectedTags, tag.name])}
+                              className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/70 hover:bg-primary hover:text-primary-foreground border border-border/60 hover:border-primary transition-all text-left shadow-2xs hover:shadow-sm"
+                            >
+                              <PlusIcon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary-foreground transition-colors shrink-0" />
+                              <span className="truncate max-w-[160px]">#{toTitleCase(tag.name)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                          <span className="text-xs font-medium">
+                            {tagSearchQuery
+                              ? t('noMatchingTags', { defaultValue: 'No tags matching your search.' })
+                              : t('noAvailableTags', { defaultValue: 'All tags have been selected.' })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 </div>
 
                 {/* Section 2: Thẻ đã chọn (Selected Tags) */}
@@ -337,30 +340,32 @@ export function DocumentsFilters({
                       </Badge>
                     </div>
                   </div>
-                  <div className="p-3 max-h-[220px] overflow-y-auto space-y-1 custom-scrollbar min-h-[120px]">
-                    {selectedTagObjects.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5">
-                        {selectedTagObjects.map((tag) => (
-                          <button
-                            key={tag.id}
-                            type="button"
-                            onClick={() => onTagsChange(selectedTags.filter((val) => val !== tag.name && val !== tag.id))}
-                            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/15 text-primary hover:bg-destructive hover:text-destructive-foreground border border-primary/30 hover:border-destructive transition-all text-left shadow-2xs hover:shadow-sm"
-                          >
-                            <CheckIcon className="w-3.5 h-3.5 text-primary group-hover:hidden transition-colors shrink-0" />
-                            <XIcon className="w-3.5 h-3.5 hidden group-hover:inline-block text-destructive-foreground shrink-0 transition-all" />
-                            <span className="truncate max-w-[160px]">#{toTitleCase(tag.name)}</span>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="h-full flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                        <span className="text-xs font-medium">
-                          {t('noSelectedTags', { defaultValue: 'No tags selected yet. Click from available tags to select.' })}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <ScrollArea className="max-h-[220px] min-h-[120px] w-full">
+                    <div className="p-3 space-y-1">
+                      {selectedTagObjects.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedTagObjects.map((tag) => (
+                            <button
+                              key={tag.id}
+                              type="button"
+                              onClick={() => onTagsChange(selectedTags.filter((val) => val !== tag.name && val !== tag.id))}
+                              className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/15 text-primary hover:bg-destructive hover:text-destructive-foreground border border-primary/30 hover:border-destructive transition-all text-left shadow-2xs hover:shadow-sm"
+                            >
+                              <CheckIcon className="w-3.5 h-3.5 text-primary group-hover:hidden transition-colors shrink-0" />
+                              <XIcon className="w-3.5 h-3.5 hidden group-hover:inline-block text-destructive-foreground shrink-0 transition-all" />
+                              <span className="truncate max-w-[160px]">#{toTitleCase(tag.name)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                          <span className="text-xs font-medium">
+                            {t('noSelectedTags', { defaultValue: 'No tags selected yet. Click from available tags to select.' })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 </div>
               </div>
             </div>

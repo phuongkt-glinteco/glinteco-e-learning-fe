@@ -7,6 +7,19 @@ import type {
   LinkContent,
 } from './types';
 
+function parseResourceRef(item: any) {
+  if (typeof item === 'string') return item;
+  if (item && typeof item === 'object') {
+    return {
+      id: String(item.id || ''),
+      name: item.name ? String(item.name) : undefined,
+      title: item.title ? String(item.title) : undefined,
+      kind: item.kind ? String(item.kind) : undefined,
+    };
+  }
+  return String(item || '');
+}
+
 export function getDocumentContent(doc: DocumentResponseDto) {
   let raw: Record<string, unknown> = {};
 
@@ -23,23 +36,17 @@ export function getDocumentContent(doc: DocumentResponseDto) {
     case 'Guide':
       return {
         objective: typeof raw.objective === 'string' ? raw.objective : undefined,
-        prerequisites: Array.isArray(raw.prerequisites)
-          ? raw.prerequisites.map((p: any) => ({ id: String(p?.id || ''), name: p?.name ? String(p.name) : undefined, title: p?.title ? String(p.title) : undefined }))
-          : undefined,
+        prerequisites: Array.isArray(raw.prerequisites) ? raw.prerequisites.map(parseResourceRef) : undefined,
         steps: typeof raw.steps === 'string' ? raw.steps : (typeof raw.body === 'string' ? raw.body : ''),
         expectedResult: typeof raw.expectedResult === 'string' ? raw.expectedResult : undefined,
-        relatedDocs: Array.isArray(raw.relatedDocs)
-          ? raw.relatedDocs.map((r: any) => ({ id: String(r?.id || ''), title: r?.title ? String(r.title) : (r?.name ? String(r.name) : undefined), kind: r?.kind ? String(r.kind) : undefined }))
-          : undefined,
+        relatedDocs: Array.isArray(raw.relatedDocs) ? raw.relatedDocs.map(parseResourceRef) : undefined,
         body: typeof raw.body === 'string' ? raw.body : undefined,
       } as GuideContent;
 
     case 'Tutorial':
       return {
         learningObjectives: Array.isArray(raw.learningObjectives) ? raw.learningObjectives.map((o) => String(o)) : undefined,
-        prerequisites: Array.isArray(raw.prerequisites)
-          ? raw.prerequisites.map((p: any) => ({ id: String(p?.id || ''), name: p?.name ? String(p.name) : undefined, title: p?.title ? String(p.title) : undefined }))
-          : undefined,
+        prerequisites: Array.isArray(raw.prerequisites) ? raw.prerequisites.map(parseResourceRef) : undefined,
         duration: typeof raw.duration === 'number' ? raw.duration : (typeof raw.duration === 'string' ? Number(raw.duration) || undefined : undefined),
         difficulty: typeof raw.difficulty === 'string' ? raw.difficulty : undefined,
         steps: typeof raw.steps === 'string' ? raw.steps : undefined,
@@ -55,16 +62,12 @@ export function getDocumentContent(doc: DocumentResponseDto) {
       return {
         trigger: typeof raw.trigger === 'string' ? raw.trigger : (typeof raw.background === 'string' ? raw.background : ''),
         impact: typeof raw.impact === 'string' ? raw.impact : undefined,
-        prerequisites: Array.isArray(raw.prerequisites)
-          ? raw.prerequisites.map((p: any) => ({ id: String(p?.id || ''), name: p?.name ? String(p.name) : undefined, title: p?.title ? String(p.title) : undefined }))
-          : undefined,
+        prerequisites: Array.isArray(raw.prerequisites) ? raw.prerequisites.map(parseResourceRef) : undefined,
         procedure: typeof raw.procedure === 'string' ? raw.procedure : undefined,
         validation: typeof raw.validation === 'string' ? raw.validation : undefined,
         rollback: typeof raw.rollback === 'string' ? raw.rollback : undefined,
         escalation: typeof raw.escalation === 'string' ? raw.escalation : undefined,
-        relatedDocs: Array.isArray(raw.relatedDocs)
-          ? raw.relatedDocs.map((r: any) => ({ id: String(r?.id || ''), title: r?.title ? String(r.title) : (r?.name ? String(r.name) : undefined), kind: r?.kind ? String(r.kind) : undefined }))
-          : undefined,
+        relatedDocs: Array.isArray(raw.relatedDocs) ? raw.relatedDocs.map(parseResourceRef) : undefined,
         background: typeof raw.background === 'string' ? raw.background : undefined,
         severity: typeof raw.severity === 'string' ? raw.severity : undefined,
         incidentId: typeof raw.incidentId === 'string' ? raw.incidentId : undefined,

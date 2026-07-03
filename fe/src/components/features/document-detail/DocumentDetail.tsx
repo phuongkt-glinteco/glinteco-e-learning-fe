@@ -67,6 +67,7 @@ export default function DocumentDetail({ document }: DocumentDetailProps) {
         runbookContent={document.kind === 'Runbook' ? (content as RunbookContent) : undefined}
         tutorialContent={document.kind === 'Tutorial' ? (content as TutorialContent) : undefined}
         guideContent={document.kind === 'Guide' ? (content as GuideContent) : undefined}
+        referenceContent={document.kind === 'Reference' ? (content as ReferenceContent) : undefined}
       />
     </div>
   );

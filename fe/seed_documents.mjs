@@ -145,6 +145,11 @@ async function main() {
     const contentObj = {
       description: topic.desc,
       objective: `This guide explains how to configure, optimize, and deploy ${topic.tech} following industry best practices and internal security standards.`,
+      prerequisites: [
+        'AWS CLI v2 or Docker Desktop installed locally',
+        'AdministratorAccess IAM role or cluster sudo permissions',
+        'Node.js 18+ and Git version control initialized'
+      ],
       steps: `### 1. Prerequisites & Environment Setup\nBefore beginning, ensure that your CLI tools and environment variables are properly initialized.\n\n\`\`\`bash\n# Install required system packages\nnpm install -g @glinteco/cli-tools\ncp .env.example .env.local\n\`\`\`\n\n:::info\nMake sure your Docker daemon is running if you are executing local integration tests.\n:::\n\n### 2. Configuration Steps\nModify your system configuration files to support high throughput and fault tolerance.\n\n\`\`\`typescript\n// src/config/production.ts\nexport const config = {\n  timeoutMs: 5000,\n  retries: 3,\n  enableMetrics: true,\n};\n\`\`\`\n\n### 3. Verification & Testing\nRun the automated verification script to validate that endpoints respond within expected latency SLA.\n\n:::objective\n- Target latency: < 50ms at p95\n- Zero error rate under normal load\n:::`,
       expectedResult: `The ${topic.tech} service should be running stably without memory leaks, passing all health checks on port 8080.`
     };
@@ -192,6 +197,11 @@ async function main() {
         'Build and configure a working development environment from scratch',
         'Implement robust error handling and production logging',
         'Deploy the finished application to a cloud staging environment'
+      ],
+      prerequisites: [
+        'Basic understanding of JavaScript and ES6+ syntax',
+        'Terminal access with git and npm installed',
+        'Code editor (VS Code recommended)'
       ],
       duration: topic.dur,
       difficulty: topic.diff,
@@ -252,6 +262,11 @@ async function main() {
         'API error rates spiking above 2.5% on upstream gateways',
         'Latency p95 increasing from 45ms to over 800ms',
         'Automated pager alerts firing for on-call SRE team'
+      ],
+      prerequisites: [
+        'Kubernetes cluster access via kubectl with admin role',
+        'Datadog dashboards read/write permissions',
+        'Active PagerDuty incident acknowledgment'
       ],
       procedure: `### Step 1: Triage and Diagnostics\nImmediately check cluster health dashboards and container logs to identify the bottleneck.\n\n\`\`\`bash\n# Check pod resource utilization\nkubectl top pods -n production --sort-by=cpu\n# Tail recent error logs\nkubectl logs -n production -l app=core-api --tail=100 | grep ERROR\n\`\`\`\n\n### Step 2: Mitigation Actions\nIf resource limits are exhausted, temporarily scale the replica set or restart degraded worker pods.\n\n\`\`\`bash\nkubectl scale deployment core-api -n production --replicas=10\n\`\`\`\n\n:::warning\nDo not restart primary database instances without notifying the Lead DBA on call!\n:::`,
       validation: `Verify that metric graphs in Datadog return to baseline green levels and error rates drop below 0.01% for at least 15 minutes.`,
@@ -351,7 +366,8 @@ async function main() {
       provider: topic.prov,
       type: topic.type,
       openInNewTab: true,
-      description: `Essential reading for all software engineers working on ${topic.prov} technologies. This resource covers foundational architectural patterns, API specifications, and recommended production deployment setups to ensure system reliability and security.`
+      description: `Essential reading for all software engineers working on ${topic.prov} technologies. This resource covers foundational architectural patterns, API specifications, and recommended production deployment setups to ensure system reliability and security.`,
+      overview: `### Why This Resource Matters\nThis reference document is maintained by **${topic.prov}** and serves as the authoritative guide for implementing ${topic.type.toLowerCase()} standards.\n\n- **Key Takeaways**: Foundational architectural patterns, API specifications, and recommended production deployment setups.\n- **Who Should Read**: Backend engineers, frontend developers, SREs, and technical leads.\n- **Trust & Credibility**: Verified official resource with high community adoption.`
     };
 
     documents.push({

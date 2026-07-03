@@ -25,5 +25,16 @@
   "objective": "Mục Tiêu",
   "expectedResult": "Kết Quả Kỳ Vọng",
   "relatedDocs": "Tài Liệu Liên Quan",
-  "steps": "Các Bước Thực Hiện"
+  "steps": "Các Bước Thực Hiện",
+  "overview": "Tổng Quan",
+  "learningObjectives": "Mục Tiêu Học Tập",
+  "duration": "Thời Lượng",
+  "difficulty": "Độ Khó",
+  "exercises": "Bài Tập Thực Hành",
+  "summary": "Tổng Kết",
+  "properties": "Thuộc Tính & Cấu Hình",
+  "examples": "Ví Dụ Minh Họa",
+  "notes": "Ghi Chú & Lưu Ý",
+  "category": "Danh Mục",
+  "version": "Phiên Bản"
 }

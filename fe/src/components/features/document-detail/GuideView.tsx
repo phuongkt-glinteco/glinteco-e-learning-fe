@@ -19,7 +19,7 @@ interface CollapsibleBlockProps {
   t: any;
 }
 
-function CollapsibleBlock({
+export function CollapsibleBlock({
   id,
   title,
   icon,

@@ -177,12 +177,12 @@ export default function AdminTracksContainer() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-8 w-full">
         <Skeleton width={240} height={32} rounded="rounded" className="mb-6" />
-        <div className="flex flex-col gap-3">
-          <Skeleton height={88} />
-          <Skeleton height={88} />
-          <Skeleton height={88} />
+        <div className="flex flex-col gap-3 w-full">
+          <Skeleton height={88} className="w-full" />
+          <Skeleton height={88} className="w-full" />
+          <Skeleton height={88} className="w-full" />
         </div>
       </div>
     );

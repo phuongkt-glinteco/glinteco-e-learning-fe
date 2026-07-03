@@ -5,6 +5,8 @@ import {
   documentsControllerFindAll,
   documentsControllerFindAllTags,
   documentsControllerDelete,
+  documentsControllerBookmark,
+  documentsControllerUnbookmark,
 } from '@/services/api-client';
 import type { DocumentListResponseDto } from '@/services/api-client';
 import {
@@ -97,6 +99,30 @@ export function useDocuments({ search, selectedKind, selectedTags, bookmarkedOnl
     }
   }
 
+  async function handleBatchDelete(ids: string[]) {
+    await Promise.allSettled(
+      ids.map((id) => documentsControllerDelete({ path: { id }, throwOnError: true }))
+    );
+    setDocuments((prev) => prev.filter((doc) => !ids.includes(doc.id)));
+  }
+
+  async function handleBatchBookmark(ids: string[], targetBookmarked: boolean) {
+    setDocuments((prev) =>
+      prev.map((doc) => (ids.includes(doc.id) ? { ...doc, isBookmarked: targetBookmarked } : doc))
+    );
+    try {
+      await Promise.allSettled(
+        ids.map((id) =>
+          targetBookmarked
+            ? documentsControllerBookmark({ path: { id }, throwOnError: true })
+            : documentsControllerUnbookmark({ path: { id }, throwOnError: true })
+        )
+      );
+    } catch {
+      // silent
+    }
+  }
+
   return {
     documents,
     tags,
@@ -111,5 +137,7 @@ export function useDocuments({ search, selectedKind, selectedTags, bookmarkedOnl
     handleBookmarkToggle,
     loadMore,
     handleDelete,
+    handleBatchDelete,
+    handleBatchBookmark,
   };
 }

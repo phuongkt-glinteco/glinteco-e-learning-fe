@@ -15,7 +15,11 @@ interface DocumentsViewProps {
   hasActiveFilters: boolean;
   onClearFilters: () => void;
   onBookmarkToggle: (id: string, bookmarked: boolean) => void;
-  onDelete: (id: string) => void;
+  onDeleteRequest?: (docs: { id: string; title: string }[]) => void;
+  isSelectMode?: boolean;
+  selectedIds?: string[];
+  onSelectToggle?: (id: string, selected: boolean) => void;
+  onSelectAll?: (selectAll: boolean) => void;
 }
 
 export function DocumentsView({
@@ -26,7 +30,11 @@ export function DocumentsView({
   hasActiveFilters,
   onClearFilters,
   onBookmarkToggle,
-  onDelete,
+  onDeleteRequest,
+  isSelectMode = false,
+  selectedIds = [],
+  onSelectToggle,
+  onSelectAll,
 }: DocumentsViewProps) {
   const t = useTranslations('DocumentsPage');
   const router = useRouter();
@@ -41,7 +49,11 @@ export function DocumentsView({
       onEmptyAction={hasActiveFilters ? onClearFilters : undefined}
       onBookmarkToggle={onBookmarkToggle}
       onEdit={(id) => router.push(`/admin/documents/${id}/edit`)}
-      onDelete={onDelete}
+      onDeleteRequest={onDeleteRequest}
+      isSelectMode={isSelectMode}
+      selectedIds={selectedIds}
+      onSelectToggle={onSelectToggle}
+      onSelectAll={onSelectAll}
     />
   ) : (
     <DocumentGrid
@@ -53,7 +65,11 @@ export function DocumentsView({
       onEmptyAction={hasActiveFilters ? onClearFilters : undefined}
       onBookmarkToggle={onBookmarkToggle}
       onEdit={(id) => router.push(`/admin/documents/${id}/edit`)}
-      onDelete={onDelete}
+      onDeleteRequest={onDeleteRequest}
+      isSelectMode={isSelectMode}
+      selectedIds={selectedIds}
+      onSelectToggle={onSelectToggle}
+      onSelectAll={onSelectAll}
     />
   );
 
@@ -73,4 +89,3 @@ export function DocumentsView({
 
   return content;
 }
-

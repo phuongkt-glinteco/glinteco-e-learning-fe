@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { DocumentResponseDto } from '@/services/api-client';
-import type { RunbookContent, TutorialContent } from './types';
+import type { RunbookContent, TutorialContent, GuideContent } from './types';
 
 interface TocItem {
   id: string;
@@ -17,6 +17,7 @@ interface DocumentDetailSidebarProps {
   tags: DocumentResponseDto['tags'];
   runbookContent?: RunbookContent;
   tutorialContent?: TutorialContent;
+  guideContent?: GuideContent;
 }
 
 export function DocumentDetailSidebar({
@@ -25,37 +26,57 @@ export function DocumentDetailSidebar({
   tags,
   runbookContent,
   tutorialContent,
+  guideContent,
 }: DocumentDetailSidebarProps) {
   const t = useTranslations('DocumentDetail');
   const [activeNav, setActiveNav] = useState<string>('');
 
   const isRunbook = kind === 'Runbook';
   const isTutorial = kind === 'Tutorial';
+  const isGuide = kind === 'Guide';
 
   const navItems: Array<{ id: string; label: string; icon: string }> = [];
 
-  if (isRunbook && runbookContent?.phases) {
-    runbookContent.phases.forEach((p) => {
-      navItems.push({
-        id: p.name.toLowerCase().replace(/\s+/g, '-'),
-        label: p.name,
-        icon:
-          p.name.toLowerCase().includes('diagnos') || p.name.toLowerCase().includes('verify')
-            ? 'search'
-            : p.name.toLowerCase().includes('resol') || p.name.toLowerCase().includes('fix')
-              ? 'bolt'
-              : p.name.toLowerCase().includes('verif') || p.name.toLowerCase().includes('close')
-                ? 'fact_check'
-                : 'chevron_right',
-      });
-      (p.steps || []).forEach((s, si) => {
-        navItems.push({
-          id: `${p.name.toLowerCase().replace(/\s+/g, '-')}-step-${si + 1}`,
-          label: `  Step ${si + 1}: ${s.title || `Step ${si + 1}`}`,
-          icon: 'subdirectory_arrow_right',
-        });
-      });
-    });
+  if (isRunbook && runbookContent) {
+    if (runbookContent.trigger) {
+      navItems.push({ id: 'runbook-trigger', label: t('trigger'), icon: 'bolt' });
+    }
+    if (runbookContent.impact) {
+      navItems.push({ id: 'runbook-impact', label: t('impact'), icon: 'warning' });
+    }
+    if ((runbookContent.prerequisites || []).length > 0) {
+      navItems.push({ id: 'runbook-prerequisites', label: t('prerequisites'), icon: 'checklist' });
+    }
+    if (runbookContent.procedure) {
+      navItems.push({ id: 'runbook-procedure', label: t('procedure'), icon: 'integration_instructions' });
+    }
+    if (runbookContent.validation) {
+      navItems.push({ id: 'runbook-validation', label: t('validation'), icon: 'check_circle' });
+    }
+    if (runbookContent.rollback) {
+      navItems.push({ id: 'runbook-rollback', label: t('rollback'), icon: 'history' });
+    }
+    if (runbookContent.escalation) {
+      navItems.push({ id: 'runbook-escalation', label: t('escalation'), icon: 'notifications_active' });
+    }
+  }
+
+  if (isGuide && guideContent) {
+    if (guideContent.objective) {
+      navItems.push({ id: 'guide-objective', label: t('objective'), icon: 'menu_book' });
+    }
+    if ((guideContent.prerequisites || []).length > 0) {
+      navItems.push({ id: 'guide-prerequisites', label: t('prerequisites'), icon: 'checklist' });
+    }
+    if (guideContent.steps || guideContent.body) {
+      navItems.push({ id: 'guide-steps', label: t('steps'), icon: 'format_list_numbered' });
+    }
+    if (guideContent.expectedResult) {
+      navItems.push({ id: 'guide-expected-result', label: t('expectedResult'), icon: 'task_alt' });
+    }
+    if ((guideContent.relatedDocs || []).length > 0) {
+      navItems.push({ id: 'guide-related-docs', label: t('relatedDocs'), icon: 'library_books' });
+    }
   }
 
   if (isTutorial && tutorialContent) {
@@ -63,7 +84,7 @@ export function DocumentDetailSidebar({
     stepsArr.forEach((s: any, si: number) => {
       navItems.push({
         id: `step-${si + 1}`,
-        label: `Step ${si + 1}: ${s.title || `Step ${si + 1}`}`,
+        label: `${t('step')} ${si + 1}: ${s.title || `${t('step')} ${si + 1}`}`,
         icon: 'subdirectory_arrow_right',
       });
     });
@@ -71,14 +92,14 @@ export function DocumentDetailSidebar({
 
   return (
     <aside>
-      <div className="sticky top-24 space-y-lg">
-        {/* Quick Navigation — for Runbook / Tutorial */}
+      <div className="sticky top-24 space-y-6">
+        {/* Quick Navigation — for Runbook / Tutorial / Guide */}
         {navItems.length > 0 && (
           <div className="bg-white rounded-xl border border-outline-variant p-md shadow-sm">
-            <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-sm mb-md">
-              Quick Navigation
+            <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-3 mb-4">
+              {t('quickNavigation')}
             </h3>
-            <nav className="flex flex-col gap-xs">
+            <nav className="flex flex-col gap-1">
               {navItems.map((item) => {
                 const isActive = activeNav === item.id;
                 return (
@@ -86,21 +107,16 @@ export function DocumentDetailSidebar({
                     key={item.id}
                     href={`#${item.id}`}
                     onClick={() => setActiveNav(item.id)}
-                    className={`flex items-center justify-between px-md py-sm rounded-lg transition-all ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
                       isActive
                         ? 'bg-surface-container-high text-primary font-semibold'
                         : 'text-on-surface hover:bg-surface-container-low'
                     }`}
                   >
-                    <div className="flex items-center gap-sm">
-                      <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-                      <span className="text-label-md">{item.label}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="material-symbols-outlined text-[18px] flex-shrink-0">{item.icon}</span>
+                      <span className="text-label-md truncate">{item.label}</span>
                     </div>
-                    {isActive && (
-                      <span className="text-[10px] bg-primary/10 px-2 py-0.5 rounded-full">
-                        ACTIVE
-                      </span>
-                    )}
                   </a>
                 );
               })}
@@ -108,18 +124,18 @@ export function DocumentDetailSidebar({
           </div>
         )}
 
-        {/* Standard TOC — for Guide / Reference */}
-        {!isRunbook && !isTutorial && toc.length > 0 && (
+        {/* Standard TOC — for Reference */}
+        {!isRunbook && !isTutorial && !isGuide && toc.length > 0 && (
           <div className="bg-white rounded-xl border border-outline-variant p-md shadow-sm">
-            <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-sm mb-md">
+            <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-3 mb-4">
               {t('onThisPage')}
             </h3>
-            <nav className="flex flex-col gap-xs">
+            <nav className="flex flex-col gap-1">
               {toc.map((item) => (
                 <a
                   key={item.id}
                   href={`#${item.id}`}
-                  className={`block px-md py-sm rounded-lg transition-colors ${
+                  className={`block px-3 py-2 rounded-lg transition-colors ${
                     item.level === 1
                       ? 'text-primary font-bold bg-surface-container-low'
                       : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest'
@@ -132,45 +148,17 @@ export function DocumentDetailSidebar({
           </div>
         )}
 
-        {/* Incident Stats — for Runbook */}
-        {isRunbook && runbookContent && (
-          <div className="bg-inverse-surface text-inverse-on-surface rounded-xl p-md shadow-lg overflow-hidden relative">
-            <div className="relative z-10 space-y-md">
-              <div className="flex items-center justify-between">
-                <p className="text-label-sm font-semibold text-primary-fixed-dim">INCIDENT TIMER</p>
-                <span className="flex h-2 w-2 rounded-full bg-error animate-ping" />
-              </div>
-              <div className="text-3xl font-code tracking-tighter text-white" id="incident-timer">
-                00:14:43
-              </div>
-              <div className="space-y-sm">
-                <div className="flex justify-between text-label-sm opacity-70">
-                  <span>Progress</span>
-                  <span>{Math.round(
-                    ((runbookContent?.phases || []).reduce((sum, p) => sum + (p.steps?.length || 0), 0) > 0
-                      ? 0
-                      : 0)
-                  )}%</span>
-                </div>
-                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary-fixed-dim w-0" />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Tags */}
         {tags.length > 0 && (
           <div className="bg-white rounded-xl border border-outline-variant p-md shadow-sm">
-            <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-sm mb-md">
+            <h3 className="text-label-sm font-semibold uppercase tracking-wider text-on-surface-variant border-b border-outline-variant pb-3 mb-4">
               {t('tags')}
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               {tags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container cursor-pointer transition-colors"
+                  className="px-3 py-1.5 bg-surface-container-high text-on-surface-variant rounded-md text-xs font-semibold hover:bg-primary-container hover:text-on-primary-container cursor-pointer transition-colors"
                 >
                   #{tag.name}
                 </span>

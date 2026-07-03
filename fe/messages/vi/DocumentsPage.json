@@ -99,6 +99,17 @@
   "listView": "Danh sách",
   "searchTags": "Tìm kiếm thẻ...",
   "noTagsFound": "Không tìm thấy thẻ nào.",
-  "clearTags": "Xóa các thẻ đã chọn"
+  "clearTags": "Xóa các thẻ đã chọn",
+  "select": "Chọn nhiều",
+  "cancelSelect": "Bỏ chọn",
+  "selectModeTooltip": "Chọn nhiều tài liệu để xóa hoặc đánh dấu nhanh",
+  "selectedDocumentsCount": "Đã chọn {count} tài liệu",
+  "deleteSingleConfirmBody": "Bạn có chắc chắn muốn xóa vĩnh viễn tài liệu này không? Hành động này không thể hoàn tác.",
+  "deleteMultiConfirmBody": "Bạn có chắc chắn muốn xóa vĩnh viễn {count} tài liệu đã chọn không? Hành động này không thể hoàn tác.",
+  "selectedDocumentsList": "Danh sách tài liệu bị xóa",
+  "batchBookmark": "Đánh dấu ({count})",
+  "batchUnbookmark": "Bỏ đánh dấu ({count})",
+  "batchDelete": "Xóa ({count})",
+  "clearSelection": "Bỏ chọn tất cả"
 }
 

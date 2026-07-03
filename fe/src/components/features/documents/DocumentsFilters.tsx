@@ -29,6 +29,7 @@ import {
   XIcon,
   SearchIcon,
   CheckCircle2Icon,
+  CheckSquareIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/default/button';
 import { toTitleCase } from '@/lib/utils';
@@ -46,6 +47,8 @@ interface DocumentsFiltersProps {
   tags: DocumentTag[];
   viewMode: 'grid' | 'list';
   onViewModeChange: (mode: 'grid' | 'list') => void;
+  isSelectMode?: boolean;
+  onSelectModeToggle?: () => void;
 }
 
 export function DocumentsFilters({
@@ -60,6 +63,8 @@ export function DocumentsFilters({
   tags = [],
   viewMode,
   onViewModeChange,
+  isSelectMode = false,
+  onSelectModeToggle,
 }: DocumentsFiltersProps) {
   const t = useTranslations('DocumentsPage');
   const [isTagExpanded, setIsTagExpanded] = useState(false);
@@ -155,6 +160,19 @@ export function DocumentsFilters({
                 <StarIcon className={`w-4 h-4 ${bookmarkedOnly ? "fill-primary-foreground text-primary-foreground" : "text-amber-500"}`} />
                 {t('bookmarkedOnly')}
               </Button>
+
+              {/* Select Mode Toggle */}
+              {onSelectModeToggle && (
+                <Button
+                  variant={isSelectMode ? "default" : "outline"}
+                  onClick={onSelectModeToggle}
+                  className="rounded-full h-10 px-4 gap-2 font-medium transition-all shadow-2xs hover:shadow-sm cursor-pointer"
+                  title={t('selectModeTooltip', { defaultValue: 'Chọn nhiều tài liệu để xóa hoặc đánh dấu nhanh' })}
+                >
+                  <CheckSquareIcon className={`w-4 h-4 ${isSelectMode ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                  <span className="text-xs font-bold">{isSelectMode ? t('cancelSelect', { defaultValue: 'Bỏ chọn' }) : t('select', { defaultValue: 'Chọn nhiều' })}</span>
+                </Button>
+              )}
             </div>
 
             {/* View Mode Toggle Button */}

@@ -89,13 +89,6 @@ export default function DocumentCreate() {
         runbookRollback: runbookData.rollback,
         runbookEscalation: runbookData.escalation,
         runbookRelatedDocs: runbookData.relatedDocs,
-        runbookBackground: runbookData.background || runbookData.trigger,
-        runbookSeverity: runbookData.severity,
-        runbookIncidentId: runbookData.incidentId,
-        runbookEstimatedTime: runbookData.estimatedTime,
-        runbookSymptoms: runbookData.symptoms,
-        runbookStatus: runbookData.status,
-        runbookPhases: runbookData.phases,
         // Reference
         referenceCategory: referenceData.category,
         referenceVersion: referenceData.version,

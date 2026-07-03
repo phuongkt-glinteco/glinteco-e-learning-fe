@@ -1,23 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/default/badge';
+import { Checkbox } from '@/components/ui/default/checkbox';
 import { toTitleCase } from '@/lib/utils';
 import { DataTable, type ColumnDef } from '@/components/ui/data-display/DataTable';
 import { EmptyState } from '@/components/ui/fallback/EmptyState';
 import { DocumentActionsMenu } from './DocumentActionsMenu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/default/alert-dialog';
 import type { DocumentListItem } from './types';
 
 interface DocumentTableProps {
@@ -29,7 +20,11 @@ interface DocumentTableProps {
   onEmptyAction?: () => void;
   onBookmarkToggle: (id: string, bookmarked: boolean) => void;
   onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  onDeleteRequest?: (docs: { id: string; title: string }[]) => void;
+  isSelectMode?: boolean;
+  selectedIds?: string[];
+  onSelectToggle?: (id: string, selected: boolean) => void;
+  onSelectAll?: (selectAll: boolean) => void;
 }
 
 const KIND_STYLES: Record<string, { bg: string; text: string }> = {
@@ -49,12 +44,35 @@ export function DocumentTable({
   onEmptyAction,
   onBookmarkToggle,
   onEdit,
-  onDelete,
+  onDeleteRequest,
+  isSelectMode = false,
+  selectedIds = [],
+  onSelectToggle,
+  onSelectAll,
 }: DocumentTableProps) {
   const t = useTranslations('DocumentsPage');
-  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
-  const columns: ColumnDef<DocumentListItem>[] = [
+  const selectColumn: ColumnDef<DocumentListItem> = {
+    key: 'select',
+    headerClassName: 'w-12 px-3 text-center',
+    cellClassName: 'w-12 px-3 text-center',
+    header: (
+      <Checkbox
+        checked={documents.length > 0 && selectedIds.length === documents.length}
+        onCheckedChange={(checked) => onSelectAll?.(Boolean(checked))}
+        aria-label="Select all"
+      />
+    ),
+    cell: (doc) => (
+      <Checkbox
+        checked={selectedIds.includes(doc.id)}
+        onCheckedChange={(checked) => onSelectToggle?.(doc.id, Boolean(checked))}
+        aria-label={`Select ${doc.title}`}
+      />
+    ),
+  };
+
+  const baseColumns: ColumnDef<DocumentListItem>[] = [
     {
       key: 'title',
       headerClassName: 'font-caption-bold text-on-surface-variant uppercase tracking-wider',
@@ -92,7 +110,7 @@ export function DocumentTable({
                   variant="secondary"
                   className="font-caption-bold max-w-[140px] truncate block text-xs bg-surface-container text-on-surface-variant"
                   title={toTitleCase(tag.name)}
-                 >
+                >
                   #{toTitleCase(tag.name)}
                 </Badge>
               ))
@@ -116,62 +134,27 @@ export function DocumentTable({
           isAdmin={isAdmin}
           onBookmarkToggle={onBookmarkToggle}
           onEdit={onEdit}
-          onDeleteRequest={(id, title) => setDeleteTarget({ id, title })}
+          onDeleteRequest={(id, title) => onDeleteRequest?.([{ id, title }])}
         />
       ),
     },
   ];
 
-  return (
-    <>
-      <DataTable
-        data={documents}
-        columns={columns}
-        emptyMessage={(
-          <EmptyState
-            title={emptyTitle}
-            description={emptyDescription}
-            actionLabel={emptyActionLabel}
-            onAction={onEmptyAction}
-          />
-        )}
-        rowKey={(doc) => doc.id}
-      />
+  const columns = isSelectMode ? [selectColumn, ...baseColumns] : baseColumns;
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="bg-surface-container-lowest border-outline-variant">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-on-surface font-bold text-lg flex items-center gap-2">
-              <span className="material-symbols-outlined text-error">warning</span>
-              {t('deleteConfirmTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-on-surface-variant text-sm">
-              {t('deleteConfirmBody')}
-              {deleteTarget && (
-                <span className="block mt-2 font-semibold text-on-surface p-2 bg-surface-container rounded border border-outline-variant/50">
-                  &quot;{deleteTarget.title}&quot;
-                </span>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-surface border-outline-variant text-on-surface hover:bg-surface-container">
-              {t('cancel')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deleteTarget && onDelete) {
-                  onDelete(deleteTarget.id);
-                  setDeleteTarget(null);
-                }
-              }}
-              className="bg-error hover:bg-error/90 text-white font-bold"
-            >
-              {t('delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+  return (
+    <DataTable
+      data={documents}
+      columns={columns}
+      emptyMessage={(
+        <EmptyState
+          title={emptyTitle}
+          description={emptyDescription}
+          actionLabel={emptyActionLabel}
+          onAction={onEmptyAction}
+        />
+      )}
+      rowKey={(doc) => doc.id}
+    />
   );
 }

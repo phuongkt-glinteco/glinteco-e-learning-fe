@@ -6,8 +6,9 @@ export interface ResourceRef {
 }
 
 export interface GuideContent {
+  description?: string;
   objective?: string;
-  prerequisites?: ResourceRef[];
+  prerequisites?: any[];
   steps?: string;
   expectedResult?: string;
   relatedDocs?: ResourceRef[];
@@ -16,6 +17,7 @@ export interface GuideContent {
 }
 
 export interface TutorialContent {
+  description?: string;
   learningObjectives?: string[];
   prerequisites?: ResourceRef[];
   duration?: number;
@@ -29,9 +31,10 @@ export interface TutorialContent {
 }
 
 export interface RunbookContent {
+  description?: string;
   trigger?: string;
   impact?: string;
-  prerequisites?: ResourceRef[];
+  prerequisites?: string[] | ResourceRef[];
   procedure?: string;
   validation?: string;
   rollback?: string;
@@ -59,6 +62,7 @@ export interface ReferenceProperty {
 }
 
 export interface ReferenceContent {
+  description?: string;
   category?: string;
   version?: string;
   properties?: ReferenceProperty[];

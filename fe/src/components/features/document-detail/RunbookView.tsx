@@ -5,180 +5,220 @@ import { useTranslations } from 'next-intl';
 import { MarkdownRenderer } from '@/lib/md-renderer';
 import type { RunbookContent } from './types';
 
-export function RunbookContentBlock({ content, documentTitle }: { content: RunbookContent; documentTitle: string }) {
-  const t = useTranslations('DocumentDetail');
-  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+interface CollapsibleBlockProps {
+  id: string;
+  title: string;
+  icon: string;
+  iconColorClass?: string;
+  borderClass?: string;
+  bgClass?: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  t: any;
+}
 
-  const toggleStep = (phaseIdx: number, stepIdx: number) => {
-    const key = `${phaseIdx}-${stepIdx}`;
-    setCompletedSteps((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  };
-
-  const phases = content.phases || [];
-  const totalSteps = phases.reduce((sum, p) => sum + (p.steps?.length || 0), 0);
-  const doneSteps = phases.reduce((sum, p, pi) => sum + (p.steps || []).filter((_, si) => completedSteps.has(`${pi}-${si}`)).length, 0);
-  const progress = totalSteps > 0 ? Math.round((doneSteps / totalSteps) * 100) : 0;
+function CollapsibleBlock({
+  id,
+  title,
+  icon,
+  iconColorClass = 'text-primary',
+  borderClass = 'border-outline-variant',
+  bgClass = 'bg-surface-container-lowest',
+  children,
+  defaultOpen = true,
+  t,
+}: CollapsibleBlockProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="space-y-lg">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-xl bg-error-container p-lg border border-error/20">
-        <div className="absolute top-0 right-0 p-lg opacity-10">
-          <span className="material-symbols-outlined text-[120px]" style={{ fontVariationSettings: '"FILL" 1' }}>warning</span>
+    <section
+      id={id}
+      className={`rounded-xl border ${borderClass} ${bgClass} p-lg shadow-sm transition-all duration-200 scroll-mt-28`}
+    >
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between border-b border-outline-variant/60 pb-3 mb-4 cursor-pointer select-none group"
+      >
+        <h3 className="font-title-md text-title-md text-on-surface flex items-center gap-2.5 group-hover:text-primary transition-colors">
+          <span className={`material-symbols-outlined text-[22px] ${iconColorClass}`}>{icon}</span>
+          <span className="font-bold tracking-tight">{title}</span>
+        </h3>
+        <div className="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant/70 group-hover:text-on-surface transition-colors">
+          <span className="hidden sm:inline">{isOpen ? t('showLess') : t('showMore')}</span>
+          <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+            expand_more
+          </span>
+        </div>
+      </div>
+
+      {isOpen && <div className="pt-1 animate-fadeIn">{children}</div>}
+    </section>
+  );
+}
+
+export function RunbookContentBlock({ content, documentTitle }: { content: RunbookContent; documentTitle: string }) {
+  const t = useTranslations('DocumentDetail');
+
+  const prerequisites = content.prerequisites || [];
+  const procedure = content.procedure || content.phases?.map(p => `### ${p.name}\n` + p.steps.map((s, idx) => `#### Step ${idx + 1}: ${s.title}\n${s.body}`).join('\n\n')).join('\n\n') || '';
+
+  return (
+    <div className="space-y-6">
+      {/* Hero Banner */}
+      <section className="relative overflow-hidden rounded-xl bg-error-container p-lg border border-error/30 shadow-md">
+        <div className="absolute top-0 right-0 p-lg opacity-10 pointer-events-none">
+          <span className="material-symbols-outlined text-[120px]" style={{ fontVariationSettings: '"FILL" 1' }}>emergency</span>
         </div>
         <div className="relative z-10 flex flex-col gap-md">
           <div className="flex items-center gap-sm">
-            <span className="bg-error text-on-error px-3 py-1 rounded-full text-label-sm font-label-sm flex items-center gap-xs">
+            <span className="bg-error text-on-error px-3 py-1 rounded-full text-label-sm font-label-sm flex items-center gap-xs shadow-sm">
               <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: '"FILL" 1' }}>emergency</span>
-              {content.severity || 'CRITICAL'}
+              {t('runbook').toUpperCase()}
             </span>
-            {content.incidentId && (
-              <span className="text-on-error-container font-label-sm opacity-70">{content.incidentId}</span>
-            )}
           </div>
-          <h1 className="font-headline-lg text-headline-lg text-on-error-container">
-            {documentTitle || 'Runbook'}
+          <h1 className="font-headline-lg text-headline-lg text-on-error-container font-extrabold tracking-tight">
+            {documentTitle || t('runbook')}
           </h1>
-          <p className="font-body-lg text-body-lg text-on-error-container max-w-2xl">{content.background || content.trigger || 'No description provided.'}</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-md mt-md">
-            <div className="bg-white/50 backdrop-blur p-md rounded-lg">
-              <p className="text-label-sm text-on-error-container font-semibold uppercase tracking-wider">Est. Resolution Time</p>
-              <p className="text-headline-sm font-headline-sm text-error">{content.estimatedTime || '—'}</p>
-            </div>
-            <div className="bg-white/50 backdrop-blur p-md rounded-lg">
-              <p className="text-label-sm text-on-error-container font-semibold uppercase tracking-wider">Primary Symptoms</p>
-              {content.symptoms && content.symptoms.length > 0 ? (
-                <ul className="text-body-sm list-disc list-inside text-on-error-container">
-                  {content.symptoms.map((s, i) => <li key={i}>{s}</li>)}
-                </ul>
-              ) : (
-                <p className="text-body-sm text-on-error-container">—</p>
-              )}
-            </div>
-            <div className="bg-white/50 backdrop-blur p-md rounded-lg">
-              <p className="text-label-sm text-on-error-container font-semibold uppercase tracking-wider">Current Status</p>
-              <div className="flex items-center gap-xs mt-xs">
-                <div className="w-3 h-3 bg-error rounded-full animate-pulse" />
-                <span className="font-label-md text-error">{content.status || 'Unknown'}</span>
-              </div>
-            </div>
-          </div>
+          <p className="font-body-lg text-body-lg text-on-error-container max-w-3xl leading-relaxed opacity-90">
+            {content.description || content.trigger || t('standardOperatingProcedure')}
+          </p>
         </div>
       </section>
 
-      {/* Metadata */}
-      {(content.incidentId || content.estimatedTime || content.status) && (
-        <section className="grid grid-cols-3 gap-md bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
-          {content.incidentId && (
-            <div>
-              <span className="text-xs text-on-surface-variant font-medium">Incident ID</span>
-              <p className="text-sm font-semibold text-on-surface font-code mt-0.5">{content.incidentId}</p>
-            </div>
-          )}
-          {content.estimatedTime && (
-            <div>
-              <span className="text-xs text-on-surface-variant font-medium">Estimated MTTR</span>
-              <p className="text-sm font-semibold text-on-surface mt-0.5">{content.estimatedTime}</p>
-            </div>
-          )}
-          {content.status && (
-            <div>
-              <span className="text-xs text-on-surface-variant font-medium">Status</span>
-              <p className="text-sm font-semibold text-on-surface mt-0.5 capitalize">{content.status}</p>
-            </div>
-          )}
-        </section>
+      {/* Trigger Block — Separate card with vibrant alert styling */}
+      {content.trigger && (
+        <CollapsibleBlock
+          id="runbook-trigger"
+          title={t('trigger')}
+          icon="bolt"
+          iconColorClass="text-error font-bold"
+          borderClass="border-error/40 border-l-4 border-l-error"
+          bgClass="bg-error-container/10"
+          t={t}
+        >
+          <div className="prose max-w-none text-on-surface text-body-lg leading-relaxed">
+            <MarkdownRenderer content={content.trigger} />
+          </div>
+        </CollapsibleBlock>
       )}
 
-      {/* Symptoms */}
-      {content.symptoms && content.symptoms.length > 0 && (
-        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
-          <h3 className="font-title-md text-title-md text-on-surface mb-md flex items-center gap-sm">
-            <span className="material-symbols-outlined text-error">medical_information</span>
-            Symptoms & Indicators
+      {/* Impact Block — Separate card with vibrant warning styling */}
+      {content.impact && (
+        <CollapsibleBlock
+          id="runbook-impact"
+          title={t('impact')}
+          icon="warning"
+          iconColorClass="text-warning font-bold"
+          borderClass="border-warning/40 border-l-4 border-l-warning"
+          bgClass="bg-warning-container/10"
+          t={t}
+        >
+          <div className="prose max-w-none text-on-surface text-body-lg leading-relaxed">
+            <MarkdownRenderer content={content.impact} />
+          </div>
+        </CollapsibleBlock>
+      )}
+
+      {/* Prerequisites Block — Rendered as document navigation links */}
+      {prerequisites.length > 0 && (
+        <section id="runbook-prerequisites" className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm scroll-mt-28">
+          <h3 className="font-title-md text-title-md text-on-surface border-b border-outline-variant/60 pb-3 mb-4 flex items-center gap-2.5">
+            <span className="material-symbols-outlined text-primary text-[22px]">checklist</span>
+            <span className="font-bold tracking-tight">{t('prerequisites')}</span>
           </h3>
-          <ul className="list-disc list-inside space-y-sm text-body-md text-on-surface-variant">
-            {content.symptoms.map((sym, idx) => (
-              <li key={idx}>{sym}</li>
-            ))}
+
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {prerequisites.map((req, idx) => {
+              const id = typeof req === 'object' ? req.id : (req.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] || '');
+              const label = typeof req === 'object' ? (req.title || req.name || req.id) : req;
+              const href = id ? `/documents/${id}` : `/documents?search=${encodeURIComponent(label)}`;
+
+              return (
+                <li key={idx}>
+                  <a
+                    href={href}
+                    className="flex items-center justify-between p-3.5 rounded-lg bg-surface-container-low border border-outline-variant/70 text-primary font-semibold hover:bg-surface-container hover:border-primary hover:shadow-sm transition-all group"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="material-symbols-outlined text-[20px] text-primary group-hover:scale-110 transition-transform">article</span>
+                      <span className="truncate text-sm">{label}</span>
+                    </div>
+                    <span className="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
 
-      {/* Progress Bar */}
-      {totalSteps > 0 && (
-        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
-          <div className="flex items-center justify-between mb-sm">
-            <span className="text-sm font-semibold text-on-surface">Execution Progress</span>
-            <span className="text-sm font-bold text-primary">{progress}%</span>
+      {/* Operating Procedure */}
+      {procedure && (
+        <CollapsibleBlock
+          id="runbook-procedure"
+          title={t('procedure')}
+          icon="integration_instructions"
+          iconColorClass="text-primary font-bold"
+          borderClass="border-outline-variant border-l-4 border-l-primary"
+          bgClass="bg-surface-container-lowest"
+          t={t}
+        >
+          <div className="prose max-w-none text-on-surface-variant pt-2">
+            <MarkdownRenderer content={procedure} />
           </div>
-          <div className="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
-            <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
-          </div>
-          <p className="text-xs text-on-surface-variant mt-2">{doneSteps}/{totalSteps} steps completed</p>
-        </section>
+        </CollapsibleBlock>
       )}
 
-      {/* Phases */}
-      {phases.map((phase, pIndex) => (
-        <section key={pIndex} id={phase.name.toLowerCase().replace(/\s+/g, '-')} className="space-y-md">
-          <div className="flex items-center gap-md">
-            <div className={pIndex === 0 ? 'bg-surface-container-high p-sm rounded-lg' : 'bg-primary text-on-primary p-sm rounded-lg'}>
-              <span className="material-symbols-outlined">{pIndex === 0 ? 'analytics' : 'bolt'}</span>
-            </div>
-            <h2 className="font-headline-md text-headline-md text-on-surface">
-              Phase {String(pIndex + 1).padStart(2, '0')}: {phase.name}
-            </h2>
+      {/* Verification: Validation */}
+      {content.validation && (
+        <CollapsibleBlock
+          id="runbook-validation"
+          title={t('validation')}
+          icon="check_circle"
+          iconColorClass="text-success font-bold"
+          borderClass="border-success/40 border-l-4 border-l-success"
+          bgClass="bg-success-container/10"
+          t={t}
+        >
+          <div className="prose max-w-none text-on-surface text-body-md leading-relaxed">
+            <MarkdownRenderer content={content.validation} />
           </div>
+        </CollapsibleBlock>
+      )}
 
-          {(phase.steps || []).length === 0 && (
-            <p className="font-body-md text-body-md text-on-surface-variant mb-md">
-              {phase.name ? `Verify the situation before proceeding.` : ''}
-            </p>
-          )}
-
-          <div className="space-y-md">
-            {(phase.steps || []).map((step: any, sIndex: number) => {
-              const key = `${pIndex}-${sIndex}`;
-              const isCompleted = completedSteps.has(key);
-              return (
-                <div key={sIndex} id={`${phase.name.toLowerCase().replace(/\s+/g, '-')}-step-${sIndex + 1}`} className={`bg-white rounded-xl border border-outline-variant p-lg shadow-sm relative transition-all hover:border-primary ${isCompleted ? 'opacity-60' : ''}`}>
-                  <div className="flex gap-md">
-                    <div className="flex-shrink-0 pt-1">
-                      <input
-                        type="checkbox"
-                        checked={isCompleted}
-                        onChange={() => toggleStep(pIndex, sIndex)}
-                        className="step-checkbox w-6 h-6 rounded border-outline-variant text-primary focus:ring-primary"
-                      />
-                    </div>
-                    <div className="flex-grow">
-                      <label className="font-headline-sm text-headline-sm text-on-surface cursor-pointer select-none">
-                        Step {sIndex + 1}: {step.title || `Step ${sIndex + 1}`}
-                      </label>
-                      {step.body && (
-                        <div className="font-body-md text-body-md text-on-surface-variant mt-sm">
-                          <MarkdownRenderer content={step.body} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+      {/* Recovery: Rollback */}
+      {content.rollback && (
+        <CollapsibleBlock
+          id="runbook-rollback"
+          title={t('rollback')}
+          icon="history"
+          iconColorClass="text-warning font-bold"
+          borderClass="border-warning/40 border-l-4 border-l-warning"
+          bgClass="bg-warning-container/10"
+          t={t}
+        >
+          <div className="prose max-w-none text-on-surface text-body-md leading-relaxed">
+            <MarkdownRenderer content={content.rollback} />
           </div>
-        </section>
-      ))}
+        </CollapsibleBlock>
+      )}
 
-      {/* Close Incident Button */}
-      <button className="mt-lg w-full py-md bg-primary text-on-primary rounded-lg font-label-md hover:bg-primary-container transition-all active:scale-[0.98]">
-        CLOSE INCIDENT & GENERATE REPORT
-      </button>
+      {/* Escalation Protocol */}
+      {content.escalation && (
+        <CollapsibleBlock
+          id="runbook-escalation"
+          title={t('escalation')}
+          icon="notifications_active"
+          iconColorClass="text-error font-bold"
+          borderClass="border-error/40 border-l-4 border-l-error"
+          bgClass="bg-error-container/10"
+          t={t}
+        >
+          <div className="prose max-w-none text-on-surface text-body-md leading-relaxed">
+            <MarkdownRenderer content={content.escalation} />
+          </div>
+        </CollapsibleBlock>
+      )}
     </div>
   );
 }

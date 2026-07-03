@@ -8,6 +8,7 @@ import type {
 
 export function buildContentString(data: {
   kind: string;
+  description?: string;
   // Guide
   guideObjective?: string;
   guidePrerequisites?: Array<{ id: string; name?: string; title?: string }>;
@@ -30,7 +31,7 @@ export function buildContentString(data: {
   // Runbook
   runbookTrigger?: string;
   runbookImpact?: string;
-  runbookPrerequisites?: Array<{ id: string; name?: string; title?: string }>;
+  runbookPrerequisites?: string[] | Array<{ id: string; name?: string; title?: string }>;
   runbookProcedure?: string;
   runbookValidation?: string;
   runbookRollback?: string;
@@ -60,9 +61,11 @@ export function buildContentString(data: {
   linkDescription?: string;
   linkOverview?: string; // legacy fallback
 }): string {
+  const commonDescription = data.description || data.linkDescription;
   switch (data.kind) {
     case 'Guide':
       return JSON.stringify({
+        description: commonDescription || undefined,
         objective: data.guideObjective || undefined,
         prerequisites: data.guidePrerequisites?.length ? data.guidePrerequisites : undefined,
         steps: data.guideSteps ?? data.guideBody ?? '',
@@ -73,6 +76,7 @@ export function buildContentString(data: {
 
     case 'Tutorial':
       return JSON.stringify({
+        description: commonDescription || undefined,
         learningObjectives: data.tutorialLearningObjectives?.length ? data.tutorialLearningObjectives : undefined,
         prerequisites: data.tutorialPrerequisites?.length ? data.tutorialPrerequisites : undefined,
         duration: data.tutorialDuration || undefined,
@@ -86,6 +90,7 @@ export function buildContentString(data: {
 
     case 'Runbook':
       return JSON.stringify({
+        description: commonDescription || undefined,
         trigger: data.runbookTrigger ?? data.runbookBackground ?? '',
         impact: data.runbookImpact || undefined,
         prerequisites: data.runbookPrerequisites?.length ? data.runbookPrerequisites : undefined,
@@ -105,6 +110,7 @@ export function buildContentString(data: {
 
     case 'Reference':
       return JSON.stringify({
+        description: commonDescription || undefined,
         category: data.referenceCategory || undefined,
         version: data.referenceVersion || undefined,
         properties: data.referenceProperties?.length ? data.referenceProperties : undefined,
@@ -115,11 +121,11 @@ export function buildContentString(data: {
 
     case 'Link':
       return JSON.stringify({
+        description: commonDescription || undefined,
         url: data.linkUrl || undefined,
         provider: data.linkProvider || undefined,
         type: data.linkType || undefined,
         openInNewTab: data.linkOpenInNewTab ?? false,
-        description: data.linkDescription ?? '',
         overview: data.linkOverview || undefined,
       } satisfies LinkContent);
 

@@ -39,18 +39,22 @@ export function DocumentActionsMenu({
     e.stopPropagation();
     if (loading) return;
     setLoading(true);
-    const newStatus = !bookmarked;
+    const nextState = !bookmarked;
+
+    // Optimistic UI update
+    setBookmarked(nextState);
+    onBookmarkToggle(documentId, nextState);
 
     try {
-      if (newStatus) {
+      if (nextState) {
         await documentsControllerBookmark({ path: { id: documentId }, throwOnError: true });
       } else {
         await documentsControllerUnbookmark({ path: { id: documentId }, throwOnError: true });
       }
-      setBookmarked(newStatus);
-      onBookmarkToggle(documentId, newStatus);
     } catch {
-      // Silent error
+      // Revert optimistic update on failure (toast handled centrally by ADD_TO_ITEMS)
+      setBookmarked(!nextState);
+      onBookmarkToggle(documentId, !nextState);
     } finally {
       setLoading(false);
     }
@@ -76,8 +80,8 @@ export function DocumentActionsMenu({
           className="cursor-pointer flex items-center gap-2.5 font-medium py-2"
         >
           <span
-            className="material-symbols-outlined text-[18px] text-amber-500"
-            style={bookmarked ? { fontVariationSettings: "'FILL' 1" } : undefined}
+            className={`material-symbols-outlined text-[18px] ${bookmarked ? 'text-amber-500 text-[#F59E0B] dark:text-[#FACC15]' : 'text-on-surface-variant/60'}`}
+            style={bookmarked ? { fontVariationSettings: "'FILL' 1, 'wght' 600" } : { fontVariationSettings: "'FILL' 0, 'wght' 400" }}
           >
             star
           </span>

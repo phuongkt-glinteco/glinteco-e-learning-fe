@@ -1,7 +1,16 @@
-import { HttpError, ApiError, UiShowError } from './errors';
+import { HttpError, BlockedError, ApiError, UiShowError } from './errors';
+import { registerBlockedErrors } from './blocked-error';
 import { registerAddItemErrors } from './add-item-error';
 import { registerUiShowErrors } from './ui-show-error';
-// ───  A c t i o n   &   H a n d l e r  ─────────────────────────────
+
+// ───  F i l t e r   S t a g e   &   H a n d l e r  ─────────────────────────────
+
+export type FilterStage =
+  | 'BLOCKED_KNOWN'
+  | 'BLOCKED_UNKNOWN'
+  | 'BACKEND_UI'
+  | 'BACKEND_ITEM'
+  | 'BACKEND_UNKNOWN';
 
 export type HandlerAction =
   | { type: 'CONTINUE'; error: Error }
@@ -10,7 +19,7 @@ export type HandlerAction =
 
 export interface ErrorHandler {
   name: string;
-  priority: number;
+  stage: FilterStage;
   canHandle: (error: Error) => boolean;
   handle: (error: Error) => HandlerAction;
 }
@@ -31,27 +40,31 @@ export class ErrorProcessorPipeline {
     let finalThrow: UiShowError | null = null;
     let handled = false;
 
-    const priorityGroups: Record<number, ErrorHandler[]> = {
-      0: [],
-      1: [],
-      2: [],
+    const stageGroups: Record<FilterStage, ErrorHandler[]> = {
+      BLOCKED_KNOWN: [],
+      BLOCKED_UNKNOWN: [],
+      BACKEND_UI: [],
+      BACKEND_ITEM: [],
+      BACKEND_UNKNOWN: [],
     };
 
     for (const h of this.handlers) {
-      const p = h.priority ?? 0;
-      if (priorityGroups[p]) {
-        priorityGroups[p].push(h);
-      } else {
-        priorityGroups[p] = [h];
+      if (stageGroups[h.stage]) {
+        stageGroups[h.stage].push(h);
       }
     }
 
-    for (let p = 0; p <= 2; p++) {
-      if (p === 2 && handled) {
+    const isBlocked = current instanceof BlockedError || current instanceof HttpError;
+    const sequence: FilterStage[] = isBlocked
+      ? ['BLOCKED_KNOWN', 'BLOCKED_UNKNOWN']
+      : ['BACKEND_UI', 'BACKEND_ITEM', 'BACKEND_UNKNOWN'];
+
+    for (const stage of sequence) {
+      if ((stage === 'BLOCKED_UNKNOWN' || stage === 'BACKEND_UNKNOWN') && handled) {
         break;
       }
 
-      const handlers = priorityGroups[p] || [];
+      const handlers = stageGroups[stage] || [];
       for (const h of handlers) {
         if (!h.canHandle(current)) continue;
 
@@ -82,7 +95,7 @@ export const pipeline = new ErrorProcessorPipeline();
 
 export interface CreateHandlerParams {
   name: string;
-  priority: number;
+  stage: FilterStage;
   statusCode?: string;
   messageIncludes?: string[];
   requestPath?: string;
@@ -91,6 +104,10 @@ export interface CreateHandlerParams {
 }
 
 function buildStatusMatcher(pattern: string): (status: number) => boolean {
+  if (pattern.includes(',')) {
+    const parts = pattern.split(',').map((p) => p.trim());
+    return (s) => parts.some((p) => buildStatusMatcher(p)(s));
+  }
   if (pattern === 'ERROR' || pattern === '4XX,5XX') {
     return (s) => Number(s) >= 400;
   }
@@ -106,8 +123,9 @@ function matchHandlerError(
   params: CreateHandlerParams,
 ): boolean {
   if (params.statusCode) {
-    if (!(error instanceof ApiError) || error.status === undefined) return false;
-    if (!buildStatusMatcher(params.statusCode)(error.status)) return false;
+    if (!(error instanceof ApiError) && !(error instanceof BlockedError) && !(error instanceof HttpError)) return false;
+    const status = 'status' in error ? (error as { status?: number }).status : undefined;
+    if (status === undefined || !buildStatusMatcher(params.statusCode)(status)) return false;
   }
 
   if (params.messageIncludes) {
@@ -119,9 +137,10 @@ function matchHandlerError(
   }
 
   if (params.requestPath) {
-    if (!(error instanceof ApiError) || !error.requestPath) return false;
+    const reqPath = 'requestPath' in error ? (error as { requestPath?: unknown }).requestPath : undefined;
+    if (!reqPath || typeof reqPath !== 'string') return false;
     if (
-      !error.requestPath
+      !reqPath
         .toLowerCase()
         .includes(params.requestPath.toLowerCase())
     )
@@ -136,7 +155,7 @@ export function createHandler(
 ): ErrorHandler {
   return {
     name: params.name,
-    priority: params.priority,
+    stage: params.stage,
     canHandle: (error) => matchHandlerError(error, params),
     handle: (error) => {
       const action = params.action ?? 'FINAL_THROW';
@@ -157,6 +176,7 @@ export function createHandler(
 
 // ───  B u i l t - i n   H a n d l e r s  ────────────────────────────
 
+registerBlockedErrors(pipeline, createHandler);
 registerAddItemErrors(pipeline, createHandler);
 registerUiShowErrors(pipeline, createHandler);
 
@@ -192,6 +212,9 @@ const STATUS_MAP: Record<number, string> = {
   422: 'VALIDATION_ERROR',
   429: 'RATE_LIMITED',
   500: 'INTERNAL_SERVER_ERROR',
+  502: 'SERVER_UNAVAILABLE',
+  503: 'SERVER_UNAVAILABLE',
+  504: 'SERVER_UNAVAILABLE',
 };
 
 export function classify(
@@ -199,7 +222,7 @@ export function classify(
   response?: Response,
   request?: Request,
 ): Error {
-  if (error instanceof HttpError || error instanceof ApiError || error instanceof UiShowError) return error;
+  if (error instanceof BlockedError || error instanceof HttpError || error instanceof ApiError || error instanceof UiShowError) return error;
 
   const requestPath = request?.url || undefined;
   const errorName = getErrorField(error, 'name');
@@ -214,7 +237,7 @@ export function classify(
     !response;
 
   if (isNetwork && !response) {
-    return new HttpError(0, 'Cannot connect to the server.');
+    return new BlockedError('NETWORK_ERROR', 'Cannot connect to the server.', 0, requestPath);
   }
 
   const statusCode = getErrorField(error, 'statusCode');
@@ -222,6 +245,13 @@ export function classify(
   const sc = (response && !response.ok ? response.status : undefined)
     || (typeof statusCode === 'number' ? statusCode : undefined)
     || (typeof status === 'number' ? status : undefined);
+
+  if (sc === 429 || sc === 502 || sc === 503 || sc === 504) {
+    const msg = extractMessage(error);
+    const code = STATUS_MAP[sc] || 'SERVER_UNAVAILABLE';
+    return new BlockedError(code, msg, sc, requestPath);
+  }
+
   if (sc && sc >= 400) {
     const msg = extractMessage(error);
     const code = STATUS_MAP[sc] || 'UNKNOWN_ERROR';

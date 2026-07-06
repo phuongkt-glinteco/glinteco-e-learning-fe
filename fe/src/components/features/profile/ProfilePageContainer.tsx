@@ -34,7 +34,7 @@ export function ProfilePageContainer() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [claiming, setClaiming] = useState(false);
 
-  const loading = loadingProfile && loadingStats;
+  const loading = loadingProfile || loadingStats;
 
   const fetchProfile = useCallback(async () => {
     setLoadingProfile(true);
@@ -47,8 +47,6 @@ export function ProfilePageContainer() {
     } catch (err) {
       if (isUiShowError(err)) {
         toast.error(t(`errors.${err.errorCode}`) || err.message);
-      } else {
-        toast.error(t('errors.SYSTEM_ERROR'));
       }
     } finally {
       setLoadingProfile(false);
@@ -65,8 +63,6 @@ export function ProfilePageContainer() {
     } catch (err) {
       if (isUiShowError(err)) {
         toast.error(t(`errors.${err.errorCode}`) || err.message);
-      } else {
-        toast.error(t('errors.SYSTEM_ERROR'));
       }
     } finally {
       setLoadingStats(false);

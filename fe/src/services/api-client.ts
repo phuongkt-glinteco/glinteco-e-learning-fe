@@ -1,6 +1,6 @@
 import { client } from './client/client.gen';
 import { classify, pipeline } from './error-mapper';
-import { ApiError, UiShowError } from './errors';
+import { ApiError, UiShowError, BlockedError } from './errors';
 import { authControllerRefresh } from './client/sdk.gen';
 import { getApiClientBaseUrl } from './api-base';
 
@@ -89,8 +89,13 @@ export async function attemptTokenRefresh(): Promise<boolean> {
       return true;
     }
     return false;
-  } catch {
-    clearTokens();
+  } catch (err) {
+    // Chỉ clear tokens nếu backend thực sự phản hồi từ chối refresh token (lỗi HTTP 4xx như 400, 401, 403, 422)
+    // Nếu là lỗi mạng (offline, timeout, CORS) hoặc server lỗi 5xx thì tuyệt đối KHÔNG xoá token của người dùng!
+    const classified = classify(err);
+    if (classified instanceof ApiError && classified.status && [400, 401, 403, 422].includes(classified.status)) {
+      clearTokens();
+    }
     return false;
   }
 }
@@ -131,11 +136,17 @@ client.interceptors.error.use(async (error, response, request) => {
         if (newToken) request.headers.set('Authorization', `Bearer ${newToken}`);
         return fetch(request);
       }
-      clearTokens();
-      error = new ApiError('SESSION_EXPIRED', 'Session expired. Please log in again.', 401, '/auth/refresh');
+      // Nếu token vẫn còn trong localStorage (nghĩa là refresh thất bại do lỗi mạng/server 5xx chứ không phải do hết hạn thực sự)
+      // thì KHÔNG xoá token và KHÔNG biến thành SESSION_EXPIRED
+      if (!getRefreshToken()) {
+        clearTokens();
+        error = new ApiError('SESSION_EXPIRED', 'Session expired. Please log in again.', 401, '/auth/refresh');
+      } else {
+        error = new BlockedError('NETWORK_ERROR', 'Network error or server unavailable during token refresh.', 0, url.pathname);
+      }
     }
 
-    // Biến đổi error thành SESSION_EXPIRED rồi cho pipeline xử lý
+    // Biến đổi error thành SESSION_EXPIRED hoặc BlockedError rồi cho pipeline xử lý
   }
 
   const classified = classify(error, response, request);
@@ -147,8 +158,7 @@ client.interceptors.error.use(async (error, response, request) => {
     throw classified;
   } catch (e) {
     if (e instanceof UiShowError) {
-      // FINAL_THROW: dispatch + throw để page bắt
-      dispatchErrorItems([e], request);
+      // FINAL_THROW: Tuyệt đối không dispatch cho toast! Chỉ throw để UI form tự bắt và hiển thị
       throw e;
     }
     throw e;

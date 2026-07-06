@@ -4,22 +4,11 @@ export function registerAddItemErrors(
   pipeline: ErrorProcessorPipeline,
   createHandler: (params: CreateHandlerParams) => ErrorHandler,
 ) {
-  // Generic network/HTTP errors → toast
-  pipeline.injectHandler(
-    createHandler({
-      name: 'network-error',
-      priority: 0,
-      statusCode: '0',
-      errorCode: 'NETWORK_ERROR',
-      action: 'ADD_TO_ITEMS',
-    }),
-  );
-
-  // Session expired → toast
+  // Session expired -> toast
   pipeline.injectHandler(
     createHandler({
       name: 'session-expired',
-      priority: 0,
+      stage: 'BACKEND_ITEM',
       statusCode: '401',
       errorCode: 'SESSION_EXPIRED',
       requestPath: '/auth/refresh',
@@ -27,33 +16,33 @@ export function registerAddItemErrors(
     }),
   );
 
-  // Forbidden → toast
+  // Forbidden -> toast
   pipeline.injectHandler(
     createHandler({
       name: 'forbidden',
-      priority: 0,
+      stage: 'BACKEND_ITEM',
       statusCode: '403',
       errorCode: 'FORBIDDEN',
       action: 'ADD_TO_ITEMS',
     }),
   );
 
-  // Bookmark/Unbookmark error → toast
+  // Bookmark/Unbookmark error -> toast
   pipeline.injectHandler(
     createHandler({
       name: 'bookmark-error',
-      priority: 1,
+      stage: 'BACKEND_ITEM',
       requestPath: '/bookmark',
       errorCode: 'BOOKMARK_FAILED',
       action: 'ADD_TO_ITEMS',
     }),
   );
 
-  // Catch-all → toast
+  // Catch-all -> toast
   pipeline.injectHandler(
     createHandler({
       name: 'system-error',
-      priority: 2,
+      stage: 'BACKEND_UNKNOWN',
       errorCode: 'SYSTEM_ERROR',
       action: 'ADD_TO_ITEMS',
     }),

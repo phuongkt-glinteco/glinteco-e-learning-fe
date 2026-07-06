@@ -6,6 +6,19 @@ export class HttpError extends Error {
   }
 }
 
+export class BlockedError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+    public status?: number,
+    public requestPath?: string,
+  ) {
+    super(message);
+    this.name = 'BlockedError';
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
 export class ApiError extends Error {
   constructor(
     public code: string,
@@ -32,7 +45,7 @@ export class UiShowError extends Error {
 
 export function isUiShowError(err: unknown): err is { errorCode: string; message: string } {
   if (err instanceof UiShowError) return true;
-  if (err && typeof err === 'object' && 'errorCode' in err && typeof (err as any).errorCode === 'string') {
+  if (err && typeof err === 'object' && 'errorCode' in err && typeof (err as Record<string, unknown>).errorCode === 'string') {
     return true;
   }
   return false;

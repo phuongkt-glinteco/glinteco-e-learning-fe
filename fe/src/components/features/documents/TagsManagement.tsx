@@ -107,8 +107,10 @@ export function TagsManagement({ onTagsUpdated }: TagsManagementProps) {
       // Sort alphabetically by default
       normalizedList.sort((a, b) => a.name.localeCompare(b.name));
       setTags(normalizedList);
-    } catch {
-      toast.error(t('tagsFetchError', { defaultValue: 'Failed to fetch classification tags.' }));
+    } catch (err) {
+      if (isUiShowError(err)) {
+        toast.error(t(`errors.${err.errorCode}`) || err.message);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -155,9 +157,11 @@ export function TagsManagement({ onTagsUpdated }: TagsManagementProps) {
       await fetchTags();
       onTagsUpdated?.();
     } catch (err: any) {
-      const msg = err?.message || t('tagCreateError', { defaultValue: 'Failed to create tag.' });
-      setCreateError(msg);
-      toast.error(msg);
+      if (isUiShowError(err)) {
+        const msg = t(`errors.${err.errorCode}`) || err.message;
+        setCreateError(msg);
+        toast.error(msg);
+      }
     } finally {
       setCreating(false);
     }
@@ -176,8 +180,9 @@ export function TagsManagement({ onTagsUpdated }: TagsManagementProps) {
       await fetchTags();
       onTagsUpdated?.();
     } catch (err: any) {
-      const msg = err?.message || t('tagDeleteError', { defaultValue: 'Failed to delete tag. It may be currently associated with documents.' });
-      toast.error(msg);
+      if (isUiShowError(err)) {
+        toast.error(t(`errors.${err.errorCode}`) || err.message);
+      }
     } finally {
       setDeleting(false);
     }

@@ -31,6 +31,10 @@ export function ApiErrorProvider({ children }: { children: ReactNode }) {
   const clear = useCallback(() => setErrors([]), []);
 
   useEffect(() => {
+    clear();
+  }, [pathname, clear]);
+
+  useEffect(() => {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       const items: UiShowError[] = Array.isArray(detail) ? detail : [detail];

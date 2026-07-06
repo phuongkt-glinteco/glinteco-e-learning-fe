@@ -72,7 +72,7 @@ export default function LoginPage() {
       if (loggedInUser) {
         router.replace(getDashboardPath(loggedInUser.role));
       }
-    } catch (err) {
+    } catch (err: unknown) {
       if (isUiShowError(err)) {
         if (err.errorCode === 'LOGIN_INVALID_CREDENTIALS') {
           setError('email', { type: 'server', message: err.errorCode });

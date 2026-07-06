@@ -4,11 +4,11 @@ export function registerUiShowErrors(
   pipeline: ErrorProcessorPipeline,
   createHandler: (params: CreateHandlerParams) => ErrorHandler,
 ) {
-  // Register: email already exists or invalid data → inline
+  // Register: email already exists or invalid data -> inline
   pipeline.injectHandler(
     createHandler({
       name: 'register-email-exists',
-      priority: 1,
+      stage: 'BACKEND_UI',
       requestPath: '/auth/register',
       statusCode: '400',
       messageIncludes: ['email', 'tồn tại'],
@@ -17,11 +17,11 @@ export function registerUiShowErrors(
     }),
   );
 
-  // Login: invalid credentials → inline
+  // Login: invalid credentials -> inline
   pipeline.injectHandler(
     createHandler({
       name: 'login-invalid-credentials',
-      priority: 1,
+      stage: 'BACKEND_UI',
       statusCode: '401',
       requestPath: '/auth/login',
       errorCode: 'LOGIN_INVALID_CREDENTIALS',
@@ -29,11 +29,11 @@ export function registerUiShowErrors(
     }),
   );
 
-  // Create exercise: title already exists → inline
+  // Create exercise: title already exists -> inline
   pipeline.injectHandler(
     createHandler({
       name: 'create-exercise-title-exists',
-      priority: 1,
+      stage: 'BACKEND_UI',
       statusCode: '400',
       requestPath: '/exercises',
       messageIncludes: ['title', 'tồn tại'],
@@ -42,11 +42,11 @@ export function registerUiShowErrors(
     }),
   );
 
-  // Delete exercise: not found → inline
+  // Delete exercise: not found -> inline
   pipeline.injectHandler(
     createHandler({
       name: 'delete-exercise-not-found',
-      priority: 1,
+      stage: 'BACKEND_UI',
       statusCode: '404',
       requestPath: '/exercises',
       errorCode: 'NOT_FOUND',
@@ -54,11 +54,11 @@ export function registerUiShowErrors(
     }),
   );
 
-  // Delete exercise: forbidden → inline
+  // Delete exercise: forbidden -> inline
   pipeline.injectHandler(
     createHandler({
       name: 'delete-exercise-forbidden',
-      priority: 1,
+      stage: 'BACKEND_UI',
       statusCode: '403',
       requestPath: '/exercises',
       errorCode: 'FORBIDDEN',
@@ -66,11 +66,11 @@ export function registerUiShowErrors(
     }),
   );
 
-  // Exercise submission errors → inline
+  // Exercise submission errors -> inline
   pipeline.injectHandler(
     createHandler({
       name: 'submit-exercise-error',
-      priority: 1,
+      stage: 'BACKEND_UI',
       requestPath: '/submissions',
       statusCode: '4XX,5XX',
       errorCode: 'SUBMIT_EXERCISE_FAILED',

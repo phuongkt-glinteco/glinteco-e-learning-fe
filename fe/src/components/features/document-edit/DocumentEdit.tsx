@@ -140,7 +140,6 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
       ]);
     }
     pushNode({ label: 'Edit', href: window.location.pathname });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [document.tags, document.title, document.id]);
 
   async function handleSave() {

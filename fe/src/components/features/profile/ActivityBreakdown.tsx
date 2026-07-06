@@ -3,10 +3,7 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import type { UserDashboardStatsDto } from '@/services/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/default/card';
-import { Badge } from '@/components/ui/default/badge';
 import CircleMeter from '@/components/ui/CircleMeter';
-
 interface ActivityBreakdownProps {
   stats: UserDashboardStatsDto | null;
 }
@@ -14,132 +11,129 @@ interface ActivityBreakdownProps {
 export function ActivityBreakdown({ stats }: ActivityBreakdownProps) {
   const t = useTranslations('ProfilePage');
 
+  if (!stats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Fallback Card 1: Tracks */}
+        <div className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-xl p-5 shadow-2xs flex flex-col justify-center items-center text-center min-h-[220px]">
+          <div className="flex flex-col items-center gap-2 text-amber-500">
+            <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-2xl">error_outline</span>
+            </div>
+            <h3 className="font-bold text-sm text-on-surface">{t('loadTracksFailed')}</h3>
+          </div>
+        </div>
+
+        {/* Fallback Card 2: Exercises */}
+        <div className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-xl p-5 shadow-2xs flex flex-col justify-center items-center text-center min-h-[220px]">
+          <div className="flex flex-col items-center gap-2 text-amber-500">
+            <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-2xl">error_outline</span>
+            </div>
+            <h3 className="font-bold text-sm text-on-surface">{t('loadExercisesFailed')}</h3>
+          </div>
+        </div>
+
+        {/* Fallback Card 3: Saved Docs */}
+        <div className="bg-surface-container-lowest border border-dashed border-outline-variant rounded-xl p-5 shadow-2xs flex flex-col justify-center items-center text-center min-h-[220px]">
+          <div className="flex flex-col items-center gap-2 text-amber-500">
+            <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-2xl">error_outline</span>
+            </div>
+            <h3 className="font-bold text-sm text-on-surface">{t('loadDocsFailed')}</h3>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const overall = stats?.overallCompletion || 0;
   const tracksCompleted = stats?.tracks?.completed || 0;
   const tracksTotal = stats?.tracks?.total || 0;
   const exApproved = stats?.exercises?.approved || 0;
   const exAwaiting = stats?.exercises?.awaitingReview || 0;
-  const exTotal = stats?.exercises?.total || 0;
   const docsTotal = stats?.savedDocs?.total || 0;
   const docsUnread = stats?.savedDocs?.unread || 0;
 
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="text-lg font-bold text-on-surface flex items-center gap-2">
-        <span className="material-symbols-outlined text-primary">analytics</span>
-        {t('overallProgress')}
-      </h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. Overall Completion Circle Meter */}
-        <Card className="border border-outline-variant bg-surface-container-low shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center p-4">
-          <CardHeader className="p-0 pb-3 text-center">
-            <CardTitle className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider">
-              {t('overallProgress')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex flex-col items-center justify-center">
-            <CircleMeter value={overall} size={110} label={`${overall}%`} />
-            <span className="text-xs font-semibold text-primary mt-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* 1. Merged Tracks & Overall Progress Card */}
+      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+              <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">route</span>
+            </div>
+            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
               {overall}% {t('complete')}
             </span>
-          </CardContent>
-        </Card>
-
-        {/* 2. Tracks Breakdown */}
-        <Card className="border border-outline-variant bg-surface-container-low shadow-sm hover:shadow-md transition-all flex flex-col justify-between p-5">
-          <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base font-bold text-on-surface flex items-center gap-2">
-              <span className="material-symbols-outlined text-cyan-500">route</span>
-              {t('tracks')}
-            </CardTitle>
-            <Badge variant="secondary" className="font-mono text-xs">
-              {tracksCompleted}/{tracksTotal}
-            </Badge>
-          </CardHeader>
-          <CardContent className="p-0 pt-3 flex flex-col gap-3">
-            <div className="text-2xl font-black text-on-surface font-mono">
-              {tracksCompleted} <span className="text-sm font-normal text-on-surface-variant">/ {tracksTotal}</span>
-            </div>
-            <p className="text-xs text-on-surface-variant">
-              {t('tracksCompleted', { completed: tracksCompleted, total: tracksTotal })}
-            </p>
-            <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-              <div
-                className="bg-cyan-500 h-full transition-all duration-500"
-                style={{ width: `${tracksTotal > 0 ? (tracksCompleted / tracksTotal) * 100 : 0}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 3. Exercises Breakdown */}
-        <Card className="border border-outline-variant bg-surface-container-low shadow-sm hover:shadow-md transition-all flex flex-col justify-between p-5">
-          <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base font-bold text-on-surface flex items-center gap-2">
-              <span className="material-symbols-outlined text-emerald-500">code</span>
-              {t('exercises')}
-            </CardTitle>
-            <Badge variant="outline" className="font-mono text-xs text-emerald-600 border-emerald-500/40">
-              {exTotal} {t('exercisesTotal')}
-            </Badge>
-          </CardHeader>
-          <CardContent className="p-0 pt-3 flex flex-col gap-3">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-on-surface-variant flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                {t('exercisesApproved')}:
+          </div>
+          <h3 className="text-lg font-bold text-on-surface mb-2">{t('tracksAndProgress')}</h3>
+          
+          <div className="flex items-center gap-4 my-3">
+            <CircleMeter value={overall} size={52} label={`${overall}%`} />
+            <div className="flex flex-col gap-1 flex-1">
+              <span className="text-sm text-on-surface font-semibold">
+                {t('tracksCompleted', { completed: tracksCompleted, total: tracksTotal })}
               </span>
-              <strong className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{exApproved}</strong>
+              <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden mt-1">
+                <div
+                  className="bg-primary h-full transition-all duration-500"
+                  style={{ width: `${tracksTotal > 0 ? (tracksCompleted / tracksTotal) * 100 : 0}%` }}
+                />
+              </div>
             </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 text-primary text-xs font-bold mt-4 pt-3 border-t border-outline-variant/40 group-hover:translate-x-1 transition-transform">
+          <span>{t('viewDetails')}</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </div>
+      </div>
 
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-on-surface-variant flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                {t('exercisesAwaiting')}:
-              </span>
-              <strong className="font-mono text-amber-600 dark:text-amber-400 font-bold">{exAwaiting}</strong>
-            </div>
+      {/* 2. Exercises Card */}
+      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between">
+        <div>
+          <div className="w-10 h-10 rounded-lg bg-surface-container mb-4 flex items-center justify-center group-hover:bg-emerald-500/10 transition-colors">
+            <span className="material-symbols-outlined text-on-surface-variant group-hover:text-emerald-600 transition-colors">code</span>
+          </div>
+          <h3 className="text-lg font-bold text-on-surface mb-1">{t('exercises')}</h3>
+          <div className="text-sm text-on-surface-variant mb-3 flex flex-col gap-1.5 font-medium mt-3">
+            <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px]">check_circle</span>
+              {exApproved} {t('exercisesApproved')}
+            </span>
+            <span className="text-amber-500 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px]">pending</span>
+              {exAwaiting} {t('exercisesAwaiting')}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold mt-4 pt-3 border-t border-outline-variant/40 group-hover:translate-x-1 transition-transform">
+          <span>{t('viewExercises')}</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </div>
+      </div>
 
-            <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden flex">
-              <div
-                className="bg-emerald-500 h-full transition-all duration-500"
-                style={{ width: `${exTotal > 0 ? (exApproved / exTotal) * 100 : 0}%` }}
-              />
-              <div
-                className="bg-amber-500 h-full transition-all duration-500"
-                style={{ width: `${exTotal > 0 ? (exAwaiting / exTotal) * 100 : 0}%` }}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 4. Saved Docs Breakdown */}
-        <Card className="border border-outline-variant bg-surface-container-low shadow-sm hover:shadow-md transition-all flex flex-col justify-between p-5">
-          <CardHeader className="p-0 pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base font-bold text-on-surface flex items-center gap-2">
-              <span className="material-symbols-outlined text-purple-500">menu_book</span>
-              {t('savedDocs')}
-            </CardTitle>
-            <Badge variant="secondary" className="font-mono text-xs">
-              {docsTotal} {t('docsTotal')}
-            </Badge>
-          </CardHeader>
-          <CardContent className="p-0 pt-3 flex flex-col gap-3">
-            <div className="text-2xl font-black text-on-surface font-mono">
-              {docsTotal}
-            </div>
-            <div className="flex justify-between items-center text-sm border-t border-outline-variant/40 pt-2">
-              <span className="text-on-surface-variant flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm text-purple-500">bookmark_added</span>
-                {t('docsUnread')}:
-              </span>
-              <Badge variant="outline" className="font-mono text-xs text-purple-600 border-purple-500/40">
-                {docsUnread} {t('unread')}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+      {/* 3. Saved Docs Card */}
+      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between">
+        <div>
+          <div className="w-10 h-10 rounded-lg bg-surface-container mb-4 flex items-center justify-center group-hover:bg-purple-500/10 transition-colors">
+            <span className="material-symbols-outlined text-on-surface-variant group-hover:text-purple-600 transition-colors">menu_book</span>
+          </div>
+          <h3 className="text-lg font-bold text-on-surface mb-1">{t('savedDocs')}</h3>
+          <div className="text-sm text-on-surface-variant mb-3 flex flex-col gap-1.5 font-medium mt-3">
+            <span>{docsTotal} {t('docsTotal')}</span>
+            <span className="text-on-surface font-bold flex items-center gap-1.5 text-purple-600 dark:text-purple-400">
+              <span className="material-symbols-outlined text-[16px]">bookmark_added</span>
+              {docsUnread} {t('docsUnread')}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400 text-xs font-bold mt-4 pt-3 border-t border-outline-variant/40 group-hover:translate-x-1 transition-transform">
+          <span>{t('viewDocs')}</span>
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </div>
       </div>
     </div>
   );

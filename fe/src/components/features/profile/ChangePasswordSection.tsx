@@ -16,7 +16,11 @@ interface ChangePasswordFormValues {
   confirmPassword: string;
 }
 
-export function ChangePasswordSection() {
+interface ChangePasswordSectionProps {
+  embedded?: boolean;
+}
+
+export function ChangePasswordSection({ embedded }: ChangePasswordSectionProps = {}) {
   const t = useTranslations('ProfilePage');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -62,20 +66,8 @@ export function ChangePasswordSection() {
     }
   };
 
-  return (
-    <Card className="border border-outline-variant bg-surface-container-low shadow-sm max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold text-on-surface flex items-center gap-2">
-          <span className="material-symbols-outlined text-red-500">lock_reset</span>
-          {t('tabSecurity')}
-        </CardTitle>
-        <CardDescription className="text-on-surface-variant">
-          {t('securityDescription')}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+  const formContent = (
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-4">
             {/* New Password */}
             <div className="flex flex-col gap-2">
@@ -134,6 +126,26 @@ export function ChangePasswordSection() {
             </Button>
           </div>
         </form>
+  );
+
+  if (embedded) {
+    return formContent;
+  }
+
+  return (
+    <Card className="border border-outline-variant bg-surface-container-low shadow-sm max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="text-xl font-bold text-on-surface flex items-center gap-2">
+          <span className="material-symbols-outlined text-red-500">lock_reset</span>
+          {t('tabSecurity')}
+        </CardTitle>
+        <CardDescription className="text-on-surface-variant">
+          {t('securityDescription')}
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        {formContent}
       </CardContent>
     </Card>
   );

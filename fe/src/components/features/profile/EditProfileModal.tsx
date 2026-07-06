@@ -6,16 +6,20 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { usersControllerUpdateProfile } from '@/services/api-client';
 import type { UserProfileDto } from '@/services/client';
+import { useAuth } from '@/providers/AuthProvider';
 import { isUiShowError } from '@/services/errors';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/default/card';
 import { Input } from '@/components/ui/default/input';
 import { Label } from '@/components/ui/default/label';
 import { Button } from '@/components/ui/default/button';
-import { Slider } from '@/components/ui/default/slider';
+import { Textarea } from '@/components/ui/default/textarea';
+import { Slider as SliderPrimitive } from 'radix-ui';
 
 interface EditProfileModalProps {
   user: UserProfileDto;
   onSuccess?: (updated: UserProfileDto) => void;
+  onCancel?: () => void;
+  embedded?: boolean;
 }
 
 interface EditProfileFormValues {
@@ -24,7 +28,8 @@ interface EditProfileFormValues {
   avatarHue: number[];
 }
 
-export function EditProfileModal({ user, onSuccess }: EditProfileModalProps) {
+export function EditProfileModal({ user, onSuccess, onCancel, embedded }: EditProfileModalProps) {
+  const { updateUser } = useAuth();
   const t = useTranslations('ProfilePage');
   const [loading, setLoading] = useState(false);
 
@@ -67,8 +72,11 @@ export function EditProfileModal({ user, onSuccess }: EditProfileModalProps) {
       });
 
       toast.success(t('updateSuccess'));
-      if (onSuccess && res.data) {
-        onSuccess(res.data as UserProfileDto);
+      if (res.data) {
+        updateUser(res.data as UserProfileDto);
+        if (onSuccess) {
+          onSuccess(res.data as UserProfileDto);
+        }
       }
     } catch (err) {
       if (isUiShowError(err)) {
@@ -83,20 +91,8 @@ export function EditProfileModal({ user, onSuccess }: EditProfileModalProps) {
     }
   };
 
-  return (
-    <Card className="border border-outline-variant bg-surface-container-low shadow-sm max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold text-on-surface flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">manage_accounts</span>
-          {t('tabEdit')}
-        </CardTitle>
-        <CardDescription className="text-on-surface-variant">
-          {t('editDescription')}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+  const formContent = (
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           {/* Avatar Preview Section */}
           <div className="flex flex-col sm:flex-row items-center gap-6 p-4 rounded-xl bg-surface-container border border-outline-variant/50 justify-center sm:justify-start">
             <div
@@ -137,11 +133,11 @@ export function EditProfileModal({ user, onSuccess }: EditProfileModalProps) {
               <Label htmlFor="title" className="text-sm font-semibold text-on-surface">
                 {t('userTitle')}
               </Label>
-              <Input
+              <Textarea
                 id="title"
                 {...register('title')}
                 placeholder={t('userTitlePlaceholder')}
-                className="bg-surface border-outline-variant text-on-surface"
+                className="bg-surface border-outline-variant text-on-surface min-h-[100px] resize-y shadow-inner"
               />
             </div>
 
@@ -151,31 +147,76 @@ export function EditProfileModal({ user, onSuccess }: EditProfileModalProps) {
                 <Label htmlFor="hue-slider" className="text-sm font-semibold text-on-surface">
                   {t('avatarHue')}
                 </Label>
-                <span className="text-xs font-mono font-bold bg-primary/10 text-primary px-2 py-0.5 rounded">
-                  {watchedHue}°
+                <span className="text-xs font-mono font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-md">
+                  {watchedHue}° • HSL({watchedHue}, 70%, 50%)
                 </span>
               </div>
               <Controller
                 name="avatarHue"
                 control={control}
                 render={({ field }) => (
-                  <Slider
-                    id="hue-slider"
-                    min={0}
-                    max={360}
-                    step={1}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    className="py-2"
-                  />
+                  <div className="py-3 px-1">
+                    <SliderPrimitive.Root
+                      id="hue-slider"
+                      min={0}
+                      max={360}
+                      step={1}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="relative flex w-full touch-none items-center select-none cursor-pointer h-6"
+                    >
+                      <SliderPrimitive.Track
+                        style={{
+                          background: 'linear-gradient(to right, hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(360, 100%, 50%))',
+                        }}
+                        className="relative h-4 w-full grow overflow-hidden rounded-full shadow-inner border border-outline-variant/40"
+                      />
+                      <SliderPrimitive.Thumb
+                        style={{ backgroundColor: `hsl(${watchedHue}, 70%, 50%)` }}
+                        className="block h-6 w-6 rounded-full border-2 border-white shadow-lg transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-grab active:cursor-grabbing"
+                      />
+                    </SliderPrimitive.Root>
+                  </div>
                 )}
               />
-              <div className="h-2 w-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-cyan-500 via-blue-500 via-purple-500 to-red-500 opacity-80" />
+              <span className="text-xs text-on-surface-variant italic">
+                {t('colorPreviewDesc')}
+              </span>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end pt-4 border-t border-outline-variant">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-outline-variant">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => reset({
+                  name: user.name || '',
+                  title: user.title || '',
+                  avatarHue: [user.avatarHue ?? 210],
+                })}
+                disabled={loading}
+                className="text-on-surface-variant hover:text-on-surface font-semibold px-4"
+              >
+                <span className="material-symbols-outlined text-sm mr-1.5">restart_alt</span>
+                {t('reset')}
+              </Button>
+
+              {onCancel && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={onCancel}
+                  disabled={loading}
+                  className="text-on-surface-variant hover:text-on-surface font-semibold px-4"
+                >
+                  <span className="material-symbols-outlined text-sm mr-1.5">close</span>
+                  {t('cancel')}
+                </Button>
+              )}
+            </div>
+
             <Button
               type="submit"
               disabled={loading}
@@ -186,6 +227,26 @@ export function EditProfileModal({ user, onSuccess }: EditProfileModalProps) {
             </Button>
           </div>
         </form>
+  );
+
+  if (embedded) {
+    return formContent;
+  }
+
+  return (
+    <Card className="border border-outline-variant bg-surface-container-low shadow-sm max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="text-xl font-bold text-on-surface flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary">manage_accounts</span>
+          {t('tabEdit')}
+        </CardTitle>
+        <CardDescription className="text-on-surface-variant">
+          {t('editDescription')}
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        {formContent}
       </CardContent>
     </Card>
   );

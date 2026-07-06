@@ -24,6 +24,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<UserProfileDto | null>;
   loginWithGoogle: (callbackUrl?: string) => Promise<void>;
   logout: () => void;
+  updateUser: (updatedFields: Partial<UserProfileDto>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -185,8 +186,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   }, [router]);
 
+  const updateUser = useCallback((updatedFields: Partial<UserProfileDto>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

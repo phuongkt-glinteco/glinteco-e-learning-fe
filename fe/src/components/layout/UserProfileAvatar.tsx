@@ -3,7 +3,8 @@
 import React from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import {useRouter} from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/providers/AuthProvider';
 
 interface UserProfileAvatarProps {
   size?: 'sm' | 'lg';
@@ -11,41 +12,47 @@ interface UserProfileAvatarProps {
   name?: string;
   role?: string;
   imageUrl?: string;
+  hue?: number;
   className?: string;
 }
 
 export default function UserProfileAvatar({
   size = 'sm',
   showDetails = false,
-  name = 'Alex',
-  role = 'Backend Engineer',
-  imageUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAVfE1-ZnknMx9M00RSW3dBZN6QOl1IUj3zuw0jRZtNQNuJrkqUerogGX5eMSz7anZFjH2OlECuOs1TxlbExlhnUC-7UZWtA5Es0CDfXf7zxUsFdELRUwyKk_zPGnnGrOw8Z3doFeIq6k2tgCIQTy60Dba0PTv-eOFx6rsPHmOJ7g_YcGmpHkwsWSwtt__hsnt3UIv74cqZsFzIhRp64pnF02z4NsypUMZODNqkzpvfUFnDc2KsCA0TT4zTh_ANDa2K_B_pQr0yizI',
+  name,
+  role,
+  imageUrl,
+  hue,
   className = '',
 }: UserProfileAvatarProps) {
+  const { user } = useAuth();
   const t = useTranslations('AppShell');
   const isLarge = size === 'lg';
 
-  const displayRole = role === 'Backend Engineer' ? t('role') : role;
+  const displayName = name || user?.name || 'Learner';
+  const rawRole = role || user?.title || user?.role || 'Learner';
+  const displayRole = rawRole === 'Backend Engineer' ? t('role') : rawRole;
+  const displayHue = hue ?? user?.avatarHue ?? 210;
+  const initial = displayName.charAt(0).toUpperCase();
   const router = useRouter();
 
   const avatarCircle = (
     <div
+      style={!imageUrl ? { backgroundColor: `hsl(${displayHue}, 70%, 50%)`, color: '#ffffff' } : undefined}
       className={`${
-        isLarge ? 'h-16 w-16' : 'h-8 w-8'
+        isLarge ? 'h-16 w-16 text-2xl font-bold' : 'h-8 w-8 text-sm font-semibold'
       } bg-surface-container rounded-full border border-outline-variant flex items-center justify-center shrink-0 overflow-hidden ${showDetails ? '' : className}`}
     >
       {imageUrl ? (
         <Image
-          alt={name}
+          alt={displayName}
           className="w-full h-full rounded-full object-cover"
           src={imageUrl}
           width={isLarge ? 64 : 32}
           height={isLarge ? 64 : 32}
         />
       ) : (
-        <span className={`material-symbols-outlined text-on-surface-variant ${isLarge ? 'text-2xl' : 'text-sm'}`}>
-          person
-        </span>
+        <span>{initial}</span>
       )}
     </div>
   );
@@ -55,7 +62,7 @@ export default function UserProfileAvatar({
       <div className={`flex items-center gap-md pb-lg border-b border-outline-variant w-full ${className}`}>
         {avatarCircle}
         <div onClick={() => router.push('/profile')} className="flex flex-col gap-1 cursor-pointer">
-          <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">{name}</h2>
+          <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">{displayName}</h2>
           <p className="font-body-sm text-sm text-on-surface-variant font-medium">{displayRole}</p>
         </div>
       </div>

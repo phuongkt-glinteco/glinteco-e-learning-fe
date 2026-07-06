@@ -26,5 +26,6 @@
   "help": "Trợ giúp",
   "role": "Kỹ sư Backend",
   "subLogoTitle": "Cổng thông tin kỹ thuật",
-  "logout": "Đăng xuất"
+  "logout": "Đăng xuất",
+  "leaderboard": "Bảng xếp hạng"
 }

@@ -114,7 +114,12 @@ export function DocumentsFilters({
                 <SelectTrigger className="w-[160px] rounded-full h-10 border-border hover:border-primary/50 transition-all font-medium text-sm">
                   <SelectValue placeholder={t('allKinds')} />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl shadow-lg border-border/80 backdrop-blur-md">
+                <SelectContent 
+                  position="popper"
+                  align="start"
+                  sideOffset={0}
+                  className="w-[var(--radix-select-trigger-width)] rounded-xl shadow-lg border-border/80 backdrop-blur-mds"
+                >
                   <SelectItem value="all">{t('allKinds')}</SelectItem>
                   <SelectItem value="Guide">{t('guide')}</SelectItem>
                   <SelectItem value="Reference">{t('reference')}</SelectItem>

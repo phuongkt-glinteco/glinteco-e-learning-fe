@@ -1,3 +1,5 @@
+import LeaderboardContainer from '@/components/features/leaderboard/containers/LeaderboardContainer';
+
 export default function LeaderboardPage() {
-  return <div className="p-8"><h1 className="text-2xl font-bold">Leaderboard</h1></div>
+  return <LeaderboardContainer />;
 }

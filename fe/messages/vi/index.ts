@@ -37,7 +37,9 @@ import ExerciseDetailContainer from './ExerciseDetailContainer.json';
 import TracksTimeline from './TracksTimeline.json';
 import LinkedExercisesCard from './LinkedExercisesCard.json';
 import MyExercisesContainer from './MyExercisesContainer.json';
+import AiWorkflowDashboard from './AiWorkflowDashboard.json';
 import ProfilePage from './ProfilePage.json';
+import LeaderboardPage from './LeaderboardPage.json';
 
 const messages: Record<string, unknown> = {
   LogoutPage,
@@ -77,7 +79,9 @@ const messages: Record<string, unknown> = {
   TracksTimeline,
   LinkedExercisesCard,
   MyExercisesContainer,
+  AiWorkflowDashboard,
   ProfilePage,
+  LeaderboardPage,
 };
 
 export default messages;

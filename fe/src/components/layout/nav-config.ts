@@ -10,6 +10,7 @@ const learnerMainNav: NavItem[] = [
   { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/tracks' },
   { label: 'My Courses', translationKey: 'myCourses', icon: 'local_library', href: '/my-courses' },
   { label: 'Exercises', translationKey: 'exercises', icon: 'code', href: '/exercises' },
+  { label: 'Leaderboard', translationKey: 'leaderboard', icon: 'social_leaderboard', href: '/leaderboard' },
   { label: 'Document', translationKey: 'document', icon: 'description', href: '/documents' },
 ];
 

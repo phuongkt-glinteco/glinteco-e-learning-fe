@@ -379,7 +379,7 @@ export class AuthService {
     });
 
     const frontendUrl = this.configService
-      .get<string>('FRONTEND_URL', 'http://localhost:6336')
+      .get<string>('FRONTEND_URL', 'http://localhost:3000')
       .replace(/\/$/, '');
     const resetLink = `${frontendUrl}/reset-password?token=${token}`;
 

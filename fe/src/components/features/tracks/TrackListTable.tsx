@@ -204,7 +204,7 @@ export default function TrackListTable() {
             </AppButton>
           </Link>
           <Link href="/admin/tracks/create">
-            <AppButton icon="lucide:plus">{t('createTrack')}</AppButton>
+            <AppButton className="text-white" icon="lucide:plus">{t('createTrack')}</AppButton>
           </Link>
         </div>
       </div>

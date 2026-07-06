@@ -102,6 +102,9 @@ export async function attemptTokenRefresh(): Promise<boolean> {
 
 
 
+let toastDebounceTimer: NodeJS.Timeout | null = null;
+let pendingToastItems: UiShowError[] = [];
+
 function dispatchErrorItems(items: UiShowError[], request?: Request) {
   if (typeof window === 'undefined' || items.length === 0) return;
 
@@ -111,7 +114,21 @@ function dispatchErrorItems(items: UiShowError[], request?: Request) {
     : items;
 
   if (visibleItems.length > 0) {
-    window.dispatchEvent(new CustomEvent('api-error', { detail: visibleItems }));
+    for (const item of visibleItems) {
+      if (!pendingToastItems.some((ex) => ex.errorCode === item.errorCode && ex.message === item.message)) {
+        pendingToastItems.push(item);
+      }
+    }
+
+    if (!toastDebounceTimer) {
+      toastDebounceTimer = setTimeout(() => {
+        if (pendingToastItems.length > 0) {
+          window.dispatchEvent(new CustomEvent('api-error', { detail: pendingToastItems }));
+          pendingToastItems = [];
+        }
+        toastDebounceTimer = null;
+      }, 50);
+    }
   }
 }
 
@@ -165,6 +182,13 @@ client.interceptors.error.use(async (error, response, request) => {
   }
 });
 
+export async function clientFetchAll<T extends unknown[]>(
+  fns: { [K in keyof T]: () => Promise<T[K]> },
+): Promise<T> {
+  return Promise.all(fns.map((fn) => fn())) as Promise<T>;
+}
+
 export { client };
 export * from './client';
 export type * from './client/types.gen';
+

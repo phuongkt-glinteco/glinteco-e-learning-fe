@@ -18,6 +18,7 @@ const adminMainNav: NavItem[] = [
   { label: 'Dashboard', translationKey: 'dashboard', icon: 'dashboard', href: '/dashboard' },
   { label: 'Courses', translationKey: 'courses', icon: 'school', href: '/courses' },
   { label: 'Track Management', translationKey: 'trackManager', icon: 'local_library', href: '/admin/tracks' },
+  { label: 'Cohort Management', translationKey: 'cohortManager', icon: 'groups', href: '/admin/cohorts' },
   { label: 'Review Queue', translationKey: 'reviews', icon: 'rate_review', href: '/admin/reviews' },
   { label: 'Document & Tags', translationKey: 'documentAndTags', icon: 'description', href: '/documents' },
 ];

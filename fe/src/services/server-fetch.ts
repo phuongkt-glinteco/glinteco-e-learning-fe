@@ -79,3 +79,12 @@ export async function serverFetch<T>(
     return { success: false, error: { code: 'UNKNOWN_ERROR', message: 'An unexpected error occurred.' } };
   }
 }
+
+export async function serverFetchAll<T extends unknown[]>(
+  fns: { [K in keyof T]: (client: Client) => Promise<T[K]> },
+): Promise<ServerResult<T>> {
+  return serverFetch(async (client) => {
+    return Promise.all(fns.map((fn) => fn(client))) as Promise<T>;
+  });
+}
+

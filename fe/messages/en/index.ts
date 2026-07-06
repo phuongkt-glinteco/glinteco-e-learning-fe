@@ -40,6 +40,8 @@ import MyExercisesContainer from './MyExercisesContainer.json';
 import AiWorkflowDashboard from './AiWorkflowDashboard.json';
 import ProfilePage from './ProfilePage.json';
 import LeaderboardPage from './LeaderboardPage.json';
+import CohortsPage from './CohortsPage.json';
+import CohortDetailPage from './CohortDetailPage.json';
 
 const messages: Record<string, unknown> = {
   LogoutPage,
@@ -82,6 +84,8 @@ const messages: Record<string, unknown> = {
   AiWorkflowDashboard,
   ProfilePage,
   LeaderboardPage,
+  CohortsPage,
+  CohortDetailPage,
 };
 
 export default messages;

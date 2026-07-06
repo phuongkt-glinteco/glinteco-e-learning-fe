@@ -7,6 +7,7 @@ import {
   documentsControllerCreateTag,
   documentsControllerDeleteTag,
 } from '@/services/api-client';
+import { isUiShowError } from '@/services/errors';
 import type { TagResponseDto } from '@/services/client/types.gen';
 import { Button } from '@/components/ui/default/button';
 import { Input } from '@/components/ui/default/input';
@@ -107,7 +108,7 @@ export function TagsManagement({ onTagsUpdated }: TagsManagementProps) {
       // Sort alphabetically by default
       normalizedList.sort((a, b) => a.name.localeCompare(b.name));
       setTags(normalizedList);
-    } catch (err) {
+    } catch (err: any) {
       if (isUiShowError(err)) {
         toast.error(t(`errors.${err.errorCode}`) || err.message);
       }

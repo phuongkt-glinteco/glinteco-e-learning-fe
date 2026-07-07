@@ -10,6 +10,7 @@ import { tracksControllerDelete } from '@/services/api-client';
 import { AppButton } from '@/components/ui/buttons';
 import Modal from '@/components/ui/Modal';
 import Skeleton from '@/components/ui/loading/Skeleton';
+import { TrackActionsDropdown } from './TrackActionsDropdown';
 
 const STATUS_CONFIG: Record<string, { cls: string; icon: string }> = {
   in_progress: {
@@ -283,22 +284,10 @@ export default function TrackListTable() {
                     <StatusChip status={track.status} label={statusLabel(track.status)} />
                   </td>
                   <td className="px-lg py-md text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Link
-                        href={`/admin/tracks/${track.id}/edit`}
-                        className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors duration-200"
-                        aria-label={t('actions.edit')}
-                      >
-                        <Icon icon="lucide:pen-square" className="w-4 h-4" />
-                      </Link>
-                      <button
-                        onClick={() => setDeleteTarget({ id: track.id, title: track.title })}
-                        className="p-2 rounded-lg text-on-surface-variant hover:bg-error/10 hover:text-error transition-colors duration-200 cursor-pointer"
-                        aria-label={t('actions.delete')}
-                      >
-                        <Icon icon="lucide:trash-2" className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <TrackActionsDropdown
+                      trackId={track.id}
+                      onDelete={() => setDeleteTarget({ id: track.id, title: track.title })}
+                    />
                   </td>
                 </tr>
               ))}

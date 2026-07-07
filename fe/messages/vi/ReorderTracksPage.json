@@ -48,6 +48,7 @@
   "nonContiguousBody": "Các mục được chọn không liên tục. Hành động này sẽ nhóm chúng lại với nhau. Tiếp tục?",
   "yes": "Có",
   "no": "Không",
+  "placeholderNewPos": "Vị trí mới",
   "moveStart": "Lên đầu",
   "moveEnd": "Xuống cuối",
   "moveUp": "lên",

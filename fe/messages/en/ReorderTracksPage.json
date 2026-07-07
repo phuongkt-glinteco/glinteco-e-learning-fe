@@ -48,6 +48,7 @@
   "nonContiguousBody": "Selected items are not contiguous. This action will group them together. Continue?",
   "yes": "Yes",
   "no": "No",
+  "placeholderNewPos": "New Position",
   "moveUp": "Move Up",
   "moveDown": "Move Down",
   "moveStart": "Move to Start",

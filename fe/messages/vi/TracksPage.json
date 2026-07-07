@@ -21,6 +21,7 @@
     "perPage": "Mỗi trang"
   },
   "actions": {
+    "view": "Xem chi tiết",
     "edit": "Sửa",
     "delete": "Xóa",
     "confirmDelete": "Bạn có chắc chắn muốn xóa lộ trình này?",

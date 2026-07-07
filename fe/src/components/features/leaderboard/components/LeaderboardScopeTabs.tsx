@@ -1,43 +1,53 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/default/tabs';
-import type { LeaderboardScope } from '../types';
+import { cn } from '@/lib/utils';
+import type { LeaderboardPeriod } from '../types';
 
 interface LeaderboardScopeTabsProps {
-  scope: LeaderboardScope;
-  onScopeChange: (scope: LeaderboardScope) => void;
+  period: LeaderboardPeriod;
+  onPeriodChange: (period: LeaderboardPeriod) => void;
 }
 
 export function LeaderboardScopeTabs({
-  scope,
-  onScopeChange,
+  period,
+  onPeriodChange,
 }: LeaderboardScopeTabsProps) {
   const t = useTranslations('LeaderboardPage');
+  const options = [
+    { id: 'weekly' as const, label: t('weekly') },
+    { id: 'monthly' as const, label: t('monthly') },
+    { id: 'all-time' as const, label: t('allTimeCompact') },
+  ];
 
   return (
-    <Tabs
-      value={scope}
-      onValueChange={(value) => onScopeChange(value as LeaderboardScope)}
-      className=""
+    <div
+      className="inline-flex h-14 w-full items-center rounded-[10px] border border-[#cfd8f6] bg-[#e8eeff] p-1.5 shadow-[0_2px_8px_rgba(37,99,235,0.08)] sm:w-auto"
+      role="tablist"
+      aria-label={t('scopeLabel')}
     >
-      <TabsList
-        variant="line"
-        className="h-auto w-full gap-2 rounded-2xl bg-transparent p-1 sm:w-fit"
-      >
-        <TabsTrigger
-          value="cohort"
-          className="min-h-11 rounded-xl border border-outline bg-white px-4 py-2 text-sm font-semibold text-on-surface transition-colors hover:bg-slate-100 data-active:!border-primary data-active:!bg-primary data-active:!text-primary-foreground data-active:shadow-sm hover:data-active:!bg-primary/90 after:hidden hover:-translate-y-0.5"
-        >
-          {t('myCohort')}
-        </TabsTrigger>
-        <TabsTrigger
-          value="global"
-          className="min-h-11 rounded-xl border border-outline bg-white px-4 py-2 text-sm font-semibold text-on-surface transition-colors hover:bg-slate-100 data-active:!border-primary data-active:!bg-primary data-active:!text-primary-foreground data-active:shadow-sm hover:data-active:!bg-primary/90 after:hidden hover:-translate-y-0.5"
-        >
-          {t('global')}
-        </TabsTrigger>
-      </TabsList>
-    </Tabs>
+      {options.map((option) => {
+        const isActive = option.id === period;
+
+        return (
+          <button
+            key={option.id}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onPeriodChange(option.id)}
+            className={cn(
+              'label-md flex h-full min-w-[82px] flex-1 items-center justify-center rounded-[7px] px-4 text-center transition-colors sm:flex-none',
+              isActive
+                ? 'bg-white text-[#3d2cf3] shadow-[0_1px_3px_rgba(15,23,42,0.08)]'
+                : 'text-slate-600',
+              'hover:bg-white/70 hover:text-slate-900',
+            )}
+          >
+            <span className="leading-tight">{option.label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }

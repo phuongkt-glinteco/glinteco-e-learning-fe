@@ -110,7 +110,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
 
       <CardFooter className="p-5 mt-auto">
         {isLocked ? (
-          <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2 text-[14px] font-medium text-outline cursor-not-allowed">
+          <span className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-outline-variant px-4 text-[14px] font-medium text-outline cursor-not-allowed">
             <span className="material-symbols-outlined text-[16px]">lock</span>
             {t('locked')}
           </span>
@@ -118,7 +118,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
           <Button
             variant={isInProgress ? 'default' : 'outline'}
             onClick={() => onOpen(track.id)}
-            className="w-full gap-1.5"
+            className="h-10 w-full gap-1.5 px-4 text-[14px]"
           >
             {isCompleted ? t('review') : t('continue')}
             <span className="material-symbols-outlined text-[16px]">arrow_forward</span>

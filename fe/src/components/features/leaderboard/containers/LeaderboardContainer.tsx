@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { leaderboardControllerGetLeaderboard } from '@/services/api-client';
 import { useAuth } from '@/providers/AuthProvider';
-import type { LeaderboardScope, LeaderboardRow } from '../types';
+import type { LeaderboardData, LeaderboardPeriod, LeaderboardScope } from '../types';
 import { normalizeLeaderboardResponse } from '../normalizers';
 import { LeaderboardView } from '../components/LeaderboardView';
 
@@ -17,10 +17,18 @@ function getErrorMessage(error: unknown) {
 
 export default function LeaderboardContainer() {
   const { user } = useAuth();
-  const [scope, setScope] = useState<LeaderboardScope>('cohort');
-  const [rows, setRows] = useState<LeaderboardRow[]>([]);
+  const [period, setPeriod] = useState<LeaderboardPeriod>('weekly');
+  const [leaderboard, setLeaderboard] = useState<LeaderboardData>({
+    rows: [],
+    topRows: [],
+    remainingRows: [],
+    currentUserSummary: null,
+    milestones: [],
+    nextCursor: null,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const scope: LeaderboardScope = period === 'all-time' ? 'global' : 'cohort';
 
   const loadLeaderboard = useCallback(
     async (
@@ -43,11 +51,18 @@ export default function LeaderboardContainer() {
         if (!isActive()) return;
 
         const normalized = normalizeLeaderboardResponse(response.data, user?.id ?? null);
-        setRows(normalized.rows);
+        setLeaderboard(normalized);
       } catch (loadError: unknown) {
         if (!isActive()) return;
 
-        setRows([]);
+        setLeaderboard({
+          rows: [],
+          topRows: [],
+          remainingRows: [],
+          currentUserSummary: null,
+          milestones: [],
+          nextCursor: null,
+        });
         setError(getErrorMessage(loadError));
       } finally {
         if (isActive()) setLoading(false);
@@ -68,9 +83,10 @@ export default function LeaderboardContainer() {
 
   return (
     <LeaderboardView
+      period={period}
       scope={scope}
-      onScopeChange={setScope}
-      rows={rows}
+      onPeriodChange={setPeriod}
+      leaderboard={leaderboard}
       loading={loading}
       error={error}
       onRetry={() => loadLeaderboard(scope)}

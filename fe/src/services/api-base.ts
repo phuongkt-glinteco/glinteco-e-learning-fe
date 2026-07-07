@@ -1,5 +1,5 @@
 export const API_PREFIX = '/api/v1';
-export const DEFAULT_API_BASE_URL = 'http://localhost:6336/api/v1';
+export const DEFAULT_API_BASE_URL = 'http://localhost:5000/api/v1';
 
 function trimTrailingSlash(value: string) {
   return value.replace(/\/+$/, '');

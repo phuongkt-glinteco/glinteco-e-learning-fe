@@ -57,15 +57,35 @@ function TableSkeleton() {
 export function RouteLoadingState({ variant = 'page' }: RouteLoadingStateProps) {
   if (variant === 'auth') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-        <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-sm">
-          <Skeleton height={36} width={120} rounded="rounded-md" />
-          <Skeleton height={22} width="70%" className="mt-8" rounded="rounded-md" />
-          <Skeleton height={44} className="mt-6" rounded="rounded-lg" />
-          <Skeleton height={44} className="mt-3" rounded="rounded-lg" />
-          <Skeleton height={40} className="mt-6" rounded="rounded-lg" />
+      <div className="w-full max-w-[480px] rounded-xl border border-outline-variant bg-card p-6 sm:p-8 shadow-sm">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <Skeleton height={28} width="45%" rounded="rounded-md" />
+            <Skeleton height={18} width="75%" rounded="rounded-md" />
+          </div>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Skeleton height={16} width="30%" rounded="rounded-md" />
+              <Skeleton height={44} rounded="rounded-lg" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton height={16} width="35%" rounded="rounded-md" />
+              <Skeleton height={44} rounded="rounded-lg" />
+            </div>
+            <div className="flex justify-between items-center pt-1">
+              <Skeleton height={20} width="35%" rounded="rounded-md" />
+              <Skeleton height={16} width="25%" rounded="rounded-md" />
+            </div>
+          </div>
+          <div className="pt-2 space-y-2">
+            <Skeleton height={44} rounded="rounded-lg" />
+            <Skeleton height={44} rounded="rounded-lg" />
+          </div>
+          <div className="mt-8 flex justify-center">
+            <Skeleton height={18} width="60%" rounded="rounded-md" />
+          </div>
         </div>
-      </main>
+      </div>
     );
   }
 

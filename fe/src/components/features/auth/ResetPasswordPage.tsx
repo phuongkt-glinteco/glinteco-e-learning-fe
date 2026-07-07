@@ -14,7 +14,7 @@ import { Card, CardContent } from '@/components/ui/default/card';
 import { Input } from '@/components/ui/default/input';
 import { Button } from '@/components/ui/default/button';
 import { Label } from '@/components/ui/default/label';
-import { AuthLayout } from './AuthLayout';
+import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 
 export default function ResetPasswordPage() {
   const t = useTranslations('ResetPasswordPage');
@@ -95,9 +95,9 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <AuthLayout>
-      <Card className="w-full max-w-[480px] border-outline-variant shadow-sm rounded-xl">
-        <CardContent className="p-8">
+    <Card className="w-full max-w-[480px] border-outline-variant shadow-sm rounded-xl relative">
+      <LanguageToggle size="sm" className="lg:hidden absolute top-4 right-4 z-20 border-outline-variant/60 shadow-xs" />
+      <CardContent className="p-8">
           <div className="lg:hidden mb-8 flex flex-col items-center">
             <Image
               src="/logo.png"
@@ -214,6 +214,5 @@ export default function ResetPasswordPage() {
           )}
         </CardContent>
       </Card>
-    </AuthLayout>
   );
 }

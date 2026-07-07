@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/default/input';
 import { Button } from '@/components/ui/default/button';
 import { Label } from '@/components/ui/default/label';
 import { Checkbox } from '@/components/ui/default/checkbox';
-import { AuthLayout } from './AuthLayout';
+import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 
 function getDashboardPath(role?: string) {
   return role === 'admin' ? '/dashboard/admin' : '/dashboard/learner';
@@ -71,7 +71,10 @@ export default function LoginPage() {
       const loggedInUser = await login(data.email, data.password);
       if (loggedInUser) {
         router.replace(getDashboardPath(loggedInUser.role));
+        // KHÔNG tắt loading ở đây: giữ nguyên trạng thái loading cho đến khi browser hoàn tất điều hướng sang dashboard!
+        return;
       }
+      setLoading(false);
     } catch (err: unknown) {
       if (isUiShowError(err)) {
         if (err.errorCode === 'LOGIN_INVALID_CREDENTIALS') {
@@ -81,28 +84,29 @@ export default function LoginPage() {
           setErrorMsg(err.errorCode);
         }
       }
-    } finally {
       setLoading(false);
     }
   };
 
   const onGoogleSignIn = async () => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       await loginWithGoogle(callbackUrl);
+      // KHÔNG tắt loading ở đây: browser đang chuyển hướng sang trang Google OAuth hoặc đang khởi tạo session!
     } catch {
       setErrorMsg('GOOGLE_AUTH_FAILED');
-    } finally {
       setLoading(false);
     }
   };
 
   const visibleError = errorMsg ?? oauthError;
+  const isFormDisabled = loading || authLoading;
 
   return (
-    <AuthLayout>
-      <Card className="w-full max-w-[480px] border-outline-variant shadow-sm rounded-xl">
-        <CardContent className="p-8">
+    <Card className="w-full max-w-[480px] border-outline-variant shadow-sm rounded-xl relative">
+      <LanguageToggle size="sm" className="lg:hidden absolute top-4 right-4 z-20 border-outline-variant/60 shadow-xs" />
+      <CardContent className="p-6 sm:p-8">
           <div className="lg:hidden mb-8 flex flex-col items-center">
             <Image
               src="/logo.png"
@@ -141,6 +145,8 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="text"
+                autoComplete="username"
+                disabled={isFormDisabled}
                 placeholder={t('emailPlaceholder')}
                 aria-invalid={Boolean(errors.email)}
                 className="h-11"
@@ -160,14 +166,17 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  disabled={isFormDisabled}
                   placeholder={t('passwordPlaceholder')}
                   aria-invalid={Boolean(errors.password)}
                   className="h-11 pr-10"
                   {...register('password')}
                 />
                 <button
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-on-surface-variant hover:text-on-surface disabled:opacity-50"
                   type="button"
+                  disabled={isFormDisabled}
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   <span className="material-symbols-outlined text-[20px]">
@@ -191,6 +200,7 @@ export default function LoginPage() {
                   render={({ field }) => (
                     <Checkbox
                       id="remember"
+                      disabled={isFormDisabled}
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
@@ -200,7 +210,10 @@ export default function LoginPage() {
                   {t('rememberMe')}
                 </Label>
               </div>
-              <Link className="text-[14px] font-medium text-primary hover:underline" href="/forgot-password">
+              <Link
+                className={`text-[14px] font-medium text-primary hover:underline ${isFormDisabled ? 'pointer-events-none opacity-50' : ''}`}
+                href="/forgot-password"
+              >
                 {t('forgotPassword')}
               </Link>
             </div>
@@ -209,7 +222,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full h-11"
-                disabled={loading}
+                disabled={isFormDisabled}
               >
                 {loading ? (
                   <>
@@ -223,7 +236,7 @@ export default function LoginPage() {
                 type="button"
                 className="w-full h-11 gap-2"
                 onClick={onGoogleSignIn}
-                disabled={loading}
+                disabled={isFormDisabled}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
@@ -239,13 +252,15 @@ export default function LoginPage() {
           <div className="mt-8 text-center">
             <p className="text-[14px] text-on-surface-variant">
               {t('noAccount')}{' '}
-              <Link className="text-[14px] font-medium text-primary hover:underline" href="/register">
+              <Link
+                className={`text-[14px] font-medium text-primary hover:underline ${isFormDisabled ? 'pointer-events-none opacity-50' : ''}`}
+                href="/register"
+              >
                 {t('requestAccess')}
               </Link>
             </p>
           </div>
         </CardContent>
       </Card>
-    </AuthLayout>
   );
 }

@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
+import { ScrollArea } from '@/components/ui/default/scroll-area';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -14,8 +15,6 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background text-on-surface flex overflow-hidden w-full font-sans relative">
-      <LanguageToggle size="md" className="hidden md:block absolute top-6 right-6 z-20 border-outline" />
-
       <div className="flex w-full h-full min-h-screen">
         {/* Left: Branding Panel */}
         <div className="hidden lg:flex flex-col justify-between w-5/12 bg-gradient-to-br from-primary to-secondary p-12 relative overflow-hidden">
@@ -49,8 +48,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </div>
 
         {/* Right: Form Panel */}
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-surface-container-low">
-          {children}
+        <div className="flex-1 h-screen bg-surface-container-low dark:bg-background relative flex flex-col">
+          <LanguageToggle size="md" className="hidden lg:block absolute top-6 right-6 z-20 border-outline-variant shadow-xs" />
+          <ScrollArea className="flex-1 w-full h-full">
+            <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-12 py-8 sm:py-12">
+              {children}
+            </div>
+          </ScrollArea>
         </div>
       </div>
     </div>

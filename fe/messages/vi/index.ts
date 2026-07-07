@@ -44,6 +44,7 @@ import CohortsPage from './CohortsPage.json';
 import CohortDetailPage from './CohortDetailPage.json';
 import UsersPage from './UsersPage.json';
 import SettingsPage from './SettingsPage.json';
+import SupportPage from './SupportPage.json';
 
 const messages: Record<string, unknown> = {
   LogoutPage,
@@ -90,6 +91,7 @@ const messages: Record<string, unknown> = {
   CohortDetailPage,
   UsersPage,
   SettingsPage,
+  SupportPage,
 };
 
 export default messages;

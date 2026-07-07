@@ -8,6 +8,7 @@ import SessionProvider from '@/providers/SessionProvider';
 import { ApiErrorContainer } from '@/components/ui/containers/ApiErrorContainer';
 import { TooltipProvider } from '@/components/ui/default/tooltip';
 import { Toaster } from '@/components/ui/default/sonner';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import type { ReactNode } from 'react';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -38,17 +39,19 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SessionProvider>
-            <LanguageProvider initialLocale={locale}>
-              <TooltipProvider>
-                <ApiErrorProvider>
-                  <AuthProvider>
-                    {children}
-                    <ApiErrorContainer />
-                    <Toaster position="bottom-right" richColors closeButton expand />
-                  </AuthProvider>
-                </ApiErrorProvider>
-              </TooltipProvider>
-            </LanguageProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+              <LanguageProvider initialLocale={locale}>
+                <TooltipProvider>
+                  <ApiErrorProvider>
+                    <AuthProvider>
+                      {children}
+                      <ApiErrorContainer />
+                      <Toaster position="bottom-right" richColors closeButton expand />
+                    </AuthProvider>
+                  </ApiErrorProvider>
+                </TooltipProvider>
+              </LanguageProvider>
+            </ThemeProvider>
           </SessionProvider>
         </NextIntlClientProvider>
       </body>

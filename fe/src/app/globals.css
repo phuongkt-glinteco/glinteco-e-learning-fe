@@ -552,6 +552,25 @@ body {
   --sidebar-accent-foreground: oklch(0.967 0.016 266.280);
   --sidebar-border: oklch(0.300 0.025 255.0);
   --sidebar-ring: oklch(0.796 0.096 261.325);
+
+  /* Material 3 & Custom Theme Dark Mode overrides */
+  --color-surface: #0f172a;
+  --color-surface-dim: #0b0f19;
+  --color-surface-bright: #1e293b;
+  --color-surface-container-lowest: #0b0f19;
+  --color-surface-container-low: #0f172a;
+  --color-surface-container: #1e293b;
+  --color-surface-container-high: #334155;
+  --color-surface-container-highest: #475569;
+  --color-on-surface: #f8fafc;
+  --color-on-surface-variant: #cbd5e1;
+  --color-inverse-surface: #f8fafc;
+  --color-inverse-on-surface: #0f172a;
+  --color-outline: #64748b;
+  --color-outline-variant: #475569;
+  --color-surface-variant: #334155;
+  --color-background: #0f172a;
+  --color-on-background: #f8fafc;
 }
 
 @layer base {
@@ -598,5 +617,13 @@ html[data-scroll-locked],
 [data-radix-scroll-lock] {
   padding-right: 0 !important;
   margin-right: 0 !important;
+}
+
+/* Compact Mode styling (dành cho người dùng chuyên nghiệp khi kích hoạt trong Settings) */
+.compact-mode * {
+  line-height: 1.35 !important;
+}
+.compact-mode {
+  font-size: 0.9375rem;
 }
 

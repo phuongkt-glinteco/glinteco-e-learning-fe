@@ -43,6 +43,7 @@ import LeaderboardPage from './LeaderboardPage.json';
 import CohortsPage from './CohortsPage.json';
 import CohortDetailPage from './CohortDetailPage.json';
 import UsersPage from './UsersPage.json';
+import SettingsPage from './SettingsPage.json';
 
 const messages: Record<string, unknown> = {
   LogoutPage,
@@ -88,6 +89,7 @@ const messages: Record<string, unknown> = {
   CohortsPage,
   CohortDetailPage,
   UsersPage,
+  SettingsPage,
 };
 
 export default messages;

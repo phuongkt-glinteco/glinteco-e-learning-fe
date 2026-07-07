@@ -116,10 +116,10 @@ export default function ContinueLearningSection() {
               </span>
             </div>
             <h4 className="font-semibold text-xl text-on-surface">{title}</h4>
-            <p className="text-sm text-on-surface-variant line-clamp-2 max-w-2xl">
+            <p className="text-sm text-on-surface-variant line-clamp-2 w-full">
               {description}
             </p>
-            <div className="mt-2 flex flex-col gap-2 max-w-md">
+            <div className="mt-2 flex flex-col gap-2 w-full">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-on-surface-variant font-medium">{t('lessonProgress')}</span>
                 <span className="text-primary font-bold">{progress}%</span>

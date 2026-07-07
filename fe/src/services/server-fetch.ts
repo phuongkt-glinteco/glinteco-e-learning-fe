@@ -61,7 +61,7 @@ export async function serverFetch<T>(
         const data = await fn(refreshedClient);
         return { success: true, data };
       }
-      redirect('/auth/logout');
+      redirect('/logout');
     }
 
     try {

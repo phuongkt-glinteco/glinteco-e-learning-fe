@@ -222,7 +222,7 @@ export function UserManagementClient() {
             className="fixed inset-0 bg-on-background/40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={() => setViewingUser(null)}
           />
-          <div className="relative w-full max-w-lg bg-surface-container-lowest dark:bg-inverse-surface rounded-2xl shadow-2xl p-6 border border-outline-variant z-10 animate-in zoom-in-95 duration-200 space-y-6">
+          <div className="relative w-full max-w-lg bg-surface-container-lowest dark:bg-surface rounded-2xl shadow-2xl p-6 border border-outline-variant z-10 animate-in zoom-in-95 duration-200 space-y-6">
             <div className="flex items-center justify-between border-b border-outline-variant pb-4">
               <h3 className="font-bold text-lg text-on-surface flex items-center gap-2">
                 <Icon icon="lucide:user" className="w-5 h-5 text-primary" />

@@ -90,7 +90,7 @@ export function RouteLoadingState({ variant = 'page' }: RouteLoadingStateProps) 
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 md:px-8">
+    <main className={`mx-auto w-full space-y-6 ${variant === 'dashboard' ? 'max-w-container-max p-16' : 'max-w-7xl px-4 py-6 md:px-8'}`}>
       <HeaderSkeleton />
       {variant === 'dashboard' ? (
         <>

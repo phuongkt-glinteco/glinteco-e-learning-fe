@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
+import Skeleton from '@/components/ui/loading/Skeleton';
 
 interface UserProfileAvatarProps {
   size?: 'sm' | 'lg';
@@ -25,16 +26,30 @@ export default function UserProfileAvatar({
   hue,
   className = '',
 }: UserProfileAvatarProps) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const t = useTranslations('AppShell');
+  const router = useRouter();
   const isLarge = size === 'lg';
+
+  if (loading || (!user && !name)) {
+    return (
+      <div className={`flex items-center gap-md ${showDetails ? 'pb-lg border-b border-outline-variant w-full' : ''} ${className}`}>
+        <Skeleton height={isLarge ? 64 : 32} width={isLarge ? 64 : 32} rounded="rounded-full" />
+        {showDetails && (
+          <div className="flex flex-col gap-2 flex-1">
+            <Skeleton height={20} width="60%" rounded="rounded-md" />
+            <Skeleton height={14} width="40%" rounded="rounded-md" />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const displayName = name || user?.name || 'Learner';
   const rawRole = role || user?.title || user?.role || 'Learner';
   const displayRole = rawRole === 'Backend Engineer' ? t('role') : rawRole;
   const displayHue = hue ?? user?.avatarHue ?? 210;
   const initial = displayName.charAt(0).toUpperCase();
-  const router = useRouter();
 
   const avatarCircle = (
     <div

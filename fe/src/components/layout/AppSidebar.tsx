@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
+import Skeleton from '@/components/ui/loading/Skeleton';
 import AppLogo from './AppLogo';
 import { getMainNav, footerNav } from './nav-config';
 import {
@@ -19,7 +20,7 @@ import {
 } from '@/components/ui/default/sidebar';
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const t = useTranslations('AppShell');
   const pathname = usePathname();
   const [optimisticPath, setOptimisticPath] = React.useState(pathname);
@@ -29,6 +30,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     setOptimisticPath(pathname);
   }, [pathname]);
 
+  const isAuthLoading = loading || !user;
   const navItems = getMainNav(user?.role);
 
   return (
@@ -39,8 +41,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       
       <SidebarContent className="py-4">
         <SidebarMenu>
-          {navItems.map((item) => {
-            const active = optimisticPath.startsWith(item.href);
+          {isAuthLoading ? (
+            Array.from({ length: 5 }).map((_, idx) => (
+              <SidebarMenuItem key={idx} className="px-2 mb-1">
+                <div className="flex items-center gap-3 rounded-lg h-10 px-3 py-2">
+                  <Skeleton height={20} width={20} rounded="rounded-md" className="shrink-0" />
+                  <Skeleton height={16} width="70%" rounded="rounded-md" className="group-data-[collapsible=icon]:hidden" />
+                </div>
+              </SidebarMenuItem>
+            ))
+          ) : (
+            navItems.map((item) => {
+              const active = optimisticPath.startsWith(item.href);
             const translatedLabel = t(item.translationKey) || item.label;
 
             return (
@@ -65,14 +77,25 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
-          })}
+          })
+          )}
         </SidebarMenu>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-outline-variant p-2">
         <SidebarMenu>
-          {footerNav.map((item) => {
-            const active = optimisticPath.startsWith(item.href);
+          {isAuthLoading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <SidebarMenuItem key={idx} className="px-2 mb-1">
+                <div className="flex items-center gap-3 rounded-lg h-10 px-3 py-2">
+                  <Skeleton height={20} width={20} rounded="rounded-md" className="shrink-0" />
+                  <Skeleton height={16} width="60%" rounded="rounded-md" className="group-data-[collapsible=icon]:hidden" />
+                </div>
+              </SidebarMenuItem>
+            ))
+          ) : (
+            footerNav.map((item) => {
+              const active = optimisticPath.startsWith(item.href);
             const translatedLabel = t(item.translationKey) || item.label;
 
             return (
@@ -97,7 +120,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
-          })}
+          })
+          )}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

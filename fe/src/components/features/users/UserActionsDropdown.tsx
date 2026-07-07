@@ -49,7 +49,7 @@ export function UserActionsDropdown({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1 w-44 rounded-xl bg-surface-container-lowest dark:bg-inverse-surface shadow-lg border border-outline-variant py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-1 w-44 rounded-xl bg-surface-container-lowest dark:bg-surface-container shadow-lg border border-outline-variant py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
           <button
             type="button"
             onClick={() => {

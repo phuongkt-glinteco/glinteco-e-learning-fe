@@ -59,6 +59,20 @@ export function clearRefreshTokenCookie() {
   }
 }
 
+export const AUTH_COOKIE = 'auth_verified';
+
+export function setAuthCookie(role: string) {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${AUTH_COOKIE}=${role.toLowerCase()};path=/;max-age=86400;samesite=lax`;
+  }
+}
+
+export function clearAuthCookie() {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${AUTH_COOKIE}=;path=/;max-age=0`;
+  }
+}
+
 export function saveTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem(TOKEN_KEY, accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
@@ -73,6 +87,7 @@ export function clearTokens() {
   setClientToken(null);
   clearTokenCookie();
   clearRefreshTokenCookie();
+  clearAuthCookie();
 }
 
 let refreshPromise: Promise<boolean> | null = null;
@@ -139,7 +154,10 @@ client.interceptors.error.use(async (error, response, request) => {
 
   if (response?.status === 401 && request) {
     const url = new URL(request.url);
-
+    if (url.pathname.includes('/notifications')) {
+      // Không xử lý refresh token cho endpoint notifications
+      return error;
+    }
     // Chặn refresh loop cho chính endpoint auth
     const isAuthEndpoint = url.pathname.includes('/auth/refresh') || url.pathname.includes('/auth/login') || url.pathname.includes('/auth/register');
 

@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/default/checkbox';
 import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 
 function getDashboardPath(role?: string) {
-  return role === 'admin' ? '/dashboard/admin' : '/dashboard/learner';
+  return role?.toLowerCase() === 'admin' ? '/dashboard/admin' : '/dashboard/learner';
 }
 
 function getSafeCallbackUrl(value: string | null) {
@@ -61,6 +61,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!authLoading && user) {
       router.replace(getDashboardPath(user.role));
+      router.refresh();
     }
   }, [user, authLoading, router]);
 
@@ -71,6 +72,7 @@ export default function LoginPage() {
       const loggedInUser = await login(data.email, data.password);
       if (loggedInUser) {
         router.replace(getDashboardPath(loggedInUser.role));
+        router.refresh();
         // KHÔNG tắt loading ở đây: giữ nguyên trạng thái loading cho đến khi browser hoàn tất điều hướng sang dashboard!
         return;
       }

@@ -53,7 +53,7 @@ export function UserListTable({
   }
 
   return (
-    <div className="bg-surface-container-lowest dark:bg-inverse-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col">
+    <div className="bg-surface-container-lowest dark:bg-surface-container-low rounded-xl border border-outline-variant overflow-hidden shadow-sm flex flex-col">
       <div className="overflow-x-auto custom-scrollbar">
         {isLoading ? (
           <div className="p-6 space-y-4 w-full">

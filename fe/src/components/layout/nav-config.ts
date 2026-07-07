@@ -31,5 +31,5 @@ export const footerNav: NavItem[] = [
 ];
 
 export function getMainNav(role?: string): NavItem[] {
-  return role === 'admin' ? adminMainNav : learnerMainNav;
+  return role?.toLowerCase() === 'admin' ? adminMainNav : learnerMainNav;
 }

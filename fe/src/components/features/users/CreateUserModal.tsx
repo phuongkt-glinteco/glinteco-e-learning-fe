@@ -75,7 +75,7 @@ export function CreateUserModal({
       />
 
       {/* Side Drawer */}
-      <div className="relative w-full max-w-md bg-surface-container-lowest dark:bg-inverse-surface shadow-2xl border-l border-outline-variant z-10 flex flex-col h-full animate-in slide-in-from-right duration-300">
+      <div className="relative w-full max-w-md bg-surface-container-lowest dark:bg-surface shadow-2xl border-l border-outline-variant z-10 flex flex-col h-full animate-in slide-in-from-right duration-300">
         {/* Drawer Header */}
         <div className="flex items-center justify-between p-6 border-b border-outline-variant bg-surface dark:bg-surface-container">
           <h2 className="font-bold text-xl text-on-surface">
@@ -92,7 +92,7 @@ export function CreateUserModal({
         </div>
 
         {/* Drawer Form */}
-        <div className="flex-1 overflow-y-auto p-6 bg-surface-bright dark:bg-inverse-surface">
+        <div className="flex-1 overflow-y-auto p-6 bg-surface-bright dark:bg-surface">
           <form id="create-user-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Full Name */}
             <div className="space-y-1.5">

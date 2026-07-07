@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import UserProfileAvatar from './UserProfileAvatar';
 import { useTranslations } from 'next-intl';
-import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 import { useAuth } from '@/providers/AuthProvider';
 import { SidebarTrigger } from '@/components/ui/default/sidebar';
 import { NotificationPopoverContainer } from '@/components/features/notifications/containers/NotificationPopoverContainer';
@@ -43,9 +42,6 @@ export default function Header() {
             type="text"
           />
         </div>
-
-        {/* Language Switcher Toggle (VI/EN) - Only on PC Header */}
-        <LanguageToggle size="sm" />
 
         <NotificationPopoverContainer />
 

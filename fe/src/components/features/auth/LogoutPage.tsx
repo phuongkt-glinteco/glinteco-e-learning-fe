@@ -3,22 +3,19 @@
 import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
-import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/default/card';
 import LanguageToggle from '@/components/ui/buttons/LanguageToggle';
 
 export default function LogoutPage() {
   const t = useTranslations('LogoutPage');
   const { logout } = useAuth();
-  const router = useRouter();
 
   useEffect(() => {
     async function performLogout() {
       await logout();
-      router.push('/login');
     }
     performLogout();
-  }, [logout, router]);
+  }, [logout]);
 
   return (
     <Card className="w-full max-w-[440px] border-outline-variant shadow-sm rounded-xl relative overflow-hidden">

@@ -58,7 +58,7 @@ export default function RegisterPage() {
   useEffect(() => {
     if (!isRegistered) return;
     if (countdown <= 0) {
-      router.push('/login?registered=true');
+      router.replace('/login?registered=true');
       return;
     }
     const timer = setTimeout(() => setCountdown((prev) => prev - 1), 1000);
@@ -123,7 +123,7 @@ export default function RegisterPage() {
               {t('registrationSuccessDescription')}
             </p>
             <Button
-              onClick={() => router.push('/login')}
+              onClick={() => router.replace('/login?registered=true')}
               className="w-full h-12 mb-4"
             >
               {t('goToLogin')}

@@ -15,7 +15,7 @@ type AuthMiddlewareRequest = NextRequest & {
 };
 
 function getDashboardUrl(role: string | undefined, req: NextRequest) {
-  return new URL(role === 'admin' ? '/dashboard/admin' : '/dashboard/learner', req.url);
+  return new URL(role?.toLowerCase() === 'admin' ? '/dashboard/admin' : '/dashboard/learner', req.url);
 }
 
 export default auth((req: AuthMiddlewareRequest) => {
@@ -24,9 +24,10 @@ export default auth((req: AuthMiddlewareRequest) => {
 
   const authCookie = req.cookies.get('auth_verified');
   const isAuthenticated = Boolean(session?.user) || Boolean(authCookie?.value);
-  const role =
+  const rawRole =
     (session?.user as { role?: string } | undefined)?.role ??
     authCookie?.value;
+  const role = rawRole?.toLowerCase();
 
   // Allow public routes, next-auth API, static assets
   if (publicRoutes.includes(pathname) || pathname.startsWith(apiAuthPath)) {

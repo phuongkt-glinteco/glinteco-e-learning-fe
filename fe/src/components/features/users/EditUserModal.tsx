@@ -55,7 +55,7 @@ export function EditUserModal({
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-md bg-surface-container-lowest dark:bg-inverse-surface rounded-2xl shadow-2xl p-6 border border-outline-variant z-10 animate-in zoom-in-95 duration-200 space-y-6">
+      <div className="relative w-full max-w-md bg-surface-container-lowest dark:bg-surface rounded-2xl shadow-2xl p-6 border border-outline-variant z-10 animate-in zoom-in-95 duration-200 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-outline-variant pb-4">
           <h2 className="font-bold text-lg text-on-surface">

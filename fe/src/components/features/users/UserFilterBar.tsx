@@ -26,7 +26,7 @@ export function UserFilterBar({
   const t = useTranslations('UsersPage');
 
   return (
-    <div className="bg-surface-container-lowest dark:bg-inverse-surface rounded-xl border border-outline-variant p-4 mb-stack-lg shadow-sm flex flex-wrap gap-4 items-center">
+    <div className="bg-surface-container-lowest dark:bg-surface-container-low rounded-xl border border-outline-variant p-4 mb-stack-lg shadow-sm flex flex-wrap gap-4 items-center">
       {/* Search Input */}
       <div className="flex-1 min-w-[280px] relative">
         <Icon

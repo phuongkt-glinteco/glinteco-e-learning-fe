@@ -35,5 +35,6 @@
   "role": "Kỹ sư Backend",
   "subLogoTitle": "Cổng thông tin kỹ thuật",
   "logout": "Đăng xuất",
-  "leaderboard": "Bảng xếp hạng"
+  "leaderboard": "Bảng xếp hạng",
+  "userManager": "Quản lý người dùng"
 }

@@ -35,5 +35,6 @@
   "help": "Help",
   "role": "Backend Engineer",
   "subLogoTitle": "Engineering Portal",
-  "logout": "Logout"
+  "logout": "Logout",
+  "userManager": "User Management"
 }

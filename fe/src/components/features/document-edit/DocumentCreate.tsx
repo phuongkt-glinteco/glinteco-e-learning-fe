@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { documentsControllerCreate, documentsControllerFindAllTags } from '@/services/api-client';
 import type { TagResponseDto } from '@/services/api-client';
+import { normalizeDocumentTags } from '@/components/features/documents/types';
 import { DocumentEditSidebar } from './DocumentEditSidebar';
 import { GuideEditor, type GuideEditorData } from './GuideEditor';
 import { TutorialEditor, type TutorialEditorData } from './TutorialEditor';
@@ -47,14 +48,13 @@ export default function DocumentCreate() {
 
   useEffect(() => {
     documentsControllerFindAllTags({ throwOnError: true })
-      .then((res) => setAllTags((res.data as TagResponseDto[] | undefined) ?? []))
+      .then((res) => setAllTags(normalizeDocumentTags(res.data) as TagResponseDto[]))
       .catch(() => {});
       
     if (tree.length === 0) {
       setTree([{ label: 'Documents', href: '/documents' }]);
     }
     pushNode({ label: 'Create', href: window.location.pathname });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleCreate() {

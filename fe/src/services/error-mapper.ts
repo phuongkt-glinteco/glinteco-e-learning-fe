@@ -165,10 +165,7 @@ export function createHandler(
       if (action === 'CONTINUE') {
         return { type: 'CONTINUE', error };
       }
-      window?.console?.error(`Unhandled error: ${error.message}`, error.stack, error.name, error.cause?.toString());
-      if (!window) {
-        return { type: 'FINAL_THROW', error: new UiShowError(params.errorCode, 'UwU') };
-      }
+      
       return { type: 'FINAL_THROW', error: new UiShowError(params.errorCode, params.name) };
     },
   };

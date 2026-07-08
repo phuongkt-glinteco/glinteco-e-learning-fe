@@ -45,6 +45,7 @@ import CohortDetailPage from './CohortDetailPage.json';
 import UsersPage from './UsersPage.json';
 import SettingsPage from './SettingsPage.json';
 import SupportPage from './SupportPage.json';
+import ResourceDocumentPickerDialog from './ResourceDocumentPickerDialog.json';
 
 const messages: Record<string, unknown> = {
   LogoutPage,
@@ -92,6 +93,7 @@ const messages: Record<string, unknown> = {
   UsersPage,
   SettingsPage,
   SupportPage,
+  ResourceDocumentPickerDialog,
 };
 
 export default messages;

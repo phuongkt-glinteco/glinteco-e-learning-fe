@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormGetValues } from 'react-hook-form';
 import { documentsControllerFindAllTags } from '@/services/api-client';
 import type { TagResponseDto } from '@/services/api-client';
@@ -11,12 +12,12 @@ import { Label } from '@/components/ui/default/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/default/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/default/card';
 
-const UNIT_OPTIONS: { value: TimeUnit; label: string }[] = [
-  { value: 'm', label: 'Minutes' },
-  { value: 'h', label: 'Hours' },
-  { value: 'd', label: 'Days' },
-  { value: 'w', label: 'Weeks' },
-  { value: 'M', label: 'Months' },
+const UNIT_OPTIONS: { value: TimeUnit; labelKey: string }[] = [
+  { value: 'm', labelKey: 'minutes' },
+  { value: 'h', labelKey: 'hours' },
+  { value: 'd', labelKey: 'days_label' },
+  { value: 'w', labelKey: 'weeks_label' },
+  { value: 'M', labelKey: 'months_label' },
 ];
 
 interface ExerciseBasicInfoProps {
@@ -28,6 +29,7 @@ interface ExerciseBasicInfoProps {
 }
 
 export default function ExerciseBasicInfo({ register, errors, setValue, getValues, t }: ExerciseBasicInfoProps) {
+  const tu = useTranslations('TimeUnit');
   const [tags, setTags] = useState<TagResponseDto[]>([]);
   const [loadingTags, setLoadingTags] = useState(false);
 
@@ -160,7 +162,7 @@ export default function ExerciseBasicInfo({ register, errors, setValue, getValue
               <SelectContent>
                 {UNIT_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {tu(opt.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>

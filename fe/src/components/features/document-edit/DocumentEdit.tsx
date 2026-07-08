@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { DocumentResponseDto, TagResponseDto } from '@/services/api-client';
 import { documentsControllerUpdate, documentsControllerFindAllTags } from '@/services/api-client';
+import { normalizeDocumentTags } from '@/components/features/documents/types';
 import { DocumentEditSidebar } from './DocumentEditSidebar';
 import { GuideEditor, type GuideEditorData } from './GuideEditor';
 import { TutorialEditor, type TutorialEditorData } from './TutorialEditor';
@@ -125,7 +126,7 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
   useEffect(() => {
     documentsControllerFindAllTags({ throwOnError: true })
       .then((res) => {
-        const tags = (res.data as TagResponseDto[] | undefined) ?? [];
+        const tags = normalizeDocumentTags(res.data) as TagResponseDto[];
         setAllTags(tags);
         setSelectedTagIds(
           tags.filter((tag) => document.tags.some((dt) => dt.id === tag.id)).map((t) => t.id)

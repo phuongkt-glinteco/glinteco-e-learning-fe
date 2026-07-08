@@ -15,7 +15,7 @@
   "reviews": "Hàng chờ chấm bài",
   "documentation": "Tài liệu",
   "document": "Tài liệu",
-  "documentAndTags": "Document & Tags",
+  "documentAndTags": "Tài liệu & Nhãn",
   "settings": "Cài đặt",
   "support": "Hỗ trợ",
   "notifications": "Thông báo",
@@ -36,5 +36,7 @@
   "subLogoTitle": "Cổng thông tin kỹ thuật",
   "logout": "Đăng xuất",
   "leaderboard": "Bảng xếp hạng",
-  "userManager": "Quản lý người dùng"
+  "userManager": "Quản lý người dùng",
+  "learnerProgress": "Tiến độ học viên",
+  "learnerProgressDesc": "Theo dõi tiến độ học tập toàn khóa học, so sánh tốc độ với mức trung bình lớp và kiểm tra chi tiết bài học của từng học viên."
 }

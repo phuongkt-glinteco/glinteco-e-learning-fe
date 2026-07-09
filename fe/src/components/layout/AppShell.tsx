@@ -7,18 +7,20 @@ import { AppSidebar } from './AppSidebar';
 import Header from './Header';
 import { useAuth } from '@/providers/AuthProvider';
 import LoadingPage from '../ui/loading/LoadingPage';
+import { FeatureFooterProvider, useFeatureFooter } from './FeatureFooterContext';
 
 interface AppShellProps {
   children: ReactNode;
 }
 
-export default function AppShell({ children }: AppShellProps) {
+function AppShellInner({ children }: AppShellProps) {
   const { loading } = useAuth();
+  const { footer } = useFeatureFooter();
 
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="overflow-hidden bg-background">
+      <SidebarInset className="overflow-hidden bg-background flex flex-col h-svh max-h-svh">
         <Header />
         <main className="flex-1 overflow-hidden flex flex-col relative w-full">
           {loading ? (
@@ -36,8 +38,22 @@ export default function AppShell({ children }: AppShellProps) {
             </ScrollArea>
           )}
         </main>
+
+        {/* Dynamic Registered Footer Slot (Luôn nằm đúng dưới nội dung SidebarInset, không đè Sidebar) */}
+        {footer && (
+          <div className="w-full shrink-0 z-50 bg-surface border-t border-outline-variant">
+            {footer}
+          </div>
+        )}
       </SidebarInset>
     </SidebarProvider>
   );
 }
 
+export default function AppShell({ children }: AppShellProps) {
+  return (
+    <FeatureFooterProvider>
+      <AppShellInner>{children}</AppShellInner>
+    </FeatureFooterProvider>
+  );
+}

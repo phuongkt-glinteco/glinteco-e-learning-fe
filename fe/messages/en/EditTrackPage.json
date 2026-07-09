@@ -36,5 +36,15 @@
   "addLesson": "Add Lesson",
   "noLessonsYet": "No lessons yet",
   "noLessonsHint": "Drag and drop to reorder lessons after adding them.",
-  "lessons": "lessons"
+  "lessons": "lessons",
+  "tagsLabel": "Tags",
+  "tagPlaceholder": "Select or add tags...",
+  "statusLabel": "Publish Status",
+  "statusDraft": "Draft",
+  "statusPublished": "Published",
+  "statusArchived": "Archived",
+  "lessonListHeading": "Track Lessons ({count})",
+  "lessonExerciseCount": "{count} exercises",
+  "manageLessonAction": "Edit lesson",
+  "saveSuccess": "Track updated successfully!"
 }

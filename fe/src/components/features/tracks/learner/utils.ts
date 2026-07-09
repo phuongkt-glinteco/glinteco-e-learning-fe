@@ -18,6 +18,7 @@ import type {
   LearnerExercise,
   LearnerExerciseFeedItem,
   LearnerExerciseDetail,
+  LessonAccessState,
   LearnerExerciseResource,
   LearnerSubmissionHistoryItem,
   LearnerSubmissionState,
@@ -58,6 +59,16 @@ type ErrorResponseLike = {
   statusCode?: number;
 };
 
+export interface LessonCompletionBlockerExercise {
+  id: string | null;
+  title: string;
+}
+
+export interface LessonCompletionBlocker {
+  message: string;
+  exercises: LessonCompletionBlockerExercise[];
+}
+
 type FlexibleTrackFields = 'accessStatus' | 'lockedReason' | 'currentLessonId' | 'level' | 'thumbnail';
 type OptionalTrackDetailFields = 'prevTrack' | 'nextTrack';
 
@@ -76,6 +87,7 @@ export type ExerciseSummaryContract = Partial<Omit<ExerciseSummaryDto, 'lessonId
   lessonId?: unknown;
   prUrl?: unknown;
   status?: unknown;
+  isMandatory?: unknown;
 };
 export type ExerciseDetailContract = Omit<ExerciseDetailDto, 'lessonId' | 'prUrl' | 'objectives' | 'steps' | 'resources' | 'status'> & {
   lessonId?: unknown;
@@ -84,6 +96,7 @@ export type ExerciseDetailContract = Omit<ExerciseDetailDto, 'lessonId' | 'prUrl
   steps?: unknown;
   resources?: unknown;
   status?: unknown;
+  isMandatory?: unknown;
 };
 export type SubmissionDetailContract = Omit<
   SubmissionDetailDto,
@@ -148,6 +161,61 @@ export function getErrorStatus(error: unknown): number | null {
   return typeof maybeStatus === 'number' ? maybeStatus : null;
 }
 
+export function getLessonCompletionBlocker(error: unknown): LessonCompletionBlocker | null {
+  if (getErrorStatus(error) !== 400 || typeof error !== 'object' || error === null) return null;
+
+  const responseData = (error as { response?: { data?: unknown } }).response?.data;
+  const errorBody = (error as { body?: unknown }).body;
+  const payload = (responseData && typeof responseData === 'object' ? responseData : null)
+    ?? (errorBody && typeof errorBody === 'object' ? errorBody : null);
+
+  if (!payload) return null;
+
+  const record = payload as Record<string, unknown>;
+  const rawExercises = record.requiredExercises
+    ?? record.mandatoryExercises
+    ?? record.missingExercises
+    ?? record.exercises;
+
+  const exercises = Array.isArray(rawExercises)
+    ? rawExercises
+        .map((item) => {
+          if (typeof item === 'string') {
+            return {
+              id: null,
+              title: item.trim(),
+            };
+          }
+
+          if (typeof item !== 'object' || item === null) return null;
+
+          const exerciseRecord = item as Record<string, unknown>;
+          const title = normalizeNullableString(exerciseRecord.title)
+            ?? normalizeNullableString(exerciseRecord.name)
+            ?? normalizeNullableString(exerciseRecord.exerciseTitle);
+
+          if (!title) return null;
+
+          return {
+            id: normalizeNullableString(exerciseRecord.id)
+              ?? normalizeNullableString(exerciseRecord.exerciseId),
+            title,
+          };
+        })
+        .filter((item): item is LessonCompletionBlockerExercise => Boolean(item))
+    : [];
+
+  if (exercises.length === 0) return null;
+
+  const message = normalizeNullableString(record.message)
+    ?? 'Complete the required exercises before finishing this lesson.';
+
+  return {
+    message,
+    exercises,
+  };
+}
+
 export function extractDataArray<T>(response: ApiListResponse<T>): T[] {
   if (Array.isArray(response)) return response;
   if (response && Array.isArray(response.data)) return response.data;
@@ -191,6 +259,25 @@ export function getAdjacentLessonIds(
       ? lessons[activeLessonIndex + 1]?.id ?? null
       : null,
   };
+}
+
+export function getLessonAccessState(
+  lessons: Array<Pick<TrackLessonPreview, 'id' | 'order' | 'completed'>>,
+  lessonId: string
+): LessonAccessState {
+  const sortedLessons = [...lessons].sort((a, b) => a.order - b.order);
+  const lessonIndex = sortedLessons.findIndex((lesson) => lesson.id === lessonId);
+  if (lessonIndex < 0) return 'locked';
+
+  const lesson = sortedLessons[lessonIndex];
+  if (lesson.completed) return 'completed';
+  if (lessonIndex === 0) return 'current';
+
+  const previousLessonsCompleted = sortedLessons
+    .slice(0, lessonIndex)
+    .every((previousLesson) => previousLesson.completed);
+
+  return previousLessonsCompleted ? 'current' : 'locked';
 }
 
 export function normalizeNullableString(value: NullableUnknown): string | null {
@@ -254,6 +341,20 @@ function normalizeTag(value: NullableUnknown): string {
     ?? normalizeNullableString(tag.title)
     ?? normalizeNullableString(tag.id)
     ?? 'Practice';
+}
+
+function normalizeBoolean(value: NullableUnknown): boolean | null {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') return true;
+    if (normalized === 'false') return false;
+  }
+  if (typeof value === 'number') {
+    if (value === 1) return true;
+    if (value === 0) return false;
+  }
+  return null;
 }
 
 export function normalizeUrl(value: NullableUnknown): string | null {
@@ -528,6 +629,7 @@ export function normalizeExerciseSummary(exercise: ExerciseSummaryContract): Lea
     estimatedTime: exercise.estimatedTime?.trim() || 'TBD',
     xp: exercise.xp ?? 0,
     status: normalizeSubmissionStatus(exercise.status),
+    isMandatory: normalizeBoolean(exercise.isMandatory),
     tag: normalizeTag(exercise.tag),
     prUrl: normalizeUrl(exercise.prUrl),
   };

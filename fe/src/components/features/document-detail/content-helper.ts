@@ -5,19 +5,41 @@ import type {
   RunbookContent,
   ReferenceContent,
   LinkContent,
+  ResourceRefLike,
+  TutorialStep,
 } from './types';
 
-function parseResourceRef(item: any) {
+type NamedRecord = Record<string, unknown>;
+type RunbookPhase = { name: string; steps: TutorialStep[] };
+type ReferencePropertyRecord = {
+  name?: unknown;
+  type?: unknown;
+  required?: unknown;
+  description?: unknown;
+  defaultValue?: unknown;
+};
+type ReferenceSectionRecord = { heading?: unknown; body?: unknown };
+
+function parseResourceRef(item: unknown): ResourceRefLike {
   if (typeof item === 'string') return item;
   if (item && typeof item === 'object') {
+    const record = item as NamedRecord;
     return {
-      id: String(item.id || ''),
-      name: item.name ? String(item.name) : undefined,
-      title: item.title ? String(item.title) : undefined,
-      kind: item.kind ? String(item.kind) : undefined,
+      id: String(record.id || ''),
+      name: record.name ? String(record.name) : undefined,
+      title: record.title ? String(record.title) : undefined,
+      kind: record.kind ? String(record.kind) : undefined,
     };
   }
   return String(item || '');
+}
+
+function parseTutorialStep(item: unknown): TutorialStep {
+  const record = typeof item === 'object' && item !== null ? item as NamedRecord : {};
+  return {
+    title: String(record.title || ''),
+    body: String(record.body || ''),
+  };
 }
 
 export function getDocumentContent(doc: DocumentResponseDto) {
@@ -54,7 +76,7 @@ export function getDocumentContent(doc: DocumentResponseDto) {
         summary: typeof raw.summary === 'string' ? raw.summary : undefined,
         explanation: typeof raw.explanation === 'string' ? raw.explanation : undefined,
         legacySteps: Array.isArray(raw.steps) && raw.steps.length > 0 && typeof raw.steps[0] === 'object'
-          ? raw.steps.map((s: any) => ({ title: String(s?.title || ''), body: String(s?.body || '') }))
+          ? raw.steps.map(parseTutorialStep)
           : undefined,
       } as TutorialContent;
 
@@ -75,10 +97,13 @@ export function getDocumentContent(doc: DocumentResponseDto) {
         symptoms: Array.isArray(raw.symptoms) ? raw.symptoms.map((s) => String(s)) : undefined,
         status: typeof raw.status === 'string' ? raw.status : undefined,
         phases: Array.isArray(raw.phases)
-          ? raw.phases.map((p: any) => ({
-              name: String(p?.name || ''),
-              steps: Array.isArray(p?.steps) ? p.steps.map((s: any) => ({ title: String(s?.title || ''), body: String(s?.body || '') })) : [],
-            }))
+          ? raw.phases.map((phase) => {
+              const phaseRecord = typeof phase === 'object' && phase !== null ? phase as NamedRecord : {};
+              return {
+                name: String(phaseRecord.name || ''),
+                steps: Array.isArray(phaseRecord.steps) ? phaseRecord.steps.map(parseTutorialStep) : [],
+              } satisfies RunbookPhase;
+            })
           : undefined,
       } as RunbookContent;
 
@@ -87,18 +112,24 @@ export function getDocumentContent(doc: DocumentResponseDto) {
         category: typeof raw.category === 'string' ? raw.category : undefined,
         version: typeof raw.version === 'string' ? raw.version : undefined,
         properties: Array.isArray(raw.properties)
-          ? raw.properties.map((p: any) => ({
-              name: String(p?.name || ''),
-              type: p?.type ? String(p.type) : undefined,
-              required: Boolean(p?.required),
-              description: p?.description ? String(p.description) : undefined,
-              defaultValue: p?.defaultValue ? String(p.defaultValue) : undefined,
-            }))
+          ? raw.properties.map((property) => {
+              const p = typeof property === 'object' && property !== null ? property as ReferencePropertyRecord : {};
+              return {
+                name: String(p.name || ''),
+                type: p.type ? String(p.type) : undefined,
+                required: Boolean(p.required),
+                description: p.description ? String(p.description) : undefined,
+                defaultValue: p.defaultValue ? String(p.defaultValue) : undefined,
+              };
+            })
           : undefined,
         examples: typeof raw.examples === 'string' ? raw.examples : undefined,
         notes: typeof raw.notes === 'string' ? raw.notes : undefined,
         sections: Array.isArray(raw.sections)
-          ? raw.sections.map((s: any) => ({ heading: String(s?.heading || ''), body: String(s?.body || '') }))
+          ? raw.sections.map((section) => {
+              const s = typeof section === 'object' && section !== null ? section as ReferenceSectionRecord : {};
+              return { heading: String(s.heading || ''), body: String(s.body || '') };
+            })
           : undefined,
       } as ReferenceContent;
 

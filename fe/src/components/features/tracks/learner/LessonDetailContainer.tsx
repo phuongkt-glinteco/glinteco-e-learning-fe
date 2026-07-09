@@ -8,6 +8,8 @@ import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 import { completeLesson, fetchLessonPage } from './courseLearningApi';
 import {
   getAdjacentLessonIds,
+  getLessonAccessState,
+  getLessonCompletionBlocker,
   getErrorMessage,
   getLearnerRouteBase,
   getRouteParam,
@@ -116,6 +118,7 @@ export default function LessonDetailContainer() {
   const [completing, setCompleting] = useState(false);
   const [completionMessage, setCompletionMessage] = useState<string | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
+  const [completionBlocker, setCompletionBlocker] = useState<ReturnType<typeof getLessonCompletionBlocker>>(null);
   const { pushNode, setTree, tree } = useBreadcrumbStore();
 
   const loadLessonData = useCallback(async () => {
@@ -128,6 +131,7 @@ export default function LessonDetailContainer() {
     setLoading(true);
     setError(null);
     setCompletionError(null);
+    setCompletionBlocker(null);
 
     try {
       const lessonPage = await fetchLessonPage(courseId, lessonId);
@@ -159,15 +163,21 @@ export default function LessonDetailContainer() {
     () => getAdjacentLessonIds(lessons, lessonId),
     [lessons, lessonId]
   );
+  const activeLessonAccessState = useMemo(
+    () => getLessonAccessState(lessons, lessonId),
+    [lessons, lessonId]
+  );
+  const activeLessonLocked = activeLessonAccessState === 'locked';
 
   const nextTrack = track?.nextTrack && track.nextTrack.id ? track.nextTrack : null;
 
   async function handleCompleteLesson() {
-    if (!activeLesson || activeLesson.completed || !track) return;
+    if (!activeLesson || activeLesson.completed || !track || activeLessonLocked) return;
 
     setCompleting(true);
     setCompletionError(null);
     setCompletionMessage(null);
+    setCompletionBlocker(null);
 
     try {
       const response = await completeLesson(activeLesson.id);
@@ -182,6 +192,15 @@ export default function LessonDetailContainer() {
       setTrack({ ...track, lessonsCompleted: nextCompletedCount, status: nextStatus });
       await loadLessonData();
     } catch (completeError: unknown) {
+      const blocker = getLessonCompletionBlocker(completeError);
+      if (blocker) {
+        setCompletionBlocker(blocker);
+        setCompletionError(t('mandatoryExercisesIncomplete', {
+          defaultValue: 'Complete the required exercises before finishing this lesson.',
+        }));
+        return;
+      }
+
       setCompletionError(getErrorMessage(completeError, t('completeFailed', { defaultValue: 'Failed to complete lesson.' })));
     } finally {
       setCompleting(false);
@@ -235,16 +254,19 @@ export default function LessonDetailContainer() {
       track={track}
       lessons={lessons}
       activeLesson={activeLesson}
+      activeLessonLocked={activeLessonLocked}
       previousLessonId={previousLessonId}
       nextLessonId={nextLessonId ?? (nextTrack ? 'track:' + nextTrack.id : null)}
       exercises={exercises}
       completing={completing}
       completionMessage={completionMessage}
       completionError={completionError}
+      completionBlocker={completionBlocker}
       onBackToTracks={() => router.push(`/${routeBase}/${courseId}`)}
       onSelectLesson={handleSelectLesson}
       onOpenExercise={handleOpenExercise}
       onCompleteLesson={handleCompleteLesson}
+      onCloseCompletionBlocker={() => setCompletionBlocker(null)}
     />
   );
 }

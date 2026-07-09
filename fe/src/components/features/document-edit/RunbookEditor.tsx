@@ -5,13 +5,12 @@ import { Textarea } from '@/components/ui/default/textarea';
 import { Label } from '@/components/ui/default/label';
 import { DocumentReadingEditor } from './DocumentReadingEditor';
 import { ResourceSelector } from './ResourceSelector';
-import { LineByLineInput } from './LineByLineInput';
-import type { ResourceRef } from '@/components/features/document-detail/types';
+import type { ResourceRef, ResourceRefLike } from '@/components/features/document-detail/types';
 
 export interface RunbookEditorData {
   trigger?: string;
   impact?: string;
-  prerequisites?: any[];
+  prerequisites?: ResourceRefLike[];
   procedure?: string;
   validation?: string;
   rollback?: string;

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import type { DocumentResponseDto } from '@/services/api-client';
 import { MarkdownRenderer } from '@/lib/md-renderer';
 import { BookmarkButton } from '../documents/BookmarkButton';
-import type { GuideContent } from './types';
+import type { GuideContent, ResourceRefLike } from './types';
 
 interface CollapsibleBlockProps {
   id: string;
@@ -16,7 +16,7 @@ interface CollapsibleBlockProps {
   bgClass?: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
-  t: any;
+  t: (key: string) => string;
 }
 
 export function CollapsibleBlock({
@@ -80,6 +80,20 @@ export function ReadingContent({ content }: { content: GuideContent }) {
   const relatedDocs = content.relatedDocs || [];
   const stepsContent = content.steps || content.body || '';
 
+  function getResourceMeta(resource: ResourceRefLike) {
+    if (typeof resource === 'string') {
+      return {
+        id: resource.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] || '',
+        label: resource,
+      };
+    }
+
+    return {
+      id: resource.id || '',
+      label: resource.title || resource.name || resource.id,
+    };
+  }
+
   if (!content.objective && !stepsContent && !content.expectedResult && prerequisites.length === 0) {
     return <p className="text-on-surface-variant italic py-20 text-center">No content available.</p>;
   }
@@ -113,8 +127,7 @@ export function ReadingContent({ content }: { content: GuideContent }) {
 
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {prerequisites.map((req, idx) => {
-              const id = typeof req === 'object' ? req.id : (req.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] || '');
-              const label = typeof req === 'object' ? (req.title || req.name || req.id) : req;
+              const { id, label } = getResourceMeta(req);
               const href = id ? `/documents/${id}` : `/documents?search=${encodeURIComponent(label)}`;
 
               return (

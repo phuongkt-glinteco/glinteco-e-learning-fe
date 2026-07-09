@@ -275,7 +275,7 @@ export async function mockFetchUsers(params: UserQueryParams = {}): Promise<User
   const role = params.role && params.role !== 'all' ? params.role : '';
   const cohort = params.cohort && params.cohort !== 'all' ? params.cohort : '';
 
-  let filtered = mockUsersStore.filter((u) => {
+  const filtered = mockUsersStore.filter((u) => {
     const matchSearch =
       !search ||
       u.fullName.toLowerCase().includes(search) ||
@@ -291,7 +291,7 @@ export async function mockFetchUsers(params: UserQueryParams = {}): Promise<User
   const total = isDefaultFilter ? Math.max(1248, mockUsersStore.length) : filtered.length;
 
   const startIndex = (page - 1) * limit;
-  let paginatedData = filtered.slice(startIndex, startIndex + limit);
+  const paginatedData = filtered.slice(startIndex, startIndex + limit);
 
   // Nếu page lớn nhưng không có đủ trong mảng tĩnh 20 user khi ở chế độ default filter, ta tạo động user để demo mượt mà
   if (isDefaultFilter && paginatedData.length < limit && startIndex < total) {

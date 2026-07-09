@@ -38,7 +38,7 @@ export default function ContinueLearningSection() {
   if (loading) return <Skeleton className="h-40 w-full rounded-xl" />;
 
   const currentTrack = tracks.find((track) => track.status === 'in_progress')
-    ?? tracks.find((track) => track.status !== 'locked');
+    ?? tracks[0];
 
   function getCourseHref(track: LearnerTrack) {
     return track.currentLessonId

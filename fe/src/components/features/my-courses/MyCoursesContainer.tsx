@@ -9,7 +9,7 @@ import Skeleton from '@/components/ui/loading/Skeleton';
 import { MyCoursesView } from './MyCoursesView';
 import {
   filterMyCourses,
-  hasAnyActiveCourse,
+  hasAnyCourse,
   type MyCourseTab,
 } from './types';
 
@@ -84,7 +84,7 @@ export default function MyCoursesContainer() {
     () => filterMyCourses(tracks, 'completed'),
     [tracks]
   );
-  const hasActive = useMemo(() => hasAnyActiveCourse(tracks), [tracks]);
+  const hasCourses = useMemo(() => hasAnyCourse(tracks), [tracks]);
 
   const visibleTracks = activeTab === 'in_progress' ? inProgressList : completedList;
 
@@ -111,7 +111,7 @@ export default function MyCoursesContainer() {
       activeTab={activeTab}
       inProgressCount={inProgressList.length}
       completedCount={completedList.length}
-      hasAnyActiveCourse={hasActive}
+      hasAnyCourse={hasCourses}
       onTabChange={setActiveTab}
       onOpen={handleOpen}
     />

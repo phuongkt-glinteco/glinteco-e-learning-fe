@@ -1,7 +1,7 @@
 {
   "courses": "Courses",
   "title": "Courses",
-  "subtitle": "Browse every learning track, continue open courses, and see what is still locked.",
+  "subtitle": "Browse every learning track, start any course, and continue from your latest lesson.",
   "filter_all": "All",
   "filter_in_progress": "In progress",
   "filter_completed": "Completed",
@@ -21,10 +21,12 @@
   "status_in_progress": "In progress",
   "status_completed": "Completed",
   "status_locked": "Locked",
+  "status_not_started": "Not started",
   "noDescription": "Track details are being prepared.",
   "lessonCount": "{count, plural, =0 {0 lessons} =1 {1 lesson} other {# lessons}}",
   "progress": "Progress",
   "locked": "Locked",
+  "start": "Start",
   "continue": "Continue",
   "review": "Review"
 }

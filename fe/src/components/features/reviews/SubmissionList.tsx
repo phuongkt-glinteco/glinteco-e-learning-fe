@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/default/badge';
 import { ScrollArea } from '@/components/ui/default/scroll-area';
 import { Skeleton } from '@/components/ui/default/skeleton';
 import type { SubmissionFeedItemDto } from '@/services/api-client';
+import type { VariantProps } from 'class-variance-authority';
+import type { badgeVariants } from '@/components/ui/default/badge';
 
 interface SubmissionListProps {
   submissions: SubmissionFeedItemDto[];
@@ -15,7 +17,7 @@ interface SubmissionListProps {
   onSelect: (sub: SubmissionFeedItemDto) => void;
   onLoadMore: () => void;
   formatRelative: (iso: string) => string;
-  getBadgeVariant: (status: string) => any;
+  getBadgeVariant: (status: string) => VariantProps<typeof badgeVariants>['variant'];
 }
 
 export function SubmissionList({

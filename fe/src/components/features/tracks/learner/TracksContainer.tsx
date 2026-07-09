@@ -93,8 +93,6 @@ export default function TracksContainer() {
   }, [loadTracks]);
 
   function handleOpenTrack(track: LearnerTrack) {
-    if (track.status === 'locked') return;
-
     setOpeningTrackId(track.id);
     router.push(`/courses/${track.id}`);
   }

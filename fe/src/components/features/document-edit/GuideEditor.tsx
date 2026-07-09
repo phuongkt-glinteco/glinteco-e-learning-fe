@@ -5,11 +5,11 @@ import { Textarea } from '@/components/ui/default/textarea';
 import { Label } from '@/components/ui/default/label';
 import { DocumentReadingEditor } from './DocumentReadingEditor';
 import { ResourceSelector } from './ResourceSelector';
-import type { ResourceRef } from '@/components/features/document-detail/types';
+import type { ResourceRef, ResourceRefLike } from '@/components/features/document-detail/types';
 
 export interface GuideEditorData {
   objective?: string;
-  prerequisites?: any[];
+  prerequisites?: ResourceRefLike[];
   steps?: string;
   expectedResult?: string;
   relatedDocs?: ResourceRef[];

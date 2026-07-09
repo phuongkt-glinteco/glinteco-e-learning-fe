@@ -1,7 +1,7 @@
 {
   "courses": "Khóa học",
   "title": "Khóa học",
-  "subtitle": "Duyệt tất cả lộ trình học, tiếp tục khóa đã mở và xem các khóa còn bị khóa.",
+  "subtitle": "Duyệt tất cả lộ trình học, bắt đầu bất kỳ khóa nào và tiếp tục từ bài học gần nhất.",
   "filter_all": "Tất cả",
   "filter_in_progress": "Đang học",
   "filter_completed": "Đã hoàn thành",
@@ -21,10 +21,12 @@
   "status_in_progress": "Đang học",
   "status_completed": "Đã hoàn thành",
   "status_locked": "Chưa mở",
+  "status_not_started": "Chưa bắt đầu",
   "noDescription": "Thông tin track đang được chuẩn bị.",
   "lessonCount": "{count, plural, =0 {0 bài học} =1 {1 bài học} other {# bài học}}",
   "progress": "Tiến độ",
   "locked": "Đã khóa",
+  "start": "Bắt đầu",
   "continue": "Tiếp tục",
   "review": "Xem lại"
 }

@@ -32,7 +32,6 @@ export function CourseDetailView({
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
-  const isLocked = track.status === 'locked';
 
   return (
     <section className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
@@ -47,7 +46,7 @@ export function CourseDetailView({
               <span className="material-symbols-outlined text-[17px]">
                 {track.icon || 'route'}
               </span>
-              {isLocked ? t('courseLocked', { defaultValue: 'Course locked' }) : t('learningTrack', { defaultValue: 'Learning Track' })}
+              {t('learningTrack', { defaultValue: 'Learning Track' })}
             </div>
             <h1 className="headline-lg break-words text-primary">{track.title}</h1>
             <p className="mt-3 max-w-[760px] min-w-0 break-words body-md text-on-surface-variant">
@@ -68,12 +67,6 @@ export function CourseDetailView({
                 {track.lessonsCompleted} {t('completed', { defaultValue: 'completed' })}
               </span>
             </div>
-
-            {track.lockedReason && (
-              <div className="mt-4 rounded-lg border border-outline-variant bg-surface-container-low p-3 body-sm break-words text-on-surface-variant">
-                {track.lockedReason}
-              </div>
-            )}
           </div>
 
           <div className="flex items-center justify-center">
@@ -86,7 +79,6 @@ export function CourseDetailView({
         <CourseRoadmap
           lessons={lessons}
           activeLessonId={continueLessonId}
-          disabled={isLocked}
           onOpenLesson={onOpenLesson}
         />
 
@@ -101,9 +93,9 @@ export function CourseDetailView({
                 <button
                   type="button"
                   onClick={onContinueCourse}
-                  disabled={isLocked || (!continueLessonId && !nextTrack)}
+                  disabled={!continueLessonId && !nextTrack}
                   className={`mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 label-sm transition-colors ${
-                    isLocked || (!continueLessonId && !nextTrack)
+                    !continueLessonId && !nextTrack
                       ? 'cursor-not-allowed bg-surface-container text-outline'
                       : 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
                   }`}

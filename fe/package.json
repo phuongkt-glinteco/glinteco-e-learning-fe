@@ -6,7 +6,7 @@
     "dev": "next dev -p 6336",
     "build": "next build",
     "start": "next start -p 6336",
-    "lint": "eslint .",
+    "lint": "node scripts/run-eslint-legacy.cjs .",
     "verify:task": "node ../scripts/verify-task.mjs",
     "ai:run": "node scripts/ai-workflow/run-current-task.mjs",
     "ai:run:fast": "pnpm ai:run -- --verify fast",

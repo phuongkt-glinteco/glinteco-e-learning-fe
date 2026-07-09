@@ -14,13 +14,13 @@ interface TrackStepCardProps {
 const statusCopy: Record<LearnerTrack['status'], string> = {
   completed: 'Completed',
   in_progress: 'In Progress',
-  locked: 'Locked',
+  locked: 'Ready to Start',
 };
 
 const statusIcon: Record<LearnerTrack['status'], string> = {
   completed: 'check_circle',
   in_progress: 'play_circle',
-  locked: 'lock',
+  locked: 'play_circle',
 };
 
 function getProgress(track: LearnerTrack) {
@@ -36,7 +36,7 @@ export function TrackStepCard({
   isOpening,
   onOpenTrack,
 }: TrackStepCardProps) {
-  const isLocked = track.status === 'locked';
+  const isReadyToStart = track.status === 'locked';
   const isCompleted = track.status === 'completed';
   const isInProgress = track.status === 'in_progress';
   const progress = getProgress(track);
@@ -46,7 +46,7 @@ export function TrackStepCard({
       <div className="flex flex-col items-center">
         <div
           className={`z-10 flex h-14 w-14 items-center justify-center rounded-lg border-2 shadow-sm ${
-            isLocked
+            isReadyToStart
               ? 'border-outline-variant bg-surface-container text-outline'
               : isCompleted
                 ? 'border-green-500 bg-green-50 text-green-700'
@@ -68,9 +68,7 @@ export function TrackStepCard({
 
       <Card
         className={`mb-5 min-w-0 overflow-hidden shadow-sm transition-all ${
-          isLocked
-            ? 'border-dashed border-outline-variant opacity-70 bg-surface-container-lowest'
-            : isInProgress
+          isInProgress
               ? 'border-primary ring-1 ring-primary/20 bg-primary/5'
               : 'border-outline-variant hover:border-primary/40 bg-surface-container-lowest'
         }`}
@@ -88,9 +86,9 @@ export function TrackStepCard({
             </div>
 
             <Badge
-              variant={isLocked ? 'outline' : isCompleted ? 'secondary' : 'default'}
+              variant={isReadyToStart ? 'outline' : isCompleted ? 'secondary' : 'default'}
               className={`flex items-center gap-1 ${
-                isLocked
+                isReadyToStart
                   ? 'bg-surface-container text-outline border-outline-variant'
                   : isCompleted
                     ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
@@ -137,8 +135,8 @@ export function TrackStepCard({
 
             <Button
               onClick={() => onOpenTrack(track)}
-              disabled={isLocked || isOpening}
-              variant={isLocked ? 'outline' : isInProgress ? 'default' : 'outline'}
+              disabled={isOpening}
+              variant={isInProgress ? 'default' : 'outline'}
               className={`flex items-center gap-1.5 w-full sm:w-auto h-11 ${
                 isInProgress ? 'shadow-md' : ''
               }`}
@@ -160,8 +158,8 @@ export function TrackStepCard({
                 </>
               ) : (
                 <>
-                  Locked
-                  <span className="material-symbols-outlined text-[16px]">lock</span>
+                  Start
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </>
               )}
             </Button>

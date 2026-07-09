@@ -20,6 +20,8 @@ const UNIT_OPTIONS: { value: TimeUnit; labelKey: string }[] = [
   { value: 'M', labelKey: 'months_label' },
 ];
 
+const EXERCISE_DIFFICULTIES: Array<CreateExerciseFormInput['difficulty']> = ['Beginner', 'Intermediate', 'Advanced'];
+
 interface ExerciseBasicInfoProps {
   register: UseFormRegister<CreateExerciseFormInput>;
   errors: FieldErrors<CreateExerciseFormInput>;
@@ -122,16 +124,16 @@ export default function ExerciseBasicInfo({ register, errors, setValue, getValue
         <div>
           <Label htmlFor="difficulty" className="mb-2 block">{t('difficultyLabel')}</Label>
           <Select
-            onValueChange={(val) => setValue('difficulty', val as any, { shouldValidate: true })}
+            onValueChange={(val) => setValue('difficulty', val as CreateExerciseFormInput['difficulty'], { shouldValidate: true })}
             defaultValue={getValues('difficulty') as string}
           >
             <SelectTrigger id="difficulty" className={errors.difficulty ? 'border-destructive focus-visible:ring-destructive' : ''}>
               <SelectValue placeholder={t('difficultyPlaceholder')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Beginner">Beginner</SelectItem>
-              <SelectItem value="Intermediate">Intermediate</SelectItem>
-              <SelectItem value="Advanced">Advanced</SelectItem>
+              {EXERCISE_DIFFICULTIES.map((difficulty) => (
+                <SelectItem key={difficulty} value={difficulty}>{difficulty}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           {errors.difficulty && (

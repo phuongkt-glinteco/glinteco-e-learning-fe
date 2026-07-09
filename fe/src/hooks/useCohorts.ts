@@ -54,8 +54,8 @@ export function useCohorts({ page = 1, limit = 10, q }: UseCohortsParams = {}): 
       }
       setCohorts(items);
       setMeta(data?.meta || null);
-    } catch (err: any) {
-      setError(err?.message || null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : null);
     } finally {
       setLoading(false);
     }

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MarkdownRenderer } from '@/lib/md-renderer';
 import { CollapsibleBlock } from './GuideView';
-import type { TutorialContent } from './types';
+import type { ResourceRefLike, TutorialContent, TutorialStep } from './types';
 
 export function TutorialContentBlock({ content }: { content: TutorialContent }) {
   const t = useTranslations('DocumentDetail');
@@ -25,6 +25,20 @@ export function TutorialContentBlock({ content }: { content: TutorialContent }) 
   const learningObjectives = content.learningObjectives || [];
   const exercises = content.exercises || [];
   const summary = content.summary;
+
+  function getResourceMeta(resource: ResourceRefLike) {
+    if (typeof resource === 'string') {
+      return {
+        id: resource.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)?.[0] || '',
+        label: resource,
+      };
+    }
+
+    return {
+      id: resource.id || '',
+      label: resource.title || resource.name || resource.id,
+    };
+  }
 
   const totalSteps = stepsArr.length;
   const doneSteps = completedSteps.size;
@@ -99,9 +113,7 @@ export function TutorialContentBlock({ content }: { content: TutorialContent }) 
 
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {prerequisites.map((reqItem, idx) => {
-              const req = reqItem as any;
-              const id = typeof req === 'object' && req !== null ? req.id : (typeof req === 'string' && req.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)?.[0] || '');
-              const label = typeof req === 'object' && req !== null ? (req.title || req.name || req.id) : req;
+              const { id, label } = getResourceMeta(reqItem);
               const href = id ? `/documents/${id}` : `/documents?search=${encodeURIComponent(label)}`;
 
               return (
@@ -157,7 +169,7 @@ export function TutorialContentBlock({ content }: { content: TutorialContent }) 
           <p className="text-xs font-semibold text-on-surface-variant">{doneSteps}/{totalSteps} {t('stepsCompleted')}</p>
 
           <div className="space-y-4 pt-2">
-            {stepsArr.map((step: any, index: number) => {
+            {stepsArr.map((step: TutorialStep, index: number) => {
               const isCompleted = completedSteps.has(index);
               return (
                 <div

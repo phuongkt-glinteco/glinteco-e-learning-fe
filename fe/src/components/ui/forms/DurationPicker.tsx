@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Input } from '@/components/ui/default/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/default/select';
 import { cn } from '@/lib/utils';
 
 export interface DurationValue {
@@ -16,8 +17,6 @@ interface DurationPickerProps {
 }
 
 export function DurationPicker({ value, onChange, className }: DurationPickerProps) {
-  const { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } = require('@/components/ui/default/select');
-
   const handleNumberChange = (val: string) => {
     if (val === '') {
       onChange({ ...value, value: undefined });

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { MarkdownRenderer } from '@/lib/md-renderer';
-import type { RunbookContent } from './types';
+import type { ResourceRefLike, RunbookContent } from './types';
 
 interface CollapsibleBlockProps {
   id: string;
@@ -14,7 +14,7 @@ interface CollapsibleBlockProps {
   bgClass?: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
-  t: any;
+  t: (key: string) => string;
 }
 
 function CollapsibleBlock({
@@ -61,6 +61,20 @@ export function RunbookContentBlock({ content, documentTitle }: { content: Runbo
 
   const prerequisites = content.prerequisites || [];
   const procedure = content.procedure || content.phases?.map(p => `### ${p.name}\n` + p.steps.map((s, idx) => `#### Step ${idx + 1}: ${s.title}\n${s.body}`).join('\n\n')).join('\n\n') || '';
+
+  function getResourceMeta(resource: ResourceRefLike) {
+    if (typeof resource === 'string') {
+      return {
+        id: resource.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] || '',
+        label: resource,
+      };
+    }
+
+    return {
+      id: resource.id || '',
+      label: resource.title || resource.name || resource.id,
+    };
+  }
 
   return (
     <div className="space-y-6">
@@ -129,8 +143,7 @@ export function RunbookContentBlock({ content, documentTitle }: { content: Runbo
 
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {prerequisites.map((req, idx) => {
-              const id = typeof req === 'object' ? req.id : (req.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0] || '');
-              const label = typeof req === 'object' ? (req.title || req.name || req.id) : req;
+              const { id, label } = getResourceMeta(req);
               const href = id ? `/documents/${id}` : `/documents?search=${encodeURIComponent(label)}`;
 
               return (

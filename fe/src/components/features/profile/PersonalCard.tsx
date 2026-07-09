@@ -101,7 +101,7 @@ export function PersonalCard({ user, onEditClick, onReload }: PersonalCardProps)
       {/* Bio / Short Description */}
       {user.title ? (
         <div className="text-sm text-on-surface font-normal mb-6 px-3 py-3  rounded-xl  w-full italic break-words flex items-center justify-center text-center">
-          "{user.title}"
+          &quot;{user.title}&quot;
         </div>
       ) : (
         <div className="text-sm text-on-surface-variant/70 font-normal mb-6 px-3 py-3 bg-surface-container-lowest/50 rounded-xl border border-dashed border-outline-variant/50 w-full italic break-words shadow-2xs min-h-[72px] flex items-center justify-center text-center">

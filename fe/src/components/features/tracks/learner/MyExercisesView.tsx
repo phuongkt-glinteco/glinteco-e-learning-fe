@@ -2,6 +2,7 @@ import type { LearnerExerciseFeedItem, LearnerSubmissionStatus } from './types';
 import { Card, CardContent, CardFooter } from '@/components/ui/default/card';
 import { Badge } from '@/components/ui/default/badge';
 import { Button } from '@/components/ui/default/button';
+import { useTranslations } from 'next-intl';
 
 export type ExerciseFeedTab = 'all' | 'todo' | 'review' | 'changes' | 'completed';
 
@@ -98,6 +99,7 @@ export function MyExercisesView({
   onOpenExercise,
   onOpenPr,
 }: MyExercisesViewProps) {
+  const t = useTranslations('MyExercisesContainer');
   const activeMeta = tabMeta.find((tab) => tab.id === activeTab) ?? tabMeta[0];
   const visibleExercises = activeMeta.statuses
     ? exercises.filter((exercise) => activeMeta.statuses?.includes(exercise.status))
@@ -111,7 +113,7 @@ export function MyExercisesView({
   const badgeBaseClass = 'inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0 text-[11px] font-semibold leading-5 transition-colors duration-150 ease-out';
 
   return (
-    <div className="mx-auto flex max-w-container-max flex-col gap-8 px-gutter py-8">
+    <div className="mx-auto flex w-full max-w-container-max flex-col gap-8 px-gutter py-8">
       <header className="flex flex-col gap-4 border-b border-outline-variant pb-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-[32px] font-bold text-on-surface">My Exercises</h1>
@@ -127,30 +129,33 @@ export function MyExercisesView({
         </Button>
       </header>
 
-      <div className="flex flex-wrap gap-6">
-        {tabMeta.map((tab) => {
-          const count = getTabCount(exercises, tab.id);
-          const isActive = tab.id === activeTab;
-          return (
-            <Button
-              key={tab.id}
-              type="button"
-              variant="ghost"
-              onClick={() => onTabChange(tab.id)}
-              aria-pressed={isActive}
-              className={`${tabButtonBaseClass} ${isActive ? activeTabClass : inactiveTabClass}`}
-            >
-              <span className="whitespace-nowrap">{tab.label}</span>
-              <span className={`${badgeBaseClass} ${isActive ? 'bg-white/15 text-primary-foreground' : 'bg-surface-container text-on-surface-variant'}`}>
-                {count}
-              </span>
-            </Button>
-          );
-        })}
-      </div>
+      <section className="w-full">
+        <div className="flex w-full flex-wrap gap-6">
+          {tabMeta.map((tab) => {
+            const count = getTabCount(exercises, tab.id);
+            const isActive = tab.id === activeTab;
+            return (
+              <Button
+                key={tab.id}
+                type="button"
+                variant="ghost"
+                onClick={() => onTabChange(tab.id)}
+                aria-pressed={isActive}
+                className={`${tabButtonBaseClass} ${isActive ? activeTabClass : inactiveTabClass}`}
+              >
+                <span className="whitespace-nowrap">{tab.label}</span>
+                <span className={`${badgeBaseClass} ${isActive ? 'bg-white/15 text-primary-foreground' : 'bg-surface-container text-on-surface-variant'}`}>
+                  {count}
+                </span>
+              </Button>
+            );
+          })}
+        </div>
+      </section>
 
-      {visibleExercises.length === 0 ? (
-        <section className="rounded-lg border border-dashed border-outline-variant bg-surface p-8 text-center">
+      <section className="w-full">
+        {visibleExercises.length === 0 ? (
+        <div className="flex min-h-[320px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-outline-variant bg-surface p-8 text-center">
           <span className="material-symbols-outlined mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-[28px] text-primary">
             checklist
           </span>
@@ -158,9 +163,9 @@ export function MyExercisesView({
           <p className="text-[14px] mx-auto mt-2 max-w-md text-on-surface-variant">
             There are no exercises in this status yet.
           </p>
-        </section>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-2">
           {visibleExercises.map((exercise) => {
             const statusMeta = getStatusMeta(exercise.status);
             const submittedDate = formatDate(exercise.submittedAt);
@@ -191,6 +196,18 @@ export function MyExercisesView({
                       {exercise.trackTitle} {exercise.lessonId ? '- Lesson linked' : ''}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-4 text-[14px] font-medium text-on-surface-variant">
+                      {exercise.isMandatory !== null && (
+                        <Badge
+                          variant="outline"
+                          className={exercise.isMandatory
+                            ? 'border-orange-200 bg-orange-50 text-orange-700'
+                            : 'border-emerald-200 bg-emerald-50 text-emerald-700'}
+                        >
+                          {exercise.isMandatory
+                            ? t('mandatoryBadge', { defaultValue: 'Mandatory' })
+                            : t('optionalBadge', { defaultValue: 'Optional' })}
+                        </Badge>
+                      )}
                       <span className="inline-flex items-center gap-1">
                         <span className="material-symbols-outlined text-[16px]">schedule</span>
                         {exercise.estimatedTime}
@@ -261,6 +278,7 @@ export function MyExercisesView({
           })}
         </div>
       )}
+      </section>
     </div>
   );
 }

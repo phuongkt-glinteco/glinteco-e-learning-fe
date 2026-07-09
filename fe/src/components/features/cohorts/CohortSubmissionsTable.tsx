@@ -16,6 +16,11 @@ import {
 import Skeleton from '@/components/ui/loading/Skeleton';
 import type { SubmissionFeedItemDto } from '@/services/api-client';
 
+type SubmissionUser = {
+  name?: string | null;
+  email?: string | null;
+};
+
 interface CohortSubmissionsTableProps {
   submissions: SubmissionFeedItemDto[];
   isLoading: boolean;
@@ -139,7 +144,7 @@ export function CohortSubmissionsTable({
           <TableBody className="divide-y divide-outline-variant text-sm text-on-surface">
             {submissions.map((sub) => {
               const st = STATUS_MAP[sub.status] || STATUS_MAP.pending;
-              const user = sub.user as any;
+              const user = (typeof sub.user === 'object' && sub.user !== null ? sub.user : null) as SubmissionUser | null;
               const dateStr = sub.submittedAt
                 ? new Date(sub.submittedAt).toLocaleString('vi-VN', {
                     day: '2-digit',

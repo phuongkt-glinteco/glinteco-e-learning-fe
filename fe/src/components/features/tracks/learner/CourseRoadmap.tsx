@@ -2,24 +2,17 @@ import type { TrackLessonPreview } from './types';
 import { Badge } from '@/components/ui/default/badge';
 import { Button } from '@/components/ui/default/button';
 import { useTranslations } from 'next-intl';
+import { getLessonAccessState } from './utils';
 
 interface CourseRoadmapProps {
   lessons: TrackLessonPreview[];
   activeLessonId: string | null;
-  disabled: boolean;
   onOpenLesson: (lessonId: string) => void;
-}
-
-function getLessonState(lesson: TrackLessonPreview, activeLessonId: string | null) {
-  if (lesson.completed) return 'completed';
-  if (lesson.id === activeLessonId) return 'current';
-  return 'upcoming';
 }
 
 export function CourseRoadmap({
   lessons,
   activeLessonId,
-  disabled,
   onOpenLesson,
 }: CourseRoadmapProps) {
   const t = useTranslations('CourseRoadmap');
@@ -59,9 +52,11 @@ export function CourseRoadmap({
 
         <div className="flex flex-col gap-6">
           {lessons.map((lesson) => {
-            const state = getLessonState(lesson, activeLessonId);
+            const state = getLessonAccessState(lessons, lesson.id);
             const isCurrent = state === 'current';
             const isCompleted = state === 'completed';
+            const isLocked = state === 'locked';
+            const isActiveLesson = lesson.id === activeLessonId;
 
             return (
               <div key={lesson.id} className="relative flex gap-4 items-start">
@@ -96,7 +91,7 @@ export function CourseRoadmap({
                       <Badge variant="outline" className="bg-surface-container text-on-surface-variant uppercase text-[10px]">
                         {lesson.type}
                       </Badge>
-                      {isCurrent && (
+                      {isActiveLesson && !isLocked && (
                         <Badge variant="secondary" className="bg-primary/10 text-primary px-2 py-1 uppercase text-[10px] tracking-wider shrink-0 border-none">
                           {t('upNext', { defaultValue: 'Up Next' })}
                         </Badge>
@@ -121,8 +116,8 @@ export function CourseRoadmap({
                     </div>
                     
                     <Button
-                      onClick={() => onOpenLesson(lesson.id)}
-                      disabled={disabled && !isCompleted && !isCurrent}
+                      onClick={() => !isLocked && onOpenLesson(lesson.id)}
+                      disabled={isLocked}
                       variant={isCurrent ? 'default' : 'outline'}
                       className={`flex items-center gap-1.5 h-9 px-4 ${isCurrent ? 'shadow-md' : ''}`}
                     >

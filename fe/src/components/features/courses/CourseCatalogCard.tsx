@@ -14,24 +14,25 @@ interface CourseCatalogCardProps {
 const statusIcon: Record<LearnerTrack['status'], string> = {
   completed: 'check_circle',
   in_progress: 'play_circle',
-  locked: 'lock',
+  locked: 'play_circle',
 };
 
 export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
   const t = useTranslations('CoursesPage');
-  const isLocked = track.status === 'locked';
+  const isReadyToStart = track.status === 'locked';
   const isCompleted = track.status === 'completed';
   const isInProgress = track.status === 'in_progress';
+  const isLocked = isReadyToStart;
   const progress = getProgressPercent(track);
 
-  const statusLabel = t(`status_${track.status}`);
+  const statusLabel = isReadyToStart
+    ? t('status_not_started')
+    : t(`status_${track.status}`);
 
   return (
     <Card
       className={`flex min-w-0 flex-col overflow-hidden transition-all duration-200 hover:-translate-y-0.5 shadow-sm hover:shadow-md ${
-        isLocked
-          ? 'border-dashed border-outline-variant/80 opacity-70'
-          : isInProgress
+        isInProgress
             ? 'border-primary/60 ring-1 ring-primary/15 hover:border-primary/60'
             : 'border-outline-variant/70 hover:border-primary/40'
       }`}
@@ -71,10 +72,10 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
             <span className="material-symbols-outlined text-[15px]">menu_book</span>
             <span className="min-w-0 truncate">{t('lessonCount', { count: track.lessonCount })}</span>
           </span>
-          <Badge
-            variant="outline"
-            className={`gap-1 px-2.5 py-1 ${
-              isLocked
+            <Badge
+              variant="outline"
+              className={`gap-1 px-2.5 py-1 ${
+              isReadyToStart
                 ? 'bg-surface-container text-outline border-outline-variant'
                 : isCompleted
                   ? 'bg-green-50 text-green-700 border-green-200'
@@ -82,7 +83,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
             }`}
           >
             <span className="material-symbols-outlined text-[15px]">
-              {statusIcon[track.status]}
+              {isReadyToStart ? 'play_circle' : statusIcon[track.status]}
             </span>
             <span className="min-w-0 truncate">{statusLabel}</span>
           </Badge>
@@ -100,30 +101,17 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
             />
           </div>
         </div>
-
-        {track.lockedReason && isLocked && (
-          <p className="text-[14px] line-clamp-3 break-words text-on-surface-variant italic">
-            {track.lockedReason}
-          </p>
-        )}
       </CardContent>
 
       <CardFooter className="p-5 mt-auto">
-        {isLocked ? (
-          <span className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-outline-variant px-4 text-[14px] font-medium text-outline cursor-not-allowed">
-            <span className="material-symbols-outlined text-[16px]">lock</span>
-            {t('locked')}
-          </span>
-        ) : (
-          <Button
-            variant={isInProgress ? 'default' : 'outline'}
-            onClick={() => onOpen(track.id)}
-            className="h-10 w-full gap-1.5 px-4 text-[14px]"
-          >
-            {isCompleted ? t('review') : t('continue')}
-            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-          </Button>
-        )}
+        <Button
+          variant={isInProgress ? 'default' : 'outline'}
+          onClick={() => onOpen(track.id)}
+          className="h-10 w-full gap-1.5 px-4 text-[14px]"
+        >
+          {isCompleted ? t('review') : isReadyToStart ? t('start') : t('continue')}
+          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+        </Button>
       </CardFooter>
     </Card>
   );

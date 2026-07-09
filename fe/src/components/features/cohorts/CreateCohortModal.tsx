@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/default/dialog';
 import { cohortControllerCreate } from '@/services/api-client';
 import { isUiShowError } from '@/services/errors';
-import type { CohortSummaryDto } from '@/services/api-client';
+import type { CohortSummaryDto, CreateCohortDto } from '@/services/api-client';
+import type { UiShowError } from '@/services/errors';
 
 interface CreateCohortFormValues {
   name: string;
@@ -55,27 +56,30 @@ export function CreateCohortModal({ onSuccess, onCancel }: CreateCohortModalProp
 
     setLoading(true);
     try {
+      const body: CreateCohortDto & { code: string; startDate: string } = {
+        name: data.name.trim(),
+        targetRampDays: Number(data.targetRampDays) || 30,
+        code: data.code.trim().toUpperCase(),
+        startDate: data.startDate,
+      };
       const res = await cohortControllerCreate({
-        body: {
-          name: data.name.trim(),
-          targetRampDays: Number(data.targetRampDays) || 30,
-          ...({ code: data.code.trim().toUpperCase(), startDate: data.startDate } as any),
-        },
+        body,
         throwOnError: true,
       });
 
       toast.success(t('createSuccess'));
       if (res.data) {
-        onSuccess(res.data as any);
+        onSuccess(res.data as CohortSummaryDto);
       } else {
-        onSuccess({ id: 'new', name: data.name.trim(), learnerCount: 0, avgCompletion: 0 } as any);
+        onSuccess({ id: 'new', name: data.name.trim(), learnerCount: 0, avgCompletion: 0 });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (isUiShowError(err)) {
-        if (err.errorCode === 'VALIDATION_ERROR' || err.errorCode === 'COHORT_CODE_EXISTS') {
-          setError('code', { type: 'server', message: err.message || t('editErrorInvalidName') });
+        const error = err as UiShowError;
+        if (error.errorCode === 'VALIDATION_ERROR' || error.errorCode === 'COHORT_CODE_EXISTS') {
+          setError('code', { type: 'server', message: error.message || t('editErrorInvalidName') });
         } else {
-          toast.error(err.message || t('editErrorInvalidName'));
+          toast.error(error.message || t('editErrorInvalidName'));
         }
       }
     } finally {

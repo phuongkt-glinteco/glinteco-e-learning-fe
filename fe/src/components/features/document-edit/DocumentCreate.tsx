@@ -18,6 +18,7 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { isUiShowError } from '@/services/errors';
 import { toast } from 'sonner';
+import type { UiShowError } from '@/services/errors';
 
 const KIND_OPTIONS = [
   { value: 'Guide', label: 'Guide' },
@@ -117,9 +118,10 @@ export default function DocumentCreate() {
       });
 
       router.push('/documents');
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (isUiShowError(err)) {
-        toast.error(t(`errors.${err.errorCode}`) || err.message);
+        const error = err as UiShowError;
+        toast.error(t(`errors.${error.errorCode}`) || error.message);
       }
     } finally {
       setSaving(false);

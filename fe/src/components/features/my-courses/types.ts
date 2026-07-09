@@ -7,13 +7,14 @@ export function filterMyCourses(
   tab: MyCourseTab
 ): LearnerTrack[] {
   return tracks
-    .filter((track) => track.status !== 'locked')
-    .filter((track) => track.status === tab)
+    .filter((track) => tab === 'completed'
+      ? track.status === 'completed'
+      : track.status !== 'completed')
     .sort((a, b) => a.order - b.order);
 }
 
-export function hasAnyActiveCourse(tracks: LearnerTrack[]): boolean {
-  return tracks.some((track) => track.status !== 'locked');
+export function hasAnyCourse(tracks: LearnerTrack[]): boolean {
+  return tracks.length > 0;
 }
 
 export function getProgressPercent(track: LearnerTrack): number {

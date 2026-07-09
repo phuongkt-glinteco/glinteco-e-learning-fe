@@ -5,10 +5,16 @@ export interface ResourceRef {
   kind?: string;
 }
 
+export type ResourceRefLike = string | ResourceRef;
+export interface TutorialStep {
+  title: string;
+  body: string;
+}
+
 export interface GuideContent {
   description?: string;
   objective?: string;
-  prerequisites?: any[];
+  prerequisites?: ResourceRefLike[];
   steps?: string;
   expectedResult?: string;
   relatedDocs?: ResourceRef[];
@@ -27,7 +33,7 @@ export interface TutorialContent {
   summary?: string;
   // Legacy fallback
   explanation?: string;
-  legacySteps?: Array<{ title: string; body: string }>;
+  legacySteps?: TutorialStep[];
 }
 
 export interface RunbookContent {
@@ -49,7 +55,7 @@ export interface RunbookContent {
   status?: string;
   phases?: Array<{
     name: string;
-    steps: Array<{ title: string; body: string }>;
+    steps: TutorialStep[];
   }>;
 }
 

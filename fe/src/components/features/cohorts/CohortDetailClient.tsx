@@ -31,6 +31,8 @@ import type {
 } from '@/services/api-client';
 import type { CohortTabType } from './types';
 
+type ArrayResponse<T> = T[] | { data?: T[] };
+
 interface CohortDetailClientProps {
   cohortId: string;
 }
@@ -90,7 +92,7 @@ export function CohortDetailClient({ cohortId }: CohortDetailClientProps) {
       if (res1?.data) setCohort(res1.data);
       if (res2?.data) setStats(res2.data);
       if (res3?.data) {
-        const tData = res3.data as any;
+        const tData = res3.data as ArrayResponse<CohortTrackCompletionItemDto>;
         setTracksData(Array.isArray(tData) ? tData : (tData?.data || []));
       }
     } catch {
@@ -175,7 +177,8 @@ export function CohortDetailClient({ cohortId }: CohortDetailClientProps) {
         parseAs: 'blob',
         throwOnError: true,
       });
-      const url = window.URL.createObjectURL(new Blob([res.data as any]));
+      const blobPart = res.data instanceof Blob ? res.data : new Blob([res.data]);
+      const url = window.URL.createObjectURL(blobPart);
       const a = document.createElement('a');
       a.href = url;
       a.download = `cohort-${cohortId}-report.csv`;
@@ -371,7 +374,14 @@ export function CohortDetailClient({ cohortId }: CohortDetailClientProps) {
         <EditCohortModal
           cohort={cohort}
           onSuccess={(updated) => {
-            setCohort(updated as any);
+            setCohort((current) => current
+              ? { ...current, name: updated.name, targetRampDays: updated.targetRampDays }
+              : ({
+                  id: updated.id,
+                  name: updated.name,
+                  targetRampDays: updated.targetRampDays,
+                  createdAt: new Date().toISOString(),
+                } satisfies CohortDetailDto));
             setIsEditing(false);
           }}
           onCancel={() => setIsEditing(false)}

@@ -9,6 +9,7 @@ import {
   SUPPRESS_ERROR_TOAST_HEADER,
   tracksControllerFindAll,
   tracksControllerFindOne,
+  lessonsControllerFindExercisesByLesson,
   lessonsControllerFindLessons,
   lessonsControllerFindOneLesson,
   lessonsControllerCompleteLesson,
@@ -89,6 +90,12 @@ export interface CompleteLessonResult {
   totalXp?: number;
   unlockedTrackId?: string | null;
 }
+
+const COURSE_DETAIL_CACHE_TTL_MS = 30_000;
+const courseDetailCache = new Map<string, {
+  expiresAt: number;
+  value: Promise<CourseDetailData>;
+}>();
 
 function createFallbackCourse(exercise: LearnerExerciseDetail): LearnerTrack {
   return {
@@ -198,31 +205,51 @@ export async function fetchMyExercises(): Promise<MyExercisesData> {
 }
 
 export async function fetchCourseDetail(courseId: string): Promise<CourseDetailData> {
-  const [courseResponse, lessonsResponse] = await Promise.all([
-    tracksControllerFindOne({
-      path: { id: courseId },
-      throwOnError: true,
-      ...silentErrorToastOptions,
-    }),
-    lessonsControllerFindLessons({
-      path: { id: courseId },
-      throwOnError: true,
-      ...silentErrorToastOptions,
-    }),
-  ]);
+  const now = Date.now();
+  const cached = courseDetailCache.get(courseId);
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
 
-  if (!courseResponse.data) throw new Error('Course not found');
+  const value = (async () => {
+    const [courseResponse, lessonsResponse] = await Promise.all([
+      tracksControllerFindOne({
+        path: { id: courseId },
+        throwOnError: true,
+        ...silentErrorToastOptions,
+      }),
+      lessonsControllerFindLessons({
+        path: { id: courseId },
+        throwOnError: true,
+        ...silentErrorToastOptions,
+      }),
+    ]);
 
-  const courseDetail = courseResponse.data as TrackDetailContract;
-  const lessons = normalizeLessonsPreview(
-    extractDataArray<LessonSummaryContract>(lessonsResponse.data as unknown as { data?: LessonSummaryContract[] }),
-    (courseDetail.lessons ?? []) as LessonProgressContract[]
-  );
+    if (!courseResponse.data) throw new Error('Course not found');
 
-  return {
-    course: normalizeTrackDetail(courseDetail, courseId, lessons),
-    lessons,
-  };
+    const courseDetail = courseResponse.data as TrackDetailContract;
+    const lessons = normalizeLessonsPreview(
+      extractDataArray<LessonSummaryContract>(lessonsResponse.data as unknown as { data?: LessonSummaryContract[] }),
+      (courseDetail.lessons ?? []) as LessonProgressContract[]
+    );
+
+    return {
+      course: normalizeTrackDetail(courseDetail, courseId, lessons),
+      lessons,
+    };
+  })();
+
+  courseDetailCache.set(courseId, {
+    expiresAt: now + COURSE_DETAIL_CACHE_TTL_MS,
+    value,
+  });
+
+  try {
+    return await value;
+  } catch (error) {
+    courseDetailCache.delete(courseId);
+    throw error;
+  }
 }
 
 async function fetchLessonDetail(lessonId: string): Promise<LessonDetailContract | null> {
@@ -244,14 +271,22 @@ async function fetchLessonExercises(
   courseId: string,
   lessonId: string
 ): Promise<ExerciseSummaryContract[]> {
-  const lessonExercisesResponse = await exercisesControllerFindAll({
-    query: { lessonId },
-    throwOnError: true,
-    ...silentErrorToastOptions,
-  });
-  const lessonExercises = extractDataArray<ExerciseSummaryContract>(
-    lessonExercisesResponse.data as unknown as ExerciseSummaryContract[] | { data?: ExerciseSummaryContract[] }
-  );
+  let lessonExercises: ExerciseSummaryContract[] = [];
+
+  try {
+    const lessonExercisesResponse = await lessonsControllerFindExercisesByLesson({
+      path: { id: lessonId },
+      throwOnError: true,
+      ...silentErrorToastOptions,
+    });
+    lessonExercises = extractDataArray<ExerciseSummaryContract>(
+      lessonExercisesResponse.data as unknown as ExerciseSummaryContract[] | { data?: ExerciseSummaryContract[] }
+    );
+  } catch (error) {
+    const status = getErrorStatus(error);
+    if (status === 401 || status === 403) throw error;
+  }
+
   const exercisesWithMatchingLessonId = lessonExercises.filter(
     (exercise) => normalizeLessonId(exercise.lessonId) === lessonId
   );
@@ -259,14 +294,23 @@ async function fetchLessonExercises(
   if (exercisesWithMatchingLessonId.length > 0) return exercisesWithMatchingLessonId;
   if (lessonExercises.length > 0) return lessonExercises;
 
-  const trackExercisesResponse = await exercisesControllerFindAll({
-    query: { trackId: courseId },
-    throwOnError: true,
-    ...silentErrorToastOptions,
-  });
-  const trackExercises = extractDataArray<ExerciseSummaryContract>(
-    trackExercisesResponse.data as unknown as { data?: ExerciseSummaryContract[] }
-  );
+  let trackExercises: ExerciseSummaryContract[] = [];
+
+  try {
+    const trackExercisesResponse = await exercisesControllerFindAll({
+      query: { trackId: courseId },
+      throwOnError: true,
+      ...silentErrorToastOptions,
+    });
+    trackExercises = extractDataArray<ExerciseSummaryContract>(
+      trackExercisesResponse.data as unknown as { data?: ExerciseSummaryContract[] }
+    );
+  } catch (error) {
+    const status = getErrorStatus(error);
+    if (status === 401 || status === 403) throw error;
+    return [];
+  }
+
   const exercisesWithLessonId = trackExercises.filter((exercise) => normalizeLessonId(exercise.lessonId));
 
   return exercisesWithLessonId.length > 0
@@ -346,6 +390,8 @@ export async function completeLesson(lessonId: string): Promise<CompleteLessonRe
     path: { id: lessonId },
     throwOnError: true,
   });
+
+  courseDetailCache.clear();
 
   const data = response.data;
   if (!data) return {};

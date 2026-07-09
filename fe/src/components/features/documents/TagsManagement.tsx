@@ -47,6 +47,7 @@ import {
   LayersIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import type { UiShowError } from '@/services/errors';
 
 interface TagItem {
   id: string;
@@ -108,9 +109,10 @@ export function TagsManagement({ onTagsUpdated }: TagsManagementProps) {
       // Sort alphabetically by default
       normalizedList.sort((a, b) => a.name.localeCompare(b.name));
       setTags(normalizedList);
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (isUiShowError(err)) {
-        toast.error(t(`errors.${err.errorCode}`) || err.message);
+        const error = err as UiShowError;
+        toast.error(t(`errors.${error.errorCode}`) || error.message);
       }
     } finally {
       setLoading(false);
@@ -157,9 +159,10 @@ export function TagsManagement({ onTagsUpdated }: TagsManagementProps) {
       setIsCreateOpen(false);
       await fetchTags();
       onTagsUpdated?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (isUiShowError(err)) {
-        const msg = t(`errors.${err.errorCode}`) || err.message;
+        const error = err as UiShowError;
+        const msg = t(`errors.${error.errorCode}`) || error.message;
         setCreateError(msg);
         toast.error(msg);
       }
@@ -180,9 +183,10 @@ export function TagsManagement({ onTagsUpdated }: TagsManagementProps) {
       setDeleteConfirmTag(null);
       await fetchTags();
       onTagsUpdated?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (isUiShowError(err)) {
-        toast.error(t(`errors.${err.errorCode}`) || err.message);
+        const error = err as UiShowError;
+        toast.error(t(`errors.${error.errorCode}`) || error.message);
       }
     } finally {
       setDeleting(false);

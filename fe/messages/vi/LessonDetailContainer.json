@@ -29,5 +29,11 @@
   "courseLesson": "Bài Học Khóa Học",
   "lessonsPlaylist": "Danh Sách Bài Học",
   "progress": "Tiến độ",
-  "lessonsDone": "{completed}/{total} hoàn thành"
+  "lessonsDone": "{completed}/{total} hoàn thành",
+  "mandatoryBadge": "Bắt buộc",
+  "optionalBadge": "Tùy chọn",
+  "mandatoryExercisesTitle": "Hoàn thành bài tập bắt buộc trước",
+  "mandatoryExercisesIncomplete": "Hãy hoàn thành các bài tập bắt buộc trước khi kết thúc bài học.",
+  "lessonLockedMessage": "Hoàn thành bài học trước đó để mở khóa bước này.",
+  "gotIt": "Đã hiểu"
 }

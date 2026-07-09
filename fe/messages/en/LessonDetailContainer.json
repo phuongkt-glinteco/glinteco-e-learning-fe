@@ -29,5 +29,11 @@
   "courseLesson": "Course Lesson",
   "lessonsPlaylist": "Lessons Playlist",
   "progress": "Progress",
-  "lessonsDone": "{completed}/{total} done"
+  "lessonsDone": "{completed}/{total} done",
+  "mandatoryBadge": "Mandatory",
+  "optionalBadge": "Optional",
+  "mandatoryExercisesTitle": "Finish required exercises first",
+  "mandatoryExercisesIncomplete": "Complete the required exercises before finishing this lesson.",
+  "lessonLockedMessage": "Complete the previous lesson to unlock this step.",
+  "gotIt": "Got it"
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { DocumentResponseDto } from '@/services/api-client';
-import type { RunbookContent, TutorialContent, GuideContent, ReferenceContent } from './types';
+import type { RunbookContent, TutorialContent, GuideContent, ReferenceContent, TutorialStep } from './types';
 
 interface TocItem {
   id: string;
@@ -92,10 +92,10 @@ export function DocumentDetailSidebar({
     if (typeof tutorialContent.steps === 'string' && tutorialContent.steps) {
       navItems.push({ id: 'tutorial-steps', label: t('steps'), icon: 'format_list_numbered' });
     }
-    const stepsArr = Array.isArray(tutorialContent.steps) ? tutorialContent.steps : (tutorialContent.legacySteps || []);
+    const stepsArr: TutorialStep[] = Array.isArray(tutorialContent.steps) ? [] : (tutorialContent.legacySteps || []);
     if (stepsArr.length > 0) {
       navItems.push({ id: 'tutorial-interactive-steps', label: t('progress'), icon: 'playlist_add_check' });
-      stepsArr.forEach((s: any, si: number) => {
+      stepsArr.forEach((s, si) => {
         navItems.push({
           id: `step-${si + 1}`,
           label: `${t('step')} ${si + 1}: ${s.title || `${t('step')} ${si + 1}`}`,

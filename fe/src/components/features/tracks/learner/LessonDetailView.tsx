@@ -3,38 +3,47 @@ import { StatusBadge, TimeBadge } from '@/components/ui';
 import CircleMeter from '@/components/ui/CircleMeter';
 import { MarkdownRenderer } from '@/lib/md-renderer';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/default/alert-dialog';
+import { Badge } from '@/components/ui/default/badge';
 import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
+import { getLessonAccessState, type LessonCompletionBlocker } from './utils';
 
 interface LessonDetailViewProps {
   track: LearnerTrack;
   lessons: LearnerLesson[];
   activeLesson: LearnerLesson;
+  activeLessonLocked: boolean;
   previousLessonId: string | null;
   nextLessonId: string | null;
   exercises: LearnerExercise[];
   completing: boolean;
   completionMessage: string | null;
   completionError: string | null;
+  completionBlocker: LessonCompletionBlocker | null;
   onBackToTracks: () => void;
   onSelectLesson: (lessonId: string) => void;
   onOpenExercise: (exerciseId: string) => void;
   onCompleteLesson: () => void;
+  onCloseCompletionBlocker: () => void;
 }
 
 export function LessonDetailView({
   track,
   lessons,
   activeLesson,
+  activeLessonLocked,
   previousLessonId,
   nextLessonId,
   exercises,
   completing,
   completionMessage,
   completionError,
+  completionBlocker,
   onBackToTracks,
   onSelectLesson,
   onOpenExercise,
   onCompleteLesson,
+  onCloseCompletionBlocker,
 }: LessonDetailViewProps) {
   const t = useTranslations('LessonDetailContainer');
   const progressPercent = track.lessonCount > 0
@@ -43,6 +52,43 @@ export function LessonDetailView({
 
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
+      <AlertDialog open={Boolean(completionBlocker)} onOpenChange={(open) => !open && onCloseCompletionBlocker()}>
+        <AlertDialogContent size="default">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('mandatoryExercisesTitle', { defaultValue: 'Finish required exercises first' })}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {completionBlocker?.message ?? t('mandatoryExercisesIncomplete', { defaultValue: 'Complete the required exercises before finishing this lesson.' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {completionBlocker && completionBlocker.exercises.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {completionBlocker.exercises.map((exercise) => (
+                <button
+                  key={`${exercise.id ?? exercise.title}`}
+                  type="button"
+                  onClick={() => {
+                    onCloseCompletionBlocker();
+                    if (exercise.id) onOpenExercise(exercise.id);
+                  }}
+                  className={`rounded-lg border px-3 py-2 text-left text-sm ${
+                    exercise.id
+                      ? 'border-outline-variant hover:border-primary/40 hover:bg-primary/5'
+                      : 'border-outline-variant/70 bg-surface-container-low text-on-surface-variant'
+                  }`}
+                >
+                  {exercise.title}
+                </button>
+              ))}
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={onCloseCompletionBlocker}>
+              {t('gotIt', { defaultValue: 'Got it' })}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {completionMessage && (
         <div className="flex min-w-0 items-center gap-2 rounded-lg border border-tertiary-container bg-tertiary-fixed/40 p-4 label-sm text-tertiary">
           <span className="material-symbols-outlined text-[18px]">bolt</span>
@@ -83,28 +129,35 @@ export function LessonDetailView({
           <div className="flex flex-col gap-1.5 max-h-[520px] overflow-y-auto pr-1">
             {lessons.map((lesson, index) => {
               const isActive = lesson.id === activeLesson.id;
+              const lessonAccessState = getLessonAccessState(lessons, lesson.id);
+              const isLocked = lessonAccessState === 'locked';
 
               return (
                 <button
                   key={lesson.id}
                   type="button"
-                  onClick={() => onSelectLesson(lesson.id)}
+                  onClick={() => !isLocked && onSelectLesson(lesson.id)}
+                  disabled={isLocked}
                   className={`w-full text-left px-3 py-2.5 rounded-lg flex items-start gap-2.5 label-sm border transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-primary/5 text-primary border-primary/20 shadow-sm'
-                      : 'border-transparent text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
+                    isLocked
+                      ? 'border-transparent text-outline cursor-not-allowed'
+                      : isActive
+                        ? 'bg-primary/5 text-primary border-primary/20 shadow-sm'
+                        : 'border-transparent text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
                   }`}
                 >
                   <span
                     className={`material-symbols-outlined text-[18px] shrink-0 mt-0.5 ${
                       lesson.completed
                         ? 'text-tertiary'
-                        : isActive
-                          ? 'text-primary'
-                          : 'text-outline'
+                        : isLocked
+                          ? 'text-outline'
+                          : isActive
+                            ? 'text-primary'
+                            : 'text-outline'
                     }`}
                   >
-                    {lesson.completed ? 'check_circle' : isActive ? 'play_circle' : 'radio_button_unchecked'}
+                    {lesson.completed ? 'check_circle' : isLocked ? 'lock' : isActive ? 'play_circle' : 'radio_button_unchecked'}
                   </span>
                   <span className="min-w-0 flex-1 truncate leading-normal">
                     {String(index + 1).padStart(2, '0')}. {lesson.title}
@@ -177,6 +230,18 @@ export function LessonDetailView({
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
+                          {exercise.isMandatory !== null && (
+                            <Badge
+                              variant="outline"
+                              className={exercise.isMandatory
+                                ? 'border-orange-200 bg-orange-50 text-orange-700'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-700'}
+                            >
+                              {exercise.isMandatory
+                                ? t('mandatoryBadge', { defaultValue: 'Mandatory' })
+                                : t('optionalBadge', { defaultValue: 'Optional' })}
+                            </Badge>
+                          )}
                           <span className="rounded bg-surface-container px-2 py-0.5 label-sm text-on-surface-variant">
                             {exercise.difficulty}
                           </span>
@@ -218,6 +283,12 @@ export function LessonDetailView({
             </div>
           )}
 
+          {activeLessonLocked && (
+            <div className="rounded-lg border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface-variant">
+              {t('lessonLockedMessage', { defaultValue: 'Complete the previous lesson to unlock this step.' })}
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
             <div className="flex flex-wrap gap-2">
               <button
@@ -233,7 +304,7 @@ export function LessonDetailView({
                 <button
                   type="button"
                   onClick={() => nextLessonId && onSelectLesson(nextLessonId)}
-                  disabled={!nextLessonId}
+                  disabled={!nextLessonId || activeLessonLocked}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
                 >
                   {t('next', { defaultValue: 'Next' })}
@@ -255,7 +326,7 @@ export function LessonDetailView({
                   onCompleteLesson();
                 }
               }}
-              disabled={!activeLesson.completed && completing}
+              disabled={(!activeLesson.completed && completing) || (!activeLesson.completed && activeLessonLocked)}
               className="inline-flex items-center gap-1.5 px-5 py-2.5 label-sm rounded-lg transition-colors select-none bg-primary text-on-primary hover:opacity-90 shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-[18px]">

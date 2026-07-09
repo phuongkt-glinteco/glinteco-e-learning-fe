@@ -19,6 +19,14 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { isUiShowError } from '@/services/errors';
 import { toast } from 'sonner';
+import type { UiShowError } from '@/services/errors';
+import type {
+  GuideContent,
+  LinkContent,
+  ReferenceContent,
+  RunbookContent,
+  TutorialContent,
+} from '../document-detail/types';
 
 const KIND_OPTIONS = [
   { value: 'Guide', label: 'Guide' },
@@ -40,6 +48,11 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
 
   const initialContent = useMemo(() => getDocumentContent(document), [document]);
   const initialUrl = useMemo(() => getDocumentUrl(document), [document]);
+  const initialGuideContent = document.kind === 'Guide' ? initialContent as GuideContent : null;
+  const initialTutorialContent = document.kind === 'Tutorial' ? initialContent as TutorialContent : null;
+  const initialRunbookContent = document.kind === 'Runbook' ? initialContent as RunbookContent : null;
+  const initialReferenceContent = document.kind === 'Reference' ? initialContent as ReferenceContent : null;
+  const initialLinkContent = document.kind === 'Link' ? initialContent as LinkContent : null;
 
   const [kind, setKind] = useState<string>(document.kind);
   const [title, setTitle] = useState(document.title);
@@ -49,77 +62,72 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
 
   // Editor states
   const [guideData, setGuideData] = useState<GuideEditorData>(() => {
-    if (document.kind !== 'Guide') return {};
-    const gc = initialContent as any;
+    if (!initialGuideContent) return {};
     return {
-      objective: gc.objective,
-      prerequisites: gc.prerequisites,
-      steps: gc.steps || gc.body,
-      expectedResult: gc.expectedResult,
-      relatedDocs: gc.relatedDocs,
+      objective: initialGuideContent.objective,
+      prerequisites: initialGuideContent.prerequisites,
+      steps: initialGuideContent.steps || initialGuideContent.body,
+      expectedResult: initialGuideContent.expectedResult,
+      relatedDocs: initialGuideContent.relatedDocs,
     };
   });
 
   const [tutorialData, setTutorialData] = useState<TutorialEditorData>(() => {
-    if (document.kind !== 'Tutorial') return {};
-    const tc = initialContent as any;
+    if (!initialTutorialContent) return {};
     return {
-      learningObjectives: tc.learningObjectives,
-      prerequisites: tc.prerequisites,
-      duration: tc.duration,
-      difficulty: tc.difficulty,
-      explanation: tc.explanation,
-      stepsStr: tc.steps,
-      exercises: tc.exercises,
-      summary: tc.summary,
-      legacySteps: tc.legacySteps,
+      learningObjectives: initialTutorialContent.learningObjectives,
+      prerequisites: initialTutorialContent.prerequisites,
+      duration: initialTutorialContent.duration,
+      difficulty: initialTutorialContent.difficulty,
+      explanation: initialTutorialContent.explanation,
+      stepsStr: initialTutorialContent.steps,
+      exercises: initialTutorialContent.exercises,
+      summary: initialTutorialContent.summary,
+      legacySteps: initialTutorialContent.legacySteps,
     };
   });
 
   const [runbookData, setRunbookData] = useState<RunbookEditorData>(() => {
-    if (document.kind !== 'Runbook') return {};
-    const rc = initialContent as any;
+    if (!initialRunbookContent) return {};
     return {
-      trigger: rc.trigger || rc.background,
-      impact: rc.impact,
-      prerequisites: rc.prerequisites,
-      procedure: rc.procedure,
-      validation: rc.validation,
-      rollback: rc.rollback,
-      escalation: rc.escalation,
-      relatedDocs: rc.relatedDocs,
-      background: rc.background,
-      severity: rc.severity,
-      incidentId: rc.incidentId,
-      estimatedTime: rc.estimatedTime,
-      symptoms: rc.symptoms,
-      status: rc.status,
-      phases: rc.phases,
+      trigger: initialRunbookContent.trigger || initialRunbookContent.background,
+      impact: initialRunbookContent.impact,
+      prerequisites: initialRunbookContent.prerequisites,
+      procedure: initialRunbookContent.procedure,
+      validation: initialRunbookContent.validation,
+      rollback: initialRunbookContent.rollback,
+      escalation: initialRunbookContent.escalation,
+      relatedDocs: initialRunbookContent.relatedDocs,
+      background: initialRunbookContent.background,
+      severity: initialRunbookContent.severity,
+      incidentId: initialRunbookContent.incidentId,
+      estimatedTime: initialRunbookContent.estimatedTime,
+      symptoms: initialRunbookContent.symptoms,
+      status: initialRunbookContent.status,
+      phases: initialRunbookContent.phases,
     };
   });
 
   const [referenceData, setReferenceData] = useState<ReferenceEditorData>(() => {
-    if (document.kind !== 'Reference') return {};
-    const refc = initialContent as any;
+    if (!initialReferenceContent) return {};
     return {
-      category: refc.category,
-      version: refc.version,
-      properties: refc.properties,
-      examples: refc.examples,
-      notes: refc.notes,
-      sections: refc.sections,
+      category: initialReferenceContent.category,
+      version: initialReferenceContent.version,
+      properties: initialReferenceContent.properties,
+      examples: initialReferenceContent.examples,
+      notes: initialReferenceContent.notes,
+      sections: initialReferenceContent.sections,
     };
   });
 
   const [linkData, setLinkData] = useState<LinkEditorData>(() => {
-    if (document.kind !== 'Link') return {};
-    const lc = initialContent as any;
+    if (!initialLinkContent) return {};
     return {
-      provider: lc.provider,
-      type: lc.type,
-      openInNewTab: lc.openInNewTab,
-      description: lc.description,
-      overview: lc.overview,
+      provider: initialLinkContent.provider,
+      type: initialLinkContent.type,
+      openInNewTab: initialLinkContent.openInNewTab,
+      description: initialLinkContent.description,
+      overview: initialLinkContent.overview,
     };
   });
 
@@ -204,9 +212,10 @@ export default function DocumentEdit({ document }: DocumentEditProps) {
       });
 
       router.push('/documents');
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (isUiShowError(err)) {
-        toast.error(t(`errors.${err.errorCode}`) || err.message);
+        const error = err as UiShowError;
+        toast.error(t(`errors.${error.errorCode}`) || error.message);
       }
     } finally {
       setSaving(false);

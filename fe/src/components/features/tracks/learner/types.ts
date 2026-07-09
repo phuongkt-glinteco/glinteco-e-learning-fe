@@ -44,6 +44,8 @@ export interface TrackLessonPreview {
   type: LessonType;
 }
 
+export type LessonAccessState = 'completed' | 'current' | 'locked';
+
 export interface LearnerExercise {
   id: string;
   lessonId: string | null;
@@ -55,6 +57,7 @@ export interface LearnerExercise {
   estimatedTime: string;
   xp: number;
   status: LearnerSubmissionStatus;
+  isMandatory: boolean | null;
   tag: string;
   prUrl: string | null;
 }

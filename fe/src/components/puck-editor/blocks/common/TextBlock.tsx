@@ -2,7 +2,7 @@ import React from "react";
 import { ComponentConfig } from "@puckeditor/core";
 import { LessonBlockProps } from "../../types";
 
-export const TextBlock: ComponentConfig<LessonBlockProps["TextBlock"]> = {
+export const TextBlock: ComponentConfig<NonNullable<LessonBlockProps["TextBlock"]>> = {
   fields: {
     content: { type: "textarea", label: "Nội dung văn bản" },
     size: {

@@ -4,15 +4,25 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Config } from "@puckeditor/core";
 import { LessonBlockProps, LessonRootProps } from "../types";
-import { LessonRootHeader } from "../blocks/lesson";
+import {
+  LessonRootHeader,
+  LessonHeaderBlock,
+  LessonRightSidebarBlock,
+} from "../blocks/lesson";
+import { DocumentPickerField, ExercisePickerField } from "../fields";
 import {
   HeadingBlock,
+  ParagraphBlock,
   ListBlock,
   TableBlock,
   CodeBlock,
   CalloutBlock,
   FlexLayoutBlock,
   GridLayoutBlock,
+  ExerciseEmbedBlock,
+  ReferenceDocumentBlock,
+  ExternalLinkBlock,
+  ImageBlock,
 } from "../blocks/common";
 
 /**
@@ -38,10 +48,6 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
         estimatedTime: {
           type: "text",
           label: t("root.estimatedTimeLabel"),
-        },
-        order: {
-          type: "number",
-          label: t("root.orderLabel"),
         },
         type: {
           type: "select",
@@ -79,7 +85,11 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
     categories: {
       typography: {
         title: t("categories.typography"),
-        components: ["HeadingBlock", "ListBlock", "TableBlock"],
+        components: ["HeadingBlock", "ParagraphBlock", "ListBlock", "TableBlock"],
+      },
+      media: {
+        title: "🖼️ Hình ảnh & Liên kết",
+        components: ["ImageBlock", "ExternalLinkBlock", "ReferenceDocumentBlock", "ExerciseEmbedBlock"],
       },
       code: {
         title: t("categories.code"),
@@ -97,13 +107,108 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
 
     // 3. Đăng ký các khối component
     components: {
+      LessonHeaderBlock: {
+        label: "Header bài học",
+        permissions: {
+          delete: false,
+          drag: false,
+          duplicate: false,
+        },
+        fields: {
+          title: { type: "text", label: "Tiêu đề bài học" },
+          description: { type: "textarea", label: "Mô tả bài học" },
+          estimatedTime: { type: "text", label: "Thời gian ước tính" },
+          order: { type: "number", label: "Thứ tự bài học" },
+          type: {
+            type: "select",
+            label: "Loại bài học",
+            options: [
+              { label: "Lý thuyết (Reading)", value: "reading" },
+              { label: "Video bài giảng (Video)", value: "video" },
+              { label: "Câu hỏi nhanh (Quiz)", value: "quiz" },
+              { label: "Lập trình (Coding)", value: "coding" },
+              { label: "Bài tập lớn (Assignment)", value: "assignment" },
+            ],
+          },
+        },
+        defaultProps: {
+          title: "Tiêu đề bài học mới",
+          description: "Mô tả nội dung chính của bài học này...",
+          estimatedTime: "15 mins",
+          order: 1,
+          type: "reading",
+        },
+        render: (props) => <LessonHeaderBlock {...props} />,
+      },
+      LessonRightSidebarBlock: {
+        label: "Right Sidebar (Tài liệu & Bài tập)",
+        permissions: {
+          delete: false,
+          drag: false,
+          duplicate: false,
+        },
+        fields: {
+          showToLearner: {
+            type: "radio",
+            label: "Hiển thị với học viên",
+            options: [
+              { label: "Bật", value: true },
+              { label: "Ẩn", value: false },
+            ],
+          },
+          maxHeadingLevel: {
+            type: "select",
+            label: "Mức Heading tối đa",
+            options: [
+              { label: "H1", value: 1 },
+              { label: "H1 - H2", value: 2 },
+              { label: "H1 - H3", value: 3 },
+              { label: "H1 - H4", value: 4 },
+            ],
+          },
+          documents: {
+            type: "custom",
+            label: "Tài liệu liên quan",
+            render: ({ value, onChange, readOnly }) => (
+              <DocumentPickerField
+                value={value}
+                onChange={onChange}
+                readOnly={readOnly}
+              />
+            ),
+          },
+          exercises: {
+            type: "custom",
+            label: "Bài tập liên quan",
+            render: ({ value, onChange, readOnly }) => (
+              <ExercisePickerField
+                value={value}
+                onChange={onChange}
+                readOnly={readOnly}
+              />
+            ),
+          },
+        },
+        defaultProps: {
+          showToLearner: true,
+          maxHeadingLevel: 3,
+          documents: [],
+          exercises: [],
+        },
+        render: (props) => <LessonRightSidebarBlock {...props} />,
+      },
       HeadingBlock,
+      ParagraphBlock,
       ListBlock,
       TableBlock,
       CodeBlock,
       CalloutBlock,
       FlexLayoutBlock,
       GridLayoutBlock,
+      ExerciseEmbedBlock,
+      ReferenceDocumentBlock,
+      ExternalLinkBlock,
+      ImageBlock,
     },
   }), [t]);
 }
@@ -115,7 +220,6 @@ export const lessonPuckConfig: Config<LessonBlockProps, LessonRootProps> = {
       title: { type: "text", label: "Tiêu đề bài học (Bắt buộc)" },
       description: { type: "textarea", label: "Mô tả ngắn" },
       estimatedTime: { type: "text", label: "Thời gian ước tính (VD: 15 mins)" },
-      order: { type: "number", label: "Thứ tự bài học (#)" },
       type: {
         type: "select",
         label: "Phân loại bài học",
@@ -150,7 +254,11 @@ export const lessonPuckConfig: Config<LessonBlockProps, LessonRootProps> = {
   categories: {
     typography: {
       title: "📝 Văn bản & Bảng biểu",
-      components: ["HeadingBlock", "ListBlock", "TableBlock"],
+      components: ["HeadingBlock", "ParagraphBlock", "ListBlock", "TableBlock"],
+    },
+    media: {
+      title: "🖼️ Hình ảnh & Liên kết",
+      components: ["ImageBlock", "ExternalLinkBlock", "ReferenceDocumentBlock", "ExerciseEmbedBlock"],
     },
     code: {
       title: "💻 Code & Terminal",
@@ -166,12 +274,107 @@ export const lessonPuckConfig: Config<LessonBlockProps, LessonRootProps> = {
     },
   },
   components: {
+    LessonHeaderBlock: {
+      label: "Header bài học",
+      permissions: {
+        delete: false,
+        drag: false,
+        duplicate: false,
+      },
+      fields: {
+        title: { type: "text", label: "Tiêu đề bài học" },
+        description: { type: "textarea", label: "Mô tả bài học" },
+        estimatedTime: { type: "text", label: "Thời gian ước tính" },
+        order: { type: "number", label: "Thứ tự bài học" },
+        type: {
+          type: "select",
+          label: "Loại bài học",
+          options: [
+            { label: "Lý thuyết (Reading)", value: "reading" },
+            { label: "Video bài giảng (Video)", value: "video" },
+            { label: "Câu hỏi nhanh (Quiz)", value: "quiz" },
+            { label: "Lập trình (Coding)", value: "coding" },
+            { label: "Bài tập lớn (Assignment)", value: "assignment" },
+          ],
+        },
+      },
+      defaultProps: {
+        title: "Tiêu đề bài học mới",
+        description: "Mô tả nội dung chính của bài học này...",
+        estimatedTime: "15 mins",
+        order: 1,
+        type: "reading",
+      },
+      render: (props) => <LessonHeaderBlock {...props} />,
+    },
+    LessonRightSidebarBlock: {
+      label: "Right Sidebar (Tài liệu & Bài tập)",
+      permissions: {
+        delete: false,
+        drag: false,
+        duplicate: false,
+      },
+      fields: {
+        showToLearner: {
+          type: "radio",
+          label: "Hiển thị với học viên",
+          options: [
+            { label: "Bật", value: true },
+            { label: "Ẩn", value: false },
+          ],
+        },
+        maxHeadingLevel: {
+          type: "select",
+          label: "Mức Heading tối đa",
+          options: [
+            { label: "H1", value: 1 },
+            { label: "H1 - H2", value: 2 },
+            { label: "H1 - H3", value: 3 },
+            { label: "H1 - H4", value: 4 },
+          ],
+        },
+        documents: {
+          type: "custom",
+          label: "Tài liệu liên quan",
+          render: ({ value, onChange, readOnly }) => (
+            <DocumentPickerField
+              value={value}
+              onChange={onChange}
+              readOnly={readOnly}
+            />
+          ),
+        },
+        exercises: {
+          type: "custom",
+          label: "Bài tập liên quan",
+          render: ({ value, onChange, readOnly }) => (
+            <ExercisePickerField
+              value={value}
+              onChange={onChange}
+              readOnly={readOnly}
+            />
+          ),
+        },
+      },
+      defaultProps: {
+        showToLearner: true,
+        maxHeadingLevel: 3,
+        documents: [],
+        exercises: [],
+      },
+      render: (props) => <LessonRightSidebarBlock {...props} />,
+    },
     HeadingBlock,
+    ParagraphBlock,
     ListBlock,
     TableBlock,
     CodeBlock,
     CalloutBlock,
     FlexLayoutBlock,
     GridLayoutBlock,
+    ExerciseEmbedBlock,
+    ReferenceDocumentBlock,
+    ExternalLinkBlock,
+    ImageBlock,
   },
 };

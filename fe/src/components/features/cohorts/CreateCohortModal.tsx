@@ -69,7 +69,7 @@ export function CreateCohortModal({ onSuccess, onCancel }: CreateCohortModalProp
 
       toast.success(t('createSuccess'));
       if (res.data) {
-        onSuccess(res.data as CohortSummaryDto);
+        onSuccess(res.data as unknown as CohortSummaryDto);
       } else {
         onSuccess({ id: 'new', name: data.name.trim(), learnerCount: 0, avgCompletion: 0 });
       }

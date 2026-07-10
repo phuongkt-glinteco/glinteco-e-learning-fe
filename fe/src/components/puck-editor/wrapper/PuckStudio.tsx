@@ -5,22 +5,25 @@ import React from "react";
 import { Puck, Config, Data } from "@puckeditor/core";
 
 export interface PuckStudioProps {
-  config: Config<any, any> | Config;
-  initialData?: Data<any, any> | Data;
-  onPublish: (data: Data<any, any>) => void | Promise<void>;
+  config: any;
+  initialData?: any;
+  onPublish: (data: any) => void | Promise<void>;
+  overrides?: any;
 }
 
 export function PuckStudio({
   config,
   initialData = { content: [], root: {} },
   onPublish,
+  overrides = { headerActions: () => null },
 }: PuckStudioProps) {
   return (
-    <div className="w-full h-screen">
+    <div className="w-full h-[calc(100vh-9rem)] mb-4 flex flex-col overflow-hidden">
       <Puck
         config={config as any}
         data={initialData as any}
         onPublish={onPublish as any}
+        overrides={overrides}
       />
     </div>
   );

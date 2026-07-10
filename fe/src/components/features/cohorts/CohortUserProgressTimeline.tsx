@@ -420,7 +420,7 @@ export function CohortUserProgressTimeline({ tracks }: CohortUserProgressTimelin
 
                         <div className="flex items-center gap-4 text-xs text-on-surface-variant">
                           <span>
-                            {t('progressCountLabel', { completed: track.completedLessonsCount, total: track.totalLessonsCount })}
+                            {t('progressCountLabel', { completed: track.completedLessonsCount ?? (track as any).completedLessons ?? 0, total: track.totalLessonsCount ?? (track as any).totalLessons ?? 0 })}
                           </span>
                         </div>
                       </div>

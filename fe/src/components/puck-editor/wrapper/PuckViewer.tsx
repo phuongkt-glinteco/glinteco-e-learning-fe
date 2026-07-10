@@ -2,8 +2,8 @@ import React from "react";
 import { Render, Config, Data } from "@puckeditor/core";
 
 export interface PuckViewerProps {
-  config: Config<any, any> | Config;
-  data: Data<any, any> | Data;
+  config: any;
+  data: any;
 }
 
 export function PuckViewer({ config, data }: PuckViewerProps) {

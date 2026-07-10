@@ -1,0 +1,44 @@
+{
+  "Lesson": {
+    "root": {
+      "titleLabel": "Tiêu đề bài học (Bắt buộc)",
+      "descriptionLabel": "Mô tả ngắn",
+      "estimatedTimeLabel": "Thời gian ước tính (VD: 15 mins)",
+      "orderLabel": "Thứ tự bài học (#)",
+      "typeLabel": "Phân loại bài học",
+      "types": {
+        "reading": "Lý thuyết (Reading)",
+        "video": "Video bài giảng (Video)",
+        "quiz": "Câu hỏi nhanh (Quiz)",
+        "coding": "Lập trình (Coding)",
+        "assignment": "Bài tập lớn (Assignment)"
+      }
+    },
+    "categories": {
+      "typography": "📝 Văn bản & Bảng biểu",
+      "code": "💻 Code & Terminal",
+      "callout": "💡 Ghi chú & Chú ý",
+      "layout": "📐 Bố cục (Layout)"
+    }
+  },
+  "Common": {
+    "heading": {
+      "titleLabel": "Tiêu đề",
+      "levelLabel": "Cấp độ thẻ",
+      "alignLabel": "Căn lề"
+    },
+    "code": {
+      "copy": "Sao chép",
+      "copied": "✓ Đã sao chép",
+      "categoryLabel": "Nhóm định dạng",
+      "languageLabel": "Ngôn ngữ",
+      "codeLabel": "Đoạn code / Câu lệnh",
+      "showLineNumbersLabel": "Hiển thị số dòng"
+    },
+    "callout": {
+      "variantLabel": "Loại ghi chú",
+      "titleLabel": "Tiêu đề ghi chú (Tuỳ chọn)",
+      "contentLabel": "Nội dung ghi chú"
+    }
+  }
+}

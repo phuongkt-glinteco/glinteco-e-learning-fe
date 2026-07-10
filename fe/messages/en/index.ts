@@ -46,6 +46,7 @@ import UsersPage from './UsersPage.json';
 import SettingsPage from './SettingsPage.json';
 import SupportPage from './SupportPage.json';
 import ResourceDocumentPickerDialog from './ResourceDocumentPickerDialog.json';
+import PuckEditor from './PuckEditor.json';
 
 const messages: Record<string, unknown> = {
   LogoutPage,
@@ -94,6 +95,7 @@ const messages: Record<string, unknown> = {
   SettingsPage,
   SupportPage,
   ResourceDocumentPickerDialog,
+  PuckEditor,
 };
 
 export default messages;

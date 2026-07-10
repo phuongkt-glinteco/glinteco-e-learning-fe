@@ -1,0 +1,44 @@
+{
+  "Lesson": {
+    "root": {
+      "titleLabel": "Lesson Title (Required)",
+      "descriptionLabel": "Short Description",
+      "estimatedTimeLabel": "Estimated Time (e.g. 15 mins)",
+      "orderLabel": "Lesson Order (#)",
+      "typeLabel": "Lesson Type",
+      "types": {
+        "reading": "Reading (Theory)",
+        "video": "Video Lecture",
+        "quiz": "Quick Quiz",
+        "coding": "Coding Practice",
+        "assignment": "Assignment"
+      }
+    },
+    "categories": {
+      "typography": "📝 Typography & Tables",
+      "code": "💻 Code & Terminal",
+      "callout": "💡 Notes & Callouts",
+      "layout": "📐 Layout"
+    }
+  },
+  "Common": {
+    "heading": {
+      "titleLabel": "Title",
+      "levelLabel": "Heading Level",
+      "alignLabel": "Alignment"
+    },
+    "code": {
+      "copy": "Copy",
+      "copied": "✓ Copied",
+      "categoryLabel": "Format Category",
+      "languageLabel": "Language",
+      "codeLabel": "Code / Command",
+      "showLineNumbersLabel": "Show Line Numbers"
+    },
+    "callout": {
+      "variantLabel": "Callout Type",
+      "titleLabel": "Optional Title",
+      "contentLabel": "Content"
+    }
+  }
+}

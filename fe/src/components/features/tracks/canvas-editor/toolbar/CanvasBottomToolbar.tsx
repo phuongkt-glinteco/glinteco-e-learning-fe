@@ -264,24 +264,6 @@ export function CanvasBottomToolbar({
                     icon="lucide:align-left"
                     onSelectClick={() => onAddBlock('paragraph', {}, '')}
                   />
-                  <DraggableToolbarItem
-                    id="toolbar_bullet_list"
-                    type="paragraph"
-                    props={{ listType: 'bullet', indentLevel: 0 }}
-                    content=""
-                    label="Danh sách gạch đầu dòng (Bullet)"
-                    icon="lucide:list"
-                    onSelectClick={() => onAddBlock('paragraph', { listType: 'bullet', indentLevel: 0 }, '')}
-                  />
-                  <DraggableToolbarItem
-                    id="toolbar_ordered_list"
-                    type="paragraph"
-                    props={{ listType: 'ordered', listStart: 1, indentLevel: 0 }}
-                    content=""
-                    label="Danh sách đánh số (Numbered)"
-                    icon="lucide:list-ordered"
-                    onSelectClick={() => onAddBlock('paragraph', { listType: 'ordered', listStart: 1, indentLevel: 0 }, '')}
-                  />
                   <div className="my-1 border-t border-outline-variant/50" />
                   <DraggableToolbarItem
                     id="toolbar_h1"
@@ -427,27 +409,6 @@ export function CanvasBottomToolbar({
                       )
                     }
                   />
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* 4. Popover: Bố cục (Table / Scroll Area) */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs font-bold text-on-surface hover:border-primary/50 hover:bg-surface-variant/30 transition-all"
-                >
-                  <Icon icon="lucide:layout-grid" className="h-4 w-4 text-blue-500" />
-                  <span>Bố cục</span>
-                  <Icon icon="lucide:chevron-up" className="h-3 w-3 text-on-surface-variant" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent side="top" align="center" className="w-72 p-2 shadow-2xl rounded-2xl">
-                <div className="mb-1.5 px-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                  Bảng biểu & Vùng cuộn
-                </div>
-                <div className="flex flex-col gap-1">
                   <DraggableToolbarItem
                     id="toolbar_table"
                     type="table"
@@ -470,42 +431,28 @@ export function CanvasBottomToolbar({
                       })
                     }
                   />
-                  <DraggableToolbarItem
-                    id="toolbar_scrollarea"
-                    type="scrollable-area"
-                    props={{ maxHeight: 320 }}
-                    content="Nội dung dài hoặc bảng lớn sẽ được đặt trong vùng cuộn này để giữ bố cục gọn gàng."
-                    label="Vùng cuộn lớn (Scrollable Area)"
-                    icon="lucide:scroll"
-                    onSelectClick={() =>
-                      onAddBlock(
-                        'scrollable-area',
-                        { maxHeight: 320 },
-                        'Nội dung dài hoặc bảng lớn sẽ được đặt trong vùng cuộn này để giữ bố cục gọn gàng.'
-                      )
-                    }
-                  />
                 </div>
               </PopoverContent>
             </Popover>
 
-            {/* 5. Popover: Nhúng (Embeds) */}
+            {/* 4. Popover duy nhất cho Bố cục (Layouts & Embeds) */}
             <Popover>
               <PopoverTrigger asChild>
                 <button
                   type="button"
                   className="flex items-center gap-1.5 rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs font-bold text-on-surface hover:border-primary/50 hover:bg-surface-variant/30 transition-all"
                 >
-                  <Icon icon="lucide:link-2" className="h-4 w-4 text-purple-500" />
-                  <span>Nhúng</span>
+                  <Icon icon="lucide:layout-grid" className="h-4 w-4 text-blue-500" />
+                  <span>Liên kết</span>
                   <Icon icon="lucide:chevron-up" className="h-3 w-3 text-on-surface-variant" />
                 </button>
               </PopoverTrigger>
               <PopoverContent side="top" align="center" className="w-72 p-2 shadow-2xl rounded-2xl">
                 <div className="mb-1.5 px-2 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                  Nhúng Tài liệu & Bài tập
+                  Liên kết
                 </div>
                 <div className="flex flex-col gap-1">
+                  
                   <DraggableToolbarItem
                     id="toolbar_embed_doc"
                     type="doc-embed"

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import type { CanvasBlock } from '../../types';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ interface EditableCalloutBlockProps {
   block: CanvasBlock;
   onChangeContent: (newContent: string) => void;
   onChangeVariant: (variant: string) => void;
+  onInsertParagraphAfter?: () => void;
 }
 
 const CALLOUT_CONFIGS: Record<
@@ -63,14 +64,31 @@ export function EditableCalloutBlock({
   block,
   onChangeContent,
   onChangeVariant,
+  onInsertParagraphAfter,
 }: EditableCalloutBlockProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const variant = (block.props.variant || 'info') as keyof typeof CALLOUT_CONFIGS;
   const config = CALLOUT_CONFIGS[variant] || CALLOUT_CONFIGS.info;
 
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [block.content]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      onInsertParagraphAfter?.();
+    }
+  };
+
   return (
     <div
+      data-block-id={block.id}
       className={cn(
-        'flex flex-col gap-2.5 rounded-2xl border-l-4 p-4 transition-all',
+        'flex flex-col gap-2 rounded-2xl border-l-4 p-4 transition-all shadow-sm',
         config.border,
         config.bg
       )}
@@ -82,10 +100,10 @@ export function EditableCalloutBlock({
           <select
             value={variant}
             onChange={(e) => onChangeVariant(e.target.value)}
-            className="cursor-pointer rounded-lg bg-transparent py-0.5 pr-6 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+            className="cursor-pointer rounded-lg bg-transparent py-0.5 pr-6 text-sm font-bold uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-primary"
           >
             {Object.entries(CALLOUT_CONFIGS).map(([key, item]) => (
-              <option key={key} value={key} className="bg-surface text-on-surface">
+              <option key={key} value={key} className="bg-surface text-on-surface font-semibold">
                 {item.label}
               </option>
             ))}
@@ -93,13 +111,15 @@ export function EditableCalloutBlock({
         </div>
       </div>
 
-      {/* Editable Content */}
+      {/* Editable Content matching Learner preview exactly */}
       <textarea
-        rows={3}
+        ref={textareaRef}
+        rows={1}
         value={block.content || ''}
         onChange={(e) => onChangeContent(e.target.value)}
-        placeholder="Nhập nội dung ghi chú / callout..."
-        className="w-full resize-y rounded-xl bg-transparent text-sm leading-relaxed text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none"
+        onKeyDown={handleKeyDown}
+        placeholder="Nhập nội dung ghi chú / callout (Ctrl+Enter thoát)..."
+        className="w-full resize-none rounded-none bg-transparent text-sm leading-relaxed text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none m-0 p-0"
       />
     </div>
   );

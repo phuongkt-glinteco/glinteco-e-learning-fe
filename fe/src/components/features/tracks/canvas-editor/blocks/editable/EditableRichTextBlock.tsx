@@ -4,12 +4,17 @@ import React, { useRef, useEffect } from 'react';
 import type { CanvasBlock, CanvasBlockType, CanvasBlockProps } from '../../types';
 import { cn } from '@/lib/utils';
 
+function generateItemId(): string {
+  return 'item_' + Math.random().toString(36).substring(2, 11);
+}
+
 export interface EditableRichTextBlockProps {
   block: CanvasBlock;
   onChangeContent?: (newContent: string) => void;
   onChangeProps?: (newProps: CanvasBlockProps) => void;
   onChangeContentAndProps?: (content: string, newProps: CanvasBlockProps) => void;
   onInsertParagraphAfter?: (customProps?: CanvasBlockProps) => void;
+  onInsertBlockAfter?: (type: CanvasBlockType, customProps?: CanvasBlockProps) => void;
   onDeleteAndFocusPrevious?: () => void;
   onChangeBlockType?: (newType: CanvasBlockType, newProps?: CanvasBlockProps) => void;
   onFocusPrevious?: () => void;
@@ -20,18 +25,14 @@ export interface EditableRichTextBlockProps {
 export const EditableRichTextBlock: React.FC<EditableRichTextBlockProps> = ({
   block,
   onChangeContent,
-  onChangeProps,
-  onChangeContentAndProps,
   onInsertParagraphAfter,
+  onInsertBlockAfter,
   onDeleteAndFocusPrevious,
   onChangeBlockType,
   onFocusPrevious,
   onFocusNext,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const listType = block.props.listType;
-  const indentLevel = block.props.indentLevel || 0;
-  const listStart = block.props.listStart || 1;
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -41,48 +42,11 @@ export const EditableRichTextBlock: React.FC<EditableRichTextBlockProps> = ({
   }, [block.content]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-
-    // Auto-detect Bullet list (e.g. typing "- ", "* ", "+ ")
-    const bulletMatch = val.match(/^([-*+])\s([\s\S]*)$/);
-    if (bulletMatch && !listType) {
-      const newProps = {
-        ...block.props,
-        listType: 'bullet' as const,
-        indentLevel: indentLevel,
-      };
-      if (onChangeContentAndProps) {
-        onChangeContentAndProps(bulletMatch[2], newProps);
-      } else {
-        onChangeProps?.(newProps);
-        onChangeContent?.(bulletMatch[2]);
-      }
-      return;
-    }
-
-    // Auto-detect Ordered list (e.g. typing "1. ", "a. ")
-    const orderedMatch = val.match(/^(\d+)[.)]\s([\s\S]*)$/);
-    if (orderedMatch && !listType) {
-      const num = parseInt(orderedMatch[1], 10) || 1;
-      const newProps = {
-        ...block.props,
-        listType: 'ordered' as const,
-        listStart: num,
-        indentLevel: indentLevel,
-      };
-      if (onChangeContentAndProps) {
-        onChangeContentAndProps(orderedMatch[2], newProps);
-      } else {
-        onChangeProps?.(newProps);
-        onChangeContent?.(orderedMatch[2]);
-      }
-      return;
-    }
-
-    onChangeContent?.(val);
+    onChangeContent?.(e.target.value);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Shortcuts Ctrl/Cmd + B -> Heading
     if (e.ctrlKey || e.metaKey) {
       if ((e.key === 'b' || e.key === 'B') && onChangeBlockType) {
         e.preventDefault();
@@ -91,90 +55,66 @@ export const EditableRichTextBlock: React.FC<EditableRichTextBlockProps> = ({
       }
       if (e.key === 'Enter' && onInsertParagraphAfter) {
         e.preventDefault();
-        onInsertParagraphAfter({ indentLevel });
+        onInsertParagraphAfter();
         return;
       }
     }
 
-    // Handle Tab and Shift+Tab for indentation & lists
-    if (e.key === 'Tab') {
-      const selStart = textareaRef.current?.selectionStart || 0;
-      const selEnd = textareaRef.current?.selectionEnd || 0;
+    const el = textareaRef.current;
+    if (!el) return;
 
-      if (listType || (selStart === 0 && selEnd === 0)) {
+    const val = block.content || '';
+    const selStart = el.selectionStart || 0;
+
+    // Handle special characters + space ('- ' or '* ' or '1. ') -> create List Block
+    if (e.key === ' ') {
+      const lastNewLine = val.lastIndexOf('\n', selStart - 1);
+      const lineStart = lastNewLine === -1 ? 0 : lastNewLine + 1;
+      const currentLineBeforeCursor = val.slice(lineStart, selStart);
+
+      const isBulletTrigger = /^[-*+]$/.test(currentLineBeforeCursor.trim());
+      const isOrderedTrigger = /^\d+[.)]$/.test(currentLineBeforeCursor.trim());
+
+      if (isBulletTrigger || isOrderedTrigger) {
         e.preventDefault();
-        if (e.shiftKey) {
-          if (indentLevel > 0) {
-            onChangeProps?.({ ...block.props, indentLevel: indentLevel - 1 });
-          } else if (listType) {
-            onChangeProps?.({ ...block.props, listType: undefined, indentLevel: 0 });
-          }
-        } else {
-          onChangeProps?.({ ...block.props, indentLevel: Math.min(3, indentLevel + 1) });
-        }
-        return;
-      }
+        const isOrdered = isOrderedTrigger;
+        const listProps: CanvasBlockProps = {
+          ordered: isOrdered,
+          items: [{ id: generateItemId(), content: '', level: 0 }],
+        };
 
-      e.preventDefault();
-      const currentVal = block.content || '';
-      const newVal = currentVal.slice(0, selStart) + '\t' + currentVal.slice(selEnd);
-      onChangeContent?.(newVal);
-      setTimeout(() => {
-        textareaRef.current?.setSelectionRange(selStart + 1, selStart + 1);
-      }, 0);
-      return;
-    }
-
-    // Handle regular Enter key (without Shift)
-    if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
-      // Case 1: Currently in a List -> Enter tạo item danh sách mới hoặc thoát danh sách nếu rỗng
-      if (listType) {
-        e.preventDefault();
-        const currentVal = (block.content || '').trim();
-        if (!currentVal) {
-          // Empty item -> exit list or reduce indent
-          if (indentLevel > 0) {
-            onChangeProps?.({ ...block.props, indentLevel: indentLevel - 1 });
-          } else {
-            onChangeProps?.({ ...block.props, listType: undefined, indentLevel: 0 });
-          }
+        // Nếu paragraph chỉ có duy nhất ký tự trigger này -> đổi luôn block thành list block
+        if (lineStart === 0 && selStart === val.length) {
+          onChangeBlockType?.('list', listProps);
           return;
         }
 
-        const nextProps: CanvasBlockProps = {
-          listType,
-          indentLevel,
-        };
-        if (listType === 'ordered') {
-          nextProps.listStart = listStart + 1;
+        // Nếu paragraph có nội dung trước đó -> cắt bỏ ký tự trigger ra khỏi paragraph và tạo list block bên dưới
+        const cleanContent = val.slice(0, lineStart).replace(/\n$/, '');
+        onChangeContent?.(cleanContent);
+        if (onInsertBlockAfter) {
+          onInsertBlockAfter('list', listProps);
+        } else if (onChangeBlockType) {
+          onChangeBlockType('list', listProps);
         }
-        onInsertParagraphAfter?.(nextProps);
         return;
       }
+    }
 
-      // Case 2: Regular Paragraph -> Cho phép xuống nhiều dòng trong 1 paragraph
+    // Handle regular Enter key -> default paragraph newline or new block if ctrl/shift
+    if (e.key === 'Enter' && !e.shiftKey) {
+      // Allow regular newline \n within paragraph
       return;
     }
 
-    // Handle Backspace on empty block
+    // Handle Backspace on empty paragraph -> delete block
     if (e.key === 'Backspace' && (!block.content || block.content === '')) {
       e.preventDefault();
-      if (listType || indentLevel > 0) {
-        if (indentLevel > 0) {
-          onChangeProps?.({ ...block.props, indentLevel: indentLevel - 1 });
-        } else {
-          onChangeProps?.({ ...block.props, listType: undefined, indentLevel: 0 });
-        }
-        return;
-      }
       onDeleteAndFocusPrevious?.();
       return;
     }
 
-    const val = block.content || '';
-    const selStart = textareaRef.current?.selectionStart || 0;
-
-    // Khi ở dòng đầu mà bấm mũi tên lên thì nhảy lên block trên
+    // Arrow keys navigation between blocks
     if (e.key === 'ArrowUp') {
       const firstNewline = val.indexOf('\n');
       const isOnFirstLine = firstNewline === -1 || selStart <= firstNewline;
@@ -184,7 +124,6 @@ export const EditableRichTextBlock: React.FC<EditableRichTextBlockProps> = ({
       }
     }
 
-    // Khi ở dòng cuối mà bấm mũi tên xuống thì nhảy xuống block dưới
     if (e.key === 'ArrowDown') {
       const lastNewline = val.lastIndexOf('\n');
       const isOnLastLine = lastNewline === -1 || selStart > lastNewline;
@@ -195,66 +134,19 @@ export const EditableRichTextBlock: React.FC<EditableRichTextBlockProps> = ({
     }
   };
 
-  const renderListIndicator = () => {
-    if (!listType) return null;
-
-    if (listType === 'bullet') {
-      let symbol = '•';
-      if (indentLevel === 1) symbol = '◦';
-      if (indentLevel >= 2) symbol = '▪';
-
-      return (
-        <span className="w-6 shrink-0 select-none text-center font-bold text-primary mr-2 text-base leading-relaxed">
-          {symbol}
-        </span>
-      );
-    }
-
-    if (listType === 'ordered') {
-      let label = `${listStart}.`;
-      if (indentLevel === 1) {
-        const char = String.fromCharCode(97 + ((listStart - 1) % 26));
-        label = `${char}.`;
-      } else if (indentLevel === 2) {
-        label = 'i.';
-      } else if (indentLevel >= 3) {
-        label = `(${listStart})`;
-      }
-
-      return (
-        <span className="w-6 shrink-0 select-none text-right font-bold text-secondary mr-2 text-sm leading-relaxed">
-          {label}
-        </span>
-      );
-    }
-
-    return null;
-  };
-
   return (
-    <div
-      data-block-id={block.id}
-      style={{ paddingLeft: `${indentLevel * 24}px` }}
-      className="group relative flex items-start w-full transition-all"
-    >
-      {renderListIndicator()}
+    <div data-block-id={block.id} className="group relative flex items-start w-full transition-all">
       <textarea
         ref={textareaRef}
         rows={1}
         value={block.content || ''}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder={
-          listType === 'bullet'
-            ? 'Nhập mục danh sách (Enter xuống dòng, Tab/Shift+Tab đổi cấp)...'
-            : listType === 'ordered'
-              ? 'Nhập mục số thứ tự (Enter xuống dòng, Tab/Shift+Tab đổi cấp)...'
-              : 'Gõ nội dung ("- " tạo Bullet, "1. " tạo Số, Ctrl+B đổi Heading)...'
-        }
+        placeholder='Gõ nội dung đoạn văn ("- " hoặc "1. " tạo danh sách List Block)...'
         className={cn(
           'w-full resize-none overflow-hidden bg-transparent leading-relaxed text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none text-sm font-medium transition-all m-0 p-0'
         )}
       />
     </div>
   );
-}
+};

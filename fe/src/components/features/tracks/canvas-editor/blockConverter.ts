@@ -243,6 +243,17 @@ export function convertBlocksToMarkdown(blocks: CanvasBlock[]): string {
           const url = block.props.url || '#';
           return `[${altText}](${url})`;
         }
+        case 'list': {
+          const items = block.props.items || [];
+          const ordered = block.props.ordered;
+          return items
+            .map((item, idx) => {
+              const indent = '  '.repeat(item.level || 0);
+              const prefix = ordered ? `${idx + 1}. ` : '- ';
+              return `${indent}${prefix}${item.content || ''}`;
+            })
+            .join('\n');
+        }
         case 'container': {
           if (block.children && block.children.length > 0) {
             return convertBlocksToMarkdown(block.children);

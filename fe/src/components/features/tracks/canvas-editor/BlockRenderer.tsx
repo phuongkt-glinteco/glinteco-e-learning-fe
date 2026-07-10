@@ -7,10 +7,10 @@ import { SortableBlockWrapper } from './SortableBlockWrapper';
 // Editable blocks
 import { EditableHeadingBlock } from './blocks/editable/EditableHeadingBlock';
 import { EditableRichTextBlock } from './blocks/editable/EditableRichTextBlock';
+import { EditableListBlock } from './blocks/editable/EditableListBlock';
 import { EditableCalloutBlock } from './blocks/editable/EditableCalloutBlock';
 import { EditableCodeBlock } from './blocks/editable/EditableCodeBlock';
 import { EditableTableBlock } from './blocks/editable/EditableTableBlock';
-import { EditableScrollableAreaBlock } from './blocks/editable/EditableScrollableAreaBlock';
 import { EditableEmbedBlock } from './blocks/editable/EditableEmbedBlock';
 import { EditableLinkBlock } from './blocks/editable/EditableLinkBlock';
 import { EditableContainerBlock } from './blocks/editable/EditableContainerBlock';
@@ -18,10 +18,10 @@ import { EditableContainerBlock } from './blocks/editable/EditableContainerBlock
 // Learner view blocks
 import { LearnerHeadingBlock } from './blocks/learner/LearnerHeadingBlock';
 import { LearnerRichTextBlock } from './blocks/learner/LearnerRichTextBlock';
+import { LearnerListBlock } from './blocks/learner/LearnerListBlock';
 import { LearnerCalloutBlock } from './blocks/learner/LearnerCalloutBlock';
 import { LearnerCodeBlock } from './blocks/learner/LearnerCodeBlock';
 import { LearnerTableBlock } from './blocks/learner/LearnerTableBlock';
-import { LearnerScrollableAreaBlock } from './blocks/learner/LearnerScrollableAreaBlock';
 import { LearnerLinkBlock } from './blocks/learner/LearnerLinkBlock';
 import { LearnerContainerBlock } from './blocks/learner/LearnerContainerBlock';
 import { TruncateWrapper } from './blocks/learner/TruncateWrapper';
@@ -33,6 +33,7 @@ interface BlockRendererProps {
   onChangeProps?: (newProps: CanvasBlockProps) => void;
   onChangeContentAndProps?: (content: string, newProps: CanvasBlockProps) => void;
   onInsertParagraphAfter?: (customProps?: CanvasBlockProps) => void;
+  onInsertBlockAfter?: (type: CanvasBlockType, customProps?: CanvasBlockProps) => void;
   onDeleteAndFocusPrevious?: () => void;
   onChangeBlockType?: (newType: CanvasBlockType, newProps?: CanvasBlockProps) => void;
   onChangeBlockTypeById?: (
@@ -53,6 +54,7 @@ interface BlockRendererProps {
   onToggleMultiSelect?: (id: string, e?: React.MouseEvent) => void;
   onFocusPrevious?: () => void;
   onFocusNext?: () => void;
+  depth?: number;
 }
 
 export function BlockRenderer({
@@ -62,6 +64,7 @@ export function BlockRenderer({
   onChangeProps,
   onChangeContentAndProps,
   onInsertParagraphAfter,
+  onInsertBlockAfter,
   onDeleteAndFocusPrevious,
   onChangeBlockType,
   onChangeBlockTypeById,
@@ -78,6 +81,7 @@ export function BlockRenderer({
   onToggleMultiSelect,
   onFocusPrevious,
   onFocusNext,
+  depth = 1,
 }: BlockRendererProps) {
   const isEdit = mode === 'edit';
 
@@ -90,6 +94,14 @@ export function BlockRenderer({
   }
 
   const renderRecursiveChildren = () => {
+    if (depth >= 5) {
+      return (
+        <div className="rounded-lg border border-error/50 bg-error/10 p-2 text-center text-xs font-semibold text-error">
+          ⚠️ Đã đạt giới hạn độ sâu đệ quy tối đa (5 cấp). Không thể lồng layout sâu hơn.
+        </div>
+      );
+    }
+
     const children = block.children || [];
     if (children.length === 0) return null;
 
@@ -101,6 +113,7 @@ export function BlockRenderer({
 
           const childNode = (
             <BlockRenderer
+              depth={depth + 1}
               block={child}
               mode={mode}
               onChangeContent={(c) => {
@@ -198,6 +211,7 @@ export function BlockRenderer({
             onAddChildBlock={(type) =>
               onAddChildToContainer?.(block.id, (type || 'paragraph') as CanvasBlockType)
             }
+            isSelected={selectedBlockId === block.id}
           />
         );
         break;
@@ -223,6 +237,7 @@ export function BlockRenderer({
             block={block}
             onChangeContent={(c) => onChangeContent?.(c)}
             onChangeVariant={(v) => updateProp('variant', v)}
+            onInsertParagraphAfter={onInsertParagraphAfter}
           />
         );
         break;
@@ -234,6 +249,8 @@ export function BlockRenderer({
             onChangeLanguage={(lang) => updateProp('language', lang)}
             onChangeFilename={(fn) => updateProp('filename', fn)}
             onChangeHeight={(h) => updateProp('height', h)}
+            onChangePreset={(preset) => updateProp('preset', preset)}
+            onInsertParagraphAfter={onInsertParagraphAfter}
           />
         );
         break;
@@ -244,14 +261,8 @@ export function BlockRenderer({
             onChangeHeaders={(h) => updateProp('headers', h)}
             onChangeRows={(r) => updateProp('rows', r)}
             onChangeColWidths={(widths) => updateProp('colWidths', widths)}
-          />
-        );
-        break;
-      case 'scrollable-area':
-        contentNode = (
-          <EditableScrollableAreaBlock
-            block={block}
-            onChangeMaxHeight={(h) => updateProp('maxHeight', h)}
+            isSelected={selectedBlockId === block.id}
+            onInsertParagraphAfter={onInsertParagraphAfter}
           />
         );
         break;
@@ -275,6 +286,18 @@ export function BlockRenderer({
           />
         );
         break;
+      case 'list':
+        contentNode = (
+          <EditableListBlock
+            block={block}
+            onChangeProps={onChangeProps}
+            onInsertParagraphAfter={onInsertParagraphAfter}
+            onDeleteAndFocusPrevious={onDeleteAndFocusPrevious}
+            onFocusPrevious={onFocusPrevious}
+            onFocusNext={onFocusNext}
+          />
+        );
+        break;
       case 'paragraph':
       default:
         contentNode = (
@@ -284,6 +307,7 @@ export function BlockRenderer({
             onChangeProps={onChangeProps}
             onChangeContentAndProps={onChangeContentAndProps}
             onInsertParagraphAfter={onInsertParagraphAfter}
+            onInsertBlockAfter={onInsertBlockAfter}
             onDeleteAndFocusPrevious={onDeleteAndFocusPrevious}
             onChangeBlockType={(t, p) =>
               onChangeBlockTypeById ? onChangeBlockTypeById(block.id, t, p) : onChangeBlockType?.(t, p)
@@ -317,8 +341,8 @@ export function BlockRenderer({
       case 'table':
         contentNode = <LearnerTableBlock block={block} />;
         break;
-      case 'scrollable-area':
-        contentNode = <LearnerScrollableAreaBlock block={block} />;
+      case 'list':
+        contentNode = <LearnerListBlock block={block} />;
         break;
       case 'link':
         contentNode = <LearnerLinkBlock block={block} />;

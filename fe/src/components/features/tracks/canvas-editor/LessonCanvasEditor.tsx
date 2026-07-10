@@ -416,6 +416,30 @@ export function LessonCanvasEditor({
     focusBlockById(newBlock.id);
   };
 
+  const handleInsertBlockAfter = (
+    idx: number,
+    type: CanvasBlockType,
+    customProps: CanvasBlockProps = {}
+  ) => {
+    const currentBlocks = blocksRef.current;
+    const newBlock: CanvasBlock = {
+      id: generateId(),
+      type,
+      props: customProps,
+      content: '',
+    };
+    const next = [
+      ...currentBlocks.slice(0, idx + 1),
+      newBlock,
+      ...currentBlocks.slice(idx + 1),
+    ];
+    updateBlocks(next);
+    onSelectBlock(newBlock.id);
+    setSelectedIds([newBlock.id]);
+
+    focusBlockById(newBlock.id);
+  };
+
   // Keyboard navigation: Backspace on empty block deletes it and focuses previous
   const handleDeleteAndFocusPrevious = (idx: number) => {
     const currentBlocks = blocksRef.current;
@@ -863,6 +887,7 @@ export function LessonCanvasEditor({
                         onChangeProps={(p) => handleBlockChangeProps(block.id, p)}
                         onChangeContentAndProps={(c, p) => handleBlockChangeContentAndProps(block.id, c, p)}
                         onInsertParagraphAfter={(customProps) => handleInsertParagraphAfter(idx, customProps)}
+                        onInsertBlockAfter={(type, customProps) => handleInsertBlockAfter(idx, type, customProps)}
                         onDeleteAndFocusPrevious={() => handleDeleteAndFocusPrevious(idx)}
                         onChangeBlockType={(newType, newProps) =>
                           handleChangeBlockType(block.id, newType, newProps)

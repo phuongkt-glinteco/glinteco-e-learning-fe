@@ -4,10 +4,10 @@ export type CanvasBlockType =
   | 'container'
   | 'heading'
   | 'paragraph'
+  | 'list'
   | 'callout'
   | 'code'
   | 'table'
-  | 'scrollable-area'
   | 'doc-embed'
   | 'exercise-embed'
   | 'link'
@@ -52,6 +52,17 @@ export interface HeadingBlockProps extends BlockLayoutProps {
   level?: 1 | 2 | 3;
 }
 
+export interface ListBlockItem {
+  id: string;
+  content: string;
+  level: number;
+}
+
+export interface ListBlockProps extends BlockLayoutProps {
+  ordered?: boolean;
+  items?: ListBlockItem[];
+}
+
 export interface CalloutBlockProps extends BlockLayoutProps {
   variant?: 'info' | 'objective' | 'prerequisites' | 'exercise' | 'challenge' | 'summary';
 }
@@ -87,6 +98,7 @@ export type CanvasBlockProps =
   & BlockLayoutProps
   & ContainerBlockProps
   & HeadingBlockProps
+  & ListBlockProps
   & CalloutBlockProps
   & CodeBlockProps
   & TableBlockProps

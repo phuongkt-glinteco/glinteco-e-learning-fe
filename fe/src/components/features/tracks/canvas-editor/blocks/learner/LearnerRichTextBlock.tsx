@@ -45,16 +45,53 @@ export function LearnerRichTextBlock({ block }: { block: CanvasBlock }) {
     return null;
   };
 
+  const renderFormattedContent = (content: string) => {
+    const lines = (content || '').split('\n');
+    return lines.map((line, idx) => {
+      const bulletMatch = line.match(/^(\s*)[-*+]\s+(.*)$/);
+      if (bulletMatch) {
+        return (
+          <div key={idx} className="flex items-start my-0.5">
+            <span className="w-5 shrink-0 select-none text-right font-bold text-primary mr-2">
+              •
+            </span>
+            <span className="flex-1 whitespace-pre-wrap">{bulletMatch[2]}</span>
+          </div>
+        );
+      }
+
+      const orderedMatch = line.match(/^(\s*)(\d+)[.)]\s+(.*)$/);
+      if (orderedMatch) {
+        return (
+          <div key={idx} className="flex items-start my-0.5">
+            <span className="w-6 shrink-0 select-none text-right font-bold text-secondary mr-2">
+              {orderedMatch[2]}.
+            </span>
+            <span className="flex-1 whitespace-pre-wrap">{orderedMatch[3]}</span>
+          </div>
+        );
+      }
+
+      return (
+        <div key={idx} className="whitespace-pre-wrap min-h-[1.5em]">
+          {line}
+        </div>
+      );
+    });
+  };
+
   return (
     <div
       style={{
         color: block.props.textColor,
         paddingLeft: `${indentLevel * 24}px`,
       }}
-      className="flex items-start text-sm md:text-base leading-relaxed text-on-surface whitespace-pre-wrap"
+      className="flex flex-col text-sm md:text-base leading-relaxed text-on-surface"
     >
-      {renderListIndicator()}
-      <div className="flex-1">{block.content}</div>
+      <div className="flex items-start">
+        {renderListIndicator()}
+        <div className="flex-1 flex flex-col">{renderFormattedContent(block.content || '')}</div>
+      </div>
     </div>
   );
 }

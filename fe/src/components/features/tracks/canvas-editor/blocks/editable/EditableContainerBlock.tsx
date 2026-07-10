@@ -9,12 +9,14 @@ interface EditableContainerBlockProps {
   block: CanvasBlock;
   childrenNode?: React.ReactNode;
   onAddChildBlock?: (type?: string) => void;
+  isSelected?: boolean;
 }
 
 export function EditableContainerBlock({
   block,
   childrenNode,
   onAddChildBlock,
+  isSelected = false,
 }: EditableContainerBlockProps) {
   const semanticTag = block.props.semanticTag || 'section';
   const layoutMode = block.props.layoutMode || 'flex-col';
@@ -58,18 +60,21 @@ export function EditableContainerBlock({
     <Tag
       data-block-id={block.id}
       className={cn(
-        'group/container relative w-full transition-all duration-150',
-        borderClass,
-        paddingClass
+        'group/container relative w-full transition-all duration-150 rounded-2xl',
+        isSelected
+          ? cn(borderClass, paddingClass, 'border-primary/50 bg-primary/[0.02] shadow-sm')
+          : 'border border-transparent hover:border-outline-variant/40 p-1'
       )}
     >
-      {/* Small Badge indicating Container Tag & Layout */}
-      <div className="absolute -top-2.5 left-3 z-10 hidden group-hover/container:inline-flex items-center gap-1 rounded-md border border-outline-variant/80 bg-surface px-2 py-0.5 text-[10px] font-bold text-on-surface-variant shadow-sm">
-        <Icon icon="lucide:layout-template" className="w-3 h-3 text-primary" />
-        <span>&lt;{semanticTag}&gt;</span>
-        <span className="text-on-surface-variant/50">|</span>
-        <span className="uppercase">{layoutMode}</span>
-      </div>
+      {/* Small Badge indicating Container Tag & Layout - CHỈ hiện khi layout được chọn (isSelected) */}
+      {isSelected && (
+        <div className="absolute -top-2.5 left-3 z-10 inline-flex items-center gap-1 rounded-md border border-outline-variant/80 bg-surface px-2 py-0.5 text-[10px] font-bold text-on-surface-variant shadow-sm">
+          <Icon icon="lucide:layout-template" className="w-3 h-3 text-primary" />
+          <span>&lt;{semanticTag}&gt;</span>
+          <span className="text-on-surface-variant/50">|</span>
+          <span className="uppercase">{layoutMode}</span>
+        </div>
+      )}
 
       <div
         style={{
@@ -88,18 +93,25 @@ export function EditableContainerBlock({
               e.stopPropagation();
               onAddChildBlock?.('paragraph');
             }}
-            className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-outline-variant/60 py-6 text-center hover:border-primary hover:bg-primary/5 transition-colors"
+            className={cn(
+              'flex cursor-pointer items-center justify-center rounded-xl border border-dashed transition-all',
+              isSelected
+                ? 'flex-col border-primary/60 py-6 text-center hover:bg-primary/5'
+                : 'border-outline-variant/40 py-2 px-3 text-xs text-on-surface-variant/70 hover:border-primary/40'
+            )}
           >
-            <Icon icon="lucide:plus" className="w-5 h-5 text-primary mb-1" />
-            <span className="text-xs font-medium text-on-surface-variant">
-              Container trống &mdash; Nhấn để thêm block vào trong &lt;{semanticTag}&gt;
+            <Icon icon="lucide:plus" className={cn('text-primary mr-1', isSelected ? 'w-5 h-5 mb-1 mr-0' : 'w-3.5 h-3.5')} />
+            <span className={cn('font-medium', isSelected ? 'text-xs text-on-surface-variant' : 'text-[11px]')}>
+              {isSelected
+                ? `Container trống — Nhấn để thêm block vào trong <${semanticTag}>`
+                : `Layout ${layoutMode} trống — Nhấn để thêm block`}
             </span>
           </div>
         )}
       </div>
 
-      {/* Button at bottom of container to insert child block */}
-      {onAddChildBlock && (
+      {/* Button at bottom of container to insert child block - CHỈ hiện khi layout được chọn (isSelected) */}
+      {isSelected && onAddChildBlock && (
         <div className="mt-3 flex justify-end">
           <button
             type="button"
@@ -107,7 +119,7 @@ export function EditableContainerBlock({
               e.stopPropagation();
               onAddChildBlock('paragraph');
             }}
-            className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 bg-surface/80 px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
+            className="inline-flex items-center gap-1 rounded-lg border border-outline-variant/60 bg-surface/80 px-2.5 py-1 text-[11px] font-semibold text-on-surface-variant hover:border-primary hover:text-primary transition-colors shadow-xs"
           >
             <Icon icon="lucide:plus" className="w-3.5 h-3.5" />
             <span>Thêm vào trong {semanticTag}</span>

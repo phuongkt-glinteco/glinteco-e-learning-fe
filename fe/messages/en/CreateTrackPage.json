@@ -68,5 +68,16 @@
   "calloutObjective": "Objective callout",
   "calloutChallenge": "Challenge callout",
   "tabs": "Tabs",
-  "details": "Details"
+  "details": "Details",
+  "exercisesHeading": "Lesson Exercises",
+  "documentsHeading": "Relative Documents",
+  "addExerciseBtn": "Add Exercise",
+  "addDocumentBtn": "Add Document",
+  "noExercises": "No exercises linked to this lesson yet.",
+  "noDocuments": "No relative documents added for this lesson yet.",
+  "tabContent": "Lesson Content",
+  "tabResources": "Exercises & Documents",
+  "submissionsLabel": "submissions",
+  "docUrlPlaceholder": "Enter URL (https://...)",
+  "docTitlePlaceholder": "Document title..."
 }

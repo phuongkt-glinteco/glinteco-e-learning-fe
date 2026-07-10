@@ -1,6 +1,6 @@
-import TrackEditPage from '@/components/features/tracks/edit/TrackEditPage';
+import { AdminEditTrackClient } from '@/components/features/tracks/edit/AdminEditTrackClient';
 
 export default async function EditTrackPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return <TrackEditPage trackId={id} />;
+  return <AdminEditTrackClient trackId={id} />;
 }

@@ -63,7 +63,11 @@
       "exercisesTitle": "Related Exercises",
       "exFallback": "Exercise #{index}",
       "exercisesEmpty": "No related exercises for this lesson.",
-      "deleteTitle": "Delete document"
+      "deleteTitle": "Delete document",
+      "defaultExerciseTitle": "Attached Exercise",
+      "defaultDocTitle": "Reference Document",
+      "exerciseTypeFallback": "Exercise",
+      "hiddenFromLearnerBadge": "Hidden from Learner"
     },
     "ExercisePicker": {
       "noSelection": "No exercise selected",

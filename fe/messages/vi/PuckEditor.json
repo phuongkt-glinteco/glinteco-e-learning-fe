@@ -63,7 +63,11 @@
       "exercisesTitle": "Bài tập liên quan",
       "exFallback": "Bài tập #{index}",
       "exercisesEmpty": "Chưa có bài tập liên quan cho bài học này.",
-      "deleteTitle": "Xoá tài liệu"
+      "deleteTitle": "Xoá tài liệu",
+      "defaultExerciseTitle": "Bài tập đính kèm",
+      "defaultDocTitle": "Tài liệu tham khảo",
+      "exerciseTypeFallback": "Bài tập",
+      "hiddenFromLearnerBadge": "Ẩn với học viên"
     },
     "ExercisePicker": {
       "noSelection": "Chưa có bài tập nào được chọn",

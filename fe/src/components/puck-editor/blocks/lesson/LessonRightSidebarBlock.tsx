@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import { usePuck } from "@puckeditor/core";
 import { LessonRightSidebar } from "../../../features/tracks/components/LessonRightSidebar";
 import { slugifyHeadingId } from "../../helper";
@@ -55,6 +56,7 @@ function CanvasDerivedScanner({
   onDerive: (state: DerivedCanvasState) => void;
 }) {
   const puck = usePuck();
+  const t = useTranslations("PuckEditor.Common.sidebar");
   const content = puck?.appState?.data?.content || [];
 
   React.useEffect(() => {
@@ -68,7 +70,7 @@ function CanvasDerivedScanner({
         if (exId || block.props?.title) {
           derivedExs.push({
             id: exId || `ex-${idx}`,
-            title: block.props?.title || "Bài tập đính kèm",
+            title: block.props?.title || t("defaultExerciseTitle"),
           });
         }
       } else if (block.type === "ReferenceDocumentBlock") {
@@ -76,7 +78,7 @@ function CanvasDerivedScanner({
         if (docId || block.props?.url || block.props?.altText) {
           derivedDocs.push({
             id: docId || block.props?.url || `doc-${idx}`,
-            title: block.props?.altText || block.props?.title || "Tài liệu tham khảo",
+            title: block.props?.altText || block.props?.title || t("defaultDocTitle"),
             url: block.props?.url,
           });
         }
@@ -98,7 +100,7 @@ function CanvasDerivedScanner({
       exercises: derivedExs,
       headings: derivedHeadings,
     });
-  }, [content, onDerive]);
+  }, [content, onDerive, t]);
 
   return null;
 }
@@ -136,6 +138,7 @@ export const LessonRightSidebarBlock: React.FC<LessonRightSidebarBlockProps> = (
         canvasHeadings={derivedState.headings}
         showToLearner={showToLearner}
         maxHeadingLevel={maxHeadingLevel}
+        isEditing={true}
       />
     </div>
   );

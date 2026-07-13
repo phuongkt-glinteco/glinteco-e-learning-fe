@@ -9,7 +9,11 @@ import { SubmissionNotificationsListener } from './listeners/submission-notifica
 import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification, User]), AuthModule, MailModule],
+  imports: [
+    TypeOrmModule.forFeature([Notification, User]),
+    AuthModule,
+    MailModule,
+  ],
   controllers: [NotificationsController],
   providers: [NotificationsService, SubmissionNotificationsListener],
   exports: [NotificationsService],

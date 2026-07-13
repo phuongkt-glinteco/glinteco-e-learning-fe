@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, IsNull, Repository } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
@@ -14,6 +18,10 @@ import {
   SubmissionStatus,
 } from '../../database/entities/submission.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import {
+  NotificationSettingsDto,
+  UpdateNotificationSettingsDto,
+} from './dto/notification-settings.dto';
 import { UserQueryDto } from './dto/user-query.dto';
 
 @Injectable()
@@ -90,6 +98,49 @@ export class UsersService {
       title: user.title,
       avatarHue: user.avatarHue,
     };
+  }
+
+  async getNotificationSettings(
+    userId: string,
+  ): Promise<NotificationSettingsDto> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.toNotificationSettings(user);
+  }
+
+  async updateNotificationSettings(
+    userId: string,
+    updateNotificationSettingsDto: UpdateNotificationSettingsDto,
+  ): Promise<NotificationSettingsDto> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (updateNotificationSettingsDto.EXERCISE_REVIEWED !== undefined) {
+      user.notifyExerciseReviewed =
+        updateNotificationSettingsDto.EXERCISE_REVIEWED;
+    }
+    if (
+      updateNotificationSettingsDto.EXERCISE_CHANGES_REQUESTED !== undefined
+    ) {
+      user.notifyExerciseChangesRequested =
+        updateNotificationSettingsDto.EXERCISE_CHANGES_REQUESTED;
+    }
+    if (updateNotificationSettingsDto.COHORT_ASSIGNED !== undefined) {
+      user.notifyCohortAssigned = updateNotificationSettingsDto.COHORT_ASSIGNED;
+    }
+    if (updateNotificationSettingsDto.NEW_LESSON_PUBLISHED !== undefined) {
+      user.notifyNewLessonPublished =
+        updateNotificationSettingsDto.NEW_LESSON_PUBLISHED;
+    }
+
+    await this.userRepository.save(user);
+
+    return this.toNotificationSettings(user);
   }
 
   async getStats(userId: string) {
@@ -222,12 +273,20 @@ export class UsersService {
     }
 
     const now = new Date();
-    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const todayStart = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
     const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
     if (user.lastClaimedXpAt) {
       const lastClaimed = new Date(user.lastClaimedXpAt);
-      const lastClaimedUTC = new Date(Date.UTC(lastClaimed.getUTCFullYear(), lastClaimed.getUTCMonth(), lastClaimed.getUTCDate()));
+      const lastClaimedUTC = new Date(
+        Date.UTC(
+          lastClaimed.getUTCFullYear(),
+          lastClaimed.getUTCMonth(),
+          lastClaimed.getUTCDate(),
+        ),
+      );
 
       if (lastClaimedUTC.getTime() >= todayStart.getTime()) {
         throw new BadRequestException('Bạn đã nhận XP ngày hôm nay rồi.');
@@ -254,6 +313,15 @@ export class UsersService {
       level: user.level,
       xp: user.xp,
       lastClaimedXpAt: user.lastClaimedXpAt,
+    };
+  }
+
+  private toNotificationSettings(user: User): NotificationSettingsDto {
+    return {
+      EXERCISE_REVIEWED: user.notifyExerciseReviewed ?? true,
+      EXERCISE_CHANGES_REQUESTED: user.notifyExerciseChangesRequested ?? true,
+      COHORT_ASSIGNED: user.notifyCohortAssigned ?? true,
+      NEW_LESSON_PUBLISHED: user.notifyNewLessonPublished ?? true,
     };
   }
 }

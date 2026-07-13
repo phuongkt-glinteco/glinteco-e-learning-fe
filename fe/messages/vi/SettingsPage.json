@@ -17,6 +17,8 @@
   "appearanceDesc": "Chuyển đổi giữa giao diện Sáng và Tối.",
   "notifTitle": "Thông báo",
   "notifDesc": "Quyết định cách thức và thời điểm bạn muốn nhận thông báo.",
+  "notificationCardSummary": "Quản lý tùy chọn thông báo trong ứng dụng của bạn tại trang cấu hình thông báo riêng.",
+  "manageNotificationSettings": "Mở cấu hình thông báo",
   "newCourse": "Gán khóa học mới",
   "newCourseDesc": "Nhận email khi quản lý phân bổ học phần mới.",
   "deadline": "Nhắc nhở hạn chót",
@@ -51,5 +53,22 @@
   "toastTitle": "Đã lưu cấu hình thành công",
   "toastDesc": "Các tùy chọn của bạn đã được đồng bộ trên toàn bộ thiết bị.",
   "resetToastTitle": "Đã khôi phục cài đặt gốc",
-  "resetToastDesc": "Toàn bộ thiết lập hệ thống đã được đưa về giá trị mặc định ban đầu."
+  "resetToastDesc": "Toàn bộ thiết lập hệ thống đã được đưa về giá trị mặc định ban đầu.",
+  "backToSettings": "Quay lại cài đặt",
+  "notificationSettingsTitle": "Cấu hình thông báo",
+  "notificationSettingsDescription": "Chọn các cập nhật trong ứng dụng mà bạn muốn nhận.",
+  "notificationLoading": "Đang tải cấu hình thông báo...",
+  "notificationErrorTitle": "Không thể tải cấu hình thông báo",
+  "notificationErrorDescription": "Hãy thử lại để lấy cấu hình mới nhất.",
+  "notificationUnavailableTitle": "Cấu hình thông báo chưa khả dụng",
+  "notificationUnavailableDescription": "API hiện tại chưa cung cấp endpoint cấu hình thông báo nên chưa thể lưu các tùy chọn này.",
+  "notificationRetry": "Thử lại",
+  "notificationSaving": "Đang lưu...",
+  "notificationSaveError": "Lưu cấu hình thất bại",
+  "notificationItems": {
+    "EXERCISE_REVIEWED": "Thông báo khi bài nộp được Admin review/chấm điểm",
+    "EXERCISE_CHANGES_REQUESTED": "Thông báo khi bị yêu cầu sửa lại bài tập",
+    "COHORT_ASSIGNED": "Thông báo khi được xếp vào lớp học mới",
+    "NEW_LESSON_PUBLISHED": "Thông báo khi có bài học mới"
+  }
 }

@@ -94,7 +94,7 @@ export function CourseDetailView({
                   type="button"
                   onClick={onContinueCourse}
                   disabled={!continueLessonId && !nextTrack}
-                  className={`mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 label-sm transition-colors ${
+                  className={`group mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-4 py-2.5 label-sm transition-colors ${
                     !continueLessonId && !nextTrack
                       ? 'cursor-not-allowed bg-surface-container text-outline'
                       : 'cursor-pointer bg-primary text-on-primary hover:opacity-90'
@@ -106,7 +106,7 @@ export function CourseDetailView({
                       ? `${t('nextTrack', { defaultValue: 'Next Track: ' })} ${nextTrack.title || ''}`.trim()
                       : t('allLessonsCompleted', { defaultValue: 'All Lessons Completed' })}
                   {(continueLessonId || nextTrack) && (
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">arrow_forward</span>
                   )}
                 </button>
               </>

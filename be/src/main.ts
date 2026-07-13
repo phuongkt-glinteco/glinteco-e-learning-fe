@@ -65,7 +65,8 @@ async function bootstrap() {
               .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
               .join('');
           });
-          const cleanOperationId = method.toLowerCase() + cleanSegments.join('');
+          const cleanOperationId =
+            method.toLowerCase() + cleanSegments.join('');
           operation.operationId = cleanOperationId;
         }
       }

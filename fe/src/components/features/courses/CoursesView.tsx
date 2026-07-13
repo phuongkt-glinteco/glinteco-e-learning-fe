@@ -33,22 +33,26 @@ export function CoursesView({
   const t = useTranslations('CoursesPage');
 
   return (
-    <div className="mx-auto max-w-container-max px-gutter py-8">
+    <div className="mx-auto max-w-container-max px-gutter py-8 w-full">
       <header className="mb-6">
         <h1 className="text-[32px] font-bold text-primary">{t('title')}</h1>
         <p className="mt-2 text-[16px] text-on-surface-variant">{t('subtitle')}</p>
       </header>
 
       <div className="mb-6 flex flex-col gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 rounded-xl border border-outline-variant/70 bg-surface-container-lowest p-2 shadow-sm">
           {statusFilters.map((value) => {
             const active = filter.status === value;
             return (
               <Button
                 key={value}
-                variant={active ? 'default' : 'secondary'}
+                variant={active ? 'default' : 'ghost'}
                 onClick={() => onFilterChange({ status: value, page: 1 })}
-                className="rounded-full px-4 py-1.5 h-8 text-[14px]"
+                className={`h-8 rounded-full px-4 text-[14px] ${
+                  active
+                    ? 'bg-white text-primary shadow-sm ring-1 ring-primary/20 hover:bg-white hover:text-primary'
+                    : 'text-on-surface-variant hover:text-primary'
+                }`}
               >
                 {t(`filter_${value}`)}
               </Button>
@@ -89,7 +93,7 @@ export function CoursesView({
       </div>
 
       {tracks.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest p-10 text-center">
+        <div className="flex min-h-[320px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest p-10 text-center">
           <span className="material-symbols-outlined text-[40px] text-outline">search_off</span>
           <h2 className="mt-2 text-[20px] font-semibold text-on-surface">{t('emptyTitle')}</h2>
           <p className="mt-1 text-[14px] text-on-surface-variant">{t('emptyDescription')}</p>

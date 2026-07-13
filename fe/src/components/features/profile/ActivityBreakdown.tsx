@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import type { UserDashboardStatsDto } from '@/services/client';
+import { Button } from '@/components/ui/default/button';
 import CircleMeter from '@/components/ui/CircleMeter';
 interface ActivityBreakdownProps {
   stats: UserDashboardStatsDto | null;
@@ -58,7 +60,7 @@ export function ActivityBreakdown({ stats }: ActivityBreakdownProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* 1. Merged Tracks & Overall Progress Card */}
-      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between">
+      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center group-hover:bg-primary/10 transition-colors">
@@ -85,14 +87,16 @@ export function ActivityBreakdown({ stats }: ActivityBreakdownProps) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1 text-primary text-xs font-bold mt-4 pt-3 border-t border-outline-variant/40 group-hover:translate-x-1 transition-transform">
-          <span>{t('viewDetails')}</span>
-          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-        </div>
+        <Button asChild variant="ghost" className="mt-4 h-10 w-full justify-between rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-4 text-xs font-bold text-primary shadow-none hover:bg-primary/5">
+          <Link href="/my-courses">
+            <span>{t('viewDetails')}</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </Link>
+        </Button>
       </div>
 
       {/* 2. Exercises Card */}
-      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between">
+      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
         <div>
           <div className="w-10 h-10 rounded-lg bg-surface-container mb-4 flex items-center justify-center group-hover:bg-emerald-500/10 transition-colors">
             <span className="material-symbols-outlined text-on-surface-variant group-hover:text-emerald-600 transition-colors">code</span>
@@ -109,14 +113,16 @@ export function ActivityBreakdown({ stats }: ActivityBreakdownProps) {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold mt-4 pt-3 border-t border-outline-variant/40 group-hover:translate-x-1 transition-transform">
-          <span>{t('viewExercises')}</span>
-          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-        </div>
+        <Button asChild variant="ghost" className="mt-4 h-10 w-full justify-between rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-4 text-xs font-bold text-emerald-600 shadow-none hover:bg-emerald-500/5">
+          <Link href="/exercises">
+            <span>{t('viewExercises')}</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </Link>
+        </Button>
       </div>
 
       {/* 3. Saved Docs Card */}
-      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between">
+      <div className="bg-surface rounded-xl border border-outline-variant p-5 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
         <div>
           <div className="w-10 h-10 rounded-lg bg-surface-container mb-4 flex items-center justify-center group-hover:bg-purple-500/10 transition-colors">
             <span className="material-symbols-outlined text-on-surface-variant group-hover:text-purple-600 transition-colors">menu_book</span>
@@ -130,10 +136,12 @@ export function ActivityBreakdown({ stats }: ActivityBreakdownProps) {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400 text-xs font-bold mt-4 pt-3 border-t border-outline-variant/40 group-hover:translate-x-1 transition-transform">
-          <span>{t('viewDocs')}</span>
-          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-        </div>
+        <Button asChild variant="ghost" className="mt-4 h-10 w-full justify-between rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-4 text-xs font-bold text-purple-600 shadow-none hover:bg-purple-500/5">
+          <Link href="/documents">
+            <span>{t('viewDocs')}</span>
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </Link>
+        </Button>
       </div>
     </div>
   );

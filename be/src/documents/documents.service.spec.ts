@@ -132,6 +132,26 @@ describe('DocumentsService', () => {
       const result = await service.findAll(queryDto, 'user-1');
       expect(result.data).toHaveLength(0);
     });
+
+    it('should return only the current user\'s bookmarked documents', async () => {
+      const bookmarked = [{ id: 'doc-1' }];
+      mockUserRepository.findOne.mockResolvedValue({
+        id: 'user-1',
+        bookmarkedDocuments: bookmarked,
+      });
+      mockQueryBuilder.getMany.mockResolvedValue([
+        { id: 'doc-1', title: 'Saved doc', tags: [], createdAt: new Date() },
+      ]);
+
+      const result = await service.findAll({ bookmarked: true }, 'user-1');
+
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'document.id IN (:...bookmarkedDocIds)',
+        { bookmarkedDocIds: ['doc-1'] },
+      );
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].isBookmarked).toBe(true);
+    });
   });
 
   describe('findRecent', () => {

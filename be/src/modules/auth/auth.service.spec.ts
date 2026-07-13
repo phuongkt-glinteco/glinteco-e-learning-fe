@@ -737,9 +737,9 @@ describe('AuthService', () => {
         usersService.findByEmail.mockResolvedValue(user);
         mailService.sendMail.mockRejectedValue(new Error('SMTP unavailable'));
 
-        await expect(service.forgotPassword('user@company.com')).rejects.toThrow(
-          InternalServerErrorException,
-        );
+        await expect(
+          service.forgotPassword('user@company.com'),
+        ).rejects.toThrow(InternalServerErrorException);
 
         expect(userRepository.update).toHaveBeenNthCalledWith(
           1,

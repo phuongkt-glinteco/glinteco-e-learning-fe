@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/default/button';
 import type { LeaderboardPeriod } from '../types';
 
 interface LeaderboardScopeTabsProps {
@@ -30,22 +31,22 @@ export function LeaderboardScopeTabs({
         const isActive = option.id === period;
 
         return (
-          <button
+          <Button
             key={option.id}
             type="button"
             role="tab"
             aria-selected={isActive}
             onClick={() => onPeriodChange(option.id)}
+            variant={isActive ? 'default' : 'ghost'}
             className={cn(
-              'label-md flex h-full min-w-[82px] flex-1 items-center justify-center rounded-[7px] px-4 text-center transition-colors sm:flex-none',
+              'h-full min-w-[82px] flex-1 rounded-[7px] px-4 text-center transition-colors sm:flex-none',
               isActive
-                ? 'bg-white text-[#3d2cf3] shadow-[0_1px_3px_rgba(15,23,42,0.08)]'
-                : 'text-slate-600',
-              'hover:bg-white/70 hover:text-slate-900',
+                ? 'bg-white text-[#3d2cf3] shadow-[0_1px_3px_rgba(15,23,42,0.08)] hover:bg-white'
+                : 'text-slate-600 hover:bg-white/70 hover:text-slate-900',
             )}
           >
-            <span className="leading-tight">{option.label}</span>
-          </button>
+            <span className="label-md leading-tight">{option.label}</span>
+          </Button>
         );
       })}
     </div>

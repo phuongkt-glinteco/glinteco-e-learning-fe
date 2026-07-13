@@ -87,5 +87,7 @@
     "SESSION_EXPIRED": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
     "SYSTEM_ERROR": "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.",
     "PASSWORD_CHANGE_FAILED": "Đổi mật khẩu thất bại. Vui lòng thử lại."
-  }
+  },
+  "claimedToday": "\u0110\u00e3 \u0111i\u1ec3m danh h\u00f4m nay",
+  "comeBackTomorrow": "Quay l\u1ea1i ng\u00e0y mai \u0111\u1ec3 nh\u1eadn XP ti\u1ebfp."
 }

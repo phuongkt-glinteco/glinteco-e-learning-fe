@@ -42,7 +42,7 @@ Backend (`be/`):
 - `fe/src/providers/`: AuthProvider, ApiErrorProvider, LanguageProvider, SessionProvider.
 - `be/src/`: NestJS modules/controllers/services/entities/migrations.
 - `docs/`: tài liệu sản phẩm/API/design.
-- `CURRENT_TASK.md`: task gần nhất mà Codex đang theo.
+- `.ai/context/CURRENT_TASK.md`: task gần nhất mà Codex đang theo.
 
 ## 4. Route/page chính
 
@@ -108,13 +108,13 @@ Admin/authenticated:
 
 ## 7. Task Codex đang làm dở
 
-Theo `CURRENT_TASK.md`, task đang được ghi là: sửa Continue navigation trong learner course/lesson flow và xử lý track summary/description bị overflow.
+Theo `.ai/context/CURRENT_TASK.md`, task đang được ghi là: sửa Continue navigation trong learner course/lesson flow và xử lý track summary/description bị overflow.
 
 Trạng thái quan sát từ git log: commit gần nhất `6cafc37` ngày 2026-06-26 có message `fix flow load/error`, đã chạm các file course/lesson learner và card summary. Vì vậy task này có vẻ đã được implement/commit gần đây, nhưng tài liệu task chưa được tick hoàn tất.
 
 Working tree hiện tại trước khi tạo file này có file chưa track:
 
-- `PROJECT_OVERVIEW.md`
+- `.ai/context/PROJECT_OVERVIEW.md`
 - `fe/docs/error-handling.md`
 
 ## 8. File đã sửa gần đây
@@ -145,7 +145,7 @@ Theo `git log -5`, các file đáng chú ý vừa sửa:
 - Generated API client trong `fe/src/services/client/` không nên sửa tay; nếu API đổi cần regen từ OpenAPI.
 - `courseLearningApi.ts` có nhiều normalize/fallback để chống mismatch contract. Khi thêm UI mới phải kiểm tra response thật hoặc generated types.
 - Một số README/tài liệu cũ bị lỗi encoding và có thể đã lỗi thời so với cấu trúc hiện tại.
-- `CURRENT_TASK.md` chưa phản ánh rõ task Continue/overflow đã xong hay còn cần verify.
+- `.ai/context/CURRENT_TASK.md` chưa phản ánh rõ task Continue/overflow đã xong hay còn cần verify.
 - Working tree có file chưa track trước tài liệu này; không nên vô tình gom vào commit nếu chỉ muốn commit context doc.
 
 ## 10. Next steps đề xuất

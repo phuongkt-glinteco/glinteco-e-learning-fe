@@ -148,7 +148,7 @@ export function EditProfileModal({ user, onSuccess, onCancel, embedded }: EditPr
                   {t('avatarHue')}
                 </Label>
                 <span className="text-xs font-mono font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-md">
-                  {watchedHue}° • HSL({watchedHue}, 70%, 50%)
+                  {watchedHue}{"\u00b0"} {"\u2022"} HSL({watchedHue}, 70%, 50%)
                 </span>
               </div>
               <Controller

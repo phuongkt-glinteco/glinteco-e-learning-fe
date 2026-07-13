@@ -15,6 +15,7 @@ import {
   SubmissionStatus,
 } from '../../database/entities/submission.entity';
 import { UsersService } from './users.service';
+import { UpdateNotificationSettingsDto } from './dto/notification-settings.dto';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -42,6 +43,10 @@ describe('UsersService', () => {
     level: 1,
     xp: 0,
     streakDays: 0,
+    notifyExerciseReviewed: true,
+    notifyExerciseChangesRequested: true,
+    notifyCohortAssigned: true,
+    notifyNewLessonPublished: true,
   } as User;
 
   beforeEach(async () => {
@@ -296,6 +301,70 @@ describe('UsersService', () => {
     });
   });
 
+  describe('getNotificationSettings', () => {
+    it('should throw NotFoundException if user is not found', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+      await expect(service.getNotificationSettings('u_123')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should return the current notification settings', async () => {
+      const user = {
+        id: 'u_123',
+        notifyExerciseReviewed: false,
+        notifyExerciseChangesRequested: true,
+        notifyCohortAssigned: false,
+        notifyNewLessonPublished: true,
+      } as User;
+      userRepository.findOne.mockResolvedValue(user);
+
+      await expect(service.getNotificationSettings('u_123')).resolves.toEqual({
+        EXERCISE_REVIEWED: false,
+        EXERCISE_CHANGES_REQUESTED: true,
+        COHORT_ASSIGNED: false,
+        NEW_LESSON_PUBLISHED: true,
+      });
+    });
+  });
+
+  describe('updateNotificationSettings', () => {
+    it('should throw NotFoundException if user is not found', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+      await expect(
+        service.updateNotificationSettings('u_123', {}),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should update only provided notification flags and return them', async () => {
+      const user = {
+        id: 'u_123',
+        notifyExerciseReviewed: true,
+        notifyExerciseChangesRequested: true,
+        notifyCohortAssigned: true,
+        notifyNewLessonPublished: true,
+      } as User;
+      userRepository.findOne.mockResolvedValue(user);
+      userRepository.save.mockImplementation((u: unknown) =>
+        Promise.resolve(u as User),
+      );
+
+      const dto: UpdateNotificationSettingsDto = {
+        EXERCISE_REVIEWED: false,
+        NEW_LESSON_PUBLISHED: false,
+      };
+
+      await expect(
+        service.updateNotificationSettings('u_123', dto),
+      ).resolves.toEqual({
+        EXERCISE_REVIEWED: false,
+        EXERCISE_CHANGES_REQUESTED: true,
+        COHORT_ASSIGNED: true,
+        NEW_LESSON_PUBLISHED: false,
+      });
+    });
+  });
+
   describe('getStats', () => {
     it('should throw NotFoundException if user is not found', async () => {
       userRepository.findOne.mockResolvedValue(null);
@@ -525,7 +594,9 @@ describe('UsersService', () => {
     it('should increment streak if claimed yesterday', async () => {
       const now = new Date();
       // Yestarday at UTC, e.g. -24 hours from todayStart
-      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const todayStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+      );
       const yesterday = new Date(todayStart.getTime() - 12 * 60 * 60 * 1000); // 12 hours before today start
       const mockUser = {
         id: 'u_123',
@@ -547,7 +618,9 @@ describe('UsersService', () => {
 
     it('should reset streak to 1 if claimed more than a day ago', async () => {
       const now = new Date();
-      const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const todayStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+      );
       const twoDaysAgo = new Date(todayStart.getTime() - 48 * 60 * 60 * 1000);
       const mockUser = {
         id: 'u_123',

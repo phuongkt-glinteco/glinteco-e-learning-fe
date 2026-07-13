@@ -91,9 +91,9 @@ export default function MyCoursesContainer() {
   const handleOpen = useCallback(
     (trackId: string, currentLessonId: string | null) => {
       if (currentLessonId) {
-        router.push(`/courses/${trackId}/lessons/${currentLessonId}`);
+        router.push(`/courses/${trackId}/lessons/${currentLessonId}?from=my-courses`);
       } else {
-        router.push(`/courses/${trackId}`);
+        router.push(`/courses/${trackId}?from=my-courses`);
       }
     },
     [router]

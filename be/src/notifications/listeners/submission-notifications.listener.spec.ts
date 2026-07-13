@@ -18,7 +18,12 @@ describe('SubmissionNotificationsListener', () => {
   let mailService: jest.Mocked<Pick<MailService, 'sendMail'>>;
 
   const mockAdmins = [
-    { id: 'admin-1', email: 'admin1@glinteco.com', role: UserRole.ADMIN, name: 'Admin 1' } as User,
+    {
+      id: 'admin-1',
+      email: 'admin1@glinteco.com',
+      role: UserRole.ADMIN,
+      name: 'Admin 1',
+    } as User,
   ];
 
   beforeEach(async () => {
@@ -26,18 +31,19 @@ describe('SubmissionNotificationsListener', () => {
 
     notificationsService = {
       create: jest.fn().mockResolvedValue({}),
-    } as any;
+    };
 
     userRepository = {
       find: jest.fn().mockResolvedValue(mockAdmins),
-    } as any;
+    };
 
     configService = {
       get: jest.fn().mockImplementation((key: string) => {
-        if (key === 'SLACK_ADMIN_WEBHOOK_URL') return 'https://slack.com/webhook';
+        if (key === 'SLACK_ADMIN_WEBHOOK_URL')
+          return 'https://slack.com/webhook';
         return undefined;
       }),
-    } as any;
+    };
 
     mailService = {
       sendMail: jest.fn().mockResolvedValue(undefined),
@@ -65,7 +71,9 @@ describe('SubmissionNotificationsListener', () => {
       ],
     }).compile();
 
-    listener = module.get<SubmissionNotificationsListener>(SubmissionNotificationsListener);
+    listener = module.get<SubmissionNotificationsListener>(
+      SubmissionNotificationsListener,
+    );
 
     // Mock global fetch
     global.fetch = jest.fn().mockResolvedValue({
@@ -96,7 +104,9 @@ describe('SubmissionNotificationsListener', () => {
 
       await listener.handleSubmissionCreated(event);
 
-      expect(userRepository.find).toHaveBeenCalledWith({ where: { role: UserRole.ADMIN } });
+      expect(userRepository.find).toHaveBeenCalledWith({
+        where: { role: UserRole.ADMIN },
+      });
       expect(notificationsService.create).toHaveBeenCalledWith(
         'admin-1',
         'submission_created',

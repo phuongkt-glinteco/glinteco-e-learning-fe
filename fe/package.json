@@ -12,6 +12,8 @@
     "ai:run:fast": "pnpm ai:run -- --verify fast",
     "ai:run:full": "pnpm ai:run -- --verify full",
     "ai:run:no-verify": "pnpm ai:run -- --verify none",
+    "ai:benchmark": "node scripts/ai-workflow/benchmark-workflow.mjs",
+    "ai:benchmark:build": "node scripts/ai-workflow/benchmark-workflow.mjs --verify full --real-build",
     "ai:cancel": "node scripts/ai-workflow/cancel-run.mjs",
     "ai:codex": "pnpm ai:run -- --runner codex",
     "ai:opencode": "pnpm ai:run -- --runner opencode",

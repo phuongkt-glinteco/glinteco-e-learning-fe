@@ -59,5 +59,11 @@ desktop.ini
 
 mini-task/
 /mini-task
+.ai-local/
+/fe/.ai/
+/.ai/
+/ai/
+/exclude
+/tools/
 
 .opencode/

@@ -128,12 +128,23 @@ export class TracksService {
         apiStatus = 'in_progress';
       }
 
-      const sortedLessons = [...lessonsInTrack].sort((a, b) => a.order - b.order);
-      const currentLesson = sortedLessons.find((l) => !completedLessonIds.has(l.id));
-      const currentLessonId = completedCount === totalLessons ? null : (currentLesson ? currentLesson.id : (sortedLessons[0]?.id || null));
+      const sortedLessons = [...lessonsInTrack].sort(
+        (a, b) => a.order - b.order,
+      );
+      const currentLesson = sortedLessons.find(
+        (l) => !completedLessonIds.has(l.id),
+      );
+      const currentLessonId =
+        completedCount === totalLessons
+          ? null
+          : currentLesson
+            ? currentLesson.id
+            : sortedLessons[0]?.id || null;
 
-      const accessStatus = apiStatus === 'locked' ? ('locked' as const) : ('unlocked' as const);
-      const lockedReason = apiStatus === 'locked' ? 'Hoàn thành track trước để mở khóa' : null;
+      const accessStatus =
+        apiStatus === 'locked' ? ('locked' as const) : ('unlocked' as const);
+      const lockedReason =
+        apiStatus === 'locked' ? 'Hoàn thành track trước để mở khóa' : null;
 
       resolvedTracks.push({
         id: track.id,
@@ -229,7 +240,10 @@ export class TracksService {
           const prevProgress = await this.trackProgressRepository.findOne({
             where: { trackId: prevTrack.id, userId },
           });
-          if (prevProgress && prevProgress.status === ProgressStatus.COMPLETED) {
+          if (
+            prevProgress &&
+            prevProgress.status === ProgressStatus.COMPLETED
+          ) {
             apiStatus = 'in_progress';
           }
         }
@@ -260,11 +274,20 @@ export class TracksService {
       }));
 
     const sortedLessons = [...lessonsInTrack].sort((a, b) => a.order - b.order);
-    const currentLesson = sortedLessons.find((l) => !completedLessonIds.has(l.id));
-    const currentLessonId = lessonsCompleted === totalLessons ? null : (currentLesson ? currentLesson.id : (sortedLessons[0]?.id || null));
+    const currentLesson = sortedLessons.find(
+      (l) => !completedLessonIds.has(l.id),
+    );
+    const currentLessonId =
+      lessonsCompleted === totalLessons
+        ? null
+        : currentLesson
+          ? currentLesson.id
+          : sortedLessons[0]?.id || null;
 
-    const accessStatus = apiStatus === 'locked' ? ('locked' as const) : ('unlocked' as const);
-    const lockedReason = apiStatus === 'locked' ? 'Hoàn thành track trước để mở khóa' : null;
+    const accessStatus =
+      apiStatus === 'locked' ? ('locked' as const) : ('unlocked' as const);
+    const lockedReason =
+      apiStatus === 'locked' ? 'Hoàn thành track trước để mở khóa' : null;
 
     return {
       id: track.id,
@@ -281,8 +304,12 @@ export class TracksService {
       accessStatus,
       lockedReason,
       currentLessonId,
-      prevTrack: prevTrack ? { id: prevTrack.id, title: prevTrack.title } : null,
-      nextTrack: nextTrack ? { id: nextTrack.id, title: nextTrack.title } : null,
+      prevTrack: prevTrack
+        ? { id: prevTrack.id, title: prevTrack.title }
+        : null,
+      nextTrack: nextTrack
+        ? { id: nextTrack.id, title: nextTrack.title }
+        : null,
     };
   }
 
@@ -296,14 +323,16 @@ export class TracksService {
       if (prevTrack) {
         order = prevTrack.order + 1;
         // Shift orders of subsequent tracks
-        await this.trackRepository.manager.transaction(async (entityManager) => {
-          await entityManager
-            .createQueryBuilder()
-            .update(Track)
-            .set({ order: () => 'track_order + 1' })
-            .where('track_order >= :order', { order })
-            .execute();
-        });
+        await this.trackRepository.manager.transaction(
+          async (entityManager) => {
+            await entityManager
+              .createQueryBuilder()
+              .update(Track)
+              .set({ order: () => 'track_order + 1' })
+              .where('track_order >= :order', { order })
+              .execute();
+          },
+        );
       } else {
         // Fallback: put at the end
         const maxOrderTrack = await this.trackRepository.findOne({
@@ -709,7 +738,8 @@ export class TracksService {
       const trackProgress = await this.trackProgressRepository.findOne({
         where: { trackId, userId },
       });
-      let apiTrackStatus: 'completed' | 'in_progress' | 'locked' = 'in_progress';
+      let apiTrackStatus: 'completed' | 'in_progress' | 'locked' =
+        'in_progress';
       if (trackProgress) {
         if (trackProgress.status === ProgressStatus.COMPLETED) {
           apiTrackStatus = 'completed';

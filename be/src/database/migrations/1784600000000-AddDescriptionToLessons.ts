@@ -10,8 +10,6 @@ export class AddDescriptionToLessons1784600000000 implements MigrationInterface 
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE "lessons" DROP COLUMN "description"`,
-    );
+    await queryRunner.query(`ALTER TABLE "lessons" DROP COLUMN "description"`);
   }
 }

@@ -17,6 +17,8 @@
   "appearanceDesc": "Switch between Light and Dark mode.",
   "notifTitle": "Notifications",
   "notifDesc": "Decide how and when you want to be reached.",
+  "notificationCardSummary": "Manage your in-app notification preferences on the dedicated notification settings page.",
+  "manageNotificationSettings": "Open notification settings",
   "newCourse": "New Course Assignments",
   "newCourseDesc": "Email alerts when a manager assigns learning modules.",
   "deadline": "Deadline Reminders",
@@ -51,5 +53,22 @@
   "toastTitle": "Settings Saved Successfully",
   "toastDesc": "Your preferences have been updated across all devices.",
   "resetToastTitle": "Reset to Default Successfully",
-  "resetToastDesc": "All system preferences have been restored to initial defaults."
+  "resetToastDesc": "All system preferences have been restored to initial defaults.",
+  "backToSettings": "Back to settings",
+  "notificationSettingsTitle": "Notification settings",
+  "notificationSettingsDescription": "Choose which in-app updates you want to receive.",
+  "notificationLoading": "Loading notification settings...",
+  "notificationErrorTitle": "Could not load notification settings",
+  "notificationErrorDescription": "Try again to fetch your latest preferences.",
+  "notificationUnavailableTitle": "Notification settings are not available yet",
+  "notificationUnavailableDescription": "The current API contract does not expose a notification settings endpoint, so these preferences cannot be saved yet.",
+  "notificationRetry": "Retry",
+  "notificationSaving": "Saving...",
+  "notificationSaveError": "Failed to save notification settings",
+  "notificationItems": {
+    "EXERCISE_REVIEWED": "Notify when a submission is reviewed or graded by Admin",
+    "EXERCISE_CHANGES_REQUESTED": "Notify when changes are requested for an exercise submission",
+    "COHORT_ASSIGNED": "Notify when assigned to a new cohort",
+    "NEW_LESSON_PUBLISHED": "Notify when a new lesson is published"
+  }
 }

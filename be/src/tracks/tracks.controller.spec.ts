@@ -67,7 +67,12 @@ describe('Tracks and Lessons Controllers', () => {
       mockTracksService.findAll.mockResolvedValue({ data: [] });
 
       const result = await tracksController.findAll(req);
-      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 1, 20, undefined);
+      expect(mockTracksService.findAll).toHaveBeenCalledWith(
+        'user-1',
+        1,
+        20,
+        undefined,
+      );
       expect(result).toEqual({ data: [] });
     });
 
@@ -76,7 +81,12 @@ describe('Tracks and Lessons Controllers', () => {
       mockTracksService.findAll.mockResolvedValue({ data: [] });
 
       const result = await tracksController.findAll(req, '2', '10');
-      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 2, 10, undefined);
+      expect(mockTracksService.findAll).toHaveBeenCalledWith(
+        'user-1',
+        2,
+        10,
+        undefined,
+      );
       expect(result).toEqual({ data: [] });
     });
 
@@ -84,16 +94,26 @@ describe('Tracks and Lessons Controllers', () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
       mockTracksService.findAll.mockResolvedValue({ data: [] });
 
-      const result = await tracksController.findAll(req, '1', '20', 'completed');
-      expect(mockTracksService.findAll).toHaveBeenCalledWith('user-1', 1, 20, 'completed');
+      const result = await tracksController.findAll(
+        req,
+        '1',
+        '20',
+        'completed',
+      );
+      expect(mockTracksService.findAll).toHaveBeenCalledWith(
+        'user-1',
+        1,
+        20,
+        'completed',
+      );
       expect(result).toEqual({ data: [] });
     });
 
     it('should throw BadRequestException for invalid status query param', async () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
-      await expect(tracksController.findAll(req, '1', '20', 'invalid_status')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        tracksController.findAll(req, '1', '20', 'invalid_status'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should delegate reorder to service', async () => {
@@ -231,10 +251,16 @@ describe('Tracks and Lessons Controllers', () => {
 
     it('should delegate findOneLesson to service', async () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
-      mockTracksService.findOneLesson.mockResolvedValue({ id: 'lesson-1', title: 'Lesson 1' });
+      mockTracksService.findOneLesson.mockResolvedValue({
+        id: 'lesson-1',
+        title: 'Lesson 1',
+      });
 
       const result = await lessonsController.findOneLesson('lesson-1', req);
-      expect(mockTracksService.findOneLesson).toHaveBeenCalledWith('lesson-1', 'user-1');
+      expect(mockTracksService.findOneLesson).toHaveBeenCalledWith(
+        'lesson-1',
+        'user-1',
+      );
       expect(result).toEqual({ id: 'lesson-1', title: 'Lesson 1' });
     });
 
@@ -242,8 +268,14 @@ describe('Tracks and Lessons Controllers', () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
       mockExercisesService.findAll.mockResolvedValue({ data: [] });
 
-      const result = await lessonsController.findExercisesByLesson('lesson-1', req);
-      expect(mockExercisesService.findAll).toHaveBeenCalledWith({ lessonId: 'lesson-1' }, req.user);
+      const result = await lessonsController.findExercisesByLesson(
+        'lesson-1',
+        req,
+      );
+      expect(mockExercisesService.findAll).toHaveBeenCalledWith(
+        { lessonId: 'lesson-1' },
+        req.user,
+      );
       expect(result).toEqual({ data: [] });
     });
   });

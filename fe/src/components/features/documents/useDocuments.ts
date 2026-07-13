@@ -48,7 +48,7 @@ export function useDocuments({ search, selectedKind, selectedTags, bookmarkedOnl
           kind: (selectedKind as DocumentKind) || undefined,
           tags: tagsQuery,
           bookmarked: bookmarkedOnly || undefined,
-        } as never,
+        },
         throwOnError: true,
       });
       const data = res.data as DocumentListResponseDto;

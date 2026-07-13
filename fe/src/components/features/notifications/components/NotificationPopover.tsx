@@ -1,13 +1,16 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { ScrollArea } from '@/components/ui/default/scroll-area';
 import { Button } from '@/components/ui/default/button';
-import type { HeaderNotification } from '../types';
+import type { AppNotification } from '../types';
 import { canNavigateNotification, formatNotificationTime } from '../utils';
 
 interface NotificationPopoverProps {
   title: string;
   unreadText: string;
+  refreshLabel: string;
+  settingsLabel: string;
   markReadLabel: string;
   loadingLabel: string;
   errorTitle: string;
@@ -15,18 +18,22 @@ interface NotificationPopoverProps {
   retryLabel: string;
   emptyTitle: string;
   emptyDescription: string;
-  notifications: HeaderNotification[];
+  notifications: AppNotification[];
   loading: boolean;
+  refreshing: boolean;
   error: boolean;
   markingId: string | null;
   onRetry: () => void;
-  onMarkRead: (notification: HeaderNotification) => void;
-  onOpenNotification: (notification: HeaderNotification) => void;
+  onOpenSettings: () => void;
+  onMarkRead: (notification: AppNotification) => void;
+  onOpenNotification: (notification: AppNotification) => void;
 }
 
 export function NotificationPopover({
   title,
   unreadText,
+  refreshLabel,
+  settingsLabel,
   markReadLabel,
   loadingLabel,
   errorTitle,
@@ -36,12 +43,16 @@ export function NotificationPopover({
   emptyDescription,
   notifications,
   loading,
+  refreshing,
   error,
   markingId,
   onRetry,
+  onOpenSettings,
   onMarkRead,
   onOpenNotification,
 }: NotificationPopoverProps) {
+  const locale = useLocale();
+
   return (
     <div className="w-[calc(100vw-2rem)] max-w-[360px] overflow-hidden rounded-lg border border-outline-variant bg-surface text-on-surface shadow-card">
       <div className="flex items-center justify-between gap-3 border-b border-outline-variant px-4 py-3">
@@ -50,6 +61,24 @@ export function NotificationPopover({
           <p className="text-[11px] text-on-surface-variant">
             {unreadText}
           </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onRetry}
+            disabled={loading || refreshing}
+            className="h-8 px-2 text-xs"
+          >
+            <span className={`material-symbols-outlined text-[16px] ${refreshing ? 'animate-spin' : ''}`}>
+              refresh
+            </span>
+            {refreshLabel}
+          </Button>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onOpenSettings} aria-label={settingsLabel}>
+            <span className="material-symbols-outlined text-[16px]">tune</span>
+          </Button>
         </div>
       </div>
 
@@ -114,7 +143,7 @@ export function NotificationPopover({
                         </p>
                       ) : null}
                       <p className="mt-2 text-[11px] text-on-surface-variant">
-                        {formatNotificationTime(notification.createdAt)}
+                        {formatNotificationTime(notification.createdAt, locale)}
                       </p>
                     </button>
                     {isUnread ? (

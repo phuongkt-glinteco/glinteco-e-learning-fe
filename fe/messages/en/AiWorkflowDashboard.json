@@ -21,6 +21,7 @@
   "none": "None",
   "stageTimeline": "Pipeline",
   "pollingNote": "Updates automatically while the run changes.",
+  "attemptTimeline": "Attempt timeline",
   "selectedStage": "Selected stage",
   "summary": "Summary",
   "errorDetails": "Error details",
@@ -49,8 +50,13 @@
     "blocked": "Blocked",
     "cancelled": "Cancelled",
     "skipped": "Skipped"
+    ,"findings": "Findings"
+    ,"fallback": "Fallback"
+    ,"waiting_for_user": "Waiting for user"
+    ,"runner_failure": "Runner failure"
   },
   "stages": {
+    "preflight": "Preflight",
     "context": "Context",
     "plan": "Plan",
     "implement": "Implement",
@@ -83,6 +89,11 @@
     "retryStarted": "Retry started",
     "runCompleted": "Workflow completed",
     "runCancelled": "Workflow cancelled",
+    "primaryProviderFailed": "Primary provider failed",
+    "fallbackAttempted": "Fallback attempted",
+    "fallbackSucceeded": "Fallback succeeded",
+    "fallbackUnavailable": "Fallback unavailable",
+    "fallbackBlocked": "Fallback blocked by policy",
     "fallback": "Workflow event"
   }
 }

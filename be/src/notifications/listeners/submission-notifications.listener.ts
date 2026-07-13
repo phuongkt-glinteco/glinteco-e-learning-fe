@@ -26,7 +26,10 @@ export class SubmissionNotificationsListener {
 
   private async sendSlackMessage(webhookUrl: string | undefined, payload: any) {
     if (!webhookUrl) {
-      console.log('[Slack Notification Mock] Webhook URL not configured. Payload:', JSON.stringify(payload, null, 2));
+      console.log(
+        '[Slack Notification Mock] Webhook URL not configured. Payload:',
+        JSON.stringify(payload, null, 2),
+      );
       return;
     }
     try {
@@ -47,11 +50,14 @@ export class SubmissionNotificationsListener {
     try {
       await this.mailService.sendMail({ to, subject, html });
     } catch (err) {
-      console.log('[Email Notification Mock] SMTP delivery failed. Logging content instead:', {
-        to,
-        subject,
-        html,
-      });
+      console.log(
+        '[Email Notification Mock] SMTP delivery failed. Logging content instead:',
+        {
+          to,
+          subject,
+          html,
+        },
+      );
     }
   }
 
@@ -127,7 +133,9 @@ export class SubmissionNotificationsListener {
       ],
     };
 
-    const adminWebhook = this.configService.get<string>('SLACK_ADMIN_WEBHOOK_URL');
+    const adminWebhook = this.configService.get<string>(
+      'SLACK_ADMIN_WEBHOOK_URL',
+    );
     await this.sendSlackMessage(adminWebhook, slackPayload);
 
     // 3. Email Notification to admins
@@ -347,7 +355,9 @@ export class SubmissionNotificationsListener {
       ],
     };
 
-    const adminWebhook = this.configService.get<string>('SLACK_ADMIN_WEBHOOK_URL');
+    const adminWebhook = this.configService.get<string>(
+      'SLACK_ADMIN_WEBHOOK_URL',
+    );
     await this.sendSlackMessage(adminWebhook, slackPayload);
 
     // 3. Email Notification to admins
@@ -439,7 +449,7 @@ export class SubmissionNotificationsListener {
 
         <div class="feedback-box">
           <strong>Previous Review Comments:</strong><br>
-          ${event.previousComments.map(c => `- ${c}`).join('<br>') || 'None'}
+          ${event.previousComments.map((c) => `- ${c}`).join('<br>') || 'None'}
         </div>
         
         <div class="btn-container">
@@ -466,18 +476,28 @@ export class SubmissionNotificationsListener {
   @OnEvent('submission.reviewed')
   async handleSubmissionReviewed(event: SubmissionReviewedEvent) {
     // 1. In-app notification for the learner
-    const title = event.status === 'approved' ? 'Bài tập đã được duyệt' : 'Bài tập cần sửa đổi';
-    const body = event.status === 'approved'
-      ? `Bài nộp cho '${event.exerciseTitle}' đã được duyệt bởi ${event.adminName}. Bạn được cộng +${event.xpAwarded} XP!`
-      : `Người duyệt ${event.adminName} yêu cầu sửa đổi bài nộp '${event.exerciseTitle}'. Lý do: ${event.comment || 'Không có nhận xét'}`;
+    const title =
+      event.status === 'approved'
+        ? 'Bài tập đã được duyệt'
+        : 'Bài tập cần sửa đổi';
+    const body =
+      event.status === 'approved'
+        ? `Bài nộp cho '${event.exerciseTitle}' đã được duyệt bởi ${event.adminName}. Bạn được cộng +${event.xpAwarded} XP!`
+        : `Người duyệt ${event.adminName} yêu cầu sửa đổi bài nộp '${event.exerciseTitle}'. Lý do: ${event.comment || 'Không có nhận xét'}`;
 
-    await this.notificationsService.create(event.userId, 'submission_reviewed', title, body);
+    await this.notificationsService.create(
+      event.userId,
+      'submission_reviewed',
+      title,
+      body,
+    );
 
     // 2. Slack DM to learner (or mock log)
     const color = event.status === 'approved' ? '#10B981' : '#F59E0B';
-    const headerText = event.status === 'approved'
-      ? '✅ Exercise Approved! Excellent Work'
-      : '⚠️ Changes Requested for Submission';
+    const headerText =
+      event.status === 'approved'
+        ? '✅ Exercise Approved! Excellent Work'
+        : '⚠️ Changes Requested for Submission';
 
     const blocks: any[] = [
       {
@@ -492,9 +512,10 @@ export class SubmissionNotificationsListener {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: event.status === 'approved'
-            ? `Hi *${event.userName}*, your submission for *${event.exerciseTitle}* has been *Approved* by *${event.adminName}*.`
-            : `Hi *${event.userName}*, reviewer *${event.adminName}* has requested changes on your submission for *${event.exerciseTitle}*.`,
+          text:
+            event.status === 'approved'
+              ? `Hi *${event.userName}*, your submission for *${event.exerciseTitle}* has been *Approved* by *${event.adminName}*.`
+              : `Hi *${event.userName}*, reviewer *${event.adminName}* has requested changes on your submission for *${event.exerciseTitle}*.`,
         },
       },
     ];
@@ -526,20 +547,27 @@ export class SubmissionNotificationsListener {
           type: 'button',
           text: {
             type: 'plain_text',
-            text: event.status === 'approved' ? 'Go to Dashboard' : 'Resubmit PR Link',
+            text:
+              event.status === 'approved'
+                ? 'Go to Dashboard'
+                : 'Resubmit PR Link',
             emoji: true,
           },
           style: 'primary',
-          url: event.status === 'approved'
-            ? 'https://rampup.glinteco.com/dashboard'
-            : `https://rampup.glinteco.com/exercises/${event.exerciseId}`,
+          url:
+            event.status === 'approved'
+              ? 'https://rampup.glinteco.com/dashboard'
+              : `https://rampup.glinteco.com/exercises/${event.exerciseId}`,
         },
       ],
     });
 
     const slackPayload = { attachments: [{ color, blocks }] };
     // DM uses bot token + slackUserId. For this spec, we mock/log the DM
-    console.log(`[Slack Direct Message to ${event.userName} (Slack ID: ${event.slackUserId || 'N/A'})]`, JSON.stringify(slackPayload, null, 2));
+    console.log(
+      `[Slack Direct Message to ${event.userName} (Slack ID: ${event.slackUserId || 'N/A'})]`,
+      JSON.stringify(slackPayload, null, 2),
+    );
 
     // 3. Email Notification to learner
     let emailHtml = '';

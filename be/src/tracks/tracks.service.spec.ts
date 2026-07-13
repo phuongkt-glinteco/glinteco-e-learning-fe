@@ -203,8 +203,22 @@ describe('TracksService', () => {
 
     it('should slice data correctly according to limit and page', async () => {
       const tracks = [
-        { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
-        { id: 'track-2', title: 'Track 2', estimatedTime: '3h', description: 'Desc 2', order: 2, lessons: [] },
+        {
+          id: 'track-1',
+          title: 'Track 1',
+          estimatedTime: '2h',
+          description: 'Desc 1',
+          order: 1,
+          lessons: [],
+        },
+        {
+          id: 'track-2',
+          title: 'Track 2',
+          estimatedTime: '3h',
+          description: 'Desc 2',
+          order: 2,
+          lessons: [],
+        },
       ];
       mockTrackRepository.find.mockResolvedValue(tracks);
       mockTrackProgressRepository.find.mockResolvedValue([]);
@@ -254,8 +268,22 @@ describe('TracksService', () => {
 
     it('should resolve fallback dynamic status for non-first track if previous completed', async () => {
       const allTracks = [
-        { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
-        { id: 'track-2', title: 'Track 2', estimatedTime: '3h', description: 'Desc 2', order: 2, lessons: [] },
+        {
+          id: 'track-1',
+          title: 'Track 1',
+          estimatedTime: '2h',
+          description: 'Desc 1',
+          order: 1,
+          lessons: [],
+        },
+        {
+          id: 'track-2',
+          title: 'Track 2',
+          estimatedTime: '3h',
+          description: 'Desc 2',
+          order: 2,
+          lessons: [],
+        },
       ];
       mockTrackRepository.findOne.mockImplementation(async (options: any) => {
         if (options?.where?.id === 'track-2') {
@@ -264,7 +292,10 @@ describe('TracksService', () => {
         if (options?.where?.order) {
           // Check LessThan / MoreThan operators using TypeORM structure
           // Or just check if it's the LessThan query (order < 2)
-          if (options.where.order._value === 2 && options.where.order._type === 'lessThan') {
+          if (
+            options.where.order._value === 2 &&
+            options.where.order._type === 'lessThan'
+          ) {
             return allTracks[0]; // track-1
           }
         }
@@ -334,11 +365,22 @@ describe('TracksService', () => {
     });
 
     it('should update fields', async () => {
-      const track = { id: 'track-1', title: 'Old Title', description: 'Old Desc', estimatedTime: '1h', icon: 'flag', order: 1, lessons: [] };
+      const track = {
+        id: 'track-1',
+        title: 'Old Title',
+        description: 'Old Desc',
+        estimatedTime: '1h',
+        icon: 'flag',
+        order: 1,
+        lessons: [],
+      };
       mockTrackRepository.findOne.mockResolvedValue(track);
       mockTrackRepository.save.mockImplementation((x) => Promise.resolve(x));
 
-      const result = await service.update('track-1', { title: 'New Title', description: 'New Desc' });
+      const result = await service.update('track-1', {
+        title: 'New Title',
+        description: 'New Desc',
+      });
       expect(result.title).toBe('New Title');
       expect(result.description).toBe('New Desc');
     });
@@ -443,7 +485,13 @@ describe('TracksService', () => {
     it('should return lessons belonging to track with estimatedTime tags', async () => {
       mockTrackRepository.findOne.mockResolvedValue({ id: 'track-1' });
       mockLessonRepository.find.mockResolvedValue([
-        { id: 'lesson-1', title: 'L1', order: 1, estimatedTime: '30m', body: 'B' },
+        {
+          id: 'lesson-1',
+          title: 'L1',
+          order: 1,
+          estimatedTime: '30m',
+          body: 'B',
+        },
       ]);
 
       const result = await service.findLessons('track-1', 'user-1');
@@ -457,7 +505,12 @@ describe('TracksService', () => {
     it('should throw NotFoundException if track not found', async () => {
       mockTrackRepository.findOne.mockResolvedValue(null);
       await expect(
-        service.createLesson('invalid', { title: 'L', order: 1, estimatedTime: '30m', body: 'C' }),
+        service.createLesson('invalid', {
+          title: 'L',
+          order: 1,
+          estimatedTime: '30m',
+          body: 'C',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 

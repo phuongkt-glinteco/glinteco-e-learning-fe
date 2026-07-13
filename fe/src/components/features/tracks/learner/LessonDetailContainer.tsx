@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { LessonDetailView } from './LessonDetailView';
 import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 import { completeLesson, fetchLessonPage } from './courseLearningApi';
 import {
   getAdjacentLessonIds,
+  getContinueLessonId,
   getLessonAccessState,
   getLessonCompletionBlocker,
   getErrorMessage,
@@ -70,12 +71,14 @@ function LessonErrorState({
   title,
   message,
   onRetry,
+  retryLabel,
   backHref,
   backLabel,
 }: {
   title: string;
   message: string;
   onRetry: () => void;
+  retryLabel?: string;
   backHref: string;
   backLabel: string;
 }) {
@@ -93,7 +96,7 @@ function LessonErrorState({
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">refresh</span>
-            {t('retry', { defaultValue: 'Retry' })}
+            {retryLabel ?? t('retry', { defaultValue: 'Retry' })}
           </button>
         </div>
       </div>
@@ -104,10 +107,13 @@ function LessonErrorState({
 export default function LessonDetailContainer() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const courseId = getRouteParam(params.courseId ?? params.trackId);
   const lessonId = getRouteParam(params.lessonId);
   const routeBase = getLearnerRouteBase(params.trackId);
   const t = useTranslations('LessonDetailContainer');
+  const fromQuery = searchParams.get('from');
+  const querySuffix = fromQuery ? `?from=${encodeURIComponent(fromQuery)}` : '';
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<LearnerLesson[]>([]);
@@ -168,6 +174,14 @@ export default function LessonDetailContainer() {
     [lessons, lessonId]
   );
   const activeLessonLocked = activeLessonAccessState === 'locked';
+  const nextLessonLocked = useMemo(
+    () => (nextLessonId ? getLessonAccessState(lessons, nextLessonId) === 'locked' : false),
+    [lessons, nextLessonId]
+  );
+  const continueLessonId = useMemo(
+    () => getContinueLessonId(lessons, track?.currentLessonId),
+    [lessons, track?.currentLessonId]
+  );
 
   const nextTrack = track?.nextTrack && track.nextTrack.id ? track.nextTrack : null;
 
@@ -211,16 +225,17 @@ export default function LessonDetailContainer() {
     if (!targetLessonId) return;
     if (targetLessonId.startsWith('track:')) {
       const targetTrackId = targetLessonId.replace('track:', '');
-      router.push(`/${routeBase}/${targetTrackId}`);
+      router.push(`/${routeBase}/${targetTrackId}${querySuffix}`);
       return;
     }
     if (!courseId) return;
-    router.push(`/${routeBase}/${courseId}/lessons/${targetLessonId}`);
+    if (getLessonAccessState(lessons, targetLessonId) === 'locked') return;
+    router.push(`/${routeBase}/${courseId}/lessons/${targetLessonId}${querySuffix}`);
   }
 
   function handleOpenExercise(exerciseId: string) {
     if (!courseId || !lessonId || !exerciseId) return;
-    router.push(`/${routeBase}/${courseId}/lessons/${lessonId}/exercises/${exerciseId}`);
+    router.push(`/${routeBase}/${courseId}/lessons/${lessonId}/exercises/${exerciseId}${querySuffix}`);
   }
 
   if (loading) return <LessonLoadingState />;
@@ -249,6 +264,25 @@ export default function LessonDetailContainer() {
     );
   }
 
+  if (activeLessonLocked) {
+    return (
+      <LessonErrorState
+        title={t('lockedTitle', { defaultValue: 'Lesson is locked' })}
+        message={t('lessonLockedMessage', { defaultValue: 'Complete the previous lesson to unlock this step.' })}
+        backHref={`/${routeBase}/${courseId}`}
+        backLabel={t('backToCourse', { defaultValue: 'Back to course' })}
+        onRetry={() => {
+          if (continueLessonId) {
+            handleSelectLesson(continueLessonId);
+            return;
+          }
+          router.push(`/${routeBase}/${courseId}${querySuffix}`);
+        }}
+        retryLabel={t('goToCurrentLesson', { defaultValue: 'Go to current lesson' })}
+      />
+    );
+  }
+
   return (
     <LessonDetailView
       track={track}
@@ -257,12 +291,13 @@ export default function LessonDetailContainer() {
       activeLessonLocked={activeLessonLocked}
       previousLessonId={previousLessonId}
       nextLessonId={nextLessonId ?? (nextTrack ? 'track:' + nextTrack.id : null)}
+      nextLessonLocked={nextLessonLocked}
       exercises={exercises}
       completing={completing}
       completionMessage={completionMessage}
       completionError={completionError}
       completionBlocker={completionBlocker}
-      onBackToTracks={() => router.push(`/${routeBase}/${courseId}`)}
+      onBackToTracks={() => router.push(`/${routeBase}/${courseId}${querySuffix}`)}
       onSelectLesson={handleSelectLesson}
       onOpenExercise={handleOpenExercise}
       onCompleteLesson={handleCompleteLesson}

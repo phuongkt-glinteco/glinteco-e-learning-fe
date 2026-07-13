@@ -49,7 +49,7 @@
   "tagsDirectoryTitle": "Hệ Thống Quản Lý Thẻ Phân Loại",
   "tagsDirectoryDesc": "Quản lý và tổ chức các tài liệu học tập bằng cách duy trì hệ thống thẻ phân Loại rõ ràng. Các thẻ mới tạo sẽ có hiệu lực ngay lập tức trong tạo tài liệu và bộ lọc.",
   "createTagButton": "Tạo Thẻ Mới",
-  "searchTagsPlaceholder": "Tìm kiếm thẻ theo tên hoặc ID...",
+  "searchTagsPlaceholder": "Tìm kiếm thẻ theo tên...",
   "tagNameColumn": "Tên Thẻ & Huy Hiệu",
   "tagIdColumn": "ID Hệ Thống",
   "actionsColumn": "Thao Tác",
@@ -90,7 +90,6 @@
   "selectedTags": "Thẻ đã chọn",
   "clickToRemove": "Nhấn để xóa thẻ",
   "clearAll": "Xóa tất cả",
-  "searchTagsPlaceholder": "Tìm kiếm thẻ theo tên...",
   "collapseTags": "Thu gọn",
   "noAvailableTags": "Đã chọn tất cả thẻ.",
   "noSelectedTags": "Chưa có thẻ nào được chọn. Nhấn từ danh sách chưa chọn để thêm.",
@@ -129,4 +128,3 @@
   "deleteAllFailedDesc": "Vui lòng kiểm tra lại kết nối hoặc giới hạn từ máy chủ rồi thử lại.",
   "remainingFailedList": "Danh sách tài liệu chưa xóa được"
 }
-

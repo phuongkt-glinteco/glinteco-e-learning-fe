@@ -19,6 +19,20 @@ export type UpdateProfileDto = {
     avatarHue?: number;
 };
 
+export type NotificationSettingsDto = {
+    EXERCISE_REVIEWED: boolean;
+    EXERCISE_CHANGES_REQUESTED: boolean;
+    COHORT_ASSIGNED: boolean;
+    NEW_LESSON_PUBLISHED: boolean;
+};
+
+export type UpdateNotificationSettingsDto = {
+    EXERCISE_REVIEWED?: boolean;
+    EXERCISE_CHANGES_REQUESTED?: boolean;
+    COHORT_ASSIGNED?: boolean;
+    NEW_LESSON_PUBLISHED?: boolean;
+};
+
 export type SubStatsDto = {
     completed: number;
     total: number;
@@ -1432,6 +1446,38 @@ export type UsersControllerClaimDailyXpResponses = {
     200: unknown;
 };
 
+export type UsersControllerGetNotificationSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/notification-settings';
+};
+
+export type UsersControllerGetNotificationSettingsResponses = {
+    /**
+     * Lấy cấu hình thông báo thành công.
+     */
+    200: NotificationSettingsDto;
+};
+
+export type UsersControllerGetNotificationSettingsResponse = UsersControllerGetNotificationSettingsResponses[keyof UsersControllerGetNotificationSettingsResponses];
+
+export type UsersControllerUpdateNotificationSettingsData = {
+    body: UpdateNotificationSettingsDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/notification-settings';
+};
+
+export type UsersControllerUpdateNotificationSettingsResponses = {
+    /**
+     * Cập nhật cấu hình thông báo thành công.
+     */
+    200: NotificationSettingsDto;
+};
+
+export type UsersControllerUpdateNotificationSettingsResponse = UsersControllerUpdateNotificationSettingsResponses[keyof UsersControllerUpdateNotificationSettingsResponses];
+
 export type AuthControllerGoogleLoginData = {
     body: GoogleLoginDto;
     path?: never;
@@ -2242,6 +2288,10 @@ export type DocumentsControllerFindAllData = {
          * Phân loại tài liệu kỹ thuật
          */
         kind?: 'Guide' | 'Reference' | 'Runbook' | 'Tutorial' | 'Link';
+        /**
+         * Chỉ trả về các tài liệu đã được người dùng hiện tại bookmark
+         */
+        bookmarked?: boolean;
         /**
          * Số lượng tài liệu tối đa trả về trên mỗi trang
          */

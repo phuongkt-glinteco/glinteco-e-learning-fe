@@ -96,7 +96,7 @@ export function MyCourseCard({ track, onOpen }: MyCourseCardProps) {
           className="h-10 w-full justify-center gap-1.5"
         >
           {isCompleted ? t('review') : t('continue')}
-          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          <span className="material-symbols-outlined text-[16px] transition-transform group-hover/button:translate-x-1">arrow_forward</span>
         </Button>
       </CardFooter>
     </Card>

@@ -110,7 +110,7 @@ export function CourseCatalogCard({ track, onOpen }: CourseCatalogCardProps) {
           className="h-10 w-full gap-1.5 px-4 text-[14px]"
         >
           {isCompleted ? t('review') : isReadyToStart ? t('start') : t('continue')}
-          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          <span className="material-symbols-outlined text-[16px] transition-transform group-hover/button:translate-x-1">arrow_forward</span>
         </Button>
       </CardFooter>
     </Card>

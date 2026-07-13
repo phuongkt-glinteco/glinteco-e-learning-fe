@@ -106,61 +106,71 @@ async function seed(): Promise<void> {
     const t1 = await trackRepo.save(
       trackRepo.create({
         title: 'Local Dev Environment',
-        description: 'Setup local development environment, git flow, and coding standards.',
+        description:
+          'Setup local development environment, git flow, and coding standards.',
         estimatedTime: '2h',
         icon: 'flag',
         order: 1,
         lessonsCount: 4,
         level: 'Beginner',
-        thumbnail: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?q=80&w=300&auto=format&fit=crop',
+        thumbnail:
+          'https://images.unsplash.com/photo-1618401471353-b98aedd07871?q=80&w=300&auto=format&fit=crop',
       }),
     );
     const t2 = await trackRepo.save(
       trackRepo.create({
         title: 'Frontend Fundamentals',
-        description: 'Learn React, TypeScript, Tailwind CSS, and build responsive components.',
+        description:
+          'Learn React, TypeScript, Tailwind CSS, and build responsive components.',
         estimatedTime: '4h',
         icon: 'code',
         order: 2,
         lessonsCount: 6,
         level: 'Beginner',
-        thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=300&auto=format&fit=crop',
+        thumbnail:
+          'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=300&auto=format&fit=crop',
       }),
     );
     const t3 = await trackRepo.save(
       trackRepo.create({
         title: 'NestJS Service Layer',
-        description: 'Build robust backend services, controllers, DTOs, and connect to PostgreSQL.',
+        description:
+          'Build robust backend services, controllers, DTOs, and connect to PostgreSQL.',
         estimatedTime: '6h',
         icon: 'server',
         order: 3,
         lessonsCount: 5,
         level: 'Intermediate',
-        thumbnail: 'https://images.unsplash.com/photo-1555066932-5f284c7873c1?q=80&w=300&auto=format&fit=crop',
+        thumbnail:
+          'https://images.unsplash.com/photo-1555066932-5f284c7873c1?q=80&w=300&auto=format&fit=crop',
       }),
     );
     const t4 = await trackRepo.save(
       trackRepo.create({
         title: 'System Architecture',
-        description: 'Design microservices, gateway pattern, events, and sequence flows.',
+        description:
+          'Design microservices, gateway pattern, events, and sequence flows.',
         estimatedTime: '3h',
         icon: 'sitemap',
         order: 4,
         lessonsCount: 4,
         level: 'Intermediate',
-        thumbnail: 'https://images.unsplash.com/photo-1507721999472-8ed4421c4b2e?q=80&w=300&auto=format&fit=crop',
+        thumbnail:
+          'https://images.unsplash.com/photo-1507721999472-8ed4421c4b2e?q=80&w=300&auto=format&fit=crop',
       }),
     );
     const t5 = await trackRepo.save(
       trackRepo.create({
         title: 'Testing & CI Pipeline',
-        description: 'Write unit tests, integration tests, E2E tests, and run CI/CD gates.',
+        description:
+          'Write unit tests, integration tests, E2E tests, and run CI/CD gates.',
         estimatedTime: '3h',
         icon: 'shield',
         order: 5,
         lessonsCount: 3,
         level: 'Advanced',
-        thumbnail: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=300&auto=format&fit=crop',
+        thumbnail:
+          'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=300&auto=format&fit=crop',
       }),
     );
 
@@ -354,9 +364,15 @@ async function seed(): Promise<void> {
     ]);
 
     // Find specific lessons to link with exercises
-    const lessonForE1 = seededLessons.find((l) => l.title === 'Building Reusable React Components');
-    const lessonForE2 = seededLessons.find((l) => l.title === 'Pagination & Service Methods');
-    const lessonForE3 = seededLessons.find((l) => l.title === 'Order Flow Sequence');
+    const lessonForE1 = seededLessons.find(
+      (l) => l.title === 'Building Reusable React Components',
+    );
+    const lessonForE2 = seededLessons.find(
+      (l) => l.title === 'Pagination & Service Methods',
+    );
+    const lessonForE3 = seededLessons.find(
+      (l) => l.title === 'Order Flow Sequence',
+    );
 
     // Seed Exercises
     const e1 = await exerciseRepo.save(
@@ -368,8 +384,10 @@ async function seed(): Promise<void> {
         difficulty: ExerciseDifficulty.BEGINNER,
         estimatedTime: '2 hours',
         xp: 120,
-        brief: 'Create a reusable <ProfileCard/> using our component library tokens. Must be responsive and pass a11y lint.',
-        overview: 'Engineers reach for shared primitives constantly. This task gets you fluent with our design tokens, the component library API, and the a11y lint gate.',
+        brief:
+          'Create a reusable <ProfileCard/> using our component library tokens. Must be responsive and pass a11y lint.',
+        overview:
+          'Engineers reach for shared primitives constantly. This task gets you fluent with our design tokens, the component library API, and the a11y lint gate.',
         objectives: [
           'Render avatar, name, role and a status dot from props',
           'Use only design tokens — no hard-coded colors or spacing',
@@ -394,8 +412,10 @@ async function seed(): Promise<void> {
         difficulty: ExerciseDifficulty.INTERMEDIATE,
         estimatedTime: '3 hours',
         xp: 200,
-        brief: 'Implement GET /users with cursor pagination, DTO validation, and a unit test for the service.',
-        overview: 'Cursor pagination is our standard for every list endpoint. You will build one end-to-end: controller, service, DTO validation, and a unit test.',
+        brief:
+          'Implement GET /users with cursor pagination, DTO validation, and a unit test for the service.',
+        overview:
+          'Cursor pagination is our standard for every list endpoint. You will build one end-to-end: controller, service, DTO validation, and a unit test.',
         objectives: [
           'GET /users accepts ?cursor and ?limit (max 50)',
           'Response includes nextCursor and hasMore',
@@ -420,8 +440,10 @@ async function seed(): Promise<void> {
         difficulty: ExerciseDifficulty.ADVANCED,
         estimatedTime: '2 hours',
         xp: 160,
-        brief: 'Document the event flow from checkout to fulfillment. Submit a branch with the .md + mermaid diagram.',
-        overview: 'Before touching the order domain, every engineer maps it. You will trace the events and capture the contract boundaries.',
+        brief:
+          'Document the event flow from checkout to fulfillment. Submit a branch with the .md + mermaid diagram.',
+        overview:
+          'Before touching the order domain, every engineer maps it. You will trace the events and capture the contract boundaries.',
         objectives: [
           'Sequence diagram from checkout -> payment -> fulfillment',
           'Every arrow names the event on the bus',
@@ -492,7 +514,8 @@ async function seed(): Promise<void> {
         submissionId: sub1.id,
         adminId: admin.id,
         action: 'approved',
-        comment: 'Great job on the component structure and tokens! Passes a11y cleanly.',
+        comment:
+          'Great job on the component structure and tokens! Passes a11y cleanly.',
       }),
     ]);
 
@@ -521,14 +544,15 @@ async function seed(): Promise<void> {
     const tagRepo = dataSource.getRepository(Tag);
     const documentRepo = dataSource.getRepository(Document);
 
-    const [nestjsTag, dbTag, gitTag, feTag, archTag, testingTag] = await tagRepo.save([
-      tagRepo.create({ name: 'NestJS' }),
-      tagRepo.create({ name: 'Database' }),
-      tagRepo.create({ name: 'Git' }),
-      tagRepo.create({ name: 'Frontend' }),
-      tagRepo.create({ name: 'Architecture' }),
-      tagRepo.create({ name: 'Testing' }),
-    ]);
+    const [nestjsTag, dbTag, gitTag, feTag, archTag, testingTag] =
+      await tagRepo.save([
+        tagRepo.create({ name: 'NestJS' }),
+        tagRepo.create({ name: 'Database' }),
+        tagRepo.create({ name: 'Git' }),
+        tagRepo.create({ name: 'Frontend' }),
+        tagRepo.create({ name: 'Architecture' }),
+        tagRepo.create({ name: 'Testing' }),
+      ]);
 
     await documentRepo.save([
       documentRepo.create({
@@ -561,7 +585,8 @@ async function seed(): Promise<void> {
       }),
       documentRepo.create({
         title: 'Service Auth & JWT Flow',
-        content: 'Authentication logic, session management, and Guard structures.',
+        content:
+          'Authentication logic, session management, and Guard structures.',
         url: 'wiki/backend/auth',
         tags: [nestjsTag, archTag],
         kind: DocumentKind.GUIDE,

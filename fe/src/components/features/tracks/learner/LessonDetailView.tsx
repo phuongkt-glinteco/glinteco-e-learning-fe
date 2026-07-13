@@ -15,6 +15,7 @@ interface LessonDetailViewProps {
   activeLessonLocked: boolean;
   previousLessonId: string | null;
   nextLessonId: string | null;
+  nextLessonLocked: boolean;
   exercises: LearnerExercise[];
   completing: boolean;
   completionMessage: string | null;
@@ -34,6 +35,7 @@ export function LessonDetailView({
   activeLessonLocked,
   previousLessonId,
   nextLessonId,
+  nextLessonLocked,
   exercises,
   completing,
   completionMessage,
@@ -49,6 +51,7 @@ export function LessonDetailView({
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
+  const nextLessonActionLocked = activeLesson.completed && Boolean(nextLessonId) && nextLessonLocked;
 
   return (
     <div className="mx-auto flex max-w-container-max flex-col gap-6 px-gutter py-8">
@@ -225,7 +228,7 @@ export function LessonDetailView({
                     key={exercise.id}
                     type="button"
                     onClick={() => onOpenExercise(exercise.id)}
-                    className="rounded-lg border border-outline-variant bg-surface p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 cursor-pointer"
+                    className="group rounded-lg border border-outline-variant bg-surface p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 cursor-pointer"
                   >
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -260,7 +263,7 @@ export function LessonDetailView({
                         <h4 className="mt-2 headline-sm line-clamp-2 break-words text-on-surface">{exercise.title}</h4>
                         <p className="mt-1 body-sm line-clamp-3 break-words text-on-surface-variant">{exercise.brief}</p>
                       </div>
-                      <span className="material-symbols-outlined mt-1 shrink-0 text-[18px] text-primary">
+                      <span className="material-symbols-outlined mt-1 shrink-0 text-[18px] text-primary transition-transform group-hover:translate-x-1">
                         arrow_forward
                       </span>
                     </div>
@@ -295,55 +298,50 @@ export function LessonDetailView({
                 type="button"
                 onClick={() => previousLessonId && onSelectLesson(previousLessonId)}
                 disabled={!previousLessonId}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
+                className="group inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
               >
-                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                <span className="material-symbols-outlined text-[16px] transition-transform group-hover:-translate-x-1">arrow_back</span>
                 {t('previous', { defaultValue: 'Previous' })}
               </button>
-              {!activeLesson.completed && (
-                <button
-                  type="button"
-                  onClick={() => nextLessonId && onSelectLesson(nextLessonId)}
-                  disabled={!nextLessonId || activeLessonLocked}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant px-4 py-2.5 label-sm text-on-surface transition-colors hover:bg-surface-container-low disabled:cursor-not-allowed disabled:text-outline disabled:hover:bg-transparent"
-                >
-                  {t('next', { defaultValue: 'Next' })}
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                </button>
-              )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                if (activeLesson.completed) {
-                  if (nextLessonId) {
-                    onSelectLesson(nextLessonId);
-                  } else {
-                    onBackToTracks();
+              <button
+                type="button"
+                onClick={() => {
+                  if (activeLesson.completed) {
+                    if (nextLessonActionLocked) return;
+                    if (nextLessonId) {
+                      onSelectLesson(nextLessonId);
+                    } else {
+                      onBackToTracks();
+                    }
+                    return;
                   }
-                } else {
+
                   onCompleteLesson();
-                }
-              }}
-              disabled={(!activeLesson.completed && completing) || (!activeLesson.completed && activeLessonLocked)}
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 label-sm rounded-lg transition-colors select-none bg-primary text-on-primary hover:opacity-90 shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <span className="material-symbols-outlined text-[18px]">
+                }}
+                disabled={nextLessonActionLocked || (!activeLesson.completed && completing) || (!activeLesson.completed && activeLessonLocked)}
+                className="group inline-flex items-center gap-1.5 rounded-lg bg-primary px-5 py-2.5 label-sm text-on-primary shadow-sm transition-colors select-none hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span className="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">
+                  {activeLesson.completed
+                    ? (nextLessonActionLocked
+                        ? 'lock'
+                        : (!nextLessonId ? 'school' : 'arrow_forward'))
+                    : (completing ? 'progress_activity' : 'check_circle')}
+                </span>
                 {activeLesson.completed
-                  ? (!nextLessonId ? 'school' : 'arrow_forward')
-                  : (completing ? 'progress_activity' : 'check_circle')}
-              </span>
-              {activeLesson.completed
-                ? (!nextLessonId
-                    ? t('goToCourse', { defaultValue: 'Go to Course' })
-                    : nextLessonId.startsWith('track:')
-                      ? t('viewNextTrack', { defaultValue: 'View Next Track' })
-                      : t('nextLesson', { defaultValue: 'Next Lesson' }))
-                : (completing
-                    ? t('completing', { defaultValue: 'Completing...' })
-                    : t('completeLesson', { defaultValue: 'Complete Lesson' }))}
-            </button>
+                  ? (nextLessonActionLocked
+                      ? t('locked', { defaultValue: 'Locked' })
+                      : (!nextLessonId
+                          ? t('goToCourse', { defaultValue: 'Go to Course' })
+                          : nextLessonId.startsWith('track:')
+                            ? t('viewNextTrack', { defaultValue: 'View Next Track' })
+                            : t('nextLesson', { defaultValue: 'Next Lesson' })))
+                  : (completing
+                      ? t('completing', { defaultValue: 'Completing...' })
+                      : t('completeLesson', { defaultValue: 'Complete Lesson' }))}
+              </button>
           </div>
         </main>
 

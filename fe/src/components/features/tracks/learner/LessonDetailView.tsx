@@ -1,3 +1,6 @@
+'use client';
+
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { StatusBadge, TimeBadge } from '@/components/ui';
 import CircleMeter from '@/components/ui/CircleMeter';
@@ -5,6 +8,7 @@ import { MarkdownRenderer } from '@/lib/md-renderer';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/default/alert-dialog';
 import { Badge } from '@/components/ui/default/badge';
+import { PuckViewer, useLessonPuckConfig, isPuckJsonBody, parseBodyToPuckData } from '@/components/puck-editor';
 import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 import { getLessonAccessState, type LessonCompletionBlocker } from './utils';
 
@@ -46,6 +50,20 @@ export function LessonDetailView({
   onCloseCompletionBlocker,
 }: LessonDetailViewProps) {
   const t = useTranslations('LessonDetailContainer');
+  const lessonConfig = useLessonPuckConfig();
+  const bodyIsPuckJson = isPuckJsonBody(activeLesson.body);
+  const puckContentData = useMemo(() => {
+    if (!bodyIsPuckJson) return null;
+    return parseBodyToPuckData(activeLesson.body, {
+      title: activeLesson.title,
+      description: activeLesson.description,
+      estimatedTime: activeLesson.estimatedTime,
+      order: activeLesson.order,
+      type: activeLesson.type,
+      documents: [],
+      exercises: [],
+    });
+  }, [activeLesson.body, activeLesson.title, activeLesson.description, activeLesson.estimatedTime, activeLesson.order, activeLesson.type, bodyIsPuckJson]);
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
@@ -198,9 +216,15 @@ export function LessonDetailView({
           </div>
 
           {activeLesson.body.trim() ? (
-            <article className="min-w-0 break-words text-on-surface-variant">
-              <MarkdownRenderer content={activeLesson.body} />
-            </article>
+            bodyIsPuckJson && puckContentData ? (
+              <div className="min-w-0">
+                <PuckViewer config={lessonConfig} data={puckContentData} />
+              </div>
+            ) : (
+              <article className="min-w-0 break-words text-on-surface-variant">
+                <MarkdownRenderer content={activeLesson.body} />
+              </article>
+            )
           ) : (
             <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-6">
               <h3 className="headline-sm text-on-surface">{t('contentNotAvailable', { defaultValue: 'Lesson content is not available yet' })}</h3>

@@ -8,8 +8,8 @@ import {
   LessonRootHeader,
   LessonHeaderBlock,
   LessonRightSidebarBlock,
+  SidebarContentField,
 } from "../blocks/lesson";
-import { DocumentPickerField, ExercisePickerField } from "../fields";
 import {
   HeadingBlock,
   ParagraphBlock,
@@ -171,35 +171,17 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
               { label: "H1 - H4", value: 4 },
             ],
           },
-          documents: {
+          sidebarContent: {
             type: "custom",
-            label: "Tài liệu liên quan",
-            render: ({ value, onChange, readOnly }) => (
-              <DocumentPickerField
-                value={value}
-                onChange={onChange}
-                readOnly={readOnly}
-              />
-            ),
-          },
-          exercises: {
-            type: "custom",
-            label: "Bài tập liên quan",
-            render: ({ value, onChange, readOnly }) => (
-              <ExercisePickerField
-                value={value}
-                onChange={onChange}
-                readOnly={readOnly}
-              />
-            ),
+            label: "Nội dung đã dán",
+            render: () => <SidebarContentField />,
           },
         },
         defaultProps: {
-          showToLearner: true,
-          maxHeadingLevel: 3,
-          documents: [],
-          exercises: [],
-        },
+           showToLearner: true,
+           maxHeadingLevel: 3,
+           sidebarContent: <SidebarContentField />,
+         },
         render: (props) => <LessonRightSidebarBlock {...props} />,
       },
       HeadingBlock: { ...HeadingBlock, label: "Heading" },
@@ -276,12 +258,7 @@ export const lessonPuckConfig: Config<LessonBlockProps, LessonRootProps> = {
     layout: {
       title: "📐 Bố cục (Layout)",
       components: ["FlexLayoutBlock", "GridLayoutBlock"],
-    },
-    other: {
-      title: "Other",
-      components: ["LessonHeaderBlock", "LessonRightSidebarBlock"],
-      visible: false,
-    },
+    }
   },
   components: {
     LessonHeaderBlock: {
@@ -324,53 +301,34 @@ export const lessonPuckConfig: Config<LessonBlockProps, LessonRootProps> = {
         drag: false,
         duplicate: false,
       },
-      fields: {
-        showToLearner: {
-          type: "radio",
-          label: "Hiển thị với học viên",
-          options: [
-            { label: "Bật", value: true },
-            { label: "Ẩn", value: false },
-          ],
-        },
-        maxHeadingLevel: {
-          type: "select",
-          label: "Mức Heading tối đa",
-          options: [
-            { label: "H1", value: 1 },
-            { label: "H1 - H2", value: 2 },
-            { label: "H1 - H3", value: 3 },
-            { label: "H1 - H4", value: 4 },
-          ],
-        },
-        documents: {
-          type: "custom",
-          label: "Tài liệu liên quan",
-          render: ({ value, onChange, readOnly }) => (
-            <DocumentPickerField
-              value={value}
-              onChange={onChange}
-              readOnly={readOnly}
-            />
-          ),
-        },
-        exercises: {
-          type: "custom",
-          label: "Bài tập liên quan",
-          render: ({ value, onChange, readOnly }) => (
-            <ExercisePickerField
-              value={value}
-              onChange={onChange}
-              readOnly={readOnly}
-            />
-          ),
-        },
-      },
+fields: {
+         showToLearner: {
+           type: "radio",
+           label: "Hiển thị với học viên",
+           options: [
+             { label: "Bật", value: true },
+             { label: "Ẩn", value: false },
+           ],
+         },
+         maxHeadingLevel: {
+           type: "select",
+           label: "Mức Heading tối đa",
+           options: [
+             { label: "H1", value: 1 },
+             { label: "H1 - H2", value: 2 },
+             { label: "H1 - H3", value: 3 },
+             { label: "H1 - H4", value: 4 },
+           ],
+         },
+         sidebarContent: {
+           type: "custom",
+           label: "Nội dung đã dán",
+           render: () => <SidebarContentField />,
+         },
+       },
       defaultProps: {
         showToLearner: true,
         maxHeadingLevel: 3,
-        documents: [],
-        exercises: [],
       },
       render: (props) => <LessonRightSidebarBlock {...props} />,
     },

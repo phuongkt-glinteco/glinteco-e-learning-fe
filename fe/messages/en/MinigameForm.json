@@ -1,0 +1,23 @@
+{
+  "configTitle": "Game Configuration",
+  "gameTypeLabel": "Minigame Type",
+  "puzzle": "🧩 Puzzle",
+  "matching": "🔗 Matching",
+  "quizBattle": "⚔️ Quiz Battle",
+  "codeOrder": "📋 Code Order",
+  "timeLimitLabel": "Time Limit",
+  "timeLimitHint": "minutes per attempt",
+  "maxAttemptsLabel": "Max Attempts",
+  "maxAttemptsHint": "retry limit",
+  "scoringLabel": "Scoring",
+  "scoringPoints": "Points",
+  "scoringStar": "Star Rating",
+  "scoringTime": "Time-based",
+  "scoringHint": "Scoring method",
+  "contentTitle": "Game Content",
+  "instructionsLabel": "Instructions",
+  "instructionsPlaceholder": "Describe how to play the minigame...",
+  "rulesLabel": "Rules & Tips",
+  "rulesPlaceholder": "Game rules, tips, or hints for players...",
+  "rulesHint": "Optional: explain win conditions, scoring rules"
+}

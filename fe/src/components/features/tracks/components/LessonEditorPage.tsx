@@ -23,6 +23,8 @@ import {
 import { FeatureBarPortal } from '@/components/layout/FeatureBarPortal';
 import { LessonEditorBottomBar, type ViewportMode } from './LessonEditorBottomBar';
 import { useLessonDraftStore } from '@/stores/lessonDraftStore';
+import { mockAiGenerateLesson } from '@/mocks/ai-service';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 type LessonEditorPageProps = {
   trackId: string;
@@ -62,6 +64,8 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   const [body, setBody] = useState('');
   const [isEditing, setIsEditing] = useState<boolean>(true);
   const [viewport, setViewport] = useState<ViewportMode>('desktop');
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiVersion, setAiVersion] = useState(0);
 
   const lessonConfig = useLessonPuckConfig();
   const [loadedLesson, setLoadedLesson] = useState<LessonDetailDto | null>(null);
@@ -244,11 +248,27 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     router.back();
   }
 
+  async function handleAiGenerate() {
+    try {
+      const generatedData = await mockAiGenerateLesson({
+        title,
+        description,
+        estimatedTime,
+        type: lessonType,
+      });
+      setCurrentPuckData(generatedData as any);
+      setAiVersion((v) => v + 1);
+    } catch {
+      toast.error(t('aiGenerateFailed'));
+    }
+  }
+
   return (
     <main className="w-full flex-1 flex flex-col bg-surface-container-lowest">
       <FeatureBarPortal
         bottomBar={
           <LessonEditorBottomBar
+            onHandleAiGenerate={handleAiGenerate}
             onSave={() => handlePublishPuck(currentPuckData || puckData)}
             saving={saving}
             canSave={true}
@@ -273,15 +293,15 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
             onClick={() => setUiValidationError(null)}
             className="text-xs font-semibold hover:underline cursor-pointer"
           >
-            Đóng
+            {t('closeBtn')}
           </button>
         </div>
       )}
 
-      <div className="flex-1 w-full h-full flex flex-col">
+      <div className="flex-1 w-full h-full flex flex-col overflow-hidden min-h-0">
         {isEditing ? (
           <PuckStudio
-            key={`${lessonId || "new"}-${title}`}
+            key={`${lessonId || "new"}-${title}-${aiVersion}`}
             config={lessonConfig}
             initialData={puckData}
             onChange={(newData) => setCurrentPuckData(newData)}
@@ -299,7 +319,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
                     : 'w-full bg-surface'
               }`}
             >
-              <PuckViewer config={lessonConfig} data={puckData} />
+              <PuckViewer config={lessonConfig} data={currentPuckData || puckData} />
             </div>
           </div>
         )}

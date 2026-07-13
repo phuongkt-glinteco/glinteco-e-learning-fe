@@ -15,6 +15,7 @@ import {
   Monitor,
   Tablet,
   Smartphone,
+  Sparkles,
 } from 'lucide-react';
 
 export type ViewportMode = 'desktop' | 'tablet' | 'mobile';
@@ -27,6 +28,7 @@ interface LessonEditorBottomBarProps {
   isPreview?: boolean;
   viewport?: ViewportMode;
   onViewportChange?: (vp: ViewportMode) => void;
+  onHandleAiGenerate?: () => void;
   onReset?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
@@ -41,6 +43,7 @@ export function LessonEditorBottomBar({
   isPreview = false,
   viewport = 'desktop',
   onViewportChange,
+  onHandleAiGenerate,
   onReset,
   onUndo,
   onRedo,
@@ -48,6 +51,7 @@ export function LessonEditorBottomBar({
 }: LessonEditorBottomBarProps) {
   const t = useTranslations('PuckEditor.Common.LearnerView');
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   if (collapsed) {
     return (
@@ -56,17 +60,27 @@ export function LessonEditorBottomBar({
           type="button"
           onClick={() => setCollapsed(false)}
           className="px-4 py-2.5 rounded-full border border-border bg-surface shadow-lg hover:bg-surface-container text-foreground transition-all flex items-center gap-2 text-xs font-semibold cursor-pointer"
-          title="Mở rộng thanh công cụ soạn thảo"
+          title={t('expandToolbarTitle')}
         >
           <ChevronUp className="w-4 h-4 text-primary" />
-          <span>Mở rộng thanh công cụ</span>
+          <span>{t('expandToolbarBtn')}</span>
         </button>
       </div>
     );
   }
 
+  async function handleAiGenerate() {
+    if (aiGenerating) return;
+    try {
+      setAiGenerating(true);
+      await onHandleAiGenerate?.();
+    } finally {
+      setAiGenerating(false);
+    }
+  }
+
   return (
-    <div className="w-full bg-surface border-t border-border px-6 py-3 flex items-center justify-between flex-wrap gap-4 shadow-sm transition-all">
+    <div className="sticky bottom-0 z-40 w-full bg-surface border-t border-border px-6 py-3 flex items-center justify-between flex-wrap gap-4 shadow-sm transition-all">
       {/* Cụm Trở lại (Cancel) + Undo / Redo / Reset */}
       <div className="flex items-center gap-2 flex-wrap">
         {onCancel && (
@@ -74,10 +88,10 @@ export function LessonEditorBottomBar({
             type="button"
             onClick={onCancel}
             className="px-3 py-1.5 rounded-lg border border-border bg-surface-container-low hover:bg-surface-variant text-secondary hover:text-foreground transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
-            title="Hủy và quay lại danh sách bài học"
+            title={t('cancelTitle')}
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Hủy (Cancel)</span>
+            <span>{t('cancelBtn')}</span>
           </button>
         )}
         {onUndo && (
@@ -85,7 +99,7 @@ export function LessonEditorBottomBar({
             type="button"
             onClick={onUndo}
             className="px-3 py-1.5 rounded-lg border border-border bg-surface-container-low hover:bg-surface-variant text-secondary hover:text-foreground transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
-            title="Hoàn tác (Undo)"
+            title={t('undoTitle')}
           >
             <Undo2 className="w-4 h-4" />
             <span className="hidden sm:inline">Undo</span>
@@ -96,7 +110,7 @@ export function LessonEditorBottomBar({
             type="button"
             onClick={onRedo}
             className="px-3 py-1.5 rounded-lg border border-border bg-surface-container-low hover:bg-surface-variant text-secondary hover:text-foreground transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
-            title="Làm lại (Redo)"
+            title={t('redoTitle')}
           >
             <Redo2 className="w-4 h-4" />
             <span className="hidden sm:inline">Redo</span>
@@ -107,13 +121,28 @@ export function LessonEditorBottomBar({
             type="button"
             onClick={onReset}
             className="px-3 py-1.5 rounded-lg border border-border bg-surface-container-low hover:bg-surface-variant text-secondary hover:text-foreground transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
-            title="Khôi phục gốc (Reset)"
+            title={t('resetTitle')}
           >
             <RotateCcw className="w-4 h-4" />
             <span className="hidden sm:inline">Reset</span>
           </button>
         )}
       </div>
+      {!isPreview && (
+          <button
+            type="button"
+            onClick={handleAiGenerate}
+            disabled={aiGenerating}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+          >
+            {aiGenerating ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            {aiGenerating ? t('aiGenerating') : t('aiGenerateBtn')}
+          </button>
+      )}
 
       {/* Cụm Viewport Simulation + Preview & Save + Nút thu gọn */}
       <div className="flex items-center gap-3 flex-wrap">
@@ -172,7 +201,7 @@ export function LessonEditorBottomBar({
             }`}
           >
             {isPreview ? <Edit3 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            <span>{isPreview ? 'Quay lại soạn thảo' : 'Preview'}</span>
+            <span>{isPreview ? t('backToEditBtn') : t('previewBtn')}</span>
           </button>
         )}
 
@@ -183,14 +212,14 @@ export function LessonEditorBottomBar({
           className="px-6 py-1.5 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:opacity-95 disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
         >
           {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-          <span>{saving ? 'Đang lưu...' : 'Lưu bài học (Save)'}</span>
+          <span>{saving ? t('savingLesson') : t('saveLessonBtn')}</span>
         </button>
 
         <button
           type="button"
           onClick={() => setCollapsed(true)}
           className="p-1.5 rounded-lg border border-border bg-surface-container-low hover:bg-surface-variant text-secondary hover:text-foreground transition-colors flex items-center justify-center cursor-pointer"
-          title="Thu gọn thanh công cụ"
+          title={t('collapseToolbarTitle')}
         >
           <ChevronDown className="w-4 h-4" />
         </button>
@@ -198,4 +227,3 @@ export function LessonEditorBottomBar({
     </div>
   );
 }
-

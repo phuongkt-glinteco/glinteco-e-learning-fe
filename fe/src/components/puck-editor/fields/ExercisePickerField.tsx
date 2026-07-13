@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { exercisesControllerFindAll, exercisesControllerCreate } from '@/services/client';
 import type { ExerciseSummaryDto } from '@/services/client';
+import { mockFetchExercises, mockCreateExercise } from '@/mocks/exercises';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +21,7 @@ import { Code, X, Plus, Loader2, ExternalLink, Copy } from 'lucide-react';
 export interface ExerciseItem {
   id?: string;
   title?: string;
+  status?: 'draft' | 'complete';
 }
 
 export interface ExercisePickerFieldProps {
@@ -66,10 +69,18 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
   const [cloneSelectedId, setCloneSelectedId] = useState<string>('');
 
   // Quick Create draft state
+  const draftTypes = ['quiz', 'coding', 'fill_in_blank', 'pr', 'minigame'] as const;
+  type DraftType = (typeof draftTypes)[number];
   const [draftTitle, setDraftTitle] = useState('');
-  const [draftType, setDraftType] = useState<'quiz' | 'coding'>('quiz');
+  const [draftType, setDraftType] = useState<DraftType>('quiz');
   const [createLoading, setCreateLoading] = useState(false);
   const [titleError, setTitleError] = useState('');
+
+  const trackId = React.useMemo(() => {
+    if (typeof window === 'undefined') return '_';
+    const m = window.location.pathname.match(/\/admin\/tracks\/([^/]+)/);
+    return m ? m[1] : '_';
+  }, []);
 
   const currentItems = Array.isArray(value) ? value : [];
 
@@ -98,7 +109,18 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
         : items;
       setResults(filtered);
     } catch {
-      setResults([]);
+      try {
+        const mockRes = await mockFetchExercises({ limit: 50 });
+        const items = mockRes.data || [];
+        const filtered = queryStr.trim()
+          ? items.filter((ex) =>
+              ex.title?.toLowerCase().includes(queryStr.trim().toLowerCase())
+            )
+          : items;
+        setResults(filtered);
+      } catch {
+        setResults([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -158,6 +180,7 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
           newSelectedItems.push({
             id: found.id,
             title,
+            status: 'complete',
           });
         }
       }
@@ -178,7 +201,7 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
       const res = await exercisesControllerCreate({
         body: {
           title,
-          trackId: '00000000-0000-0000-0000-000000000000',
+          trackId: trackId !== '_' ? trackId : '00000000-0000-0000-0000-000000000000',
           tag: draftType,
           difficulty: 'Beginner',
           estimatedTime: '15 mins',
@@ -193,13 +216,29 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
         newId = (res.data as any).id;
       }
     } catch {
-      // Offline / Skeleton draft mode fallback
+      try {
+        const mockRes = await mockCreateExercise({
+          title,
+          trackId: trackId !== '_' ? trackId : '00000000-0000-0000-0000-000000000000',
+          tag: draftType,
+          difficulty: 'Beginner',
+          estimatedTime: '15 mins',
+          xp: 10,
+          brief: '',
+          overview: '',
+          objectives: [],
+          steps: [],
+        });
+        newId = mockRes.id;
+      } catch {
+        // Skeleton draft fallback
+      }
     } finally {
       setCreateLoading(false);
     }
 
     registerExerciseTitle(newId, title);
-    onChange([{ id: newId, title }]);
+    onChange([{ id: newId, title, status: 'draft' }]);
     setOpenQuickCreate(false);
   };
 
@@ -211,7 +250,7 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
     const newId = `clone-${cloneSelectedId}-${Date.now()}`;
 
     registerExerciseTitle(newId, clonedTitle);
-    onChange([{ id: newId, title: clonedTitle }]);
+    onChange([{ id: newId, title: clonedTitle, status: 'complete' }]);
     setOpenClone(false);
   };
 
@@ -219,11 +258,6 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
     if (readOnly) return;
     const next = currentItems.filter((_, idx) => idx !== index);
     onChange(next);
-  };
-
-  const handleEditDetails = (id?: string) => {
-    if (!id) return;
-    window.open(`/admin/exercises/${id}`, '_blank');
   };
 
   return (
@@ -237,29 +271,44 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
         ) : (
           currentItems.map((item, index) => {
             const displayTitle = getExerciseTitle(item, t('unnamedExercise'));
+            const isDraft = item.status === 'draft';
             return (
               <div
                 key={item.id || index}
-                className="flex items-center justify-between gap-2 rounded-md border border-border bg-surface-container-lowest px-2.5 py-1.5 text-xs"
+                className={`flex items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 text-xs ${
+                  isDraft
+                    ? 'border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/20'
+                    : 'border-border bg-surface-container-lowest'
+                }`}
               >
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  <Code className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span className="truncate font-medium text-foreground">
+                  <Code className={`h-3.5 w-3.5 shrink-0 ${isDraft ? 'text-amber-600 dark:text-amber-400' : 'text-primary'}`} />
+                  <span className={`truncate font-medium ${isDraft ? 'text-amber-800 dark:text-amber-200' : 'text-foreground'}`}>
                     {displayTitle}
                   </span>
+                  {isDraft && (
+                    <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200">
+                      Draft
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
                   {item.id && (
-                    <button
-                      type="button"
-                      onClick={() => handleEditDetails(item.id)}
-                      className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline px-1.5 py-0.5 rounded bg-primary/10 cursor-pointer"
-                      title={t('editDetailBtn')}
+                    <Link
+                      href={`/admin/tracks/${trackId}/exercises/${item.id}/edit`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded cursor-pointer ${
+                        isDraft
+                          ? 'bg-amber-600 text-white hover:opacity-90'
+                          : 'text-primary hover:underline bg-primary/10'
+                      }`}
+                      title={isDraft ? t('typeMinigame') || 'Hoàn thiện' : t('editDetailBtn')}
                     >
-                      <span>{t('editDetailBtn')}</span>
+                      <span>{isDraft ? 'Hoàn thiện' : t('editDetailBtn')}</span>
                       <ExternalLink className="h-3 w-3" />
-                    </button>
+                    </Link>
                   )}
                   {!readOnly && (
                     <button
@@ -428,11 +477,14 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
               </label>
               <select
                 value={draftType}
-                onChange={(e) => setDraftType(e.target.value as 'quiz' | 'coding')}
+                onChange={(e) => setDraftType(e.target.value as DraftType)}
                 className="w-full h-9 text-xs rounded-md border border-border bg-surface-container-lowest px-2.5 outline-none text-foreground"
               >
                 <option value="quiz">{t('typeQuiz')}</option>
+                <option value="fill_in_blank">{t('typeFillInBlank')}</option>
                 <option value="coding">{t('typeCoding')}</option>
+                <option value="pr">{t('typePr')}</option>
+                <option value="minigame">{t('typeMinigame')}</option>
               </select>
             </div>
           </div>

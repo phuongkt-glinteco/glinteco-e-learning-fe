@@ -98,14 +98,35 @@ export interface LessonBlockProps {
     gap: "sm" | "md" | "lg";
   };
   ExerciseEmbedBlock: {
-    exerciseId: string;
-    title: string;
-    description?: string;
+    exerciseData?: {
+      exerciseId: string;
+      status?: "draft" | "complete";
+      type?: "pr" | "minigame_quiz" | "minigame_fill";
+      xp?: number;
+      instruction?: string;
+      previewData?: {
+        brief?: string;
+        repoUrl?: string;
+        questionCount?: number;
+        blankCount?: number;
+        question?: string;
+        answerType?: "single" | "multi";
+        answers?: Array<{ text: string; correct: boolean }>;
+        fillTemplate?: string;
+      };
+      title?: string;
+    } | null;
+    title?: string;
+    type?: "pr" | "minigame_quiz" | "minigame_fill";
+    xp?: number;
+    instruction?: string;
   };
   ReferenceDocumentBlock: {
     documentId?: string;
     url: string;
     altText: string;
+    kind?: "guide" | "reference" | "runbook" | "tutorial" | "link";
+    description?: string;
   };
   ExternalLinkBlock: {
     url: string;

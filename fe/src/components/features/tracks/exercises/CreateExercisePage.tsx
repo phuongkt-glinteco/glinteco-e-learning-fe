@@ -17,7 +17,10 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/default/card';
 import { Button } from '@/components/ui/default/button';
+import { Sparkles, Loader2 } from 'lucide-react';
 import ResourceDocumentPickerDialog from './ResourceDocumentPickerDialog';
+import MinigameFormSection from './MinigameFormSection';
+import { mockAiGenerateExercise } from '@/mocks/ai-service';
 
 export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { trackId: string; lessonId?: string; exerciseId?: string }) {
   const t = useTranslations('CreateExercisePage');
@@ -31,6 +34,7 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
   const [resourceDocIds, setResourceDocIds] = useState<string[]>([]);
   const [resourceDocs, setResourceDocs] = useState<DocumentResponseDto[]>([]);
   const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   const {
     register,
@@ -40,6 +44,7 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
     getValues,
     control,
     reset,
+    watch,
   } = useForm<CreateExerciseFormInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createExerciseFormSchema) as any,
@@ -57,6 +62,9 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
       hint: '',
     },
   });
+
+  const currentTag = watch('tag');
+  const isMinigame = currentTag === 'minigame';
 
   useEffect(() => {
     if (!exerciseId) return;
@@ -139,6 +147,36 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
     }
   }
 
+  async function handleAiGenerate() {
+    if (aiGenerating) return;
+    const title = getValues('title');
+    if (!title.trim()) {
+      setServerError('titleRequired');
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const data = await mockAiGenerateExercise({
+        title,
+        tag: getValues('tag') || 'quiz',
+        difficulty: getValues('difficulty') || 'Beginner',
+        brief: getValues('brief'),
+      });
+      setValue('brief', data.brief);
+      setValue('overview', data.overview);
+      setValue('objectives', data.objectives);
+      setValue('steps', data.steps);
+      setValue('hint', data.hint);
+      setValue('estimatedTime', data.estimatedTime);
+      setValue('xp', String(data.xp));
+      setServerError(null);
+    } catch {
+      setServerError('aiGenerateFailed');
+    } finally {
+      setAiGenerating(false);
+    }
+  }
+
   return (
     <div className="px-gutter py-6 max-w-[1200px] mx-auto w-full pb-32">
       {/* Breadcrumbs */}
@@ -169,39 +207,46 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-12 gap-lg">
               {/* Left Column */}
-              <div className="col-span-12 lg:col-span-8 space-y-lg">
+              <div className={`${isMinigame ? 'col-span-12' : 'col-span-12 lg:col-span-8'} space-y-lg`}>
                 <ExerciseBasicInfo register={register} errors={errors} setValue={setValue} getValues={getValues} t={t} />
 
+                {isMinigame ? (
+                  <MinigameFormSection register={register} errors={errors} setValue={setValue} getValues={getValues} t={t} />
+                ) : (
+                  <>
                 <ExerciseDescription register={register} errors={errors} t={t} />
 
-            <ExerciseListEditor
-              fieldName="objectives"
-              label={t('objectivesTitle')}
-              icon="flag"
-              placeholder={t('objectivesPlaceholder')}
-              emptyText={t('objectivesEmpty')}
-              addLabel={t('objectivesAdd')}
-              errors={errors}
-              setValue={setValue}
-              control={control}
-              t={t}
-            />
+                <ExerciseListEditor
+                  fieldName="objectives"
+                  label={t('objectivesTitle')}
+                  icon="flag"
+                  placeholder={t('objectivesPlaceholder')}
+                  emptyText={t('objectivesEmpty')}
+                  addLabel={t('objectivesAdd')}
+                  errors={errors}
+                  setValue={setValue}
+                  control={control}
+                  t={t}
+                />
 
-            <ExerciseListEditor
-              fieldName="steps"
-              label={t('stepsTitle')}
-              icon="format_list_numbered"
-              placeholder={t('stepsPlaceholder')}
-              emptyText={t('stepsEmpty')}
-              addLabel={t('stepsAdd')}
-              errors={errors}
-              setValue={setValue}
-              control={control}
-              t={t}
-            />
+                <ExerciseListEditor
+                  fieldName="steps"
+                  label={t('stepsTitle')}
+                  icon="format_list_numbered"
+                  placeholder={t('stepsPlaceholder')}
+                  emptyText={t('stepsEmpty')}
+                  addLabel={t('stepsAdd')}
+                  errors={errors}
+                  setValue={setValue}
+                  control={control}
+                  t={t}
+                />
+                  </>
+                )}
               </div>
 
-              {/* Right Column */}
+              {/* Right Column (hidden for minigame) */}
+              {!isMinigame && (
               <div className="col-span-12 lg:col-span-4 space-y-lg">
                 {/* Resource Documents */}
                 <Card className="shadow-sm">
@@ -256,19 +301,36 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
 
                 <ExerciseHint register={register} t={t} />
               </div>
+              )}
             </div>
 
             {/* Sticky Footer */}
             <footer className="fixed bottom-0 left-0 md:left-[256px] right-0 z-40 bg-surface-container-lowest border-t border-outline-variant px-gutter py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
               <div className="max-w-[1200px] mx-auto flex justify-between items-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  className="px-6"
-                >
-                  {t('cancel')}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.back()}
+                    className="px-6"
+                  >
+                    {t('cancel')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleAiGenerate}
+                    disabled={aiGenerating}
+                    className="inline-flex items-center gap-1.5 px-4 bg-gradient-to-r from-violet-500 to-purple-600 text-white border-none hover:opacity-90"
+                  >
+                    {aiGenerating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    {aiGenerating ? t('generating') : t('aiGenerate')}
+                  </Button>
+                </div>
                 <Button
                   type="submit"
                   disabled={saving}

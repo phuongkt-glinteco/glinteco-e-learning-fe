@@ -10,6 +10,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  AlertTriangle,
 } from 'lucide-react';
 import { slugifyHeadingId } from '@/components/puck-editor/helper';
 
@@ -37,6 +38,7 @@ interface LessonRightSidebarProps {
   onAddRelatedDoc?: () => void;
   onRemoveRelatedDoc?: (id: string) => void;
   onAddExercise?: () => void;
+  onSelectExercise?: (blockIndex?: number) => void;
 }
 
 function scrollToElementById(id: string) {
@@ -151,6 +153,7 @@ export function LessonRightSidebar({
   onAddRelatedDoc,
   onRemoveRelatedDoc,
   onAddExercise,
+  onSelectExercise,
 }: LessonRightSidebarProps) {
   const t = useTranslations('PuckEditor.Common.sidebar');
 
@@ -199,9 +202,35 @@ export function LessonRightSidebar({
     return list;
   }, [bodyContent, canvasHeadings, maxHeadingLevel]);
 
+  const [domHeadings, setDomHeadings] = React.useState<TocItem[]>([]);
+
+  React.useEffect(() => {
+    if (headings.length > 0 || typeof document === 'undefined') {
+      setDomHeadings([]);
+      return;
+    }
+    const elements = document.querySelectorAll('h1[id], h2[id], h3[id], h4[id]');
+    const items: TocItem[] = [];
+    elements.forEach((el) => {
+      const level = parseInt(el.tagName.replace('H', ''), 10);
+      if (level <= maxHeadingLevel && el.id) {
+        items.push({
+          id: el.id,
+          text: el.textContent || '',
+          level,
+        });
+      }
+    });
+    if (items.length > 0) {
+      setDomHeadings(items);
+    }
+  }, [headings.length, maxHeadingLevel]);
+
+  const effectiveHeadings = headings.length > 0 ? headings : domHeadings;
+
   const tocTree = useMemo(() => {
-    return buildTocTree(headings, maxHeadingLevel);
-  }, [headings, maxHeadingLevel]);
+    return buildTocTree(effectiveHeadings, maxHeadingLevel);
+  }, [effectiveHeadings, maxHeadingLevel]);
 
   const shouldRenderToc = showToLearner || isEditing;
 
@@ -309,22 +338,67 @@ export function LessonRightSidebar({
 
         <div className="space-y-2">
           {exercises.length > 0 ? (
-            exercises.map((ex, i) => (
+            exercises.map((ex, i) => {
+              const isDraft = ex.status === 'draft';
+              return (
               <div
                 key={ex.id || i}
-                className="flex items-center justify-between gap-2 p-2 rounded-lg bg-surface-container-low border border-outline-variant/60 text-body-xs"
+                className={`flex items-center justify-between gap-2 p-2 rounded-lg border text-body-xs ${
+                  isDraft
+                    ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-700'
+                    : 'bg-surface-container-low border-outline-variant/60'
+                }`}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <FileText className="w-4 h-4 text-primary shrink-0" />
-                  <span className="truncate font-medium text-on-surface">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {isDraft ? (
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  ) : (
+                    <FileText className="w-4 h-4 text-primary shrink-0" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onSelectExercise?.(ex.blockIndex)}
+                    className="truncate font-medium text-on-surface hover:text-primary transition-colors text-left cursor-pointer"
+                    title={t('selectCanvasBlockTitle')}
+                  >
                     {ex.title || t('exFallback', { index: i + 1 })}
+                  </button>
+                  {isDraft && (
+                    <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200">
+                      {t('draftBadge')}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {isDraft && ex.id && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelectExercise?.(ex.blockIndex);
+                        window.dispatchEvent(
+                          new CustomEvent('lesson-exercise-draft-complete', {
+                            detail: { exerciseId: ex.id, blockIndex: ex.blockIndex },
+                          })
+                        );
+                      }}
+                      className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded bg-amber-600 text-white hover:opacity-90 transition-opacity cursor-pointer"
+                    >
+                      <span>{t('completeDraftBtn')}</span>
+                    </button>
+                  )}
+                  <span className="text-label-xs bg-surface px-2 py-0.5 rounded border border-outline-variant text-secondary">
+                    {ex.type === 'pr'
+                      ? t('exerciseTypePr')
+                      : ex.type === 'minigame_quiz'
+                        ? t('exerciseTypeQuiz')
+                        : ex.type === 'minigame_fill'
+                          ? t('exerciseTypeFill')
+                          : t('exerciseTypeFallback')}
                   </span>
                 </div>
-                <span className="text-label-xs bg-surface px-2 py-0.5 rounded border border-outline-variant text-secondary">
-                  {ex.type || t('exerciseTypeFallback')}
-                </span>
               </div>
-            ))
+              );
+            })
           ) : (
             <p className="text-label-xs text-secondary italic py-2 text-center">
               {t('exercisesEmpty')}

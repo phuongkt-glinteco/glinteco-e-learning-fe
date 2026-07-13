@@ -22,6 +22,14 @@ const UNIT_OPTIONS: { value: TimeUnit; labelKey: string }[] = [
 
 const EXERCISE_DIFFICULTIES: Array<CreateExerciseFormInput['difficulty']> = ['Beginner', 'Intermediate', 'Advanced'];
 
+const FALLBACK_TAGS = [
+  { id: 'quiz', name: 'quiz' },
+  { id: 'fill_in_blank', name: 'fill_in_blank' },
+  { id: 'coding', name: 'coding' },
+  { id: 'pr', name: 'pr' },
+  { id: 'minigame', name: 'minigame' },
+];
+
 interface ExerciseBasicInfoProps {
   register: UseFormRegister<CreateExerciseFormInput>;
   errors: FieldErrors<CreateExerciseFormInput>;
@@ -65,8 +73,13 @@ export default function ExerciseBasicInfo({ register, errors, setValue, getValue
   useEffect(() => {
     setLoadingTags(true);
     documentsControllerFindAllTags({ throwOnError: true })
-      .then((res) => setTags((res.data as TagResponseDto[] | undefined) ?? []))
-      .catch(() => setTags([]))
+      .then((res) => {
+        const apiTags = (res.data as TagResponseDto[] | undefined) ?? [];
+        const apiNames = new Set(apiTags.map((t) => t.name));
+        const missingFallbacks = FALLBACK_TAGS.filter((f) => !apiNames.has(f.name));
+        setTags([...apiTags, ...missingFallbacks]);
+      })
+      .catch(() => setTags(FALLBACK_TAGS))
       .finally(() => setLoadingTags(false));
   }, []);
 

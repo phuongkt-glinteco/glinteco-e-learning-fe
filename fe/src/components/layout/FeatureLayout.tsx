@@ -13,7 +13,7 @@ export default function FeatureLayout({ children }: FeatureLayoutProps) {
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col w-full h-full relative overflow-hidden">
+      <div className="flex-1 flex flex-col w-full h-full relative">
         {/* Main Content Area + Optional Right Sidebar */}
         <div className="flex-1 flex flex-row overflow-hidden w-full">
           <div className="flex-1 min-w-0 flex flex-col overflow-y-auto">
@@ -27,8 +27,8 @@ export default function FeatureLayout({ children }: FeatureLayoutProps) {
           )}
         </div>
 
-        {/* Bottom Bar slot */}
-        {bottomBar && <div className="z-30">{bottomBar}</div>}
+        {/* Bottom Bar slot - sticky at bottom */}
+        {bottomBar && <div className="sticky bottom-0 z-40 shrink-0 bg-surface border-t border-border">{bottomBar}</div>}
       </div>
     </AppShell>
   );

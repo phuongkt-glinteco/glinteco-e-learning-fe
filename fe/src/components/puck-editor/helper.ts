@@ -1,3 +1,4 @@
+import { usePuck } from "@puckeditor/core";
 import { LessonPuckData, LessonRootProps } from "./types";
 
 /**
@@ -53,14 +54,6 @@ export function parseBodyToPuckData(
         id: existingSidebar?.props?.id || "lesson-sidebar-fixed",
         showToLearner: existingSidebar?.props?.showToLearner ?? true,
         maxHeadingLevel: existingSidebar?.props?.maxHeadingLevel ?? 3,
-        documents:
-          fallbackRoot.documents && fallbackRoot.documents.length > 0
-            ? fallbackRoot.documents
-            : existingSidebar?.props?.documents || [],
-        exercises:
-          fallbackRoot.exercises && fallbackRoot.exercises.length > 0
-            ? fallbackRoot.exercises
-            : existingSidebar?.props?.exercises || [],
       },
     };
 
@@ -219,4 +212,108 @@ export function slugifyHeadingId(title: string, index?: number): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)+/g, "");
   return slug || `heading-${index ?? 0}`;
+}
+
+export function useSafePuck() {
+  try {
+    return usePuck();
+  } catch {
+    return null;
+  }
+}
+
+export interface DerivedExerciseItem {
+  id?: string;
+  title?: string;
+  blockIndex?: number;
+  status?: "draft" | "complete";
+  type?: "pr" | "minigame_quiz" | "minigame_fill";
+}
+
+export interface DerivedDocumentItem {
+  id?: string;
+  title?: string;
+  url?: string;
+}
+
+export interface DerivedHeadingItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+export function deriveLessonSidebarState(
+  content: Array<{ type?: string; props?: Record<string, unknown> }>,
+  fallbacks: { defaultExerciseTitle: string; defaultDocTitle: string }
+): {
+  documents: DerivedDocumentItem[];
+  exercises: DerivedExerciseItem[];
+  headings: DerivedHeadingItem[];
+} {
+  const derivedDocs: DerivedDocumentItem[] = [];
+  const derivedExs: DerivedExerciseItem[] = [];
+  const derivedHeadings: DerivedHeadingItem[] = [];
+
+  content.forEach((block, idx) => {
+    if (block.type === "ExerciseEmbedBlock") {
+      const exData = block.props?.exerciseData as
+        | {
+            exerciseId?: string;
+            title?: string;
+            status?: "draft" | "complete";
+            type?: "pr" | "minigame_quiz" | "minigame_fill";
+          }
+        | undefined;
+      if (exData?.exerciseId) {
+        derivedExs.push({
+          id: exData.exerciseId,
+          title: exData.title || fallbacks.defaultExerciseTitle,
+          status: exData.status || "complete",
+          type: exData.type,
+          blockIndex: idx,
+        });
+      }
+      return;
+    }
+
+    if (block.type === "ReferenceDocumentBlock") {
+      const docId =
+        (block.props?.documentId as string | undefined) ||
+        (block.props?.id as string | undefined);
+      const url = block.props?.url as string | undefined;
+      const title =
+        (block.props?.altText as string | undefined) ||
+        (block.props?.title as string | undefined) ||
+        fallbacks.defaultDocTitle;
+
+      if (docId || url || title) {
+        derivedDocs.push({
+          id: docId || url || `doc-${idx}`,
+          title,
+          url,
+        });
+      }
+      return;
+    }
+
+    if (block.type === "HeadingBlock") {
+      const text = block.props?.title as string | undefined;
+      if (!text) return;
+      const levelNum =
+        parseInt(String(block.props?.level || "h2").replace("h", ""), 10) || 2;
+      const headingId =
+        (block.props?.id as string | undefined) || slugifyHeadingId(text);
+      derivedHeadings.push({
+        id: headingId,
+        text,
+        level: levelNum,
+      });
+    }
+  });
+
+  return {
+    documents: derivedDocs,
+    exercises: derivedExs,
+    headings: derivedHeadings,
+  };
 }

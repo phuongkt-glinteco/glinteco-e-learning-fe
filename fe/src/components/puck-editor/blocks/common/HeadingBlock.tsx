@@ -54,7 +54,7 @@ export const HeadingBlock: ComponentConfig<any> = {
     return (
       <Tag
         id={headingId}
-        className={`${sizeClass} ${alignClass} my-4 text-foreground`}
+        className={`${sizeClass} ${alignClass} my-4 text-foreground scroll-mt-24`}
       >
         {title}
       </Tag>

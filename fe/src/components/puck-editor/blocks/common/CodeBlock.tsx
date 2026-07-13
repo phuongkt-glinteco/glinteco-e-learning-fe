@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { Copy, Check } from "lucide-react";
 import { ComponentConfig } from "@puckeditor/core";
 import { LessonBlockProps } from "../../types";
 
@@ -69,12 +72,14 @@ const CodeBlockRender: React.FC<LessonBlockProps["CodeBlock"]> = ({
   code,
   showLineNumbers,
 }) => {
+  const t = useTranslations("PuckEditor.Common.LearnerView");
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(code || "");
       setCopied(true);
+      toast.success(t("copySuccessToast"));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -99,10 +104,21 @@ const CodeBlockRender: React.FC<LessonBlockProps["CodeBlock"]> = ({
           <span className="text-slate-300 font-semibold uppercase">{language}</span>
         </div>
         <button
+          type="button"
           onClick={handleCopy}
-          className="px-2.5 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 transition-colors cursor-pointer text-xs"
         >
-          {copied ? "✓ Đã sao chép" : "Sao chép"}
+          {copied ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{t("copiedCode")}</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5" />
+              <span>{t("copyCode")}</span>
+            </>
+          )}
         </button>
       </div>
 

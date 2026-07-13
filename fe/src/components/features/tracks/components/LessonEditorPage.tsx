@@ -21,14 +21,14 @@ import {
   type LessonPuckData,
 } from '@/components/puck-editor';
 import { FeatureBarPortal } from '@/components/layout/FeatureBarPortal';
-import { LessonEditorBottomBar } from './LessonEditorBottomBar';
+import { LessonEditorBottomBar, type ViewportMode } from './LessonEditorBottomBar';
 import { useLessonDraftStore } from '@/stores/lessonDraftStore';
 
-interface LessonEditorPageProps {
-  trackId?: string;
+type LessonEditorPageProps = {
+  trackId: string;
   lessonId?: string;
-  editIndex?: number;
-}
+  editIndex?: string;
+};
 
 type CachedLesson = LessonProgressItemDto & {
   description?: string | null;
@@ -37,6 +37,8 @@ type CachedLesson = LessonProgressItemDto & {
 };
 
 type CachedTrackDetail = {
+  id: string;
+  title: string;
   lessons?: CachedLesson[];
 };
 
@@ -59,6 +61,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   const [order, setOrder] = useState(1);
   const [body, setBody] = useState('');
   const [isEditing, setIsEditing] = useState<boolean>(true);
+  const [viewport, setViewport] = useState<ViewportMode>('desktop');
 
   const lessonConfig = useLessonPuckConfig();
   const [loadedLesson, setLoadedLesson] = useState<LessonDetailDto | null>(null);
@@ -256,6 +259,8 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
             }}
             isPreview={!isEditing}
             onPreviewToggle={() => setIsEditing(!isEditing)}
+            viewport={viewport}
+            onViewportChange={(vp) => setViewport(vp)}
           />
         }
       />
@@ -284,8 +289,18 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
             overrides={{ headerActions: () => null }}
           />
         ) : (
-          <div className="w-full h-full overflow-y-auto">
-            <PuckViewer config={lessonConfig} data={puckData} />
+          <div className="w-full h-full overflow-y-auto bg-surface-container-low p-4 md:p-8 flex justify-center">
+            <div
+              className={`transition-all duration-300 w-full ${
+                viewport === 'tablet'
+                  ? 'max-w-[768px] border border-border rounded-2xl shadow-xl bg-surface overflow-hidden'
+                  : viewport === 'mobile'
+                    ? 'max-w-[375px] border border-border rounded-2xl shadow-xl bg-surface overflow-hidden'
+                    : 'w-full bg-surface'
+              }`}
+            >
+              <PuckViewer config={lessonConfig} data={puckData} />
+            </div>
           </div>
         )}
       </div>

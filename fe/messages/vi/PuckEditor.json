@@ -85,7 +85,14 @@
       "typeQuiz": "Trắc nghiệm (Quiz)",
       "typeCoding": "Lập trình (Coding)",
       "createDraftBtn": "Tạo bản nháp",
-      "cloneBtn": "Clone bài tập"
+      "cloneBtn": "Clone bài tập",
+      "dialogCloneTitle": "Clone bài tập từ bài tập hiện có",
+      "cloneSelectLabel": "Chọn bài tập để clone",
+      "cloneSelectPlaceholder": "Tìm kiếm bài tập theo tiêu đề...",
+      "cloneSelectNoResults": "Không tìm thấy bài tập phù hợp",
+      "cloneSelectLoading": "Đang tải danh sách bài tập...",
+      "cloneSelectEmpty": "Không có bài tập nào để clone",
+      "cloneConfirmBtn": "Clone bài tập"
     },
     "DocumentPicker": {
       "noSelection": "Chưa có tài liệu nào được chọn",
@@ -112,8 +119,17 @@
       "docTitlePlaceholder": "Nhập tiêu đề tài liệu mới...",
       "docKindLabel": "Loại tài liệu",
       "docUrlLabel": "Đường dẫn URL (Tùy chọn)",
-      "docUrlPlaceholder": "https://...",
       "createDraftBtn": "Tạo bản nháp"
+    },
+    "LearnerView": {
+      "copyCode": "Sao chép",
+      "copiedCode": "Đã sao chép",
+      "copySuccessToast": "Đã sao chép đoạn mã vào clipboard!",
+      "viewportDesktop": "Desktop (100%)",
+      "viewportTablet": "Tablet (768px)",
+      "viewportMobile": "Mobile (375px)",
+      "expandContent": "Xem thêm",
+      "collapseContent": "Thu gọn"
     }
   }
 }

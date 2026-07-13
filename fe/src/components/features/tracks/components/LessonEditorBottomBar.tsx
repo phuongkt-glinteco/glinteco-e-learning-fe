@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   ChevronUp,
   ChevronDown,
@@ -11,7 +12,12 @@ import {
   Eye,
   Edit3,
   Loader2,
+  Monitor,
+  Tablet,
+  Smartphone,
 } from 'lucide-react';
+
+export type ViewportMode = 'desktop' | 'tablet' | 'mobile';
 
 interface LessonEditorBottomBarProps {
   onSave: () => void;
@@ -19,6 +25,8 @@ interface LessonEditorBottomBarProps {
   canSave?: boolean;
   onPreviewToggle?: () => void;
   isPreview?: boolean;
+  viewport?: ViewportMode;
+  onViewportChange?: (vp: ViewportMode) => void;
   onReset?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
@@ -31,11 +39,14 @@ export function LessonEditorBottomBar({
   canSave = true,
   onPreviewToggle,
   isPreview = false,
+  viewport = 'desktop',
+  onViewportChange,
   onReset,
   onUndo,
   onRedo,
   onCancel,
 }: LessonEditorBottomBarProps) {
+  const t = useTranslations('PuckEditor.Common.LearnerView');
   const [collapsed, setCollapsed] = useState<boolean>(false);
 
   if (collapsed) {
@@ -104,8 +115,52 @@ export function LessonEditorBottomBar({
         )}
       </div>
 
-      {/* Cụm Preview & Save + Nút thu gọn */}
+      {/* Cụm Viewport Simulation + Preview & Save + Nút thu gọn */}
       <div className="flex items-center gap-3 flex-wrap">
+        {isPreview && onViewportChange && (
+          <div className="flex items-center gap-1 bg-surface-container-low border border-border rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => onViewportChange('desktop')}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+                viewport === 'desktop'
+                  ? 'bg-primary text-on-primary shadow-sm'
+                  : 'text-secondary hover:text-foreground'
+              }`}
+              title={t('viewportDesktop')}
+            >
+              <Monitor className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">{t('viewportDesktop')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewportChange('tablet')}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+                viewport === 'tablet'
+                  ? 'bg-primary text-on-primary shadow-sm'
+                  : 'text-secondary hover:text-foreground'
+              }`}
+              title={t('viewportTablet')}
+            >
+              <Tablet className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">{t('viewportTablet')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewportChange('mobile')}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+                viewport === 'mobile'
+                  ? 'bg-primary text-on-primary shadow-sm'
+                  : 'text-secondary hover:text-foreground'
+              }`}
+              title={t('viewportMobile')}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">{t('viewportMobile')}</span>
+            </button>
+          </div>
+        )}
+
         {onPreviewToggle && (
           <button
             type="button"

@@ -85,7 +85,14 @@
       "typeQuiz": "Multiple Choice (Quiz)",
       "typeCoding": "Coding Practice",
       "createDraftBtn": "Create Draft",
-      "cloneBtn": "Clone Exercise"
+      "cloneBtn": "Clone Exercise",
+      "dialogCloneTitle": "Clone Exercise from Existing",
+      "cloneSelectLabel": "Select Exercise to Clone",
+      "cloneSelectPlaceholder": "Search exercises by title...",
+      "cloneSelectNoResults": "No matching exercises found",
+      "cloneSelectLoading": "Loading exercises...",
+      "cloneSelectEmpty": "No exercises available to clone",
+      "cloneConfirmBtn": "Clone Exercise"
     },
     "DocumentPicker": {
       "noSelection": "No document selected",
@@ -112,8 +119,17 @@
       "docTitlePlaceholder": "Enter new document title...",
       "docKindLabel": "Document Kind",
       "docUrlLabel": "External URL (Optional)",
-      "docUrlPlaceholder": "https://...",
       "createDraftBtn": "Create Draft"
+    },
+    "LearnerView": {
+      "copyCode": "Copy",
+      "copiedCode": "Copied",
+      "copySuccessToast": "Code copied to clipboard!",
+      "viewportDesktop": "Desktop (100%)",
+      "viewportTablet": "Tablet (768px)",
+      "viewportMobile": "Mobile (375px)",
+      "expandContent": "Show more",
+      "collapseContent": "Show less"
     }
   }
 }

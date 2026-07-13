@@ -63,6 +63,30 @@
       "exFallback": "Bài tập #{index}",
       "exercisesEmpty": "Chưa có bài tập liên quan cho bài học này.",
       "deleteTitle": "Xoá tài liệu"
+    },
+    "ExercisePicker": {
+      "noSelection": "Chưa có bài tập nào được chọn",
+      "unnamedExercise": "Bài tập không tên",
+      "removeTitle": "Xóa bài tập",
+      "editDetailBtn": "Sửa nội dung chi tiết",
+      "selectExistingBtn": "Chọn bài tập từ hệ thống",
+      "quickCreateBtn": "+ Tạo nhanh bài tập",
+      "cloneTemplateBtn": "+ Clone từ mẫu",
+      "dialogSelectTitle": "Chọn bài tập từ hệ thống",
+      "searchPlaceholder": "Tìm kiếm bài tập theo tiêu đề...",
+      "loadingList": "Đang tải danh sách bài tập...",
+      "noResults": "Không tìm thấy bài tập phù hợp",
+      "cancelBtn": "Hủy",
+      "confirmBtn": "Xác nhận",
+      "dialogQuickCreateTitle": "Tạo nhanh bài tập (Skeleton Draft)",
+      "exerciseTitleLabel": "Tên bài tập (*)",
+      "exerciseTitlePlaceholder": "Nhập tên bài tập mới...",
+      "exerciseTypeLabel": "Loại hình bài tập",
+      "typeQuiz": "Trắc nghiệm (Quiz)",
+      "typeCoding": "Lập trình (Coding)",
+      "createDraftBtn": "Tạo bản nháp",
+      "dialogCloneTitle": "Clone bài tập từ mẫu",
+      "cloneBtn": "Clone bài tập"
     }
   }
 }

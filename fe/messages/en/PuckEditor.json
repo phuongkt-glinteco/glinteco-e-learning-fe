@@ -63,6 +63,30 @@
       "exFallback": "Exercise #{index}",
       "exercisesEmpty": "No related exercises for this lesson.",
       "deleteTitle": "Delete document"
+    },
+    "ExercisePicker": {
+      "noSelection": "No exercise selected",
+      "unnamedExercise": "Unnamed Exercise",
+      "removeTitle": "Remove exercise",
+      "editDetailBtn": "Edit Detailed Content",
+      "selectExistingBtn": "Select existing exercise",
+      "quickCreateBtn": "+ Quick Create",
+      "cloneTemplateBtn": "+ Clone from Template",
+      "dialogSelectTitle": "Select Exercise from System",
+      "searchPlaceholder": "Search exercises by title...",
+      "loadingList": "Loading exercises...",
+      "noResults": "No matching exercises found",
+      "cancelBtn": "Cancel",
+      "confirmBtn": "Confirm",
+      "dialogQuickCreateTitle": "Quick Create Exercise (Skeleton Draft)",
+      "exerciseTitleLabel": "Exercise Title (*)",
+      "exerciseTitlePlaceholder": "Enter new exercise title...",
+      "exerciseTypeLabel": "Exercise Type",
+      "typeQuiz": "Multiple Choice (Quiz)",
+      "typeCoding": "Coding Practice",
+      "createDraftBtn": "Create Draft",
+      "dialogCloneTitle": "Clone Exercise from Template",
+      "cloneBtn": "Clone Exercise"
     }
   }
 }

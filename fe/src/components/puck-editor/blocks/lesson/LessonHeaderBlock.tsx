@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@iconify/react";
+import { BookOpen, Video, HelpCircle, Code, FileText, Clock } from "lucide-react";
 
 export interface LessonHeaderBlockProps {
   id?: string;
@@ -12,78 +12,75 @@ export interface LessonHeaderBlockProps {
 
 const TYPE_CONFIG: Record<
   string,
-  { label: string; badgeClass: string; icon: string }
+  { label: string; badgeClass: string; icon: React.ComponentType<{ className?: string }> }
 > = {
   reading: {
     label: "Lý thuyết (Reading)",
-    badgeClass:
-      "bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
-    icon: "lucide:book-open",
+    badgeClass: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    icon: BookOpen,
   },
   video: {
     label: "Video bài giảng",
-    badgeClass:
-      "bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800",
-    icon: "lucide:video",
+    badgeClass: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+    icon: Video,
   },
   quiz: {
     label: "Trắc nghiệm (Quiz)",
-    badgeClass:
-      "bg-amber-50 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800",
-    icon: "lucide:help-circle",
+    badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    icon: HelpCircle,
   },
   coding: {
     label: "Thực hành Code",
-    badgeClass:
-      "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
-    icon: "lucide:code",
+    badgeClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    icon: Code,
   },
   assignment: {
     label: "Bài tập lớn (Assignment)",
-    badgeClass:
-      "bg-rose-50 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800",
-    icon: "lucide:file-text",
+    badgeClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+    icon: FileText,
   },
 };
 
 export const LessonHeaderBlock: React.FC<LessonHeaderBlockProps> = ({
   title = "Tiêu đề bài học mới",
   description = "",
-  estimatedTime = "15 mins",
+  estimatedTime = "15 min",
   order = 1,
   type = "reading",
 }) => {
   const currentTypeInfo = TYPE_CONFIG[type || "reading"] || TYPE_CONFIG.reading;
+  const TypeIcon = currentTypeInfo.icon;
 
   return (
-    <header className="w-full rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-br from-white via-white to-slate-50/60 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900/80 p-6 sm:p-8 shadow-sm relative overflow-hidden transition-all group hover:border-primary/40">
+    <header className="w-full rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-sm relative overflow-hidden transition-all">
       <div className="flex flex-wrap items-center gap-2.5 mb-4 text-xs font-semibold">
-        <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold tracking-wider uppercase">
+        <span className="px-2.5 py-1 rounded-full bg-surface-container text-foreground font-bold tracking-wider uppercase">
           Bài #{order || 1}
         </span>
         <span
           className={`px-3 py-1 rounded-full border flex items-center gap-1.5 ${currentTypeInfo.badgeClass}`}
         >
-          <Icon icon={currentTypeInfo.icon} className="w-3.5 h-3.5" />
+          <TypeIcon className="w-3.5 h-3.5" />
           <span>{currentTypeInfo.label}</span>
         </span>
         {estimatedTime && (
-          <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-            <Icon icon="lucide:clock" className="w-3.5 h-3.5" />
+          <span className="px-3 py-1 rounded-full bg-surface-container text-muted-foreground flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
             <span>{estimatedTime}</span>
           </span>
         )}
       </div>
 
-      <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-2 leading-tight">
+      <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground mb-2 leading-tight">
         {title}
       </h1>
 
       {description && (
-        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
+        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-3xl">
           {description}
         </p>
       )}
     </header>
   );
 };
+

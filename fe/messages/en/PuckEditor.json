@@ -30,7 +30,14 @@
     "heading": {
       "titleLabel": "Title",
       "levelLabel": "Heading Level",
-      "alignLabel": "Alignment"
+      "alignLabel": "Alignment",
+      "h1Option": "H1 - Main Title",
+      "h2Option": "H2 - Section Heading",
+      "h3Option": "H3 - Subheading",
+      "h4Option": "H4 - Small Heading",
+      "alignLeft": "Left",
+      "alignCenter": "Center",
+      "alignRight": "Right"
     },
     "code": {
       "copy": "Copy",
@@ -44,6 +51,18 @@
       "variantLabel": "Callout Type",
       "titleLabel": "Optional Title",
       "contentLabel": "Content"
+    },
+    "sidebar": {
+      "tocTitle": "Table of Contents (Map)",
+      "tocEmpty": "No headings yet in this lesson.",
+      "docsTitle": "Related Documents",
+      "addBtn": "Add",
+      "docFallback": "Document #{index}",
+      "docsEmpty": "No related documents attached.",
+      "exercisesTitle": "Related Exercises",
+      "exFallback": "Exercise #{index}",
+      "exercisesEmpty": "No related exercises for this lesson.",
+      "deleteTitle": "Delete document"
     }
   }
 }

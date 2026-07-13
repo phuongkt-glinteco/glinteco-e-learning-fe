@@ -1,8 +1,58 @@
-# Markdown Syntax Guide
+# Lesson Content Syntax & Puck JSON Guide
 
-Tài liệu này mô tả toàn bộ cú pháp Markdown đặc biệt được hỗ trợ bởi Frontend Learning Platform. Dùng để soạn thảo nội dung bài học (Lesson).
+Tài liệu này mô tả cơ chế lưu trữ và cấu trúc nội dung bài học (Lesson Body) trong nền tảng Frontend Learning Platform.
 
 ---
+
+## 1. Cơ chế chính: Puck JSON Data (`lesson.body`)
+
+Trường `body` của một bài học (`Lesson`) lưu trữ chuỗi JSON được tạo từ bộ soạn thảo **Puck Studio** (`JSON.stringify(PuckData)`). Cấu trúc chuẩn bao gồm:
+
+```json
+{
+  "content": [
+    {
+      "type": "HeadingBlock",
+      "props": {
+        "id": "heading-1",
+        "text": "Mục tiêu bài học",
+        "level": 2
+      }
+    },
+    {
+      "type": "ParagraphBlock",
+      "props": {
+        "id": "para-1",
+        "content": "Nội dung chi tiết..."
+      }
+    }
+  ],
+  "root": {
+    "props": {
+      "title": "Tên bài học",
+      "description": "Mô tả ngắn",
+      "estimatedTime": "15 mins",
+      "order": 1,
+      "type": "reading"
+    }
+  }
+}
+```
+
+### Quy tắc Phân cấp Heading (SEO & Accessibility)
+- **H1 Duy Nhất:** Ngữ nghĩa `<h1>` chỉ được dành riêng cho Tiêu đề chính của bài học (`lesson.title`).
+- **Nội dung Puck Editor:** Các block Heading trong nội dung bài học bắt buộc render từ `<h2>` trở xuống (`h2`, `h3`, `h4`, `h5`, `h6`) để không bị xung đột với `H1` trang.
+
+---
+
+## 2. Tương thích ngược (Backward Compatibility)
+
+Khi `lesson.body` là chuỗi văn bản hoặc Markdown cũ (không phải JSON hợp lệ), hàm `parseBodyToPuckData()` (`fe/src/components/puck-editor/helper.ts`) tự động bọc nội dung cũ vào block `ParagraphBlock` hoặc parse sang danh sách block Puck tương đương để hiển thị và soạn thảo liền mạch.
+
+---
+
+## 3. Cú pháp Markdown cũ (Legacy Reference)
+
 
 ## Frontmatter (Metadata)
 

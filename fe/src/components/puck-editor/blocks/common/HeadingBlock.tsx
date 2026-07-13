@@ -1,8 +1,9 @@
 import React from "react";
 import { ComponentConfig } from "@puckeditor/core";
 import { LessonBlockProps } from "../../types";
+import { slugifyHeadingId } from "../../helper";
 
-export const HeadingBlock: ComponentConfig<LessonBlockProps["HeadingBlock"]> = {
+export const HeadingBlock: ComponentConfig<any> = {
   fields: {
     title: { type: "text", label: "Tiêu đề" },
     level: {
@@ -30,8 +31,8 @@ export const HeadingBlock: ComponentConfig<LessonBlockProps["HeadingBlock"]> = {
     level: "h2",
     align: "left",
   },
-  render: ({ title, level, align }) => {
-    const Tag = level;
+  render: ({ id, title, level, align }) => {
+    const Tag = level || "h2";
     const alignClass =
       align === "center"
         ? "text-center"
@@ -40,20 +41,24 @@ export const HeadingBlock: ComponentConfig<LessonBlockProps["HeadingBlock"]> = {
           : "text-left";
 
     const sizeClass =
-      level === "h1"
-        ? "text-3xl font-extrabold tracking-tight"
-        : level === "h2"
+      Tag === "h1"
+        ? "text-3xl font-extrabold"
+        : Tag === "h2"
           ? "text-2xl font-bold"
-          : level === "h3"
+          : Tag === "h3"
             ? "text-xl font-semibold"
             : "text-lg font-medium";
 
+    const headingId = id || slugifyHeadingId(title);
+
     return (
       <Tag
-        className={`${sizeClass} ${alignClass} my-4 text-slate-900 dark:text-slate-100`}
+        id={headingId}
+        className={`${sizeClass} ${alignClass} my-4 text-foreground`}
       >
         {title}
       </Tag>
     );
   },
 };
+

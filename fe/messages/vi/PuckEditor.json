@@ -30,7 +30,14 @@
     "heading": {
       "titleLabel": "Tiêu đề",
       "levelLabel": "Cấp độ thẻ",
-      "alignLabel": "Căn lề"
+      "alignLabel": "Căn lề",
+      "h1Option": "H1 - Tiêu đề bài chính",
+      "h2Option": "H2 - Tiêu đề mục lớn",
+      "h3Option": "H3 - Tiêu đề mục con",
+      "h4Option": "H4 - Tiêu đề nhỏ",
+      "alignLeft": "Trái",
+      "alignCenter": "Giữa",
+      "alignRight": "Phải"
     },
     "code": {
       "copy": "Sao chép",
@@ -44,6 +51,18 @@
       "variantLabel": "Loại ghi chú",
       "titleLabel": "Tiêu đề ghi chú (Tuỳ chọn)",
       "contentLabel": "Nội dung ghi chú"
+    },
+    "sidebar": {
+      "tocTitle": "Mục lục nội dung (Map)",
+      "tocEmpty": "Chưa có tiêu đề (Heading) nào trong bài học.",
+      "docsTitle": "Tài liệu liên quan",
+      "addBtn": "Thêm",
+      "docFallback": "Tài liệu #{index}",
+      "docsEmpty": "Chưa có tài liệu liên quan được đính kèm.",
+      "exercisesTitle": "Bài tập liên quan",
+      "exFallback": "Bài tập #{index}",
+      "exercisesEmpty": "Chưa có bài tập liên quan cho bài học này.",
+      "deleteTitle": "Xoá tài liệu"
     }
   }
 }

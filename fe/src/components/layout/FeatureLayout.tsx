@@ -28,11 +28,7 @@ export default function FeatureLayout({ children }: FeatureLayoutProps) {
         </div>
 
         {/* Bottom Bar slot */}
-        {bottomBar && (
-          <div className="w-full shrink-0 border-t border-outline-variant bg-surface z-30">
-            {bottomBar}
-          </div>
-        )}
+        {bottomBar && <div className="z-30">{bottomBar}</div>}
       </div>
     </AppShell>
   );

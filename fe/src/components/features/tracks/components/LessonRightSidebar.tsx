@@ -1,62 +1,72 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import type { LessonDetailDto, ExerciseSummaryDto } from '@/services/api-client';
+import React, { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
+import {
+  ListTree,
+  BookOpen,
+  FileText,
+  Plus,
+  Trash2,
+} from 'lucide-react';
+import { slugifyHeadingId } from '@/components/puck-editor/helper';
+
+export interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
 
 interface LessonRightSidebarProps {
   lesson?: any;
   exercises?: any[];
   bodyContent?: string;
+  canvasHeadings?: TocItem[];
+  showToLearner?: boolean;
+  maxHeadingLevel?: number;
   onAddRelatedDoc?: () => void;
   onRemoveRelatedDoc?: (id: string) => void;
   onAddExercise?: () => void;
 }
 
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
+function scrollToElementById(id: string) {
+  let el = document.getElementById(id);
+  if (!el) {
+    const iframes = document.querySelectorAll('iframe');
+    for (const iframe of Array.from(iframes)) {
+      try {
+        const innerDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (innerDoc) {
+          el = innerDoc.getElementById(id);
+          if (el) break;
+        }
+      } catch {
+        // Ignore cross-origin frame access error
+      }
+    }
+  }
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
 export function LessonRightSidebar({
   lesson,
   exercises = [],
   bodyContent = '',
+  canvasHeadings,
+  showToLearner = true,
+  maxHeadingLevel = 3,
   onAddRelatedDoc,
   onRemoveRelatedDoc,
   onAddExercise,
 }: LessonRightSidebarProps) {
-  const [maxHeadingLevel, setMaxHeadingLevel] = useState<number>(3);
-  const [showToLearner, setShowToLearner] = useState<boolean>(true);
-  const [domHeadings, setDomHeadings] = useState<TocItem[]>([]);
+  const t = useTranslations('PuckEditor.Common.sidebar');
 
-  React.useEffect(() => {
-    const updateFromDOM = () => {
-      const els = document.querySelectorAll('main h1, main h2, main h3, main h4');
-      const list: TocItem[] = [];
-      els.forEach((el, idx) => {
-        const text = el.textContent?.trim();
-        if (text) {
-          const tag = el.tagName.toLowerCase();
-          const levelNum = parseInt(tag.replace('h', ''), 10) || 2;
-          if (levelNum <= maxHeadingLevel) {
-            const id = el.id || `dom-heading-${idx}`;
-            if (!el.id) el.id = id;
-            list.push({ id, text, level: levelNum });
-          }
-        }
-      });
-      setDomHeadings(list);
-    };
-
-    updateFromDOM();
-    const interval = setInterval(updateFromDOM, 2000);
-    return () => clearInterval(interval);
-  }, [maxHeadingLevel]);
-
-  // 1. Tự động quét và trích xuất danh sách Heading từ bodyContent (Puck JSON hoặc Markdown) hoặc DOM live
   const headings: TocItem[] = useMemo(() => {
-    if (domHeadings.length > 0) return domHeadings;
+    if (canvasHeadings !== undefined) {
+      return canvasHeadings.filter((h) => h.level <= maxHeadingLevel);
+    }
     const list: TocItem[] = [];
     if (!bodyContent) return list;
 
@@ -68,7 +78,7 @@ export function LessonRightSidebar({
             const levelNum = parseInt((block.props.level || 'h2').replace('h', ''), 10) || 2;
             if (levelNum <= maxHeadingLevel) {
               list.push({
-                id: `heading-${idx}`,
+                id: block.props.id || slugifyHeadingId(block.props.title),
                 text: block.props.title,
                 level: levelNum,
               });
@@ -78,7 +88,7 @@ export function LessonRightSidebar({
         return list;
       }
     } catch {
-      // Markdown fallback
+      // Fallback cho markdown
       const lines = bodyContent.split('\n');
       lines.forEach((line, idx) => {
         const match = line.match(/^(#{1,4})\s+(.+)$/);
@@ -86,7 +96,7 @@ export function LessonRightSidebar({
           const levelNum = match[1].length;
           if (levelNum <= maxHeadingLevel) {
             list.push({
-              id: `md-heading-${idx}`,
+              id: slugifyHeadingId(match[2]),
               text: match[2],
               level: levelNum,
             });
@@ -95,43 +105,19 @@ export function LessonRightSidebar({
       });
     }
     return list;
-  }, [bodyContent, maxHeadingLevel, domHeadings]);
+  }, [bodyContent, canvasHeadings, maxHeadingLevel]);
+
+  if (!showToLearner && typeof window !== 'undefined') {
+    // Luôn hiển thị trong môi trường Editor, chỉ dùng cờ cho chế độ Learner View
+  }
 
   return (
     <div className="flex flex-col gap-6 p-5 w-full">
       {/* COMPONENT 1: DOCUMENT CONTENT MAP (MỤC LỤC BÀI HỌC) */}
       <div className="bg-surface border border-outline-variant rounded-xl p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 font-semibold text-body-base text-on-surface">
-            <span className="material-symbols-outlined text-[20px] text-primary">
-              toc
-            </span>
-            <span>Mục lục nội dung (Map)</span>
-          </div>
-          <select
-            value={maxHeadingLevel}
-            onChange={(e) => setMaxHeadingLevel(Number(e.target.value))}
-            className="text-label-xs bg-surface-container border border-outline-variant rounded px-2 py-1 outline-none text-secondary"
-            title="Mức Heading tối đa hiển thị"
-          >
-            <option value={1}>H1</option>
-            <option value={2}>H1 - H2</option>
-            <option value={3}>H1 - H3</option>
-            <option value={4}>H1 - H4</option>
-          </select>
-        </div>
-
-        <div className="flex items-center justify-between text-label-xs text-secondary border-b border-outline-variant pb-2">
-          <span>Hiển thị với học viên:</span>
-          <label className="flex items-center gap-1.5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showToLearner}
-              onChange={(e) => setShowToLearner(e.target.checked)}
-              className="rounded border-outline-variant text-primary focus:ring-0"
-            />
-            <span>{showToLearner ? 'Bật (Mặc định)' : 'Ẩn'}</span>
-          </label>
+        <div className="flex items-center gap-2 font-semibold text-body-base text-on-surface">
+          <ListTree className="w-5 h-5 text-primary" />
+          <span>{t('tocTitle')}</span>
         </div>
 
         {headings.length > 0 ? (
@@ -142,10 +128,7 @@ export function LessonRightSidebar({
                 href={`#${item.id}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  const el = document.getElementById(item.id);
-                  if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }
+                  scrollToElementById(item.id);
                 }}
                 className="block text-body-xs text-secondary hover:text-primary truncate transition-colors py-0.5 cursor-pointer"
                 style={{ paddingLeft: `${(item.level - 1) * 12}px` }}
@@ -156,7 +139,7 @@ export function LessonRightSidebar({
           </nav>
         ) : (
           <p className="text-label-xs text-secondary italic py-2 text-center">
-            Chưa có tiêu đề (Heading) nào trong bài học.
+            {t('tocEmpty')}
           </p>
         )}
       </div>
@@ -165,10 +148,8 @@ export function LessonRightSidebar({
       <div className="bg-surface border border-outline-variant rounded-xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-semibold text-body-base text-on-surface">
-            <span className="material-symbols-outlined text-[20px] text-primary">
-              library_books
-            </span>
-            <span>Tài liệu liên quan</span>
+            <BookOpen className="w-5 h-5 text-primary" />
+            <span>{t('docsTitle')}</span>
           </div>
           {onAddRelatedDoc && (
             <button
@@ -176,8 +157,8 @@ export function LessonRightSidebar({
               onClick={onAddRelatedDoc}
               className="text-label-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[14px]">add</span>
-              <span>Thêm</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t('addBtn')}</span>
             </button>
           )}
         </div>
@@ -190,11 +171,9 @@ export function LessonRightSidebar({
                 className="flex items-center justify-between gap-2 p-2 rounded-lg bg-surface-container-low border border-outline-variant/60 text-body-xs"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="material-symbols-outlined text-[16px] text-secondary shrink-0">
-                    description
-                  </span>
+                  <FileText className="w-4 h-4 text-secondary shrink-0" />
                   <span className="truncate font-medium text-on-surface">
-                    {doc.title || doc.name || `Tài liệu #${i + 1}`}
+                    {doc.title || doc.name || t('docFallback', { index: i + 1 })}
                   </span>
                 </div>
                 {onRemoveRelatedDoc && doc.id && (
@@ -202,18 +181,16 @@ export function LessonRightSidebar({
                     type="button"
                     onClick={() => onRemoveRelatedDoc(doc.id)}
                     className="text-error hover:opacity-80 p-0.5 transition-opacity cursor-pointer shrink-0"
-                    title="Xoá tài liệu"
+                    title={t('deleteTitle')}
                   >
-                    <span className="material-symbols-outlined text-[16px]">
-                      delete
-                    </span>
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 )}
               </div>
             ))
           ) : (
             <p className="text-label-xs text-secondary italic py-2 text-center">
-              Chưa có tài liệu liên quan được đính kèm.
+              {t('docsEmpty')}
             </p>
           )}
         </div>
@@ -223,10 +200,8 @@ export function LessonRightSidebar({
       <div className="bg-surface border border-outline-variant rounded-xl p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 font-semibold text-body-base text-on-surface">
-            <span className="material-symbols-outlined text-[20px] text-primary">
-              assignment
-            </span>
-            <span>Bài tập liên quan</span>
+            <FileText className="w-5 h-5 text-primary" />
+            <span>{t('exercisesTitle')}</span>
           </div>
           {onAddExercise && (
             <button
@@ -234,8 +209,8 @@ export function LessonRightSidebar({
               onClick={onAddExercise}
               className="text-label-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 py-1 rounded transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[14px]">add</span>
-              <span>Thêm</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t('addBtn')}</span>
             </button>
           )}
         </div>
@@ -248,11 +223,9 @@ export function LessonRightSidebar({
                 className="flex items-center justify-between gap-2 p-2 rounded-lg bg-surface-container-low border border-outline-variant/60 text-body-xs"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="material-symbols-outlined text-[16px] text-primary shrink-0">
-                    quiz
-                  </span>
+                  <FileText className="w-4 h-4 text-primary shrink-0" />
                   <span className="truncate font-medium text-on-surface">
-                    {ex.title || `Bài tập #${i + 1}`}
+                    {ex.title || t('exFallback', { index: i + 1 })}
                   </span>
                 </div>
                 <span className="text-label-xs bg-surface px-2 py-0.5 rounded border border-outline-variant text-secondary">
@@ -262,7 +235,7 @@ export function LessonRightSidebar({
             ))
           ) : (
             <p className="text-label-xs text-secondary italic py-2 text-center">
-              Chưa có bài tập liên quan cho bài học này.
+              {t('exercisesEmpty')}
             </p>
           )}
         </div>

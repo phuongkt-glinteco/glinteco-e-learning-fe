@@ -209,3 +209,14 @@ export function serializePuckDataToPayload(
     body: JSON.stringify(data),
   };
 }
+
+export function slugifyHeadingId(title: string, index?: number): string {
+  if (!title) return `heading-${index ?? 0}`;
+  const slug = title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+  return slug || `heading-${index ?? 0}`;
+}

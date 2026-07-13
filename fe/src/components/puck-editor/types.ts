@@ -49,6 +49,7 @@ export interface LessonBlockProps {
   LessonHeaderBlock: LessonHeaderBlockProps;
   LessonRightSidebarBlock: LessonRightSidebarBlockProps;
   HeadingBlock: {
+    id?: string;
     title: string;
     level: "h1" | "h2" | "h3" | "h4";
     align: "left" | "center" | "right";

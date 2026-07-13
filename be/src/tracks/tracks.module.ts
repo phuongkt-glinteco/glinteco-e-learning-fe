@@ -5,8 +5,11 @@ import { TrackProgress } from '../database/entities/track-progress.entity';
 import { Lesson } from '../database/entities/lesson.entity';
 import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { User } from '../database/entities/user.entity';
+import { Exercise } from '../database/entities/exercise.entity';
+import { Submission } from '../database/entities/submission.entity';
 import { TracksService } from './tracks.service';
 import { TracksController } from './tracks.controller';
+import { AdminTracksController } from './admin-tracks.controller';
 import { LessonsController } from './lessons.controller';
 import { AuthModule } from '../modules/auth/auth.module';
 import { ExercisesModule } from '../exercises/exercises.module';
@@ -19,11 +22,13 @@ import { ExercisesModule } from '../exercises/exercises.module';
       Lesson,
       LessonProgress,
       User,
+      Exercise,
+      Submission,
     ]),
     AuthModule,
     ExercisesModule,
   ],
-  controllers: [TracksController, LessonsController],
+  controllers: [TracksController, AdminTracksController, LessonsController],
   providers: [TracksService],
   exports: [TracksService],
 })

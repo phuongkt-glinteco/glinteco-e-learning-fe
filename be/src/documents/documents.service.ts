@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Document } from '../database/entities/document.entity';
-import { Tag } from '../database/entities/tag.entity';
+import { Tag, TagCategory } from '../database/entities/tag.entity';
 import { User } from '../database/entities/user.entity';
 import { SearchDocumentsDto } from './dto/search-documents.dto';
 import { CreateDocumentDto } from './dto/create-document.dto';
@@ -301,8 +301,9 @@ export class DocumentsService {
 
   // --- Tags Logic ---
 
-  async findAllTags() {
+  async findAllTags(category?: TagCategory) {
     return await this.tagRepository.find({
+      where: category ? { category } : {},
       order: { name: 'ASC' },
     });
   }
@@ -318,7 +319,10 @@ export class DocumentsService {
       throw new ConflictException(`Tag với tên '${name}' đã tồn tại`);
     }
 
-    const tag = this.tagRepository.create({ name });
+    const tag = this.tagRepository.create({
+      name,
+      category: createTagDto.category ?? TagCategory.GENERAL,
+    });
     return await this.tagRepository.save(tag);
   }
 

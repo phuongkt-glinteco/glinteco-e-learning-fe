@@ -158,9 +158,18 @@ export class SubmissionsService {
       throw new NotFoundException('Không tìm thấy bài nộp cũ để cập nhật.');
     }
 
-    if (submission.status !== SubmissionStatus.CHANGES) {
+    // GLI-92: resubmit is allowed while the PR is still under review
+    // (submitted — e.g. a wrong link), needs changes, or was rejected.
+    // Only an approved submission is final.
+    const resubmittableStatuses: SubmissionStatus[] = [
+      SubmissionStatus.SUBMITTED,
+      SubmissionStatus.PENDING,
+      SubmissionStatus.CHANGES,
+      SubmissionStatus.REJECTED,
+    ];
+    if (!resubmittableStatuses.includes(submission.status)) {
       throw new BadRequestException(
-        'Chỉ được phép resubmit khi trạng thái bài nộp là changes (cần sửa đổi).',
+        'Chỉ được phép resubmit khi bài nộp đang chờ chấm, cần sửa đổi hoặc bị từ chối.',
       );
     }
 

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,
   IsInt,
@@ -8,8 +8,44 @@ import {
   IsUUID,
   IsArray,
   Min,
+  Max,
+  ValidateNested,
+  IsBoolean,
 } from 'class-validator';
-import { ExerciseDifficulty } from '../../database/entities/exercise.entity';
+import { Type } from 'class-transformer';
+import {
+  ExerciseDifficulty,
+  ExerciseType,
+} from '../../database/entities/exercise.entity';
+
+export class ExerciseQuestionDto {
+  @ApiProperty({ description: 'ID câu hỏi (duy nhất trong bài tập)' })
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @ApiProperty({ description: 'Nội dung câu hỏi' })
+  @IsString()
+  @IsNotEmpty()
+  prompt: string;
+
+  @ApiPropertyOptional({
+    description: 'Các lựa chọn (bắt buộc với QUIZ)',
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  options?: string[];
+
+  @ApiProperty({
+    description:
+      'Đáp án đúng. KHÔNG bao giờ trả về cho học viên (bị strip khi GET).',
+  })
+  @IsString()
+  @IsNotEmpty()
+  correctAnswer: string;
+}
 
 export class CreateExerciseDto {
   @ApiProperty({
@@ -136,4 +172,48 @@ export class CreateExerciseDto {
   @IsOptional()
   @IsString({ message: 'Hint phải là một chuỗi ký tự' })
   hint?: string;
+
+  @ApiPropertyOptional({
+    description: 'Thể loại bài tập (GLI-92). Mặc định: PR_REVIEW.',
+    enum: ExerciseType,
+    example: ExerciseType.QUIZ,
+  })
+  @IsOptional()
+  @IsEnum(ExerciseType, {
+    message: 'type phải là một trong: PR_REVIEW, QUIZ, FILL_IN_BLANK',
+  })
+  type?: ExerciseType;
+
+  @ApiPropertyOptional({
+    description:
+      'Cấu trúc câu hỏi + đáp án cho QUIZ/FILL_IN_BLANK (GLI-92). Chỉ Admin thấy correctAnswer.',
+    type: [ExerciseQuestionDto],
+  })
+  @IsOptional()
+  @IsArray({ message: 'questionsData phải là một mảng' })
+  @ValidateNested({ each: true })
+  @Type(() => ExerciseQuestionDto)
+  questionsData?: ExerciseQuestionDto[];
+
+  @ApiPropertyOptional({
+    description:
+      'Điểm (%) tối thiểu để đạt khi tự động chấm (GLI-92). Mặc định: 100.',
+    example: 80,
+    minimum: 0,
+    maximum: 100,
+  })
+  @IsOptional()
+  @IsInt({ message: 'targetScore phải là số nguyên' })
+  @Min(0)
+  @Max(100)
+  targetScore?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Bài tập bắt buộc để hoàn thành bài học (GLI-90). Mặc định: true.',
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean({ message: 'isMandatory phải là boolean' })
+  isMandatory?: boolean;
 }

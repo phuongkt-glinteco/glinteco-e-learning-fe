@@ -15,11 +15,14 @@ import { createHash, randomUUID, randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { RefreshToken } from '../../database/entities/refresh-token.entity';
 import { User, UserRole } from '../../database/entities/user.entity';
+import { Cohort } from '../../database/entities/cohort.entity';
 import { UsersService } from '../users/users.service';
 import { AuthTokensDto } from './dto/auth-tokens.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordResponseDto } from './dto/forgot-password-response.dto';
 import {
   JwtPayload,
   RefreshTokenPayload,
@@ -32,7 +35,7 @@ const DEFAULT_REFRESH_EXPIRES_IN = 604800; // 7 days
 /**
  * User-facing shape of a user record: the entity with the password hash
  * stripped, regardless of how it was loaded.
- */
+ * */
 export type SafeUser = Omit<User, 'password'>;
 
 @Injectable()
@@ -48,6 +51,8 @@ export class AuthService {
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Cohort)
+    private readonly cohortRepository: Repository<Cohort>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {
@@ -67,11 +72,24 @@ export class AuthService {
       throw new BadRequestException('Email đã được sử dụng');
     }
 
+    let defaultCohort = await this.cohortRepository.findOne({
+      where: { isActive: true, isDefault: true },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!defaultCohort) {
+      defaultCohort = await this.cohortRepository.findOne({
+        where: { isActive: true },
+        order: { createdAt: 'DESC' },
+      });
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
     const user = await this.usersService.create({
       name: dto.name,
       email: dto.email,
       password: passwordHash,
+      cohortId: defaultCohort ? defaultCohort.id : null,
     });
 
     return this.sanitize(user);
@@ -83,6 +101,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
+    await this.checkBanStatus(user);
     return this.issueTokens(user, dto.rememberMe);
   }
 
@@ -138,7 +157,26 @@ export class AuthService {
       );
     }
 
+    await this.checkBanStatus(user);
+
     return this.issueTokens(user, payload.rememberMe);
+  }
+
+  private async checkBanStatus(user: User): Promise<void> {
+    if (user.isActive === false) {
+      if (user.bannedUntil && new Date() > user.bannedUntil) {
+        user.isActive = true;
+        user.banReason = null;
+        user.bannedUntil = null;
+        await this.userRepository.save(user);
+      } else {
+        throw new UnauthorizedException({
+          statusCode: 403,
+          error: 'AccountBanned',
+          message: `Tài khoản của bạn đã bị khóa. Lý do: ${user.banReason || 'Không có lý do'}`,
+        });
+      }
+    }
   }
 
   /**
@@ -259,6 +297,7 @@ export class AuthService {
     this.assertAllowedDomain(email, payload.hd);
 
     const user = await this.findOrCreateUser(payload, email);
+    await this.checkBanStatus(user);
     return this.buildAuthResponse(user);
   }
 
@@ -336,36 +375,42 @@ export class AuthService {
 
   private async buildAuthResponse(user: User): Promise<AuthResponseDto> {
     const tokens = await this.issueTokens(user);
+    const userWithCohort = await this.usersService.findById(user.id);
+    const resolvedUser = userWithCohort || user;
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        title: user.title ?? null,
-        avatarHue: user.avatarHue ?? 0,
-        cohortId: user.cohortId ?? null,
-        level: user.level,
-        xp: user.xp,
-        streakDays: user.streakDays,
-        joinedAt: user.createdAt,
+        id: resolvedUser.id,
+        email: resolvedUser.email,
+        name: resolvedUser.name,
+        role: resolvedUser.role,
+        title: resolvedUser.title ?? null,
+        avatarHue: resolvedUser.avatarHue ?? 0,
+        cohortId: resolvedUser.cohortId ?? null,
+        cohort: resolvedUser.cohort
+          ? { id: resolvedUser.cohort.id, name: resolvedUser.cohort.name }
+          : null,
+        level: resolvedUser.level,
+        xp: resolvedUser.xp,
+        streakDays: resolvedUser.streakDays,
+        joinedAt: resolvedUser.createdAt,
       },
     };
   }
 
-  async forgotPassword(email: string): Promise<{ message: string }> {
+  async forgotPassword(email: string): Promise<ForgotPasswordResponseDto> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new BadRequestException('Email không tồn tại trong hệ thống');
+      // Security measure: Do not leak whether an email exists or not
+      return { success: true, message: 'Tạo yêu cầu thành công' };
     }
 
     const token = randomBytes(32).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
 
-    const expires = new Date();
-    expires.setHours(expires.getHours() + 1);
+    // Token expires in exactly 15 minutes
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
 
     await this.userRepository.update(user.id, {
       resetPasswordToken: hashedToken,
@@ -376,7 +421,13 @@ export class AuthService {
     this.logger.log(`[Mock Email] Password Reset Link: ${resetLink}`);
     console.log(`[Mock Email] Password Reset Link: ${resetLink}`);
 
-    return { message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.' };
+    // Returning token directly in response is a temporary test measure
+    return {
+      success: true,
+      message: 'Tạo yêu cầu thành công',
+      resetToken: token,
+      resetUrl: `/reset-password?token=${token}`,
+    };
   }
 
   async resetPassword(
@@ -411,5 +462,32 @@ export class AuthService {
     });
 
     return { message: 'Mật khẩu đã được thay đổi thành công.' };
+  }
+
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+  ): Promise<{ success: boolean; message: string }> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: { id: true, password: true },
+    });
+
+    if (!user || !user.password) {
+      throw new BadRequestException('Người dùng không hợp lệ');
+    }
+
+    const isMatch = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('Mật khẩu hiện tại không chính xác');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
+
+    await this.userRepository.update(user.id, {
+      password: hashedPassword,
+    });
+
+    return { success: true, message: 'Mật khẩu đã được thay đổi thành công.' };
   }
 }

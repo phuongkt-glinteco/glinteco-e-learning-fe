@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { AuthService, SafeUser } from './auth.service';
 import { User, UserRole } from '../../database/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -18,6 +18,7 @@ describe('AuthController', () => {
       | 'loginWithGoogle'
       | 'forgotPassword'
       | 'resetPassword'
+      | 'changePassword'
     >
   >;
 
@@ -49,6 +50,7 @@ describe('AuthController', () => {
       loginWithGoogle: jest.fn(),
       forgotPassword: jest.fn(),
       resetPassword: jest.fn(),
+      changePassword: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -85,7 +87,7 @@ describe('AuthController', () => {
         streakDays: mockUser.streakDays,
         createdAt: mockUser.createdAt,
         updatedAt: mockUser.updatedAt,
-      });
+      } as SafeUser);
 
       const result = await controller.register(dto);
 
@@ -162,6 +164,7 @@ describe('AuthController', () => {
         title: null,
         avatarHue: 0,
         cohortId: mockUser.cohortId,
+        cohort: null,
         level: mockUser.level,
         xp: mockUser.xp,
         streakDays: mockUser.streakDays,
@@ -188,7 +191,7 @@ describe('AuthController', () => {
           xp: 0,
           streakDays: 0,
         },
-      };
+      } as any;
 
       authService.loginWithGoogle.mockResolvedValue(expectedResponse);
 
@@ -203,6 +206,7 @@ describe('AuthController', () => {
     it('should call authService.forgotPassword', async () => {
       const dto = { email: 'user@example.com' };
       const expectedResponse = {
+        success: true,
         message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.',
       };
       authService.forgotPassword.mockResolvedValue(expectedResponse);
@@ -228,6 +232,26 @@ describe('AuthController', () => {
         dto.token,
         dto.password,
       );
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('changePassword', () => {
+    it('should call authService.changePassword', async () => {
+      const user = mockUser;
+      const dto = {
+        currentPassword: 'old-password',
+        newPassword: 'NewSecurePassword123',
+      };
+      const expectedResponse = {
+        success: true,
+        message: 'Mật khẩu đã được thay đổi thành công.',
+      };
+      authService.changePassword.mockResolvedValue(expectedResponse);
+
+      const result = await controller.changePassword(user, dto);
+
+      expect(authService.changePassword).toHaveBeenCalledWith(user.id, dto);
       expect(result).toEqual(expectedResponse);
     });
   });

@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository, Not, IsNull, SelectQueryBuilder } from 'typeorm';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { User, UserRole } from '../../database/entities/user.entity';
 import { Lesson } from '../../database/entities/lesson.entity';
 import { LessonProgress } from '../../database/entities/lesson-progress.entity';
@@ -14,24 +18,43 @@ import {
   Submission,
   SubmissionStatus,
 } from '../../database/entities/submission.entity';
+import {
+  Cohort,
+  SubmissionHistory,
+  Notification,
+  RefreshToken,
+} from '../../database/entities';
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {
   let service: UsersService;
 
   let userRepository: jest.Mocked<
-    Pick<Repository<User>, 'findOne' | 'create' | 'save' | 'createQueryBuilder'>
-  >;
+    Pick<
+      Repository<User>,
+      'findOne' | 'create' | 'save' | 'createQueryBuilder' | 'delete' | 'update'
+    >
+  > & { manager: any };
   let mockLessonRepository: jest.Mocked<Pick<Repository<Lesson>, 'count'>>;
   let mockLessonProgressRepository: jest.Mocked<
-    Pick<Repository<LessonProgress>, 'count'>
+    Pick<Repository<LessonProgress>, 'count' | 'delete'>
   >;
   let mockTrackRepository: jest.Mocked<Pick<Repository<Track>, 'count'>>;
   let mockTrackProgressRepository: jest.Mocked<
-    Pick<Repository<TrackProgress>, 'count'>
+    Pick<Repository<TrackProgress>, 'count' | 'delete'>
   >;
   let mockSubmissionRepository: jest.Mocked<
-    Pick<Repository<Submission>, 'find'>
+    Pick<Repository<Submission>, 'find' | 'delete'>
+  >;
+  let mockSubmissionHistoryRepository: jest.Mocked<
+    Pick<Repository<SubmissionHistory>, 'delete' | 'update'>
+  >;
+  let mockNotificationRepository: jest.Mocked<
+    Pick<Repository<Notification>, 'delete'>
+  >;
+  let mockCohortRepository: jest.Mocked<Pick<Repository<Cohort>, 'findOne'>>;
+  let mockRefreshTokenRepository: jest.Mocked<
+    Pick<Repository<RefreshToken>, 'delete'>
   >;
 
   const mockUser = {
@@ -50,21 +73,49 @@ describe('UsersService', () => {
       create: jest.fn(),
       save: jest.fn(),
       createQueryBuilder: jest.fn(),
+      delete: jest.fn(),
+      update: jest.fn(),
+      manager: {
+        createQueryBuilder: jest.fn().mockReturnValue({
+          relation: jest.fn().mockReturnValue({
+            of: jest.fn().mockReturnValue({
+              clear: jest.fn().mockResolvedValue(undefined),
+            }),
+          }),
+        }),
+        query: jest.fn(),
+      },
     };
     mockLessonRepository = {
       count: jest.fn(),
     };
     mockLessonProgressRepository = {
       count: jest.fn(),
+      delete: jest.fn(),
     };
     mockTrackRepository = {
       count: jest.fn(),
     };
     mockTrackProgressRepository = {
       count: jest.fn(),
+      delete: jest.fn(),
     };
     mockSubmissionRepository = {
       find: jest.fn(),
+      delete: jest.fn(),
+    };
+    mockSubmissionHistoryRepository = {
+      delete: jest.fn(),
+      update: jest.fn(),
+    };
+    mockNotificationRepository = {
+      delete: jest.fn(),
+    };
+    mockCohortRepository = {
+      findOne: jest.fn(),
+    };
+    mockRefreshTokenRepository = {
+      delete: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -94,6 +145,22 @@ describe('UsersService', () => {
           provide: getRepositoryToken(Submission),
           useValue: mockSubmissionRepository,
         },
+        {
+          provide: getRepositoryToken(SubmissionHistory),
+          useValue: mockSubmissionHistoryRepository,
+        },
+        {
+          provide: getRepositoryToken(Notification),
+          useValue: mockNotificationRepository,
+        },
+        {
+          provide: getRepositoryToken(Cohort),
+          useValue: mockCohortRepository,
+        },
+        {
+          provide: getRepositoryToken(RefreshToken),
+          useValue: mockRefreshTokenRepository,
+        },
       ],
     }).compile();
 
@@ -112,6 +179,7 @@ describe('UsersService', () => {
 
       expect(userRepository.findOne).toHaveBeenCalledWith({
         where: { id: 'user-id-123' },
+        relations: { cohort: true },
       });
       expect(result).toEqual(mockUser);
     });
@@ -569,6 +637,252 @@ describe('UsersService', () => {
 
       expect(result.streakDays).toBe(1);
       expect(result.xp).toBe(150);
+    });
+  });
+
+  describe('Admin Operations', () => {
+    describe('adminList', () => {
+      it('should return paginated list of users', async () => {
+        const users = [mockUser];
+        const qb: any = {
+          leftJoinAndSelect: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          skip: jest.fn().mockReturnThis(),
+          take: jest.fn().mockReturnThis(),
+          getManyAndCount: jest.fn().mockResolvedValue([users, 1]),
+        };
+        userRepository.createQueryBuilder.mockReturnValue(qb);
+
+        const result = await service.adminList({
+          page: 1,
+          limit: 10,
+          role: UserRole.LEARNER,
+        });
+
+        expect(result.data).toEqual(users);
+        expect(result.meta.total).toBe(1);
+      });
+    });
+
+    describe('adminCreate', () => {
+      it('should create a user successfully', async () => {
+        userRepository.findOne.mockResolvedValue(null);
+        userRepository.create.mockReturnValue(mockUser);
+        userRepository.save.mockResolvedValue(mockUser);
+
+        const result = await service.adminCreate({
+          email: 'new@example.com',
+          name: 'New User',
+          password: 'Password123',
+          role: UserRole.LEARNER,
+        });
+
+        expect(result.email).toBe(mockUser.email);
+      });
+
+      it('should throw ConflictException if email exists', async () => {
+        userRepository.findOne.mockResolvedValue(mockUser);
+
+        await expect(
+          service.adminCreate({
+            email: 'test@example.com',
+            name: 'New User',
+            password: 'Password123',
+          }),
+        ).rejects.toThrow(ConflictException);
+      });
+    });
+
+    describe('adminChangeRole', () => {
+      it('should throw BadRequestException if self-targeting', async () => {
+        await expect(
+          service.adminChangeRole('admin-1', 'admin-1', UserRole.LEARNER),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should throw NotFoundException if user not found', async () => {
+        userRepository.findOne.mockResolvedValue(null);
+
+        await expect(
+          service.adminChangeRole('admin-1', 'user-2', UserRole.LEARNER),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it('should update user role successfully', async () => {
+        const targetUser = { id: 'user-2', role: UserRole.LEARNER } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+        const result = await service.adminChangeRole(
+          'admin-1',
+          'user-2',
+          UserRole.ADMIN,
+        );
+
+        expect(result.role).toBe(UserRole.ADMIN);
+      });
+    });
+
+    describe('adminSetStatus', () => {
+      it('should throw BadRequestException if self-banning', async () => {
+        await expect(
+          service.adminSetStatus('admin-1', 'admin-1', false),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should change status successfully', async () => {
+        const targetUser = { id: 'user-2', isActive: true } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+        const result = await service.adminSetStatus('admin-1', 'user-2', false);
+
+        expect(result.isActive).toBe(false);
+      });
+    });
+
+    describe('adminBan', () => {
+      it('should throw BadRequestException on self-ban', async () => {
+        await expect(
+          service.adminBan('admin-1', 'admin-1', { reason: 'self-ban' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should ban user successfully', async () => {
+        const targetUser = { id: 'user-2', isActive: true } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+        const result = await service.adminBan('admin-1', 'user-2', {
+          reason: 'rules violation',
+          expiresAt: new Date(Date.now() + 10000),
+        });
+
+        expect(result.isActive).toBe(false);
+        expect(result.banReason).toBe('rules violation');
+        expect(result.bannedUntil).toBeDefined();
+      });
+    });
+
+    describe('adminUnban', () => {
+      it('should unban user successfully', async () => {
+        const targetUser = {
+          id: 'user-2',
+          isActive: false,
+          banReason: 'bad behavior',
+        } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+        const result = await service.adminUnban('admin-1', 'user-2');
+
+        expect(result.isActive).toBe(true);
+        expect(result.banReason).toBeNull();
+        expect(result.bannedUntil).toBeNull();
+      });
+    });
+
+    describe('adminUpdate', () => {
+      it('should update user role and cohortId', async () => {
+        const targetUser = { id: 'user-2', role: UserRole.LEARNER } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        mockCohortRepository.findOne.mockResolvedValue({
+          id: 'cohort-1',
+        } as Cohort);
+        userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+        const result = await service.adminUpdate('admin-1', 'user-2', {
+          role: UserRole.ADMIN,
+          cohortId: 'cohort-1',
+        });
+
+        expect(result.role).toBe(UserRole.ADMIN);
+        expect(result.cohortId).toBe('cohort-1');
+      });
+
+      it('should clear cohortId when cohortId is null', async () => {
+        const targetUser = { id: 'user-2', cohortId: 'cohort-1' } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+        const result = await service.adminUpdate('admin-1', 'user-2', {
+          cohortId: null,
+        });
+
+        expect(result.cohortId).toBeNull();
+      });
+    });
+
+    describe('adminDelete', () => {
+      it('should delete user and clear relationships', async () => {
+        const targetUser = { id: 'user-2' } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        mockSubmissionRepository.find.mockResolvedValue([]);
+
+        await service.adminDelete('admin-1', 'user-2');
+
+        expect(mockRefreshTokenRepository.delete).toHaveBeenCalledWith({
+          userId: 'user-2',
+        });
+        expect(mockNotificationRepository.delete).toHaveBeenCalledWith({
+          userId: 'user-2',
+        });
+        expect(mockSubmissionRepository.delete).toHaveBeenCalledWith({
+          userId: 'user-2',
+        });
+        expect(userRepository.delete).toHaveBeenCalledWith('user-2');
+      });
+    });
+
+    describe('adminAssignCohort', () => {
+      it('should throw NotFoundException if user not found', async () => {
+        userRepository.findOne.mockResolvedValue(null);
+
+        await expect(
+          service.adminAssignCohort('admin-1', 'user-2', 'cohort-1'),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it('should throw NotFoundException if cohort not found', async () => {
+        const targetUser = { id: 'user-2' } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        mockCohortRepository.findOne.mockResolvedValue(null);
+
+        await expect(
+          service.adminAssignCohort('admin-1', 'user-2', 'cohort-1'),
+        ).rejects.toThrow(NotFoundException);
+      });
+
+      it('should throw ConflictException if user already assigned to the same cohort', async () => {
+        const targetUser = { id: 'user-2', cohortId: 'cohort-1' } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        mockCohortRepository.findOne.mockResolvedValue({
+          id: 'cohort-1',
+        } as Cohort);
+
+        await expect(
+          service.adminAssignCohort('admin-1', 'user-2', 'cohort-1'),
+        ).rejects.toThrow(ConflictException);
+      });
+
+      it('should assign cohort successfully', async () => {
+        const targetUser = { id: 'user-2', cohortId: 'cohort-old' } as User;
+        userRepository.findOne.mockResolvedValue(targetUser);
+        mockCohortRepository.findOne.mockResolvedValue({
+          id: 'cohort-new',
+        } as Cohort);
+        userRepository.save.mockImplementation((u: any) => Promise.resolve(u));
+
+        const result = await service.adminAssignCohort(
+          'admin-1',
+          'user-2',
+          'cohort-new',
+        );
+
+        expect(result.cohortId).toBe('cohort-new');
+        expect(userRepository.save).toHaveBeenCalledWith(targetUser);
+      });
     });
   });
 });

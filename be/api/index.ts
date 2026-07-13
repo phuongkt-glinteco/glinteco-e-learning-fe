@@ -43,7 +43,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  // Customize operationIds to match frontend client conventions and strip prefix from path keys
+  // Strip prefix from path keys
   if (document.paths) {
     const newPaths: any = {};
     for (const pathKey of Object.keys(document.paths)) {
@@ -52,24 +52,6 @@ async function bootstrap() {
       const prefix = `/${apiPrefix}`;
       if (relativePath.startsWith(prefix)) {
         relativePath = relativePath.slice(prefix.length);
-      }
-      for (const method of Object.keys(pathItem)) {
-        const operation = pathItem[method];
-        if (operation && typeof operation === 'object') {
-          const segments = relativePath.split('/').filter(Boolean);
-          const cleanSegments = segments.map((segment) => {
-            if (segment.startsWith('{') && segment.endsWith('}')) {
-              return 'ById';
-            }
-            return segment
-              .split('-')
-              .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-              .join('');
-          });
-          const cleanOperationId =
-            method.toLowerCase() + cleanSegments.join('');
-          operation.operationId = cleanOperationId;
-        }
       }
       newPaths[relativePath || '/'] = pathItem;
     }

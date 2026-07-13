@@ -25,6 +25,7 @@ import {
   ExerciseListResponseDto,
   ExerciseDetailDto,
 } from './dto/exercise-response.dto';
+import { SubmitAutoDto, AutoGradeResultDto } from './dto/submit-auto.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { Roles } from '../modules/auth/decorators/roles.decorator';
@@ -61,7 +62,10 @@ export class ExercisesController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Lấy thông tin chi tiết bài tập theo ID' })
+  @ApiOperation({
+    summary:
+      'Lấy thông tin chi tiết bài tập theo ID (đáp án bị ẩn với học viên)',
+  })
   @ApiOkResponse({
     type: ExerciseDetailDto,
     description: 'Lấy thông tin thành công.',
@@ -71,7 +75,28 @@ export class ExercisesController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: User,
   ) {
-    return this.exercisesService.findOne(id, currentUser.id);
+    return this.exercisesService.findOne(id, currentUser.id, currentUser.role);
+  }
+
+  @Post(':id/submit-auto')
+  @ApiOperation({
+    summary: 'Nộp bài và tự động chấm điểm cho QUIZ / FILL_IN_BLANK (GLI-92)',
+  })
+  @ApiOkResponse({
+    type: AutoGradeResultDto,
+    description: 'Chấm điểm thành công.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bài tập không hỗ trợ tự chấm hoặc chưa cấu hình câu hỏi.',
+  })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy bài tập.' })
+  submitAuto(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: User,
+    @Body() dto: SubmitAutoDto,
+  ) {
+    return this.exercisesService.submitAuto(id, currentUser.id, dto);
   }
 
   @Patch(':id')

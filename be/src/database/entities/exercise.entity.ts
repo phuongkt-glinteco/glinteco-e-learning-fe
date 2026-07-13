@@ -21,6 +21,24 @@ export enum ExerciseDifficulty {
   ADVANCED = 'Advanced',
 }
 
+export enum ExerciseType {
+  PR_REVIEW = 'PR_REVIEW',
+  QUIZ = 'QUIZ',
+  FILL_IN_BLANK = 'FILL_IN_BLANK',
+}
+
+/**
+ * One auto-gradable question stored inside `questionsData`.
+ * `correctAnswer` must NEVER be serialized to learners — see
+ * ExercisesService.sanitizeQuestionsData.
+ */
+export interface ExerciseQuestion {
+  id: string;
+  prompt: string;
+  options?: string[];
+  correctAnswer: string;
+}
+
 @Entity('exercises')
 export class Exercise {
   @PrimaryGeneratedColumn('uuid')
@@ -48,6 +66,23 @@ export class Exercise {
 
   @Column({ type: 'enum', enum: ExerciseDifficulty })
   difficulty: ExerciseDifficulty;
+
+  @Column({
+    type: 'enum',
+    enum: ExerciseType,
+    default: ExerciseType.PR_REVIEW,
+  })
+  type: ExerciseType;
+
+  @Column({ type: 'jsonb', nullable: true, name: 'questions_data' })
+  questionsData: ExerciseQuestion[] | null;
+
+  // Minimum score (percent) required to pass an auto-graded exercise.
+  @Column({ type: 'integer', default: 100, name: 'target_score' })
+  targetScore: number;
+
+  @Column({ type: 'boolean', default: true, name: 'is_mandatory' })
+  isMandatory: boolean;
 
   @Column({ type: 'varchar', name: 'estimated_time' })
   estimatedTime: string;

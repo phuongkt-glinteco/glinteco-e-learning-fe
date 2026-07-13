@@ -17,6 +17,9 @@ import { AddLastClaimedXpAtToUsers1784301323000 } from './migrations/17843013230
 import { UpdateTracksAndLessonsSchema1784400000000 } from './migrations/1784400000000-UpdateTracksAndLessonsSchema';
 import { UpdateEntitiesForFeAudit1784500000000 } from './migrations/1784500000000-UpdateEntitiesForFeAudit';
 import { AddDescriptionToLessons1784600000000 } from './migrations/1784600000000-AddDescriptionToLessons';
+import { AddIsActiveAndBanFieldsToUsers1783932017211 } from './migrations/1783932017211-AddIsActiveAndBanFieldsToUsers';
+import { AddIsDefaultToCohorts1783932516165 } from './migrations/1783932516165-AddIsDefaultToCohorts';
+import { AddProgressEngineAndAdminTrackFields1784700000000 } from './migrations/1784700000000-AddProgressEngineAndAdminTrackFields';
 
 export const MIGRATIONS = [
   InitialSchema1781611485949,
@@ -38,4 +41,7 @@ export const MIGRATIONS = [
   UpdateTracksAndLessonsSchema1784400000000,
   UpdateEntitiesForFeAudit1784500000000,
   AddDescriptionToLessons1784600000000,
+  AddIsActiveAndBanFieldsToUsers1783932017211,
+  AddIsDefaultToCohorts1783932516165,
+  AddProgressEngineAndAdminTrackFields1784700000000,
 ];

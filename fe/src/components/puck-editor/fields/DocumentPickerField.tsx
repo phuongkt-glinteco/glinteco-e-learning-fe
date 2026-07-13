@@ -244,7 +244,7 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
                     <button
                       type="button"
                       onClick={() => handleRemoveItem(index)}
-                      className="text-muted-foreground hover:text-red-500 transition-colors p-0.5 cursor-pointer"
+                      className="text-muted-foreground hover:text-destructive transition-colors p-0.5 cursor-pointer"
                       title={t('removeTitle')}
                     >
                       <X className="h-3.5 w-3.5" />

@@ -21,6 +21,7 @@
     },
     "categories": {
       "typography": "📝 Văn bản & Bảng biểu",
+      "media": "🖼️ Hình ảnh & Liên kết",
       "code": "💻 Code & Terminal",
       "callout": "💡 Ghi chú & Chú ý",
       "layout": "📐 Bố cục (Layout)"
@@ -119,7 +120,8 @@
       "docTitlePlaceholder": "Nhập tiêu đề tài liệu mới...",
       "docKindLabel": "Loại tài liệu",
       "docUrlLabel": "Đường dẫn URL (Tùy chọn)",
-      "createDraftBtn": "Tạo bản nháp"
+      "createDraftBtn": "Tạo bản nháp",
+      "docUrlPlaceholder": "https://..."
     },
     "LearnerView": {
       "copyCode": "Sao chép",

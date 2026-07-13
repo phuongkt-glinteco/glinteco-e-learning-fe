@@ -21,6 +21,7 @@
     },
     "categories": {
       "typography": "📝 Typography & Tables",
+      "media": "🖼️ Media & Links",
       "code": "💻 Code & Terminal",
       "callout": "💡 Notes & Callouts",
       "layout": "📐 Layout"
@@ -119,7 +120,8 @@
       "docTitlePlaceholder": "Enter new document title...",
       "docKindLabel": "Document Kind",
       "docUrlLabel": "External URL (Optional)",
-      "createDraftBtn": "Create Draft"
+      "createDraftBtn": "Create Draft",
+      "docUrlPlaceholder": "https://..."
     },
     "LearnerView": {
       "copyCode": "Copy",

@@ -85,8 +85,35 @@
       "typeQuiz": "Trắc nghiệm (Quiz)",
       "typeCoding": "Lập trình (Coding)",
       "createDraftBtn": "Tạo bản nháp",
-      "dialogCloneTitle": "Clone bài tập từ mẫu",
       "cloneBtn": "Clone bài tập"
+    },
+    "DocumentPicker": {
+      "noSelection": "Chưa có tài liệu nào được chọn",
+      "unnamedDocument": "Tài liệu không tên",
+      "removeTitle": "Xóa tài liệu",
+      "editDetailBtn": "Sửa nội dung chi tiết",
+      "selectExistingBtn": "Chọn tài liệu từ hệ thống",
+      "quickCreateBtn": "+ Tạo nhanh tài liệu",
+      "dialogSelectTitle": "Chọn tài liệu từ hệ thống",
+      "searchPlaceholder": "Tìm kiếm tài liệu theo tiêu đề...",
+      "filterKindLabel": "Phân loại",
+      "kindAll": "Tất cả",
+      "kindGuide": "Guide",
+      "kindReference": "Reference",
+      "kindRunbook": "Runbook",
+      "kindTutorial": "Tutorial",
+      "kindLink": "Link",
+      "loadingList": "Đang tải danh sách tài liệu...",
+      "noResults": "Không tìm thấy tài liệu phù hợp",
+      "cancelBtn": "Hủy",
+      "confirmBtn": "Xác nhận",
+      "dialogQuickCreateTitle": "Tạo nhanh tài liệu (Skeleton Draft)",
+      "docTitleLabel": "Tiêu đề tài liệu (*)",
+      "docTitlePlaceholder": "Nhập tiêu đề tài liệu mới...",
+      "docKindLabel": "Loại tài liệu",
+      "docUrlLabel": "Đường dẫn URL (Tùy chọn)",
+      "docUrlPlaceholder": "https://...",
+      "createDraftBtn": "Tạo bản nháp"
     }
   }
 }

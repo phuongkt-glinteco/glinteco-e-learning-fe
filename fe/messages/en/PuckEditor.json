@@ -85,8 +85,35 @@
       "typeQuiz": "Multiple Choice (Quiz)",
       "typeCoding": "Coding Practice",
       "createDraftBtn": "Create Draft",
-      "dialogCloneTitle": "Clone Exercise from Template",
       "cloneBtn": "Clone Exercise"
+    },
+    "DocumentPicker": {
+      "noSelection": "No document selected",
+      "unnamedDocument": "Unnamed Document",
+      "removeTitle": "Remove document",
+      "editDetailBtn": "Edit Detailed Content",
+      "selectExistingBtn": "Select existing document",
+      "quickCreateBtn": "+ Quick Create Document",
+      "dialogSelectTitle": "Select Document from System",
+      "searchPlaceholder": "Search documents by title...",
+      "filterKindLabel": "Kind Filter",
+      "kindAll": "All",
+      "kindGuide": "Guide",
+      "kindReference": "Reference",
+      "kindRunbook": "Runbook",
+      "kindTutorial": "Tutorial",
+      "kindLink": "Link",
+      "loadingList": "Loading documents...",
+      "noResults": "No matching documents found",
+      "cancelBtn": "Cancel",
+      "confirmBtn": "Confirm",
+      "dialogQuickCreateTitle": "Quick Create Document (Skeleton Draft)",
+      "docTitleLabel": "Document Title (*)",
+      "docTitlePlaceholder": "Enter new document title...",
+      "docKindLabel": "Document Kind",
+      "docUrlLabel": "External URL (Optional)",
+      "docUrlPlaceholder": "https://...",
+      "createDraftBtn": "Create Draft"
     }
   }
 }

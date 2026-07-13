@@ -17,6 +17,7 @@ describe('ExercisesController', () => {
     findOne: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
+    submitAuto: jest.fn(),
   };
 
   const mockJwtAuthGuard = { canActivate: jest.fn(() => true) };
@@ -95,8 +96,33 @@ describe('ExercisesController', () => {
       expect(mockExercisesService.findOne).toHaveBeenCalledWith(
         'ex-1',
         mockUser.id,
+        mockUser.role,
       );
       expect(result).toEqual({ id: 'ex-1' });
+    });
+  });
+
+  describe('submitAuto', () => {
+    it('should call service.submitAuto with the answers (GLI-92)', async () => {
+      const gradeResult = {
+        score: 100,
+        correctCount: 1,
+        totalQuestions: 1,
+        targetScore: 100,
+        passed: true,
+        completed: true,
+        results: [{ questionId: 'q1', correct: true }],
+      };
+      mockExercisesService.submitAuto.mockResolvedValue(gradeResult);
+
+      const dto = { answers: [{ questionId: 'q1', answer: 'A' }] };
+      const result = await controller.submitAuto('ex-1', mockUser, dto);
+      expect(mockExercisesService.submitAuto).toHaveBeenCalledWith(
+        'ex-1',
+        mockUser.id,
+        dto,
+      );
+      expect(result).toEqual(gradeResult);
     });
   });
 

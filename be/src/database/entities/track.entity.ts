@@ -10,6 +10,12 @@ import { Lesson } from './lesson.entity';
 import { TrackProgress } from './track-progress.entity';
 import { Exercise } from './exercise.entity';
 
+export enum TrackStatus {
+  DEVELOPING = 'Developing',
+  ACTIVE = 'Active',
+  ARCHIVED = 'Archived',
+}
+
 @Entity('tracks')
 export class Track {
   @PrimaryGeneratedColumn('uuid')
@@ -17,6 +23,9 @@ export class Track {
 
   @Column()
   title: string;
+
+  @Column({ type: 'enum', enum: TrackStatus, default: TrackStatus.ACTIVE })
+  status: TrackStatus;
 
   @Column({ name: 'track_order' })
   order: number;

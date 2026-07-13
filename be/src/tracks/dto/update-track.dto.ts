@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength, IsEnum } from 'class-validator';
+import { TrackStatus } from '../../database/entities/track.entity';
 
 export class UpdateTrackDto {
   @ApiPropertyOptional({
@@ -35,4 +36,15 @@ export class UpdateTrackDto {
   @IsString({ message: 'icon phải là chuỗi' })
   @IsOptional()
   icon?: string;
+
+  @ApiPropertyOptional({
+    description: 'Trạng thái lộ trình (GLI-94)',
+    enum: TrackStatus,
+    example: TrackStatus.ACTIVE,
+  })
+  @IsEnum(TrackStatus, {
+    message: 'status phải là một trong: Developing, Active, Archived',
+  })
+  @IsOptional()
+  status?: TrackStatus;
 }

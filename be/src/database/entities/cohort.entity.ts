@@ -22,6 +22,9 @@ export class Cohort {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ type: 'boolean', default: false, name: 'is_default' })
+  isDefault: boolean;
+
   @OneToMany(() => User, (user) => user.cohort)
   users: User[];
 

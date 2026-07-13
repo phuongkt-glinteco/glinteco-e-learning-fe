@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DocumentsService } from './documents.service';
 import { Document, DocumentKind } from '../database/entities/document.entity';
-import { Tag } from '../database/entities/tag.entity';
+import { Tag, TagCategory } from '../database/entities/tag.entity';
 import { User } from '../database/entities/user.entity';
 import { SearchDocumentsDto } from './dto/search-documents.dto';
 import { CreateDocumentDto } from './dto/create-document.dto';
@@ -360,6 +360,19 @@ describe('DocumentsService', () => {
       const result = await service.findAllTags();
       expect(result).toEqual(tags);
       expect(mockTagRepository.find).toHaveBeenCalledWith({
+        where: {},
+        order: { name: 'ASC' },
+      });
+    });
+
+    it('should filter tags by category (GLI-94)', async () => {
+      const tags = [{ id: 'tag-1', name: 'React', category: 'TRACK' }];
+      mockTagRepository.find.mockResolvedValue(tags);
+
+      const result = await service.findAllTags(TagCategory.TRACK);
+      expect(result).toEqual(tags);
+      expect(mockTagRepository.find).toHaveBeenCalledWith({
+        where: { category: TagCategory.TRACK },
         order: { name: 'ASC' },
       });
     });

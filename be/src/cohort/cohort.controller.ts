@@ -27,6 +27,10 @@ import {
   CohortDetailDto,
   CohortListResponseDto,
 } from './dto/cohort-response.dto';
+import {
+  CohortUsersProgressQueryDto,
+  CohortUsersProgressResponseDto,
+} from './dto/cohort-users-progress.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { Roles } from '../modules/auth/decorators/roles.decorator';
@@ -82,6 +86,25 @@ export class CohortController {
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   getOverview(@Param('id', ParseUUIDPipe) id: string) {
     return this.cohortService.getOverview(id);
+  }
+
+  @Get(':id/users-progress')
+  @ApiOperation({
+    summary:
+      'Tiến độ học viên tổng hợp theo Cohort -> Users -> Tracks (GLI-83, Admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    type: CohortUsersProgressResponseDto,
+    description: 'Lấy tiến độ thành công.',
+  })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
+  @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
+  getUsersProgress(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: CohortUsersProgressQueryDto,
+  ) {
+    return this.cohortService.getUsersProgress(id, query);
   }
 
   @Get(':id/track-completion')

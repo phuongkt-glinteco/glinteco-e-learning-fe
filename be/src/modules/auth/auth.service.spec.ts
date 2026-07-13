@@ -13,6 +13,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RefreshToken } from '../../database/entities/refresh-token.entity';
 import { User, UserRole } from '../../database/entities/user.entity';
+import { Cohort } from '../../database/entities/cohort.entity';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 
@@ -57,6 +58,7 @@ describe('AuthService', () => {
   let userRepository: jest.Mocked<
     Pick<Repository<User>, 'findOne' | 'create' | 'save' | 'update'>
   >;
+  let cohortRepository: jest.Mocked<Pick<Repository<Cohort>, 'findOne'>>;
   let jwtService: jest.Mocked<Pick<JwtService, 'signAsync' | 'verifyAsync'>>;
 
   let allowedDomainSetting: string | undefined = 'company.com';
@@ -77,12 +79,15 @@ describe('AuthService', () => {
       save: jest.fn((entity) => Promise.resolve(entity as RefreshToken)),
       findOne: jest.fn(),
       delete: jest.fn(() => Promise.resolve({ affected: 1, raw: [] })),
-    };
+    } as any;
     userRepository = {
       findOne: jest.fn(),
       create: jest.fn((dto) => ({ id: 'generated-uuid', ...dto }) as User),
       save: jest.fn((entity) => Promise.resolve(entity as User)),
       update: jest.fn(() => Promise.resolve({ affected: 1, raw: [] })),
+    } as any;
+    cohortRepository = {
+      findOne: jest.fn(),
     };
     jwtService = {
       signAsync: jest.fn(),
@@ -123,6 +128,10 @@ describe('AuthService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: userRepository,
+        },
+        {
+          provide: getRepositoryToken(Cohort),
+          useValue: cohortRepository,
         },
         { provide: JwtService, useValue: jwtService },
         { provide: ConfigService, useValue: configService },
@@ -407,7 +416,7 @@ describe('AuthService', () => {
   });
   describe('googleClientId not configured', () => {
     it('should throw InternalServerErrorException if GOOGLE_CLIENT_ID is empty', async () => {
-      service['googleClientId'] = '';
+      (service as any).googleClientId = '';
       await expect(service.loginWithGoogle('some-token')).rejects.toThrow(
         InternalServerErrorException,
       );
@@ -463,7 +472,7 @@ describe('AuthService', () => {
 
   describe('assertAllowedDomain (email domain validation)', () => {
     it('should allow any email if ALLOWED_EMAIL_DOMAIN is not configured', async () => {
-      service['allowedDomain'] = undefined;
+      (service as any).allowedDomain = undefined;
 
       mockVerifyIdToken.mockResolvedValue({
         getPayload: () => ({
@@ -590,6 +599,7 @@ describe('AuthService', () => {
         title: null,
         avatarHue: 0,
         cohortId: null,
+        cohort: null,
         level: 1,
         xp: 0,
         streakDays: 0,
@@ -633,7 +643,7 @@ describe('AuthService', () => {
         submissions: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as User;
+      } as unknown as User;
 
       userRepository.findOne.mockResolvedValue(existingUser);
 
@@ -650,6 +660,7 @@ describe('AuthService', () => {
         title: null,
         avatarHue: 0,
         cohortId: null,
+        cohort: null,
         level: 5,
         xp: 120,
         streakDays: 3,
@@ -673,7 +684,7 @@ describe('AuthService', () => {
         submissions: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as User;
+      } as unknown as User;
 
       userRepository.findOne.mockResolvedValue(existingUser);
 
@@ -685,24 +696,29 @@ describe('AuthService', () => {
     });
   });
 
-  describe('forgotPassword / resetPassword', () => {
+  describe('forgotPassword / resetPassword / changePassword', () => {
     describe('forgotPassword', () => {
-      it('should throw BadRequestException if email does not exist', async () => {
+      it('should not throw BadRequestException if email does not exist, return success only', async () => {
         usersService.findByEmail.mockResolvedValue(null);
 
-        await expect(
-          service.forgotPassword('nonexistent@company.com'),
-        ).rejects.toThrow(BadRequestException);
+        const result = await service.forgotPassword('nonexistent@company.com');
+        expect(result).toEqual({
+          success: true,
+          message: 'Tạo yêu cầu thành công',
+        });
       });
 
-      it('should generate token, set expiry and update user, logging mock email', async () => {
+      it('should generate token, set expiry and update user, logging mock email and returning payload', async () => {
         const user = buildUser({ id: 'user-123', email: 'user@company.com' });
         usersService.findByEmail.mockResolvedValue(user);
 
         const result = await service.forgotPassword('user@company.com');
 
         expect(result).toEqual({
-          message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.',
+          success: true,
+          message: 'Tạo yêu cầu thành công',
+          resetToken: expect.any(String),
+          resetUrl: expect.stringContaining('/reset-password?token='),
         });
         expect(userRepository.update).toHaveBeenCalledWith(
           'user-123',
@@ -760,6 +776,43 @@ describe('AuthService', () => {
             password: expect.any(String),
             resetPasswordToken: null,
             resetPasswordExpires: null,
+          }),
+        );
+      });
+    });
+
+    describe('changePassword', () => {
+      it('should throw BadRequestException if password is incorrect', async () => {
+        const hashedPassword = await bcrypt.hash('correct-password', 10);
+        const user = buildUser({ id: 'user-123', password: hashedPassword });
+        userRepository.findOne.mockResolvedValue(user);
+
+        await expect(
+          service.changePassword('user-123', {
+            currentPassword: 'wrong-password',
+            newPassword: 'NewSecurePassword123',
+          }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should update password if current password is correct', async () => {
+        const hashedPassword = await bcrypt.hash('correct-password', 10);
+        const user = buildUser({ id: 'user-123', password: hashedPassword });
+        userRepository.findOne.mockResolvedValue(user);
+
+        const result = await service.changePassword('user-123', {
+          currentPassword: 'correct-password',
+          newPassword: 'NewSecurePassword123',
+        });
+
+        expect(result).toEqual({
+          success: true,
+          message: 'Mật khẩu đã được thay đổi thành công.',
+        });
+        expect(userRepository.update).toHaveBeenCalledWith(
+          'user-123',
+          expect.objectContaining({
+            password: expect.any(String),
           }),
         );
       });

@@ -2,10 +2,11 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, IsNull, Repository } from 'typeorm';
-import { User } from '../../database/entities/user.entity';
+import { Not, IsNull, Repository, In } from 'typeorm';
+import { User, UserRole } from '../../database/entities/user.entity';
 import { Lesson } from '../../database/entities/lesson.entity';
 import { LessonProgress } from '../../database/entities/lesson-progress.entity';
 import { Track } from '../../database/entities/track.entity';
@@ -17,8 +18,19 @@ import {
   Submission,
   SubmissionStatus,
 } from '../../database/entities/submission.entity';
+import { SubmissionHistory } from '../../database/entities/submission-history.entity';
+import { Notification } from '../../database/entities/notification.entity';
+import { Cohort } from '../../database/entities/cohort.entity';
+import { RefreshToken } from '../../database/entities/refresh-token.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UserQueryDto } from './dto/user-query.dto';
+import { AdminUserQueryDto } from './dto/admin-user-query.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserAdminDto } from './dto/update-user-admin.dto';
+import { BanUserDto } from './dto/ban-user.dto';
+import * as bcrypt from 'bcryptjs';
+
+const SALT_ROUNDS = 10;
 
 @Injectable()
 export class UsersService {
@@ -35,6 +47,14 @@ export class UsersService {
     private readonly trackProgressRepository: Repository<TrackProgress>,
     @InjectRepository(Submission)
     private readonly submissionRepository: Repository<Submission>,
+    @InjectRepository(SubmissionHistory)
+    private readonly submissionHistoryRepository: Repository<SubmissionHistory>,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
+    @InjectRepository(Cohort)
+    private readonly cohortRepository: Repository<Cohort>,
+    @InjectRepository(RefreshToken)
+    private readonly refreshTokenRepository: Repository<RefreshToken>,
   ) {}
 
   /**
@@ -42,7 +62,10 @@ export class UsersService {
    * `select: false`, so the returned record is safe to expose.
    */
   findById(id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } });
+    return this.userRepository.findOne({
+      where: { id },
+      relations: { cohort: true },
+    });
   }
 
   findByEmail(email: string): Promise<User | null> {
@@ -267,5 +290,265 @@ export class UsersService {
       xp: user.xp,
       lastClaimedXpAt: user.lastClaimedXpAt,
     };
+  }
+
+  async adminList(query: AdminUserQueryDto) {
+    const { role, q, isActive, page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.cohort', 'cohort');
+
+    if (role) {
+      qb.andWhere('user.role = :role', { role });
+    }
+
+    if (isActive !== undefined) {
+      const activeBool = isActive === 'true';
+      qb.andWhere('user.isActive = :activeBool', { activeBool });
+    }
+
+    if (q) {
+      qb.andWhere('(LOWER(user.name) LIKE :q OR LOWER(user.email) LIKE :q)', {
+        q: `%${q.toLowerCase()}%`,
+      });
+    }
+
+    const [users, total] = await qb
+      .orderBy('user.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const lastPage = Math.ceil(total / limit);
+
+    return {
+      data: users,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        lastPage,
+      },
+    };
+  }
+
+  async adminCreate(dto: CreateUserDto): Promise<User> {
+    const existing = await this.findByEmail(dto.email);
+    if (existing) {
+      throw new ConflictException('Email đã tồn tại');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
+    const user = this.userRepository.create({
+      name: dto.name,
+      email: dto.email,
+      password: passwordHash,
+      role: dto.role || UserRole.LEARNER,
+      isActive: true,
+    });
+
+    const saved = await this.userRepository.save(user);
+    const { password: _, ...sanitized } = saved;
+    return sanitized;
+  }
+
+  async adminChangeRole(
+    actingUserId: string,
+    targetId: string,
+    role: UserRole,
+  ): Promise<User> {
+    if (actingUserId === targetId) {
+      throw new BadRequestException(
+        'Không thể tự thay đổi vai trò của chính mình.',
+      );
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: targetId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    user.role = role;
+    return this.userRepository.save(user);
+  }
+
+  async adminSetStatus(
+    actingUserId: string,
+    targetId: string,
+    isActive: boolean,
+  ): Promise<User> {
+    if (actingUserId === targetId && isActive === false) {
+      throw new BadRequestException(
+        'Không thể tự khóa tài khoản của chính mình.',
+      );
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: targetId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    user.isActive = isActive;
+    if (isActive) {
+      user.banReason = null;
+      user.bannedUntil = null;
+    }
+    return this.userRepository.save(user);
+  }
+
+  async adminBan(
+    actingUserId: string,
+    targetId: string,
+    dto: BanUserDto,
+  ): Promise<User> {
+    if (actingUserId === targetId) {
+      throw new BadRequestException(
+        'Không thể tự khóa tài khoản của chính mình.',
+      );
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: targetId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    user.isActive = false;
+    user.banReason = dto.reason;
+    user.bannedUntil = dto.expiresAt ? new Date(dto.expiresAt) : null;
+    return this.userRepository.save(user);
+  }
+
+  async adminUnban(actingUserId: string, targetId: string): Promise<User> {
+    if (actingUserId === targetId) {
+      throw new BadRequestException('Không thể tự thao tác trên chính mình.');
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: targetId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    user.isActive = true;
+    user.banReason = null;
+    user.bannedUntil = null;
+    return this.userRepository.save(user);
+  }
+
+  async adminUpdate(
+    actingUserId: string,
+    targetId: string,
+    dto: UpdateUserAdminDto,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: targetId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    if (dto.role !== undefined) {
+      if (actingUserId === targetId && dto.role !== user.role) {
+        throw new BadRequestException(
+          'Không thể tự thay đổi vai trò của chính mình.',
+        );
+      }
+      user.role = dto.role;
+    }
+
+    if (dto.cohortId !== undefined) {
+      if (dto.cohortId === null) {
+        user.cohortId = null;
+      } else {
+        const cohort = await this.cohortRepository.findOne({
+          where: { id: dto.cohortId },
+        });
+        if (!cohort) {
+          throw new BadRequestException('Cohort không tồn tại');
+        }
+        user.cohortId = dto.cohortId;
+      }
+    }
+
+    return this.userRepository.save(user);
+  }
+
+  async adminDelete(actingUserId: string, targetId: string): Promise<void> {
+    if (actingUserId === targetId) {
+      throw new BadRequestException(
+        'Không thể tự xóa tài khoản của chính mình.',
+      );
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: targetId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    // 1. Delete refresh tokens
+    await this.refreshTokenRepository.delete({ userId: targetId });
+
+    // 2. Delete notifications
+    await this.notificationRepository.delete({ userId: targetId });
+
+    // 3. Delete submission histories linked to the user's submissions
+    const userSubmissions = await this.submissionRepository.find({
+      where: { userId: targetId },
+      select: { id: true },
+    });
+    if (userSubmissions.length > 0) {
+      const submissionIds = userSubmissions.map((s) => s.id);
+      await this.submissionHistoryRepository.delete({
+        submissionId: In(submissionIds),
+      });
+    }
+
+    // 4. Set adminId to null in submission histories reviewed by this user
+    await this.submissionHistoryRepository.update(
+      { adminId: targetId },
+      { adminId: null },
+    );
+
+    // 5. Delete user submissions
+    await this.submissionRepository.delete({ userId: targetId });
+
+    // 6. Delete lesson progress
+    await this.lessonProgressRepository.delete({ userId: targetId });
+
+    // 7. Delete track progress
+    await this.trackProgressRepository.delete({ userId: targetId });
+
+    // 8. Delete user bookmarks (join table)
+    await this.userRepository.manager.query(
+      'DELETE FROM "user_bookmarks" WHERE "userId" = $1',
+      [targetId],
+    );
+
+    // 9. Delete user
+    await this.userRepository.delete(targetId);
+  }
+
+  async adminAssignCohort(
+    actingUserId: string,
+    targetId: string,
+    cohortId: string,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: targetId } });
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    const cohort = await this.cohortRepository.findOne({
+      where: { id: cohortId },
+    });
+    if (!cohort) {
+      throw new NotFoundException('Cohort không tồn tại');
+    }
+
+    if (user.cohortId === cohortId) {
+      throw new ConflictException('Người dùng đã ở trong cohort này');
+    }
+
+    user.cohortId = cohortId;
+    return this.userRepository.save(user);
   }
 }

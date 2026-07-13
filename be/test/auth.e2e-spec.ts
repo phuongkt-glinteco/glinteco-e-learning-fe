@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { AppModule } from './../src/app.module';
 import { User } from '../src/database/entities/user.entity';
 import { RefreshToken } from '../src/database/entities/refresh-token.entity';
+import { Cohort } from '../src/database/entities/cohort.entity';
 import { JwtService } from '@nestjs/jwt';
 
 describe('AuthModule (e2e)', () => {
@@ -44,9 +45,39 @@ describe('AuthModule (e2e)', () => {
     // Clean up existing test users and tokens to ensure isolation
     await dataSource.getRepository(RefreshToken).clear();
     await dataSource.getRepository(User).delete({ email: testEmail });
+    await dataSource.query(`UPDATE "users" SET "cohortId" = NULL`);
+    await dataSource.getRepository(Cohort).delete({ name: 'E2E Default Cohort' });
   });
 
   describe('POST /api/v1/auth/register', () => {
+    it('should assign a default cohort to the user when registered', async () => {
+      const cohortRepo = dataSource.getRepository(Cohort);
+      const cohort = await cohortRepo.save(
+        cohortRepo.create({
+          name: 'E2E Default Cohort',
+          isActive: true,
+          isDefault: true,
+          targetRampDays: 30,
+        }),
+      );
+
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/auth/register')
+        .send({
+          email: testEmail,
+          password: testPassword,
+          name: testName,
+        })
+        .expect(201);
+
+      expect(response.body.cohortId).toBe(cohort.id);
+
+      const user = await dataSource.getRepository(User).findOne({
+        where: { email: testEmail },
+      });
+      expect(user?.cohortId).toBe(cohort.id);
+    });
+
     it('should register a new user successfully and hash password', async () => {
       const response = await request(app.getHttpServer())
         .post('/api/v1/auth/register')
@@ -282,8 +313,20 @@ describe('AuthModule (e2e)', () => {
 
   describe('GET /api/v1/auth/me', () => {
     let accessToken: string;
+    let cohortId: string;
 
     beforeEach(async () => {
+      const cohortRepo = dataSource.getRepository(Cohort);
+      const cohort = await cohortRepo.save(
+        cohortRepo.create({
+          name: 'E2E Default Cohort',
+          isActive: true,
+          isDefault: true,
+          targetRampDays: 30,
+        }),
+      );
+      cohortId = cohort.id;
+
       await request(app.getHttpServer())
         .post('/api/v1/auth/register')
         .send({
@@ -302,7 +345,7 @@ describe('AuthModule (e2e)', () => {
       accessToken = loginRes.body.accessToken;
     });
 
-    it('should return profile information for authenticated user', async () => {
+    it('should return profile information for authenticated user including cohort object', async () => {
       const response = await request(app.getHttpServer())
         .get('/api/v1/auth/me')
         .set('Authorization', `Bearer ${accessToken}`)
@@ -311,10 +354,110 @@ describe('AuthModule (e2e)', () => {
       expect(response.body.email).toBe(testEmail);
       expect(response.body.name).toBe(testName);
       expect(response.body).not.toHaveProperty('password');
+      expect(response.body.cohort).toEqual({
+        id: cohortId,
+        name: 'E2E Default Cohort',
+      });
     });
 
     it('should return 401 Unauthorized for unauthenticated request', async () => {
       await request(app.getHttpServer()).get('/api/v1/auth/me').expect(401);
+    });
+  });
+
+  describe('Password Reset & Change (E2E)', () => {
+    beforeEach(async () => {
+      // Register a user for forgot/reset password testing
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/register')
+        .send({
+          email: testEmail,
+          password: testPassword,
+          name: testName,
+        })
+        .expect(201);
+    });
+
+    it('should handle forgot-password flow correctly', async () => {
+      // 1. Existing email
+      const forgotRes = await request(app.getHttpServer())
+        .post('/api/v1/auth/forgot-password')
+        .send({ email: testEmail })
+        .expect(200);
+
+      expect(forgotRes.body.success).toBe(true);
+      expect(forgotRes.body).toHaveProperty('resetToken');
+      expect(forgotRes.body).toHaveProperty('resetUrl');
+
+      const resetToken = forgotRes.body.resetToken;
+
+      // 2. Reset password
+      const newPassword = 'newPassword12345';
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/reset-password')
+        .send({ token: resetToken, password: newPassword })
+        .expect(200);
+
+      // 3. Login with new password
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: testEmail, password: newPassword })
+        .expect(200);
+
+      // 4. Old password should fail
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: testEmail, password: testPassword })
+        .expect(401);
+
+      // 5. Token should be invalidated (cannot reset again)
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/reset-password')
+        .send({ token: resetToken, password: 'anotherNewPassword' })
+        .expect(400);
+    });
+
+    it('should not leak token/URL for non-existent email', async () => {
+      const forgotRes = await request(app.getHttpServer())
+        .post('/api/v1/auth/forgot-password')
+        .send({ email: 'nonexistent-email@example.com' })
+        .expect(200);
+
+      expect(forgotRes.body.success).toBe(true);
+      expect(forgotRes.body.message).toBe('Tạo yêu cầu thành công');
+      expect(forgotRes.body).not.toHaveProperty('resetToken');
+      expect(forgotRes.body).not.toHaveProperty('resetUrl');
+    });
+
+    it('should change password in-profile using JWT', async () => {
+      // 1. Login to get access token
+      const loginRes = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: testEmail, password: testPassword })
+        .expect(200);
+
+      const accessToken = loginRes.body.accessToken;
+      const newPassword = 'myNewPassword123';
+
+      // 2. Change password
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/change-password')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ currentPassword: testPassword, newPassword })
+        .expect(200);
+
+      // 3. Login with new password should succeed
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: testEmail, password: newPassword })
+        .expect(200);
+
+      // 4. Change password with wrong current password should fail
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/change-password')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ currentPassword: 'wrong-password', newPassword: 'anotherPassword123' })
+        .expect(400);
     });
   });
 });

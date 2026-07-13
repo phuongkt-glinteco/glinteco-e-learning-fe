@@ -14,6 +14,11 @@
         "assignment": "Bài tập lớn (Assignment)"
       }
     },
+    "messages": {
+      "titleRequired": "Tiêu đề bài học không được để trống.",
+      "updateSuccess": "Cập nhật bài học thành công!",
+      "createSuccess": "Tạo bài học mới thành công!"
+    },
     "categories": {
       "typography": "📝 Văn bản & Bảng biểu",
       "code": "💻 Code & Terminal",

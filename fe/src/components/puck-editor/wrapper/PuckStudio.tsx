@@ -8,6 +8,7 @@ export interface PuckStudioProps {
   config: Config<any, any>;
   initialData?: Data | any;
   onPublish: (data: any) => void | Promise<void>;
+  onChange?: (data: any) => void;
   overrides?: Record<string, unknown>;
 }
 
@@ -15,6 +16,7 @@ export function PuckStudio({
   config,
   initialData = { content: [], root: {} },
   onPublish,
+  onChange,
   overrides = { headerActions: () => null },
 }: PuckStudioProps) {
   return (
@@ -23,6 +25,7 @@ export function PuckStudio({
         config={config}
         data={initialData}
         onPublish={onPublish}
+        onChange={onChange}
         overrides={overrides}
       />
     </div>

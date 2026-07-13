@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import {
   lessonsControllerCreateLesson,
   lessonsControllerUpdateLesson,
@@ -46,6 +47,8 @@ type CachedTrackEntry = {
 
 export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorPageProps) {
   const router = useRouter();
+  const t = useTranslations('PuckEditor.Lesson.messages');
+  const [currentPuckData, setCurrentPuckData] = useState<LessonPuckData | null>(null);
   const [saving, setSaving] = useState(false);
   const [uiValidationError, setUiValidationError] = useState<string | null>(null);
 
@@ -141,7 +144,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     } = payload;
 
     if (!updatedTitle.trim()) {
-      setUiValidationError("Tiêu đề bài học không được để trống.");
+      setUiValidationError(t('titleRequired'));
       return;
     }
     setUiValidationError(null);
@@ -173,7 +176,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
         });
 
         clearDraft(draftKey);
-        toast.success("Cập nhật bài học thành công!");
+        toast.success(t('updateSuccess'));
 
         const refreshRes = await lessonsControllerFindLessons({
           path: { id: trackId },
@@ -203,7 +206,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
         });
 
         clearDraft(draftKey);
-        toast.success("Tạo bài học mới thành công!");
+        toast.success(t('createSuccess'));
 
         const createdLesson = createRes.data as { id?: string } | undefined;
         const newLessonId = createdLesson?.id;
@@ -243,7 +246,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
       <FeatureBarPortal
         bottomBar={
           <LessonEditorBottomBar
-            onSave={() => handlePublishPuck(puckData)}
+            onSave={() => handlePublishPuck(currentPuckData || puckData)}
             saving={saving}
             canSave={true}
             onCancel={() => router.back()}
@@ -276,6 +279,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
             key={`${lessonId || "new"}-${title}`}
             config={lessonConfig}
             initialData={puckData}
+            onChange={(newData) => setCurrentPuckData(newData)}
             onPublish={handlePublishPuck}
             overrides={{ headerActions: () => null }}
           />

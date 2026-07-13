@@ -14,6 +14,11 @@
         "assignment": "Assignment"
       }
     },
+    "messages": {
+      "titleRequired": "Lesson title cannot be empty.",
+      "updateSuccess": "Lesson updated successfully!",
+      "createSuccess": "New lesson created successfully!"
+    },
     "categories": {
       "typography": "📝 Typography & Tables",
       "code": "💻 Code & Terminal",

@@ -145,3 +145,67 @@ export function isPuckJsonBody(body: string | null | undefined): boolean {
     return false;
   }
 }
+
+export interface SerializedLessonPayload {
+  title: string;
+  description: string;
+  estimatedTime: string;
+  order: number;
+  type: string;
+  body: string;
+}
+
+/**
+ * Trích xuất metadata từ Puck Data (ưu tiên từ LessonHeaderBlock / root props)
+ * và chuyển đổi cấu trúc JSON sang chuỗi body để gửi lên API.
+ */
+export function serializePuckDataToPayload(
+  data: LessonPuckData,
+  fallback?: {
+    title?: string;
+    description?: string;
+    estimatedTime?: string;
+    order?: number;
+    type?: string;
+  }
+): SerializedLessonPayload {
+  const rootProps = (data.root?.props || {}) as Record<string, unknown>;
+  const zones = data.zones as Record<string, Array<{ props?: Record<string, unknown> }>> | undefined;
+  const headerBlock =
+    zones?.["header-zone"]?.[0] ||
+    zones?.["root:header-zone"]?.[0] ||
+    data.content?.find((b) => b && b.type === "LessonHeaderBlock");
+  const headerProps = (headerBlock?.props || {}) as Record<string, unknown>;
+
+  const title =
+    (headerProps.title as string) ||
+    (rootProps.title as string) ||
+    fallback?.title ||
+    "";
+  const description =
+    (headerProps.description as string) ||
+    (rootProps.description as string) ||
+    fallback?.description ||
+    "";
+  const order =
+    Number(headerProps.order ?? rootProps.order ?? fallback?.order) || 1;
+  const estimatedTime =
+    (headerProps.estimatedTime as string) ||
+    (rootProps.estimatedTime as string) ||
+    fallback?.estimatedTime ||
+    "15 min";
+  const type =
+    (headerProps.type as string) ||
+    (rootProps.type as string) ||
+    fallback?.type ||
+    "reading";
+
+  return {
+    title,
+    description,
+    estimatedTime,
+    order,
+    type,
+    body: JSON.stringify(data),
+  };
+}

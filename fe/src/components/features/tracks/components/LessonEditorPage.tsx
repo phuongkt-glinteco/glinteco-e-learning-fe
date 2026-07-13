@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   lessonsControllerCreateLesson,
   lessonsControllerUpdateLesson,
@@ -15,10 +16,12 @@ import {
   PuckStudio,
   PuckViewer,
   parseBodyToPuckData,
+  serializePuckDataToPayload,
   type LessonPuckData,
 } from '@/components/puck-editor';
 import { FeatureBarPortal } from '@/components/layout/FeatureBarPortal';
 import { LessonEditorBottomBar } from './LessonEditorBottomBar';
+import { useLessonDraftStore } from '@/stores/lessonDraftStore';
 
 interface LessonEditorPageProps {
   trackId?: string;
@@ -44,10 +47,11 @@ type CachedTrackEntry = {
 export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorPageProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [uiValidationError, setUiValidationError] = useState<string | null>(null);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [estimatedTime, setEstimatedTime] = useState('15 mins');
+  const [estimatedTime, setEstimatedTime] = useState('15 min');
   const [lessonType, setLessonType] = useState<'video' | 'reading' | 'quiz' | 'coding' | 'assignment'>('reading');
   const [order, setOrder] = useState(1);
   const [body, setBody] = useState('');
@@ -56,6 +60,21 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   const lessonConfig = useLessonPuckConfig();
   const [loadedLesson, setLoadedLesson] = useState<LessonDetailDto | null>(null);
 
+  const { saveDraft, getDraft, clearDraft } = useLessonDraftStore();
+  const draftKey = `${trackId || 'track'}-${lessonId || editIndex || 'new'}`;
+
+  useEffect(() => {
+    const draft = getDraft(draftKey);
+    if (draft) {
+      setTitle(draft.title || '');
+      setDescription(draft.description || '');
+      setEstimatedTime(draft.estimatedTime || '15 min');
+      setLessonType(draft.type || 'reading');
+      setOrder(draft.order || 1);
+      setBody(draft.body || '');
+    }
+  }, [draftKey, getDraft]);
+
   useEffect(() => {
     if (!lessonId) return;
     async function fetchLesson() {
@@ -63,68 +82,79 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
       try {
         const res = await lessonsControllerFindOneLesson({ path: { id: lessonId }, throwOnError: true });
         const found = res.data as LessonDetailDto;
-        if (found) {
+        if (found && !getDraft(draftKey)) {
           setLoadedLesson(found);
           setTitle(found.title ?? '');
           setDescription(found.description ?? '');
           setLessonType(found.type ?? 'reading');
           setOrder(found.order ?? 1);
           setBody(found.body ?? '');
-          setEstimatedTime(found.estimatedTime ?? '15 mins');
+          setEstimatedTime(found.estimatedTime ?? '15 min');
         }
       } catch {
         // silent
       }
     }
     fetchLesson();
-  }, [lessonId, trackId]);
+  }, [lessonId, trackId, draftKey, getDraft]);
 
   useEffect(() => {
-    if (lessonId) return; // create mode handled separately or from track cache
+    if (lessonId) return;
     if (!trackId || editIndex === undefined) return;
     const entry = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
-    if (entry?.track?.lessons?.[editIndex]) {
+    if (entry?.track?.lessons?.[editIndex] && !getDraft(draftKey)) {
       const lesson = entry.track.lessons[editIndex];
       setTitle(lesson.title ?? '');
       setDescription(lesson.description ?? '');
       setLessonType((lesson.type as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment') ?? 'reading');
       setOrder(lesson.order ?? editIndex + 1);
       setBody(lesson.body ?? '');
-      setEstimatedTime(lesson.estimatedTime ?? '15 mins');
+      setEstimatedTime(lesson.estimatedTime ?? '15 min');
     }
-  }, [trackId, editIndex, lessonId]);
+  }, [trackId, editIndex, lessonId, draftKey, getDraft]);
 
-  // Luôn điền thông tin từ lesson đã có vào Puck Data
   const puckData: LessonPuckData = parseBodyToPuckData(body, {
     title,
     description,
     estimatedTime,
     order,
     type: lessonType,
-    documents: (loadedLesson as any)?.documents || [],
-    exercises: (loadedLesson as any)?.exercises || [],
+    documents: loadedLesson?.relatedDocs || [],
+    exercises: [],
   });
 
   async function handlePublishPuck(data: LessonPuckData) {
-    const rootProps = (data.root?.props || {}) as Record<string, any>;
-    const headerBlock =
-      (data as any).zones?.["header-zone"]?.[0] ||
-      (data as any).zones?.["root:header-zone"]?.[0] ||
-      data.content?.find((b: any) => b.type === "LessonHeaderBlock");
-    const headerProps = headerBlock?.props || {};
+    const payload = serializePuckDataToPayload(data, {
+      title,
+      description,
+      estimatedTime,
+      order,
+      type: lessonType,
+    });
+    const {
+      title: updatedTitle,
+      description: updatedDescription,
+      estimatedTime: updatedTime,
+      order: updatedOrder,
+      type: updatedType,
+      body: jsonBody,
+    } = payload;
 
-    const updatedTitle =
-      headerProps.title || rootProps.title || title || "Untitled Lesson";
-    const updatedDescription =
-      headerProps.description || rootProps.description || description || "";
-    const updatedOrder =
-      headerProps.order || rootProps.order || order || 1;
-    const updatedTime =
-      headerProps.estimatedTime ||
-      rootProps.estimatedTime ||
-      estimatedTime ||
-      "15 mins";
-    const jsonBody = JSON.stringify(data);
+    if (!updatedTitle.trim()) {
+      setUiValidationError("Tiêu đề bài học không được để trống.");
+      return;
+    }
+    setUiValidationError(null);
+
+    // Auto save draft before attempting API call
+    saveDraft(draftKey, {
+      title: updatedTitle,
+      description: updatedDescription,
+      estimatedTime: updatedTime,
+      type: (updatedType as any) || lessonType,
+      order: updatedOrder,
+      body: jsonBody,
+    });
 
     if (saving) return;
     setSaving(true);
@@ -142,19 +172,23 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
           throwOnError: true,
         });
 
-        // Tự động làm mới cache
+        clearDraft(draftKey);
+        toast.success("Cập nhật bài học thành công!");
+
         const refreshRes = await lessonsControllerFindLessons({
           path: { id: trackId },
           throwOnError: true,
         });
-        const fullTrack = queryCache.get<any>(`/tracks/${trackId}`) || {};
-        queryCache.set(`/tracks/${trackId}`, {
-          ...fullTrack,
-          track: {
-            ...(fullTrack.track || {}),
-            lessons: (refreshRes.data as { items?: unknown[] })?.items || [],
-          },
-        });
+        const fullTrack = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
+        if (fullTrack) {
+          queryCache.set(`/tracks/${trackId}`, {
+            ...fullTrack,
+            track: {
+              ...fullTrack.track,
+              lessons: (refreshRes.data as { items?: CachedLesson[] })?.items || [],
+            },
+          });
+        }
       } else if (trackId) {
         const createRes = await lessonsControllerCreateLesson({
           path: { id: trackId },
@@ -168,6 +202,9 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
           throwOnError: true,
         });
 
+        clearDraft(draftKey);
+        toast.success("Tạo bài học mới thành công!");
+
         const createdLesson = createRes.data as { id?: string } | undefined;
         const newLessonId = createdLesson?.id;
 
@@ -176,14 +213,16 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
           throwOnError: true,
         });
 
-        const fullTrack = queryCache.get<any>(`/tracks/${trackId}`) || {};
-        queryCache.set(`/tracks/${trackId}`, {
-          ...fullTrack,
-          track: {
-            ...(fullTrack.track || {}),
-            lessons: (refreshRes.data as { items?: unknown[] })?.items || [],
-          },
-        });
+        const fullTrack = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
+        if (fullTrack) {
+          queryCache.set(`/tracks/${trackId}`, {
+            ...fullTrack,
+            track: {
+              ...fullTrack.track,
+              lessons: (refreshRes.data as { items?: CachedLesson[] })?.items || [],
+            },
+          });
+        }
 
         if (newLessonId) {
           router.replace(`/tracks/${trackId}/lessons/${newLessonId}/edit`);
@@ -208,12 +247,28 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
             saving={saving}
             canSave={true}
             onCancel={() => router.back()}
-            onReset={() => setBody('')}
+            onReset={() => {
+              clearDraft(draftKey);
+              setBody('');
+            }}
             isPreview={!isEditing}
             onPreviewToggle={() => setIsEditing(!isEditing)}
           />
         }
       />
+
+      {uiValidationError && (
+        <div className="mx-4 mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-600 dark:text-red-400 font-medium flex items-center justify-between">
+          <span>⚠️ {uiValidationError}</span>
+          <button
+            type="button"
+            onClick={() => setUiValidationError(null)}
+            className="text-xs font-semibold hover:underline cursor-pointer"
+          >
+            Đóng
+          </button>
+        </div>
+      )}
 
       <div className="flex-1 w-full h-full flex flex-col">
         {isEditing ? (

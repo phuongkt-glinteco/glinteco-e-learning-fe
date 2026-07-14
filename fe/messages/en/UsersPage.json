@@ -39,5 +39,8 @@
   "msg_delete_success": "User deleted successfully",
   "err_fullname_required": "Please enter full name",
   "err_email_required": "Please enter a valid email address",
-  "err_role_required": "Please select a role"
+  "err_role_required": "Please select a role",
+  "select_cohort_placeholder": "Select cohort",
+  "search_cohort": "Search cohort...",
+  "no_cohort_found": "No cohort found."
 }

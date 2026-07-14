@@ -39,5 +39,8 @@
   "msg_delete_success": "Đã xóa người dùng thành công",
   "err_fullname_required": "Vui lòng nhập họ và tên",
   "err_email_required": "Vui lòng nhập địa chỉ email hợp lệ",
-  "err_role_required": "Vui lòng chọn vai trò"
+  "err_role_required": "Vui lòng chọn vai trò",
+  "select_cohort_placeholder": "Chọn cohort",
+  "search_cohort": "Tìm kiếm cohort...",
+  "no_cohort_found": "Không tìm thấy cohort."
 }

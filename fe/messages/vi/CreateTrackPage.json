@@ -68,5 +68,16 @@
   "calloutObjective": "Khối mục tiêu",
   "calloutChallenge": "Khối thử thách",
   "tabs": "Tabs",
-  "details": "Chi tiết"
+  "details": "Chi tiết",
+  "exercisesHeading": "Danh Sách Bài Tập (Exercises)",
+  "documentsHeading": "Tài Liệu Đính Kèm (Relative Documents)",
+  "addExerciseBtn": "Thêm Bài Tập",
+  "addDocumentBtn": "Thêm Tài Liệu",
+  "noExercises": "Chưa có bài tập nào đính kèm bài học này.",
+  "noDocuments": "Chưa có tài liệu đính kèm nào cho bài học này.",
+  "tabContent": "Nội Dung Bài Học",
+  "tabResources": "Bài Tập & Tài Liệu",
+  "submissionsLabel": "lượt nộp",
+  "docUrlPlaceholder": "Nhập đường dẫn URL (https://...)",
+  "docTitlePlaceholder": "Tên tài liệu..."
 }

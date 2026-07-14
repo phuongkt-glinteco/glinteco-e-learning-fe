@@ -9,6 +9,7 @@ import type { LessonDetailDto, ExerciseSummaryDto, DocumentResponseDto } from '@
 import ResourceDocumentPickerDialog from '@/components/features/tracks/exercises/ResourceDocumentPickerDialog';
 import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
+import { useLessonPuckConfig, PuckViewer, isPuckJsonBody, parseBodyToPuckData } from '@/components/puck-editor';
 
 const TYPE_ICON: Record<string, string> = {
   video: 'play_circle',
@@ -20,6 +21,7 @@ const TYPE_ICON: Record<string, string> = {
 
 export default function LessonDetailPage({ trackId, lessonId }: { trackId: string; lessonId: string }) {
   const t = useTranslations('TrackDetailPage');
+  const lessonConfig = useLessonPuckConfig();
   const [lesson, setLesson] = useState<LessonDetailDto | null>(null);
   const [exercises, setExercises] = useState<ExerciseSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,9 +153,18 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
             </div>
             <div className="border-t border-outline-variant pt-6">
               {lesson.body ? (
-                <div className="text-on-surface-variant">
-                  <MarkdownRenderer content={lesson.body} />
-                </div>
+                isPuckJsonBody(lesson.body) ? (
+                  <div className="puck-viewer-container w-full">
+                    <PuckViewer
+                      config={lessonConfig}
+                      data={parseBodyToPuckData(lesson.body, lesson)}
+                    />
+                  </div>
+                ) : (
+                  <div className="text-on-surface-variant">
+                    <MarkdownRenderer content={lesson.body} />
+                  </div>
+                )
               ) : (
                 <p className="text-body-sm text-secondary italic">No content yet.</p>
               )}

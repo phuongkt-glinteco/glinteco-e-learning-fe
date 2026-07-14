@@ -59,6 +59,7 @@ desktop.ini
 
 mini-task/
 /mini-task
+
 .ai-local/
 /fe/.ai/
 /.ai/
@@ -67,3 +68,9 @@ mini-task/
 /tools/
 
 .opencode/
+
+# Local agent configs & issue tracker
+AGENTS.md
+CLAUDE.md
+docs/agents/
+.scratch/

@@ -17,7 +17,7 @@ export function getApiOrigin(baseUrl = getConfiguredApiBaseUrl()) {
 }
 
 export function getApiClientBaseUrl() {
-  return getApiOrigin();
+  return getConfiguredApiBaseUrl();
 }
 
 export function getApiUrl(path: string) {

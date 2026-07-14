@@ -206,27 +206,13 @@ export async function clientFetchAll<T extends unknown[]>(
   return Promise.all(fns.map((fn) => fn())) as Promise<T>;
 }
 
-import {
-  getMockCohortUsersProgress,
-  type CohortUsersProgressResponseDto,
-  type CohortUserProgressItemDto,
-  type CohortUserTrackProgressDto,
-  type CohortUserLessonProgressDto,
-} from '@/mocks/cohort-users-progress';
-
-export type {
-  CohortUsersProgressResponseDto,
-  CohortUserProgressItemDto,
-  CohortUserTrackProgressDto,
-  CohortUserLessonProgressDto,
-};
-
-export async function cohortControllerGetUsersProgress(options: {
-  path: { id: string };
-  query?: { search?: string; page?: number; limit?: number };
-  throwOnError?: boolean;
-}): Promise<{ data: CohortUsersProgressResponseDto }> {
-  return getMockCohortUsersProgress(options.path.id, options.query);
+export interface CohortUserLessonProgressDto {
+  id: string;
+  title: string;
+  order: number;
+  type?: 'video' | 'reading' | 'quiz' | 'coding' | 'assignment';
+  status?: 'completed' | 'in_progress' | 'locked';
+  completedAt?: string;
 }
 
 export { client };

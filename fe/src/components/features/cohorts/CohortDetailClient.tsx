@@ -177,7 +177,7 @@ export function CohortDetailClient({ cohortId }: CohortDetailClientProps) {
         parseAs: 'blob',
         throwOnError: true,
       });
-      const blobPart = res.data instanceof Blob ? res.data : new Blob([res.data]);
+      const blobPart = res.data instanceof Blob ? res.data : new Blob([res.data as BlobPart]);
       const url = window.URL.createObjectURL(blobPart);
       const a = document.createElement('a');
       a.href = url;
@@ -375,11 +375,11 @@ export function CohortDetailClient({ cohortId }: CohortDetailClientProps) {
           cohort={cohort}
           onSuccess={(updated) => {
             setCohort((current) => current
-              ? { ...current, name: updated.name, targetRampDays: updated.targetRampDays }
+              ? { ...current, name: updated.name, targetRampDays: updated.targetRampDays ?? current.targetRampDays }
               : ({
                   id: updated.id,
                   name: updated.name,
-                  targetRampDays: updated.targetRampDays,
+                  targetRampDays: updated.targetRampDays ?? 14,
                   createdAt: new Date().toISOString(),
                 } satisfies CohortDetailDto));
             setIsEditing(false);

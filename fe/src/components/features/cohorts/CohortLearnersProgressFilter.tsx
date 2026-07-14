@@ -14,8 +14,6 @@ import {
 interface CohortLearnersProgressFilterProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  paceFilter: string;
-  onPaceFilterChange: (value: string) => void;
   trackFilter: string;
   onTrackFilterChange: (value: string) => void;
   availableTracks: { id: string; title: string }[];
@@ -24,8 +22,6 @@ interface CohortLearnersProgressFilterProps {
 export function CohortLearnersProgressFilter({
   searchQuery,
   onSearchChange,
-  paceFilter,
-  onPaceFilterChange,
   trackFilter,
   onTrackFilterChange,
   availableTracks = [],
@@ -59,26 +55,6 @@ export function CohortLearnersProgressFilter({
 
       {/* Select Filters */}
       <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
-        {/* Pace Status Filter */}
-        <Select value={paceFilter} onValueChange={onPaceFilterChange}>
-          <SelectTrigger className="w-full sm:w-[180px] h-10 text-xs font-semibold bg-surface border-outline-variant">
-            <SelectValue placeholder={t('filterPaceAll')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all" className="text-xs font-medium">
-              {t('filterPaceAll')}
-            </SelectItem>
-            <SelectItem value="ahead" className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-              {t('filterPaceAhead')}
-            </SelectItem>
-            <SelectItem value="on_track" className="text-xs font-medium text-primary">
-              {t('filterPaceOnTrack')}
-            </SelectItem>
-            <SelectItem value="behind" className="text-xs font-medium text-amber-600 dark:text-amber-400">
-              {t('filterPaceBehind')}
-            </SelectItem>
-          </SelectContent>
-        </Select>
 
         {/* Track Filter */}
         {availableTracks.length > 0 && (

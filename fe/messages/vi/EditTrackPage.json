@@ -36,5 +36,19 @@
   "addLesson": "Thêm Bài Học",
   "noLessonsYet": "Chưa có bài học nào",
   "noLessonsHint": "Kéo thả để sắp xếp lại bài học sau khi thêm.",
-  "lessons": "bài học"
+  "lessons": "bài học",
+  "tagsLabel": "Nhãn Phân Loại (Tags)",
+  "tagPlaceholder": "Chọn hoặc thêm nhãn...",
+  "statusLabel": "Trạng Thái Phát Hành",
+  "statusDraft": "Bản nháp",
+  "statusPublished": "Đã phát hành",
+  "statusArchived": "Lưu trữ",
+  "lessonListHeading": "Danh Sách Bài Học Thuộc Lộ Trình ({count})",
+  "lessonExerciseCount": "{count} bài tập",
+  "manageLessonAction": "Chỉnh sửa bài học",
+  "deleteLessonAction": "Xóa bài học",
+  "confirmDeleteLessonTitle": "Xóa bài học?",
+  "confirmDeleteLessonDesc": "Hành động này sẽ xóa bài học ra khỏi lộ trình. Bạn có chắc chắn muốn xóa?",
+  "deleteLessonConfirmBtn": "Xóa bài học",
+  "saveSuccess": "Đã cập nhật lộ trình thành công!"
 }

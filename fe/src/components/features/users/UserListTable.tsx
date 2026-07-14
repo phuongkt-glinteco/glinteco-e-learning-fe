@@ -2,13 +2,17 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import { Icon } from '@iconify/react';
+import { Users, ChevronsUpDown, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import Skeleton from '@/components/ui/loading/Skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/default/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/default/command';
+import type { CohortSummaryDto } from '@/services/api-client';
 import { UserActionsDropdown } from './UserActionsDropdown';
 import type { UserDto } from './types';
 
 interface UserListTableProps {
   users: UserDto[];
+  cohorts?: CohortSummaryDto[];
   isLoading: boolean;
   total: number;
   page: number;
@@ -17,10 +21,13 @@ interface UserListTableProps {
   onViewUser: (user: UserDto) => void;
   onEditUser: (user: UserDto) => void;
   onDeleteUser: (user: UserDto) => void;
+  onChangeRole: (userId: string, newRole: string) => void;
+  onChangeCohort: (userId: string, newCohort: string) => void;
 }
 
 export function UserListTable({
   users,
+  cohorts = [],
   isLoading,
   total,
   page,
@@ -29,6 +36,8 @@ export function UserListTable({
   onViewUser,
   onEditUser,
   onDeleteUser,
+  onChangeRole,
+  onChangeCohort,
 }: UserListTableProps) {
   const t = useTranslations('UsersPage');
 
@@ -64,7 +73,7 @@ export function UserListTable({
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <div className="w-12 h-12 rounded-full bg-surface-container-low dark:bg-surface-container flex items-center justify-center">
-              <Icon icon="lucide:users" className="w-6 h-6 text-on-surface-variant" />
+              <Users className="w-6 h-6 text-on-surface-variant" />
             </div>
             <p className="text-sm font-medium text-on-surface">{t('searchPlaceholder')}</p>
             <p className="text-xs text-on-surface-variant">Không có dữ liệu người dùng phù hợp với bộ lọc hiện tại.</p>
@@ -123,21 +132,54 @@ export function UserListTable({
                       </div>
                     </td>
 
-                    {/* Role Badge */}
+                    {/* Role Dropdown */}
                     <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${roleBadgeCls}`}
+                      <select
+                        value={user.role.toLowerCase()}
+                        onChange={(e) => onChangeRole(user.id, e.target.value)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border ${roleBadgeCls} focus:ring-2 focus:ring-primary focus:outline-none appearance-none cursor-pointer`}
                       >
-                        <Icon icon={roleIcon} className="w-3.5 h-3.5" />
-                        <span>{user.role === 'Admin' ? t('role_admin') : t('role_learner')}</span>
-                      </span>
+                        <option value="admin">{t('role_admin')}</option>
+                        <option value="learner">{t('role_learner')}</option>
+                      </select>
                     </td>
 
-                    {/* Cohort Name */}
+                    {/* Cohort Dropdown */}
                     <td className="px-6 py-4">
-                      <span className="text-sm text-on-surface font-medium">
-                        {user.cohortName}
-                      </span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="flex items-center justify-between w-full max-w-[180px] gap-2 text-sm text-on-surface font-medium bg-transparent border border-transparent hover:border-outline-variant focus:border-primary rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer">
+                            <span className="truncate">{user.cohortName || t('select_cohort_placeholder', { fallback: 'Select cohort' })}</span>
+                            <ChevronsUpDown className="w-3.5 h-3.5 opacity-50 shrink-0" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[220px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder={t('search_cohort', { fallback: 'Search cohort...' })} />
+                            <CommandList>
+                              <CommandEmpty>{t('no_cohort_found', { fallback: 'No cohort found.' })}</CommandEmpty>
+                              <CommandGroup>
+                                {cohorts?.map((cohort) => (
+                                  <CommandItem
+                                    key={cohort.id}
+                                    value={cohort.name}
+                                    onSelect={() => {
+                                      onChangeCohort(user.id, cohort.id);
+                                    }}
+                                  >
+                                    <Check
+                                      className={`mr-2 h-4 w-4 ${
+                                        user.cohortName === cohort.name ? "opacity-100" : "opacity-0"
+                                      }`}
+                                    />
+                                    {cohort.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </td>
 
                     {/* Actions Menu */}
@@ -176,7 +218,7 @@ export function UserListTable({
               className="p-2 border border-outline-variant rounded-lg hover:bg-surface-container-low dark:hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-on-surface-variant cursor-pointer"
               aria-label="Previous page"
             >
-              <Icon icon="lucide:chevron-left" className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
 
             {getPageNumbers().map((p, idx) =>
@@ -207,7 +249,7 @@ export function UserListTable({
               className="p-2 border border-outline-variant rounded-lg hover:bg-surface-container-low dark:hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-on-surface-variant cursor-pointer"
               aria-label="Next page"
             >
-              <Icon icon="lucide:chevron-right" className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>

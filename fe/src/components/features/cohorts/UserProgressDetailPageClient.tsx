@@ -23,6 +23,7 @@ import {
   cohortControllerGetUsersProgress,
   type CohortUserProgressItemDto,
 } from '@/services/api-client';
+import { getLearnerProgressMetrics } from '@/lib/cohort-progress';
 
 interface UserProgressDetailPageClientProps {
   userId: string;
@@ -96,10 +97,9 @@ export function UserProgressDetailPageClient({ userId }: UserProgressDetailPageC
     );
   }
 
-  const hue = learner.avatarHue ?? 210;
+  const hue = typeof learner.avatarHue === 'number' ? learner.avatarHue : 210;
   const initial = (learner.name || 'U').charAt(0).toUpperCase();
-  const isAhead = learner.paceStatus === 'ahead';
-  const isBehind = learner.paceStatus === 'behind';
+  const { totalLessonsCount, completedLessonsCount, overallProgressPct } = getLearnerProgressMetrics(learner);
 
   return (
     <div className="space-y-6">
@@ -144,7 +144,7 @@ export function UserProgressDetailPageClient({ userId }: UserProgressDetailPageC
                   {learner.name}
                 </h1>
                 <Badge variant="outline" className="text-xs font-bold bg-surface px-2.5 py-0.5">
-                  {learner.title || learner.role || t('learnerRole')}
+                  {(learner as Record<string, any>).title || (learner as Record<string, any>).role || t('learnerRole')}
                 </Badge>
               </div>
               <p className="text-sm text-on-surface-variant font-medium">
@@ -159,32 +159,28 @@ export function UserProgressDetailPageClient({ userId }: UserProgressDetailPageC
               <Icon icon="lucide:award" className="w-5 h-5" />
               <span>Lv. {learner.level} ({learner.xp.toLocaleString()} XP)</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-sm">
-              <Icon icon="lucide:flame" className="w-5 h-5 fill-amber-500" />
-              <span>{t('streakDaysLabel', { days: learner.streakDays })}</span>
-            </div>
           </div>
         </div>
       </Card>
 
       {/* 3. KPI Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="p-5 border-outline-variant bg-surface space-y-1.5 shadow-sm">
           <div className="text-xs font-bold uppercase text-on-surface-variant tracking-wider">
             {t('modalOverallPct')}
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-3xl font-black text-primary">
-              {Math.round(learner.overallProgressPct)}%
+              {Math.round(overallProgressPct)}%
             </span>
             <span className="text-xs font-semibold text-on-surface-variant">
-              {learner.completedLessonsCount} / {learner.totalLessonsCount}
+              {completedLessonsCount} / {totalLessonsCount}
             </span>
           </div>
           <div className="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden mt-2">
             <div
               className="h-full rounded-full bg-primary transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, learner.overallProgressPct))}%` }}
+              style={{ width: `${Math.min(100, Math.max(0, overallProgressPct))}%` }}
             />
           </div>
         </Card>
@@ -195,64 +191,14 @@ export function UserProgressDetailPageClient({ userId }: UserProgressDetailPageC
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-3xl font-black text-on-surface">
-              {learner.completedLessonsCount}
+              {completedLessonsCount}
             </span>
             <span className="text-xs font-semibold text-on-surface-variant">
-              {t('outOfTotalLessons', { total: learner.totalLessonsCount })}
+              {t('outOfTotalLessons', { total: totalLessonsCount })}
             </span>
           </div>
           <p className="text-xs text-on-surface-variant/80 pt-1">
             {t('completedLessonsSubtext')}
-          </p>
-        </Card>
-
-        <Card
-          className={`p-5 border space-y-1.5 shadow-sm ${
-            isAhead
-              ? 'border-emerald-500/30 bg-emerald-500/10'
-              : isBehind
-              ? 'border-amber-500/30 bg-amber-500/10'
-              : 'border-primary/20 bg-primary/5'
-          }`}
-        >
-          <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-            {t('modalPaceComparison')}
-          </div>
-          <div className="flex items-center gap-2.5 pt-0.5">
-            <Icon
-              icon={
-                isAhead
-                  ? 'lucide:trending-up'
-                  : isBehind
-                  ? 'lucide:alert-circle'
-                  : 'lucide:check-circle-2'
-              }
-              className={`w-6 h-6 ${
-                isAhead
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : isBehind
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-primary'
-              }`}
-            />
-            <span
-              className={`text-lg font-black ${
-                isAhead
-                  ? 'text-emerald-700 dark:text-emerald-300'
-                  : isBehind
-                  ? 'text-amber-700 dark:text-amber-300'
-                  : 'text-on-surface'
-              }`}
-            >
-              {isAhead
-                ? t('paceAheadDays', { days: Math.abs(learner.paceDeltaDays) })
-                : isBehind
-                ? t('paceBehindDays', { days: Math.abs(learner.paceDeltaDays) })
-                : t('paceOnTrackLabel')}
-            </span>
-          </div>
-          <p className="text-xs text-on-surface-variant/80 pt-1">
-            {t('paceComparisonSubtext')}
           </p>
         </Card>
       </div>

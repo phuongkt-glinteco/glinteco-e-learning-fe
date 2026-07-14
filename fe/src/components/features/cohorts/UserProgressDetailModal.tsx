@@ -12,7 +12,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/default/avatar';
 import { Badge } from '@/components/ui/default/badge';
 import { Card } from '@/components/ui/default/card';
 import { CohortUserProgressTimeline } from './CohortUserProgressTimeline';
-import type { CohortUserProgressItemDto } from '@/mocks/cohort-users-progress';
+import type { CohortUserProgressItemDto } from '@/services/api-client';
+import { getLearnerProgressMetrics } from '@/lib/cohort-progress';
 
 interface UserProgressDetailModalProps {
   learner: CohortUserProgressItemDto | null;
@@ -29,11 +30,10 @@ export function UserProgressDetailModal({
 
   if (!learner) return null;
 
-  const hue = learner.avatarHue ?? 210;
+  const hue = typeof learner.avatarHue === 'number' ? learner.avatarHue : 210;
   const initial = (learner.name || 'U').charAt(0).toUpperCase();
 
-  const isAhead = learner.paceStatus === 'ahead';
-  const isBehind = learner.paceStatus === 'behind';
+  const { totalLessonsCount, completedLessonsCount, overallProgressPct } = getLearnerProgressMetrics(learner);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -56,7 +56,7 @@ export function UserProgressDetailModal({
                     {learner.name}
                   </DialogTitle>
                   <Badge variant="outline" className="text-xs font-semibold bg-surface">
-                    {learner.title || learner.role || t('learnerRole')}
+                    {(learner as Record<string, any>).title || (learner as Record<string, any>).role || t('learnerRole')}
                   </Badge>
                 </div>
                 <div className="text-xs text-on-surface-variant font-medium">
@@ -71,10 +71,6 @@ export function UserProgressDetailModal({
                 <Icon icon="lucide:award" className="w-4 h-4" />
                 <span>Lv. {learner.level} ({learner.xp.toLocaleString()} XP)</span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
-                <Icon icon="lucide:flame" className="w-4 h-4 fill-amber-500" />
-                <span>{learner.streakDays}d streak</span>
-              </div>
             </div>
           </div>
         </DialogHeader>
@@ -82,17 +78,17 @@ export function UserProgressDetailModal({
         {/* Modal Content */}
         <div className="p-6 space-y-6">
           {/* KPI Cards Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card className="p-4 border-outline-variant bg-surface-container/20 space-y-1">
               <div className="text-xs font-bold uppercase text-on-surface-variant tracking-wider">
                 {t('modalOverallPct')}
               </div>
               <div className="flex items-baseline justify-between">
                 <span className="text-2xl font-black text-primary">
-                  {Math.round(learner.overallProgressPct)}%
+                  {Math.round(overallProgressPct)}%
                 </span>
                 <span className="text-xs font-semibold text-on-surface-variant">
-                  {learner.completedLessonsCount} / {learner.totalLessonsCount} bài
+                  {completedLessonsCount} / {totalLessonsCount} bài
                 </span>
               </div>
             </Card>
@@ -103,57 +99,10 @@ export function UserProgressDetailModal({
               </div>
               <div className="flex items-baseline justify-between">
                 <span className="text-2xl font-black text-on-surface">
-                  {learner.completedLessonsCount}
+                  {completedLessonsCount}
                 </span>
                 <span className="text-xs font-semibold text-on-surface-variant">
-                  tổng {learner.totalLessonsCount} bài
-                </span>
-              </div>
-            </Card>
-
-            <Card
-              className={`p-4 border space-y-1 ${
-                isAhead
-                  ? 'border-emerald-500/30 bg-emerald-500/10'
-                  : isBehind
-                  ? 'border-amber-500/30 bg-amber-500/10'
-                  : 'border-primary/20 bg-primary/5'
-              }`}
-            >
-              <div className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
-                {t('modalPaceComparison')}
-              </div>
-              <div className="flex items-center gap-2 pt-0.5">
-                <Icon
-                  icon={
-                    isAhead
-                      ? 'lucide:trending-up'
-                      : isBehind
-                      ? 'lucide:alert-circle'
-                      : 'lucide:check-circle'
-                  }
-                  className={`w-5 h-5 ${
-                    isAhead
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : isBehind
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-primary'
-                  }`}
-                />
-                <span
-                  className={`text-sm font-black ${
-                    isAhead
-                      ? 'text-emerald-700 dark:text-emerald-300'
-                      : isBehind
-                      ? 'text-amber-700 dark:text-amber-300'
-                      : 'text-on-surface'
-                  }`}
-                >
-                  {isAhead
-                    ? t('paceAheadDays', { days: Math.abs(learner.paceDeltaDays) })
-                    : isBehind
-                    ? t('paceBehindDays', { days: Math.abs(learner.paceDeltaDays) })
-                    : t('paceOnTrackLabel')}
+                  tổng {totalLessonsCount} bài
                 </span>
               </div>
             </Card>

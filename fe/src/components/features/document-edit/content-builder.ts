@@ -11,7 +11,7 @@ export function buildContentString(data: {
   description?: string;
   // Guide
   guideObjective?: string;
-  guidePrerequisites?: Array<{ id: string; name?: string; title?: string }>;
+  guidePrerequisites?: any[];
   guideSteps?: string;
   guideExpectedResult?: string;
   guideRelatedDocs?: Array<{ id: string; title?: string; name?: string; kind?: string }>;
@@ -19,7 +19,7 @@ export function buildContentString(data: {
 
   // Tutorial
   tutorialLearningObjectives?: string[];
-  tutorialPrerequisites?: Array<{ id: string; name?: string; title?: string }>;
+  tutorialPrerequisites?: any[];
   tutorialDuration?: number;
   tutorialDifficulty?: string;
   tutorialStepsStr?: string;
@@ -31,7 +31,7 @@ export function buildContentString(data: {
   // Runbook
   runbookTrigger?: string;
   runbookImpact?: string;
-  runbookPrerequisites?: string[] | Array<{ id: string; name?: string; title?: string }>;
+  runbookPrerequisites?: any[];
   runbookProcedure?: string;
   runbookValidation?: string;
   runbookRollback?: string;

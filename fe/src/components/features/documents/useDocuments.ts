@@ -8,7 +8,7 @@ import {
   documentsControllerBookmark,
   documentsControllerUnbookmark,
 } from '@/services/api-client';
-import type { DocumentListResponseDto } from '@/services/api-client';
+import type { DocumentListResponseDto, DocumentsControllerFindAllData } from '@/services/api-client';
 import {
   normalizeDocumentListItems,
   normalizeDocumentTags,
@@ -48,7 +48,7 @@ export function useDocuments({ search, selectedKind, selectedTags, bookmarkedOnl
           kind: (selectedKind as DocumentKind) || undefined,
           tags: tagsQuery,
           bookmarked: bookmarkedOnly || undefined,
-        },
+        } as unknown as DocumentsControllerFindAllData["query"],
         throwOnError: true,
       });
       const data = res.data as DocumentListResponseDto;

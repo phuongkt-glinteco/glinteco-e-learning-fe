@@ -20,11 +20,7 @@ function DocumentPickerFieldWrapper({
 
   const handleSelectDocuments = (items: DocumentItem[]) => {
     const doc = items[0];
-    if (!doc) {
-      onChange("");
-      return;
-    }
-    onChange(doc.id || "");
+    onChange(doc?.id || "");
 
     if (puck?.appState && puck.dispatch) {
       const selector = puck.appState.ui.itemSelector;
@@ -33,15 +29,27 @@ function DocumentPickerFieldWrapper({
         const newContent = [...(currentData.content || [])];
         const currentBlock = newContent[selector.index];
         if (currentBlock && currentBlock.type === "ReferenceDocumentBlock") {
+          const updatedProps = doc
+            ? {
+                documentId: doc.id || "",
+                altText: doc.title || "",
+                url: doc.url || "",
+                kind: doc.kind?.toLowerCase() || "reference",
+                tags: doc.tags || [],
+              }
+            : {
+                documentId: "",
+                altText: "Tài liệu tham khảo hệ thống",
+                url: "#",
+                kind: "reference",
+                tags: [],
+              };
+
           const updatedBlock = {
             ...currentBlock,
             props: {
               ...currentBlock.props,
-              documentId: doc.id || "",
-              altText: doc.title || "",
-              url: doc.url || "",
-              kind: doc.kind?.toLowerCase() || "reference",
-              tags: doc.tags || [],
+              ...updatedProps,
             },
           };
           puck.dispatch({
@@ -64,6 +72,11 @@ function DocumentPickerFieldWrapper({
   );
 }
 
+const HIDDEN_FIELD = {
+  type: "custom" as const,
+  render: () => <></>,
+};
+
 export const ReferenceDocumentBlock: ComponentConfig<
   LessonBlockProps["ReferenceDocumentBlock"]
 > = {
@@ -79,26 +92,11 @@ export const ReferenceDocumentBlock: ComponentConfig<
         />
       ),
     },
-    altText: {
-      type: "custom",
-      render: () => <></>,
-    },
-    url: {
-      type: "custom",
-      render: () => <></>,
-    },
-    kind: {
-      type: "custom",
-      render: () => <></>,
-    },
-    description: {
-      type: "custom",
-      render: () => <></>,
-    },
-    tags: {
-      type: "custom",
-      render: () => <></>,
-    },
+    altText: HIDDEN_FIELD,
+    url: HIDDEN_FIELD,
+    kind: HIDDEN_FIELD,
+    description: HIDDEN_FIELD,
+    tags: HIDDEN_FIELD,
   },
   defaultProps: {
     altText: "Tài liệu tham khảo hệ thống",

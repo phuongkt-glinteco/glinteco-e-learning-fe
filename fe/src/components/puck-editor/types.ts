@@ -121,7 +121,7 @@ export interface LessonBlockProps {
     documentId?: string;
     url: string;
     altText: string;
-    kind?: "guide" | "reference" | "runbook" | "tutorial" | "link" | string;
+    kind?: "guide" | "reference" | "runbook" | "tutorial" | "link" | (string & {});
     description?: string;
     tags?: Array<{ id: string; name: string }>;
   };

@@ -27,9 +27,9 @@ import { mockAiGenerateLesson } from '@/mocks/ai-service';
 import { Sparkles, Loader2 } from 'lucide-react';
 
 type LessonEditorPageProps = {
-  trackId: string;
+  trackId?: string;
   lessonId?: string;
-  editIndex?: string;
+  editIndex?: number | string;
 };
 
 type CachedLesson = LessonProgressItemDto & {
@@ -112,12 +112,13 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     if (lessonId) return;
     if (!trackId || editIndex === undefined) return;
     const entry = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
-    if (entry?.track?.lessons?.[editIndex] && !getDraft(draftKey)) {
-      const lesson = entry.track.lessons[editIndex];
+    const idx = Number(editIndex);
+    if (entry?.track?.lessons?.[idx] && !getDraft(draftKey)) {
+      const lesson = entry.track.lessons[idx];
       setTitle(lesson.title ?? '');
       setDescription(lesson.description ?? '');
       setLessonType((lesson.type as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment') ?? 'reading');
-      setOrder(lesson.order ?? editIndex + 1);
+      setOrder(lesson.order ?? idx + 1);
       setBody(lesson.body ?? '');
       setEstimatedTime(lesson.estimatedTime ?? '15 min');
     }

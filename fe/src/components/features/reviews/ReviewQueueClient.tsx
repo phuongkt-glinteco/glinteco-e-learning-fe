@@ -145,11 +145,11 @@ export default function ReviewQueueClient({ initialData, initialNextCursor, init
     }
   }
 
-  function getBadgeVariant(status: string) {
+  function getBadgeVariant(status: string): any {
     switch (status) {
       case 'submitted': return 'default';
       case 'changes': return 'destructive';
-      case 'approved': return 'success';
+      case 'approved': return 'default';
       default: return 'secondary';
     }
   }

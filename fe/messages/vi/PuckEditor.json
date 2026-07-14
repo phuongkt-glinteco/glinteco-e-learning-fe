@@ -132,7 +132,22 @@
       "exerciseTypeFill": "Điền khuyết",
       "exerciseIdLabel": "ID",
       "draftBadge": "Bản nháp",
-      "completeDraftBtn": "Hoàn thiện"
+      "completeDraftBtn": "Hoàn thiện",
+      "editExerciseBtn": "Sửa bài tập",
+      "createDraftDirectBtn": "Tạo Draft nhanh",
+      "createFullDtoBtn": "Tạo đầy đủ (DTO)",
+      "fullPrCreateTitle": "Tạo bài tập PR đầy đủ",
+      "fullPrEditTitle": "Sửa bài tập PR",
+      "tagLabel": "Tag chuyên môn",
+      "difficultyLabel": "Độ khó",
+      "estimatedTimeLabel": "Thời gian ước tính",
+      "xpLabel": "Điểm thưởng (XP)",
+      "overviewLabel": "Tổng quan chi tiết",
+      "objectivesLabel": "Mục tiêu (Acceptance Criteria)",
+      "addObjectiveBtn": "Thêm mục tiêu",
+      "stepsLabel": "Các bước thực hiện",
+      "addStepBtn": "Thêm bước",
+      "hintLabel": "Gợi ý"
     },
     "exerciseEmbed": {
       "defaultTitle": "Bài tập đính kèm",

@@ -46,5 +46,9 @@
   "lessonListHeading": "Danh Sách Bài Học Thuộc Lộ Trình ({count})",
   "lessonExerciseCount": "{count} bài tập",
   "manageLessonAction": "Chỉnh sửa bài học",
+  "deleteLessonAction": "Xóa bài học",
+  "confirmDeleteLessonTitle": "Xóa bài học?",
+  "confirmDeleteLessonDesc": "Hành động này sẽ xóa bài học ra khỏi lộ trình. Bạn có chắc chắn muốn xóa?",
+  "deleteLessonConfirmBtn": "Xóa bài học",
   "saveSuccess": "Đã cập nhật lộ trình thành công!"
 }

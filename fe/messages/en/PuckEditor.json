@@ -132,7 +132,22 @@
       "defaultStep1": "Read the question carefully",
       "defaultStep2": "Select or fill in the correct answer",
       "defaultStep3": "Submit for automatic grading",
-      "saveFailed": "Failed to save exercise!"
+      "saveFailed": "Failed to save exercise!",
+      "editExerciseBtn": "Edit exercise",
+      "createDraftDirectBtn": "Create draft quickly",
+      "createFullDtoBtn": "Create full (DTO)",
+      "fullPrCreateTitle": "Create full PR exercise",
+      "fullPrEditTitle": "Edit PR exercise",
+      "tagLabel": "Tag",
+      "difficultyLabel": "Difficulty",
+      "estimatedTimeLabel": "Estimated time",
+      "xpLabel": "XP reward",
+      "overviewLabel": "Overview",
+      "objectivesLabel": "Objectives (Acceptance Criteria)",
+      "addObjectiveBtn": "Add objective",
+      "stepsLabel": "Steps",
+      "addStepBtn": "Add step",
+      "hintLabel": "Hint"
     },
     "exerciseEmbed": {
       "defaultTitle": "Attached exercise",

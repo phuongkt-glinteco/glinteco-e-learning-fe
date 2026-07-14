@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Icon } from '@iconify/react';
 import { Badge } from '@/components/ui/default/badge';
 import { formatDateTimeByZone } from '@/lib/timezone';
-import type { CohortUserLessonProgressDto } from '@/mocks/cohort-users-progress';
+import type { CohortUserLessonProgressDto } from '@/services/api-client';
 
 interface CohortUserLessonBreakdownProps {
   lessons: CohortUserLessonProgressDto[];

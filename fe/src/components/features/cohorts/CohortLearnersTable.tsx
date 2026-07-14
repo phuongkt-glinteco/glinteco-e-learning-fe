@@ -21,9 +21,18 @@ import { CohortLearnersProgressFilter } from './CohortLearnersProgressFilter';
 import { UserProgressDetailModal } from './UserProgressDetailModal';
 import {
   cohortControllerGetUsersProgress,
+  cohortControllerFindAll,
   type CohortUserProgressItemDto,
   type UserProfileDto,
+  type CohortSummaryDto,
 } from '@/services/api-client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/default/select';
 import { getLearnerProgressMetrics, getCohortSummaryMetrics } from '@/lib/cohort-progress';
 
 export type CohortLearnerItem = Partial<UserProfileDto> & {
@@ -65,9 +74,32 @@ export function CohortLearnersTable({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Selected Cohort switcher state
+  const [cohorts, setCohorts] = useState<CohortSummaryDto[]>([]);
   const [selectedCohortId, setSelectedCohortId] = useState(cohortId);
 
+  useEffect(() => {
+    async function loadCohorts() {
+      try {
+        const res = await cohortControllerFindAll();
+        const list = res.data?.data || [];
+        setCohorts(list);
+        const validUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (list.length > 0 && (!selectedCohortId || !validUUID.test(selectedCohortId))) {
+          setSelectedCohortId(list[0].id);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadCohorts();
+  }, []);
+
   const fetchProgressData = useCallback(async () => {
+    const validUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!selectedCohortId || !validUUID.test(selectedCohortId)) {
+      setIsProgressLoading(false);
+      return;
+    }
     setIsProgressLoading(true);
     setProgressError(null);
     try {
@@ -130,11 +162,11 @@ export function CohortLearnersTable({
     setIsModalOpen(true);
   };
 
-  const mockCohortList = [
-    { id: 'cohort-1', name: cohortName || 'Frontend Specialists Q3 2026' },
-    { id: 'cohort-2', name: 'Backend Architects Q3 2026' },
-    { id: 'cohort-3', name: 'Fullstack Bootcamp Q2 2026' },
-  ];
+  const displayCohortList = cohorts.length > 0
+    ? cohorts.map((c) => ({ id: c.id, name: c.name }))
+    : cohortName && selectedCohortId
+    ? [{ id: selectedCohortId, name: cohortName }]
+    : [];
 
   if (propLoading || isProgressLoading) {
     return (
@@ -184,7 +216,7 @@ export function CohortLearnersTable({
       <CohortProgressSummaryBanner
         cohortId={selectedCohortId}
         cohortName={cohortName}
-        cohortList={mockCohortList}
+        cohortList={displayCohortList}
         onSelectCohort={(newId) => setSelectedCohortId(newId)}
         avgProgressPct={summaryMetrics.avgProgressPct}      />
 
@@ -217,7 +249,8 @@ export function CohortLearnersTable({
                   </TableHead>
                   <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5">
                     {t('learnerColProgress')}
-                  </TableHead>                  <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5">
+                  </TableHead>
+                  <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5">
                     {t('learnerColLevel')}
                   </TableHead>
                   <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5 pr-6 text-right">
@@ -227,13 +260,12 @@ export function CohortLearnersTable({
               </TableHeader>
               <TableBody className="divide-y divide-outline-variant text-sm text-on-surface">
                 {filteredLearners.map((learner) => {
-                  const hue = learner.avatarHue ?? 210;
+                  const hue = typeof learner.avatarHue === 'number' ? learner.avatarHue : 210;
                   const initial = (learner.name || 'U').charAt(0).toUpperCase();
                   const { totalLessonsCount, completedLessonsCount, overallProgressPct } = getLearnerProgressMetrics(learner, trackFilter);
 
                   return (
                     <TableRow key={learner.userId} className="hover:bg-surface-container-highest/30 transition-colors group">
-                      {/* Learner Info */}
                       <TableCell className="py-4 pl-6 font-medium">
                         <Link
                           href={`/admin/progress/${learner.userId}?cohortId=${selectedCohortId}`}
@@ -257,8 +289,6 @@ export function CohortLearnersTable({
                           </div>
                         </Link>
                       </TableCell>
-
-                      {/* Overall Progress Meter */}
                       <TableCell className="py-4 min-w-[180px]">
                         <div className="space-y-1.5 max-w-[200px]">
                           <div className="flex items-center justify-between text-xs">
@@ -277,8 +307,6 @@ export function CohortLearnersTable({
                           </div>
                         </div>
                       </TableCell>
-
-                      {/* Level & XP */}
                       <TableCell className="py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Badge
@@ -295,8 +323,6 @@ export function CohortLearnersTable({
                           </Badge>
                         </div>
                       </TableCell>
-
-                      {/* Action Button */}
                       <TableCell className="py-4 pr-6 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2">
                           <Link href={`/admin/progress/${learner.userId}?cohortId=${selectedCohortId}`}>

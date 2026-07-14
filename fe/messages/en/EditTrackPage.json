@@ -46,5 +46,9 @@
   "lessonListHeading": "Track Lessons ({count})",
   "lessonExerciseCount": "{count} exercises",
   "manageLessonAction": "Edit lesson",
+  "deleteLessonAction": "Delete lesson",
+  "confirmDeleteLessonTitle": "Delete lesson?",
+  "confirmDeleteLessonDesc": "This action will remove the lesson from this track. Are you sure?",
+  "deleteLessonConfirmBtn": "Delete lesson",
   "saveSuccess": "Track updated successfully!"
 }

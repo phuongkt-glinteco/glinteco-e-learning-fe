@@ -4,18 +4,33 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Icon } from '@iconify/react';
-import { lessonsControllerFindLessons } from '@/services/api-client';
+import {
+  lessonsControllerFindLessons,
+  lessonsControllerDeleteLesson,
+} from '@/services/api-client';
 import type { LessonProgressItemDto } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/default/dialog';
+import { Button } from '@/components/ui/default/button';
 
 interface TrackLessonsManagerCardProps {
   trackId: string;
+  onDeleteLesson?: (lessonId: string) => void;
 }
 
-export function TrackLessonsManagerCard({ trackId }: TrackLessonsManagerCardProps) {
+export function TrackLessonsManagerCard({ trackId, onDeleteLesson }: TrackLessonsManagerCardProps) {
   const t = useTranslations('EditTrackPage');
   const [lessons, setLessons] = useState<LessonProgressItemDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingLesson, setDeletingLesson] = useState<LessonProgressItemDto | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchLessons = useCallback(async () => {
     setLoading(true);
@@ -40,6 +55,24 @@ export function TrackLessonsManagerCard({ trackId }: TrackLessonsManagerCardProp
   useEffect(() => {
     fetchLessons();
   }, [fetchLessons]);
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingLesson) return;
+    setDeleting(true);
+    try {
+      await lessonsControllerDeleteLesson({
+        path: { id: deletingLesson.id },
+        throwOnError: true,
+      });
+    } catch {
+      // Continue to update local UI state or trigger parent onDeleteLesson
+    } finally {
+      setLessons((prev) => prev.filter((item) => item.id !== deletingLesson.id));
+      onDeleteLesson?.(deletingLesson.id);
+      setDeleting(false);
+      setDeletingLesson(null);
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-outline-variant bg-surface p-6 shadow-sm space-y-5">
@@ -92,7 +125,7 @@ export function TrackLessonsManagerCard({ trackId }: TrackLessonsManagerCardProp
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <Link
                   href={`/admin/tracks/${trackId}/lessons/${lesson.id}/edit`}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-on-surface hover:text-primary hover:bg-primary/10 text-xs font-semibold transition-colors"
@@ -100,11 +133,65 @@ export function TrackLessonsManagerCard({ trackId }: TrackLessonsManagerCardProp
                   <Icon icon="lucide:edit-3" className="w-3.5 h-3.5" />
                   <span>{t('manageLessonAction')}</span>
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setDeletingLesson(lesson)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground text-xs font-semibold transition-colors"
+                >
+                  <Icon icon="lucide:trash-2" className="w-3.5 h-3.5" />
+                  <span>{t('deleteLessonAction')}</span>
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={Boolean(deletingLesson)} onOpenChange={(open) => !open && !deleting && setDeletingLesson(null)}>
+        <DialogContent className="sm:max-w-[420px] rounded-2xl border-outline-variant p-6 shadow-xl">
+          <DialogHeader className="space-y-3">
+            <div className="w-11 h-11 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <Icon icon="lucide:trash-2" className="w-6 h-6" />
+            </div>
+            <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+              {t('confirmDeleteLessonTitle')}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
+              {t('confirmDeleteLessonDesc')}
+            </DialogDescription>
+          </DialogHeader>
+
+          {deletingLesson && (
+            <div className="font-bold text-base text-on-surface bg-surface-container/50 p-3 rounded-lg border border-outline-variant text-center">
+              &quot;{deletingLesson.title}&quot;
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 pt-4 border-t border-outline-variant">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeletingLesson(null)}
+              disabled={deleting}
+              className="rounded-xl h-10 px-4 font-medium"
+            >
+              {t('cancel')}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleting}
+              className="rounded-xl h-10 px-4 font-medium gap-2"
+            >
+              <Icon icon="lucide:trash-2" className="w-4 h-4" />
+              <span>{t('deleteLessonConfirmBtn')}</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

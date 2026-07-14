@@ -30,7 +30,7 @@ export function UserProgressDetailModal({
 
   if (!learner) return null;
 
-  const hue = learner.avatarHue ?? 210;
+  const hue = typeof learner.avatarHue === 'number' ? learner.avatarHue : 210;
   const initial = (learner.name || 'U').charAt(0).toUpperCase();
 
   const { totalLessonsCount, completedLessonsCount, overallProgressPct } = getLearnerProgressMetrics(learner);
@@ -56,7 +56,7 @@ export function UserProgressDetailModal({
                     {learner.name}
                   </DialogTitle>
                   <Badge variant="outline" className="text-xs font-semibold bg-surface">
-                    {learner.title || learner.role || t('learnerRole')}
+                    {(learner as Record<string, any>).title || (learner as Record<string, any>).role || t('learnerRole')}
                   </Badge>
                 </div>
                 <div className="text-xs text-on-surface-variant font-medium">

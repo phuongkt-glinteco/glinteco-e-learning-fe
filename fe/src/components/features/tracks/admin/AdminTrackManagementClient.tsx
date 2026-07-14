@@ -358,12 +358,7 @@ export function AdminTrackManagementClient({ trackId }: AdminTrackManagementClie
           {/* Lessons Manager */}
           <TrackLessonsManagerCard trackId={trackId} />
 
-          {/* Curriculum Roadmap */}
-          <AdminCurriculumRoadmap
-            trackId={trackId}
-            lessons={lessonsWithStatus}
-            onDeleteLesson={handleDeleteLesson}
-          />
+          
         </div>
 
         <div className="space-y-6">

@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import {
-  Plus, Code, Loader2, ListChecks, FileText, Check, Trash2,
+  Plus, Code, Loader2, ListChecks, FileText, Check, Trash2, Pencil,
 } from "lucide-react";
 import { exercisesControllerCreate } from "@/services/api-client";
 import type { ExerciseDetailDto } from "@/services/client";
@@ -256,19 +256,27 @@ const TypePickerDialog: React.FC<{
   );
 };
 
-// ─── PR Create Modal (always draft) ────────────────────────────────
+// ─── Full PR Create/Edit Modal (Full DTO fields) ────────────────────
 
-const PRCreateModal: React.FC<{
+const FullPRCreateModal: React.FC<{
   open: boolean;
   onClose: () => void;
   trackId: string;
   onSaved: (data: ExerciseData) => void;
-  mode?: "create" | "complete";
+  mode?: "create" | "complete" | "edit";
   initData?: Partial<ExerciseData> | null;
 }> = ({ open, onClose, trackId, onSaved, mode = "create", initData }) => {
   const t = useTranslations("PuckEditor.Common.ExerciseSelector");
   const [title, setTitle] = useState("");
+  const [tag, setTag] = useState("pr");
+  const [difficulty, setDifficulty] = useState<"Beginner" | "Intermediate" | "Advanced">("Beginner");
+  const [estimatedTime, setEstimatedTime] = useState("30 mins");
+  const [xp, setXp] = useState<number | string>(20);
   const [brief, setBrief] = useState("");
+  const [overview, setOverview] = useState("");
+  const [objectives, setObjectives] = useState<string[]>([""]);
+  const [steps, setSteps] = useState<string[]>([""]);
+  const [hint, setHint] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -277,11 +285,22 @@ const PRCreateModal: React.FC<{
     setTitle(initData?.title || "");
     setBrief(initData?.previewData?.brief || "");
     setRepoUrl(initData?.previewData?.repoUrl || "");
+    setXp(initData?.xp ?? 20);
   }, [open, initData]);
+
+  const handleAddObjective = () => setObjectives((prev) => [...prev, ""]);
+  const handleRemoveObjective = (idx: number) => setObjectives((prev) => prev.filter((_, i) => i !== idx));
+  const handleObjectiveChange = (idx: number, val: string) =>
+    setObjectives((prev) => prev.map((item, i) => (i === idx ? val : item)));
+
+  const handleAddStep = () => setSteps((prev) => [...prev, ""]);
+  const handleRemoveStep = (idx: number) => setSteps((prev) => prev.filter((_, i) => i !== idx));
+  const handleStepChange = (idx: number, val: string) =>
+    setSteps((prev) => prev.map((item, i) => (i === idx ? val : item)));
 
   const handleSave = async () => {
     if (!title.trim()) return;
-    const isComplete = mode === "complete";
+    const isComplete = mode === "complete" || mode === "edit";
     setSaving(true);
     try {
       let exerciseId = initData?.exerciseId || `draft-pr-${Date.now()}`;
@@ -290,14 +309,15 @@ const PRCreateModal: React.FC<{
           body: {
             title: title.trim(),
             trackId: trackId !== "_" ? trackId : "00000000-0000-0000-0000-000000000000",
-            tag: "pr",
-            difficulty: "Beginner",
-            estimatedTime: "30 mins",
-            xp: initData?.xp ?? 20,
-            brief: brief.trim(),
-            overview: "",
-            objectives: [],
-            steps: [],
+            tag: tag.trim() || "pr",
+            difficulty,
+            estimatedTime: estimatedTime.trim() || "30 mins",
+            xp: Number(xp) || 20,
+            brief: brief.trim() || t("defaultBrief", { type: "PR_REVIEW" }),
+            overview: overview.trim() || t("defaultOverview"),
+            objectives: objectives.filter((o) => o.trim().length > 0),
+            steps: steps.filter((s) => s.trim().length > 0),
+            hint: hint.trim() || undefined,
             type: "PR_REVIEW",
           },
           throwOnError: true,
@@ -313,30 +333,38 @@ const PRCreateModal: React.FC<{
         title: title.trim(),
         status: isComplete ? "complete" : "draft",
         type: "PR_REVIEW",
-        xp: initData?.xp ?? 20,
+        xp: Number(xp) || 20,
         previewData: { brief: brief.trim(), repoUrl: repoUrl.trim() || undefined },
       });
-     reset();
-     onClose();
-   } catch {
-     toast.error(t("saveFailed"));
-   } finally {
-     setSaving(false);
-   }
+      reset();
+      onClose();
+    } catch {
+      toast.error(t("saveFailed"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const reset = () => {
     setTitle("");
     setBrief("");
+    setOverview("");
+    setObjectives([""]);
+    setSteps([""]);
+    setHint("");
     setRepoUrl("");
   };
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-lg bg-surface border-border">
+      <DialogContent className="max-w-2xl bg-surface border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold text-foreground">
-            {mode === "complete" ? t("completePrTitle") : t("createPrTitle")}
+            {mode === "edit"
+              ? t("fullPrEditTitle")
+              : mode === "complete"
+              ? t("completePrTitle")
+              : t("fullPrCreateTitle")}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
@@ -351,32 +379,138 @@ const PRCreateModal: React.FC<{
               className="h-9 text-xs bg-surface-container-lowest border-border"
             />
           </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-foreground">{t("tagLabel")}</Label>
+              <Input
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                placeholder="pr, coding..."
+                className="h-8 text-xs bg-surface-container-lowest border-border"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-foreground">{t("difficultyLabel")}</Label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value as any)}
+                className="w-full h-8 rounded-md border border-border bg-surface-container-lowest px-2 text-xs text-foreground outline-none"
+              >
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-foreground">{t("xpLabel")}</Label>
+              <Input
+                type="number"
+                value={xp}
+                onChange={(e) => setXp(e.target.value)}
+                className="h-8 text-xs bg-surface-container-lowest border-border"
+              />
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs font-medium text-foreground">{t("briefLabel")}</Label>
             <textarea
               value={brief}
               onChange={(e) => setBrief(e.target.value)}
-              rows={3}
+              rows={2}
               className="w-full rounded-lg border border-border bg-surface-container-lowest px-3 py-2 text-xs text-foreground outline-none resize-none focus:border-primary focus:ring-1 focus:ring-primary"
               placeholder={t("briefPlaceholder")}
             />
           </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-medium text-foreground">{t("overviewLabel")}</Label>
+            <textarea
+              value={overview}
+              onChange={(e) => setOverview(e.target.value)}
+              rows={2}
+              className="w-full rounded-lg border border-border bg-surface-container-lowest px-3 py-2 text-xs text-foreground outline-none resize-none focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium text-foreground">{t("objectivesLabel")}</Label>
+              <button
+                type="button"
+                onClick={handleAddObjective}
+                className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+              >
+                <Plus className="h-3 w-3" />
+                {t("addObjectiveBtn")}
+              </button>
+            </div>
+            <div className="space-y-1.5 max-h-28 overflow-y-auto pr-1">
+              {objectives.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <Input
+                    value={item}
+                    onChange={(e) => handleObjectiveChange(idx, e.target.value)}
+                    placeholder={`Objective #${idx + 1}`}
+                    className="h-7 text-xs bg-surface-container-lowest border-border flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveObjective(idx)}
+                    className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-medium text-foreground">{t("stepsLabel")}</Label>
+              <button
+                type="button"
+                onClick={handleAddStep}
+                className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+              >
+                <Plus className="h-3 w-3" />
+                {t("addStepBtn")}
+              </button>
+            </div>
+            <div className="space-y-1.5 max-h-28 overflow-y-auto pr-1">
+              {steps.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <Input
+                    value={item}
+                    onChange={(e) => handleStepChange(idx, e.target.value)}
+                    placeholder={`Step #${idx + 1}`}
+                    className="h-7 text-xs bg-surface-container-lowest border-border flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveStep(idx)}
+                    className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs font-medium text-foreground">{t("repoLabel")}</Label>
             <Input
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
               placeholder={t("repoPlaceholder")}
-              className="h-9 text-xs bg-surface-container-lowest border-border"
+              className="h-8 text-xs bg-surface-container-lowest border-border"
             />
           </div>
-          <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
-            {mode === "complete"
-              ? t("completeHint")
-              : t("draftHint")}
-          </p>
         </div>
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 border-t border-border pt-4">
           <Button type="button" variant="outline" size="sm" onClick={onClose}>{t("cancelBtn")}</Button>
           <Button type="button" size="sm" onClick={handleSave} disabled={saving || !title.trim()}>
             {saving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
@@ -400,20 +534,30 @@ const MinigameCreateDialog: React.FC<{
   initData?: Partial<ExerciseData> | null;
 }> = ({ open, onClose, trackId, onSaved, initData }) => {
   const t = useTranslations("PuckEditor.Common.ExerciseSelector");
-  const [title, setTitle] = useState("");
-  const [brief, setBrief] = useState("");
   const [subType, setSubType] = useState<MinigameSubType>("quiz");
   const [saving, setSaving] = useState(false);
 
   React.useEffect(() => {
     if (!open) return;
-    setTitle(initData?.title || "");
-    setBrief(initData?.previewData?.brief || "");
     const initType: MinigameSubType =
       initData?.type === "FILL_IN_BLANK"
         ? "fill"
         : "quiz";
     setSubType(initType);
+    if (initData?.previewData) {
+      if (initData.previewData.question) setQuestion(initData.previewData.question);
+      if (initData.previewData.answerType) setAnswerType(initData.previewData.answerType);
+      if (initData.previewData.answers) {
+        setAnswers(
+          initData.previewData.answers.map((a, i) => ({
+            id: String(i + 1),
+            text: a.text,
+            correct: a.correct,
+          }))
+        );
+      }
+      if (initData.previewData.fillTemplate) setFillCode(initData.previewData.fillTemplate);
+    }
   }, [open, initData]);
 
   // Quiz state
@@ -425,12 +569,10 @@ const MinigameCreateDialog: React.FC<{
   const [fillCode, setFillCode] = useState("");
   const [blanks, setBlanks] = useState<Blank[]>([]);
 
-  const isQuizComplete = title.trim() && question.trim() && answers.some((a) => a.text.trim() && a.correct);
-  const isFillComplete = title.trim() && fillCode.trim() && blanks.length > 0;
+  const isQuizComplete = question.trim() && answers.some((a) => a.text.trim() && a.correct);
+  const isFillComplete = fillCode.trim() && blanks.length > 0;
 
   const reset = useCallback(() => {
-    setTitle("");
-    setBrief("");
     setSubType("quiz");
     setQuestion("");
     setAnswerType("single");
@@ -440,17 +582,16 @@ const MinigameCreateDialog: React.FC<{
   }, []);
 
   const handleSave = async () => {
-    if (!title.trim()) return;
-
     const isComplete = subType === "quiz" ? isQuizComplete : isFillComplete;
+    const effectiveTitle = initData?.title || (subType === "quiz" ? "Trắc nghiệm (Quiz)" : "Điền khuyết (Fill-in-the-blank)");
 
     setSaving(true);
     try {
       const actualType = subType === "quiz" ? "QUIZ" : "FILL_IN_BLANK";
-      const draftId = `draft-mg-${Date.now()}`;
+      const draftId = initData?.exerciseId || `draft-mg-${Date.now()}`;
 
       const previewData: ExerciseData["previewData"] = {
-        brief: brief.trim() || undefined,
+        brief: initData?.previewData?.brief || undefined,
       };
       if (subType === "quiz") {
         previewData.questionCount = answers.filter((a) => a.text.trim()).length;
@@ -484,13 +625,13 @@ const MinigameCreateDialog: React.FC<{
 
         const res = await exercisesControllerCreate({
           body: {
-            title: title.trim(),
+            title: effectiveTitle,
             trackId: trackId !== "_" ? trackId : "00000000-0000-0000-0000-000000000000",
             tag: "minigame",
             difficulty: "Beginner",
             estimatedTime: "15 mins",
             xp: initData?.xp ?? 10,
-            brief: brief.trim() || t("defaultBrief", { type: actualType }),
+            brief: initData?.previewData?.brief || t("defaultBrief", { type: actualType }),
             overview: t("defaultOverview"),
             objectives: [t("defaultObjective")],
             steps: [t("defaultStep1"), t("defaultStep2"), t("defaultStep3")],
@@ -507,7 +648,7 @@ const MinigameCreateDialog: React.FC<{
 
       onSaved({
         exerciseId,
-        title: title.trim(),
+        title: effectiveTitle,
         status: isComplete ? "complete" : "draft",
         type: actualType,
         xp: initData?.xp ?? 10,
@@ -532,29 +673,6 @@ const MinigameCreateDialog: React.FC<{
         </DialogHeader>
 
         <div className="space-y-5 py-2">
-          {/* Title + Brief */}
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-foreground">{t("titleLabel")} *</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={t("titlePlaceholder")}
-                className="h-9 text-xs bg-surface-container-lowest border-border"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-foreground">{t("briefLabel")}</Label>
-              <textarea
-                value={brief}
-                onChange={(e) => setBrief(e.target.value)}
-                rows={2}
-                className="w-full rounded-lg border border-border bg-surface-container-lowest px-3 py-2 text-xs text-foreground outline-none resize-none focus:border-primary focus:ring-1 focus:ring-primary"
-                placeholder={t("briefPlaceholder")}
-              />
-            </div>
-          </div>
-
           {/* Sub-type tabs */}
           <div className="space-y-1.5">
             <Label className="text-xs font-medium text-foreground">{t("minigameTypeLabel")}</Label>
@@ -616,7 +734,7 @@ const MinigameCreateDialog: React.FC<{
             type="button"
             size="sm"
             onClick={handleSave}
-            disabled={saving || !title.trim()}
+            disabled={saving}
           >
             {saving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
             {subType === "quiz"
@@ -682,7 +800,7 @@ export const ExerciseSelectorField: React.FC<{
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [showPRModal, setShowPRModal] = useState(false);
   const [showMinigameDialog, setShowMinigameDialog] = useState(false);
-  const [prModalMode, setPrModalMode] = useState<"create" | "complete">("create");
+  const [prModalMode, setPrModalMode] = useState<"create" | "complete" | "edit">("create");
 
   const handleTypeSelect = (type: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK") => {
     setShowTypePicker(false);
@@ -691,6 +809,27 @@ export const ExerciseSelectorField: React.FC<{
       setShowPRModal(true);
     } else {
       setShowMinigameDialog(true);
+    }
+  };
+
+  const handleCreateDirectDraft = () => {
+    const draftId = `draft-pr-${Date.now()}`;
+    onChange({
+      exerciseId: draftId,
+      title: effectiveInitData.title || t("typePrTitle") || "PR Exercise",
+      status: "draft",
+      type: "PR_REVIEW",
+      xp: effectiveInitData.xp ?? 20,
+    });
+  };
+
+  const handleEditExercise = () => {
+    if (!value) return;
+    if (value.type === "QUIZ" || value.type === "FILL_IN_BLANK") {
+      setShowMinigameDialog(true);
+    } else {
+      setPrModalMode("edit");
+      setShowPRModal(true);
     }
   };
 
@@ -720,23 +859,44 @@ export const ExerciseSelectorField: React.FC<{
       <div className="space-y-2">
         <p className="text-xs text-muted-foreground">{t("noExerciseAssigned")}</p>
         {!readOnly && (
-          <button
-            type="button"
-            onClick={() => {
-              if (effectiveInitData?.type === "QUIZ" || effectiveInitData?.type === "FILL_IN_BLANK") {
-                setShowMinigameDialog(true);
-              } else if (effectiveInitData?.type === "PR_REVIEW") {
-                setPrModalMode("create");
-                setShowPRModal(true);
-              } else {
-                setShowTypePicker(true);
-              }
-            }}
-            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {t("createExerciseBtn")}
-          </button>
+          effectiveInitData?.type === "PR_REVIEW" ? (
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={handleCreateDirectDraft}
+                className="inline-flex items-center justify-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors cursor-pointer font-medium"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t("createDraftDirectBtn")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPrModalMode("create");
+                  setShowPRModal(true);
+                }}
+                className="inline-flex items-center justify-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer font-medium"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t("createFullDtoBtn")}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (effectiveInitData?.type === "QUIZ" || effectiveInitData?.type === "FILL_IN_BLANK") {
+                  setShowMinigameDialog(true);
+                } else {
+                  setShowTypePicker(true);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer font-medium"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t("createExerciseBtn")}
+            </button>
+          )
         )}
 
         <TypePickerDialog
@@ -744,7 +904,7 @@ export const ExerciseSelectorField: React.FC<{
           onClose={() => setShowTypePicker(false)}
           onSelect={handleTypeSelect}
         />
-        <PRCreateModal
+        <FullPRCreateModal
           open={showPRModal}
           onClose={() => setShowPRModal(false)}
           trackId={trackId}
@@ -769,7 +929,7 @@ export const ExerciseSelectorField: React.FC<{
     <div className="space-y-2">
       <div className={`rounded-md border p-2.5 text-xs ${isDraft ? 'border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/20' : 'border-border bg-surface-container-lowest'}`}>
         <div className="flex items-center gap-1.5 mb-1">
-          <span className={`font-medium truncate ${isDraft ? 'text-amber-800 dark:text-amber-200' : 'text-foreground'}`}>
+          <span className={`font-medium truncate flex-1 ${isDraft ? 'text-amber-800 dark:text-amber-200' : 'text-foreground'}`}>
             {value.title}
           </span>
           {isDraft && (
@@ -793,21 +953,38 @@ export const ExerciseSelectorField: React.FC<{
           {t("exerciseIdLabel")}: {value.exerciseId.slice(0, 12)}...
         </p>
       </div>
-      {!readOnly && isDraft && value.type === "PR_REVIEW" && (
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          className="h-8 text-xs"
-          onClick={() => {
-            setPrModalMode("complete");
-            setShowPRModal(true);
-          }}
-        >
-          {t("completeDraftBtn")}
-        </Button>
+
+      {!readOnly && (
+        <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="flex-1 h-8 text-xs gap-1 cursor-pointer"
+            onClick={handleEditExercise}
+          >
+            <Pencil className="h-3 w-3" />
+            {t("editExerciseBtn")}
+          </Button>
+
+          {isDraft && value.type === "PR_REVIEW" && (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="flex-1 h-8 text-xs cursor-pointer"
+              onClick={() => {
+                setPrModalMode("complete");
+                setShowPRModal(true);
+              }}
+            >
+              {t("completeDraftBtn")}
+            </Button>
+          )}
+        </div>
       )}
-      <PRCreateModal
+
+      <FullPRCreateModal
         open={showPRModal}
         onClose={() => setShowPRModal(false)}
         trackId={trackId}

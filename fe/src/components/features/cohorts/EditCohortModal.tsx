@@ -24,7 +24,7 @@ interface EditCohortFormValues {
   targetRampDays: number;
 }
 
-type EditableCohort = Pick<CohortDetailDto, 'id' | 'name' | 'targetRampDays'>;
+type EditableCohort = { id: string; name: string; targetRampDays?: number };
 
 interface EditCohortModalProps {
   cohort: EditableCohort;

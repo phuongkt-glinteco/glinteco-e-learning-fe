@@ -97,7 +97,7 @@ export function UserProgressDetailPageClient({ userId }: UserProgressDetailPageC
     );
   }
 
-  const hue = learner.avatarHue ?? 210;
+  const hue = typeof learner.avatarHue === 'number' ? learner.avatarHue : 210;
   const initial = (learner.name || 'U').charAt(0).toUpperCase();
   const { totalLessonsCount, completedLessonsCount, overallProgressPct } = getLearnerProgressMetrics(learner);
 
@@ -144,7 +144,7 @@ export function UserProgressDetailPageClient({ userId }: UserProgressDetailPageC
                   {learner.name}
                 </h1>
                 <Badge variant="outline" className="text-xs font-bold bg-surface px-2.5 py-0.5">
-                  {learner.title || learner.role || t('learnerRole')}
+                  {(learner as Record<string, any>).title || (learner as Record<string, any>).role || t('learnerRole')}
                 </Badge>
               </div>
               <p className="text-sm text-on-surface-variant font-medium">

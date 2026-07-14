@@ -3,11 +3,14 @@ import {
   authControllerResetPassword,
 } from '@/services/api-client';
 
-export async function requestPasswordReset(email: string): Promise<void> {
-  await authControllerForgotPassword({
+import type { ForgotPasswordResponseDto } from '@/services/client/types.gen';
+
+export async function requestPasswordReset(email: string): Promise<ForgotPasswordResponseDto> {
+  const { data } = await authControllerForgotPassword({
     body: { email },
     throwOnError: true,
   });
+  return data;
 }
 
 export async function resetPassword(input: { token: string; password: string }): Promise<void> {

@@ -20,6 +20,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+  const [resetToken, setResetToken] = useState<string | null>(null);
 
   const {
     register,
@@ -37,10 +38,14 @@ export default function ForgotPasswordPage() {
     const email = data.email.trim();
     setLoading(true);
     setError(null);
+    setResetToken(null);
 
     try {
-      await requestPasswordReset(email);
+      const response = await requestPasswordReset(email);
       setSubmittedEmail(email);
+      if (response && response.resetToken) {
+        setResetToken(response.resetToken);
+      }
     } catch (err) {
       setError(isUiShowError(err) ? err.errorCode : 'UNKNOWN_ERROR');
     } finally {
@@ -75,9 +80,24 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-on-surface mb-3">{t('successTitle')}</h2>
-              <p className="text-sm text-on-surface-variant mb-8">
-                {t('successDescription', { email: submittedEmail })}
-              </p>
+              
+              {resetToken ? (
+                <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
+                  <p className="text-sm text-blue-800 dark:text-blue-300 mb-4 font-medium">
+                    {t('devModeTokenReady')}
+                  </p>
+                  <Button asChild className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white">
+                    <Link href={`/reset-password?token=${resetToken}`}>
+                      {t('resetNowButton')}
+                    </Link>
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-on-surface-variant mb-8">
+                  {t('successDescription', { email: submittedEmail })}
+                </p>
+              )}
+              
               {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center gap-2 text-left">
                   <span className="material-symbols-outlined text-base">error</span>

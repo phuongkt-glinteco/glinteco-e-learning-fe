@@ -28,6 +28,7 @@ export interface DocumentPickerFieldProps {
   value?: DocumentItem[];
   onChange: (value: DocumentItem[]) => void;
   readOnly?: boolean;
+  maxItems?: number;
 }
 
 export const documentTitleCache: Record<string, string> = {};
@@ -55,6 +56,7 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
   value = [],
   onChange,
   readOnly = false,
+  maxItems,
 }) => {
   const t = useTranslations('PuckEditor.Common.DocumentPicker');
 
@@ -114,7 +116,11 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
     if (selectedIds.includes(id)) {
       setSelectedIds(selectedIds.filter((item) => item !== id));
     } else {
-      setSelectedIds([...selectedIds, id]);
+      if (maxItems === 1) {
+        setSelectedIds([id]);
+      } else {
+        setSelectedIds([...selectedIds, id]);
+      }
     }
   };
 
@@ -170,35 +176,65 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
             return (
               <div
                 key={item.id || index}
-                className="flex items-center justify-between gap-2 rounded-md border border-border bg-surface-container-lowest px-2.5 py-1.5 text-xs"
+                className="flex flex-col gap-2 rounded-lg border border-border bg-surface-container-lowest p-3 text-xs shadow-sm"
               >
-                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span className="truncate font-medium text-foreground">
-                    {displayTitle}
-                  </span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <FileText className="h-4 w-4 text-primary shrink-0" />
+                    <span className="truncate font-semibold text-foreground text-sm">
+                      {displayTitle}
+                    </span>
+                  </div>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(index)}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-0.5 cursor-pointer shrink-0"
+                      title={t('removeTitle')}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
-                  {item.id && (
+                {(item.kind || (item.tags && item.tags.length > 0)) && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {item.kind && (
+                      <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-medium uppercase text-secondary">
+                        {item.kind}
+                      </span>
+                    )}
+                    {item.tags && item.tags.length > 0 && item.tags.map((tag, tIdx) => (
+                      <span
+                        key={tag.id || tIdx}
+                        className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                      >
+                        #{tag.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/60 mt-0.5">
+                  {item.id ? (
                     <button
                       type="button"
                       onClick={() => handleEditDetails(item.id)}
-                      className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline px-1.5 py-0.5 rounded bg-primary/10 cursor-pointer"
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline cursor-pointer"
                       title={t('editDetailBtn')}
                     >
                       <span>{t('editDetailBtn')}</span>
                       <ExternalLink className="h-3 w-3" />
                     </button>
-                  )}
-                  {!readOnly && (
+                  ) : <span />}
+
+                  {!readOnly && maxItems === 1 && (
                     <button
                       type="button"
-                      onClick={() => handleRemoveItem(index)}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-0.5 cursor-pointer"
-                      title={t('removeTitle')}
+                      onClick={handleOpenSelect}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <span>Thay đổi tài liệu</span>
                     </button>
                   )}
                 </div>
@@ -209,7 +245,7 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
       </div>
 
       {/* Hành động: Chọn từ hệ thống */}
-      {!readOnly && (
+      {!readOnly && (!maxItems || currentItems.length < maxItems) && (
         <Button
           type="button"
           variant="outline"

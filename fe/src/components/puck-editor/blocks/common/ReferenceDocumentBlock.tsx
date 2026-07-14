@@ -16,7 +16,38 @@ function DocumentPickerFieldWrapper({
   readOnly?: boolean;
 }) {
   const puck = useSafePuck();
-  const arr = value ? [{ id: value, title: `Tài liệu ID: ${value}` }] : [];
+
+  const currentProps = React.useMemo(() => {
+    if (!puck?.appState) return {};
+    const selector = puck.appState.ui.itemSelector;
+    if (!selector || typeof selector.index !== "number") return {};
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    let items: any[] = [];
+    if (!selector.zone || selector.zone === "default-zone" || selector.zone === "") {
+      items = puck.appState.data.content || [];
+    } else {
+      const zones = (puck.appState.data as any).zones || {};
+      items = zones[selector.zone] || puck.appState.data.content || [];
+    }
+    const block = items[selector.index] || items.find((b: any) => b.props?.id === (selector as any).id);
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    if (!block || block.type !== "ReferenceDocumentBlock") return {};
+    return block.props || {};
+  }, [puck?.appState]);
+
+  const displayTitle = currentProps.altText && currentProps.altText !== "Tài liệu tham khảo hệ thống" ? currentProps.altText : undefined;
+
+  const arr: DocumentItem[] = value
+    ? [
+        {
+          id: value,
+          title: displayTitle || `Tài liệu ID: ${value}`,
+          url: currentProps.url !== "#" ? currentProps.url : undefined,
+          kind: currentProps.kind,
+          tags: currentProps.tags || [],
+        },
+      ]
+    : [];
 
   const handleSelectDocuments = (items: DocumentItem[]) => {
     const doc = items[0];
@@ -68,6 +99,7 @@ function DocumentPickerFieldWrapper({
       value={arr}
       onChange={handleSelectDocuments}
       readOnly={readOnly}
+      maxItems={1}
     />
   );
 }
@@ -108,6 +140,18 @@ export const ReferenceDocumentBlock: ComponentConfig<
   render: ({ altText, url, documentId, kind, description, tags }) => {
     const t = useTranslations("PuckEditor.Common.documentEmbed");
     const title = altText || t("defaultTitle");
+
+    if (!documentId) {
+      return (
+        <div className="my-4 rounded-xl border border-dashed border-border bg-surface-container-lowest/60 p-6 text-center space-y-1.5">
+          <FileText className="mx-auto h-8 w-8 text-muted-foreground/50" />
+          <p className="text-sm font-semibold text-foreground">Chưa chọn tài liệu tham khảo</p>
+          <p className="text-xs text-muted-foreground">
+            Vui lòng bấm chọn 1 tài liệu từ bảng cấu hình bên phải
+          </p>
+        </div>
+      );
+    }
 
     return (
       <div className="my-4 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4 space-y-2">

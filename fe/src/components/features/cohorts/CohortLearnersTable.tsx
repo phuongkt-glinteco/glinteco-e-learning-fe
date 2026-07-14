@@ -24,6 +24,7 @@ import {
   type CohortUserProgressItemDto,
   type UserProfileDto,
 } from '@/services/api-client';
+import { getLearnerProgressMetrics, getCohortSummaryMetrics } from '@/lib/cohort-progress';
 
 export type CohortLearnerItem = Partial<UserProfileDto> & {
   id: string;
@@ -57,8 +58,7 @@ export function CohortLearnersTable({
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
-  const [paceFilter, setPaceFilter] = useState('all');
-  const [trackFilter, setTrackFilter] = useState('all');
+    const [trackFilter, setTrackFilter] = useState('all');
 
   // Selected Learner for Modal Detail
   const [selectedLearner, setSelectedLearner] = useState<CohortUserProgressItemDto | null>(null);
@@ -101,17 +101,7 @@ export function CohortLearnersTable({
 
   // Summary Metrics
   const summaryMetrics = useMemo(() => {
-    if (progressLearners.length === 0) {
-      return { avgProgressPct: 0, aheadCount: 0, onTrackCount: 0, behindCount: 0 };
-    }
-
-    const totalProgress = progressLearners.reduce((acc, u) => acc + (u.overallProgressPct || 0), 0);
-    const avgProgressPct = totalProgress / progressLearners.length;
-    const aheadCount = progressLearners.filter((u) => u.paceStatus === 'ahead').length;
-    const onTrackCount = progressLearners.filter((u) => u.paceStatus === 'on_track').length;
-    const behindCount = progressLearners.filter((u) => u.paceStatus === 'behind').length;
-
-    return { avgProgressPct, aheadCount, onTrackCount, behindCount };
+    return getCohortSummaryMetrics(progressLearners);
   }, [progressLearners]);
 
   // Filtered Learners
@@ -125,11 +115,6 @@ export function CohortLearnersTable({
         if (!matchesName && !matchesEmail) return false;
       }
 
-      // Pace Filter
-      if (paceFilter !== 'all' && learner.paceStatus !== paceFilter) {
-        return false;
-      }
-
       // Track Filter
       if (trackFilter !== 'all') {
         const hasTrack = learner.tracks?.some((tr) => tr.trackId === trackFilter);
@@ -138,7 +123,7 @@ export function CohortLearnersTable({
 
       return true;
     });
-  }, [progressLearners, searchQuery, paceFilter, trackFilter]);
+  }, [progressLearners, searchQuery, trackFilter]);
 
   const handleOpenDetailModal = (learner: CohortUserProgressItemDto) => {
     setSelectedLearner(learner);
@@ -201,18 +186,12 @@ export function CohortLearnersTable({
         cohortName={cohortName}
         cohortList={mockCohortList}
         onSelectCohort={(newId) => setSelectedCohortId(newId)}
-        avgProgressPct={summaryMetrics.avgProgressPct}
-        aheadCount={summaryMetrics.aheadCount}
-        onTrackCount={summaryMetrics.onTrackCount}
-        behindCount={summaryMetrics.behindCount}
-      />
+        avgProgressPct={summaryMetrics.avgProgressPct}      />
 
       {/* 2. Filter Toolbar */}
       <CohortLearnersProgressFilter
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        paceFilter={paceFilter}
-        onPaceFilterChange={setPaceFilter}
         trackFilter={trackFilter}
         onTrackFilterChange={setTrackFilter}
         availableTracks={availableTracks}
@@ -238,11 +217,7 @@ export function CohortLearnersTable({
                   </TableHead>
                   <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5">
                     {t('learnerColProgress')}
-                  </TableHead>
-                  <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5">
-                    {t('learnerColPace')}
-                  </TableHead>
-                  <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5">
+                  </TableHead>                  <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5">
                     {t('learnerColLevel')}
                   </TableHead>
                   <TableHead className="font-bold text-on-surface-variant uppercase tracking-wider text-xs py-3.5 pr-6 text-right">
@@ -254,8 +229,7 @@ export function CohortLearnersTable({
                 {filteredLearners.map((learner) => {
                   const hue = learner.avatarHue ?? 210;
                   const initial = (learner.name || 'U').charAt(0).toUpperCase();
-                  const isAhead = learner.paceStatus === 'ahead';
-                  const isBehind = learner.paceStatus === 'behind';
+                  const { totalLessonsCount, completedLessonsCount, overallProgressPct } = getLearnerProgressMetrics(learner, trackFilter);
 
                   return (
                     <TableRow key={learner.userId} className="hover:bg-surface-container-highest/30 transition-colors group">
@@ -289,65 +263,35 @@ export function CohortLearnersTable({
                         <div className="space-y-1.5 max-w-[200px]">
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-bold text-on-surface">
-                              {Math.round(learner.overallProgressPct)}%
+                              {Math.round(overallProgressPct)}%
                             </span>
                             <span className="text-on-surface-variant text-[11px]">
-                              {t('lessonsCountShort', { completed: learner.completedLessonsCount, total: learner.totalLessonsCount })}
+                              {t('lessonsCountShort', { completed: completedLessonsCount, total: totalLessonsCount })}
                             </span>
                           </div>
                           <div className="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
                             <div
                               className="h-full rounded-full bg-primary transition-all duration-500"
-                              style={{ width: `${Math.min(100, Math.max(0, learner.overallProgressPct))}%` }}
+                              style={{ width: `${Math.min(100, Math.max(0, overallProgressPct))}%` }}
                             />
                           </div>
                         </div>
                       </TableCell>
 
-                      {/* Pace Badge */}
-                      <TableCell className="py-4 whitespace-nowrap">
-                        <Badge
-                          variant="outline"
-                          className={`text-xs font-bold gap-1.5 py-1 px-2.5 ${
-                            isAhead
-                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
-                              : isBehind
-                              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                              : 'bg-primary/10 text-primary border-primary/20'
-                          }`}
-                        >
-                          <Icon
-                            icon={
-                              isAhead
-                                ? 'lucide:trending-up'
-                                : isBehind
-                                ? 'lucide:alert-circle'
-                                : 'lucide:check-circle-2'
-                            }
-                            className="w-3.5 h-3.5"
-                          />
-                          <span>
-                            {isAhead
-                              ? t('paceAheadDays', { days: Math.abs(learner.paceDeltaDays) })
-                              : isBehind
-                              ? t('paceBehindDays', { days: Math.abs(learner.paceDeltaDays) })
-                              : t('paceOnTrackLabel')}
-                          </span>
-                        </Badge>
-                      </TableCell>
-
-                      {/* Level & Streak */}
+                      {/* Level & XP */}
                       <TableCell className="py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                          <Badge
+                            variant="outline"
+                            className="font-bold text-xs text-primary bg-primary/10 border-primary/20 px-2 py-0.5 rounded"
+                          >
                             Lv. {learner.level}
-                          </span>
+                          </Badge>
                           <Badge
                             variant="outline"
                             className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 gap-1 text-xs font-semibold"
                           >
-                            <Icon icon="lucide:flame" className="w-3.5 h-3.5 fill-amber-500" />
-                            <span>{learner.streakDays}d</span>
+                            <span>{learner.xp.toLocaleString()} XP</span>
                           </Badge>
                         </div>
                       </TableCell>

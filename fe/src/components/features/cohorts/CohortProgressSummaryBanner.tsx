@@ -17,9 +17,6 @@ interface CohortProgressSummaryBannerProps {
   cohortList?: { id: string; name: string }[];
   onSelectCohort?: (id: string) => void;
   avgProgressPct: number;
-  aheadCount: number;
-  onTrackCount: number;
-  behindCount: number;
   avgRampDays?: number;
   targetRampDays?: number;
 }
@@ -30,9 +27,6 @@ export function CohortProgressSummaryBanner({
   cohortList = [],
   onSelectCohort,
   avgProgressPct,
-  aheadCount,
-  onTrackCount,
-  behindCount,
   avgRampDays = 28,
   targetRampDays = 30,
 }: CohortProgressSummaryBannerProps) {
@@ -90,56 +84,6 @@ export function CohortProgressSummaryBanner({
                   className="h-full rounded-full bg-gradient-to-r from-primary to-emerald-500 transition-all duration-700 ease-out"
                   style={{ width: `${Math.min(100, Math.max(0, avgProgressPct))}%` }}
                 />
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-on-surface-variant mt-2">
-                <span>{t('avgRampMetric', { days: avgRampDays })}</span>
-                <span>{t('targetRampMetric', { days: targetRampDays })}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Pacing Breakdown Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-5 border-t border-outline-variant/60">
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-                <Icon icon="lucide:trending-up" className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                  {t('learnersAhead')}
-                </div>
-                <div className="text-base font-black text-emerald-800 dark:text-emerald-200">
-                  {aheadCount} học viên
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-primary/10 border border-primary/20">
-              <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
-                <Icon icon="lucide:check-circle-2" className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-primary">
-                  {t('learnersOnTrack')}
-                </div>
-                <div className="text-base font-black text-on-surface">
-                  {onTrackCount} học viên
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-              <div className="w-9 h-9 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-                <Icon icon="lucide:alert-circle" className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-amber-700 dark:text-amber-300">
-                  {t('learnersBehind')}
-                </div>
-                <div className="text-base font-black text-amber-800 dark:text-amber-200">
-                  {behindCount} học viên
-                </div>
               </div>
             </div>
           </div>

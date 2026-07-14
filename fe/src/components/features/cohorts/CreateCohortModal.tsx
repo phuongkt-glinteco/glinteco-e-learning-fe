@@ -21,8 +21,6 @@ import type { UiShowError } from '@/services/errors';
 
 interface CreateCohortFormValues {
   name: string;
-  code: string;
-  startDate: string;
   targetRampDays: number;
 }
 
@@ -38,8 +36,6 @@ export function CreateCohortModal({ onSuccess, onCancel }: CreateCohortModalProp
   const { register, handleSubmit, setError, formState: { errors } } = useForm<CreateCohortFormValues>({
     defaultValues: {
       name: '',
-      code: '',
-      startDate: new Date().toISOString().split('T')[0],
       targetRampDays: 30,
     },
   });
@@ -49,18 +45,12 @@ export function CreateCohortModal({ onSuccess, onCancel }: CreateCohortModalProp
       setError('name', { type: 'manual', message: t('editErrorNameRequired') });
       return;
     }
-    if (!data.code?.trim()) {
-      setError('code', { type: 'manual', message: t('createErrorCodeRequired') });
-      return;
-    }
 
     setLoading(true);
     try {
-      const body: CreateCohortDto & { code: string; startDate: string } = {
+      const body: CreateCohortDto = {
         name: data.name.trim(),
         targetRampDays: Number(data.targetRampDays) || 30,
-        code: data.code.trim().toUpperCase(),
-        startDate: data.startDate,
       };
       const res = await cohortControllerCreate({
         body,
@@ -76,11 +66,7 @@ export function CreateCohortModal({ onSuccess, onCancel }: CreateCohortModalProp
     } catch (err: unknown) {
       if (isUiShowError(err)) {
         const error = err as UiShowError;
-        if (error.errorCode === 'VALIDATION_ERROR' || error.errorCode === 'COHORT_CODE_EXISTS') {
-          setError('code', { type: 'server', message: error.message || t('editErrorInvalidName') });
-        } else {
-          toast.error(error.message || t('editErrorInvalidName'));
-        }
+        toast.error(error.message || t('editErrorInvalidName'));
       }
     } finally {
       setLoading(false);
@@ -111,34 +97,7 @@ export function CreateCohortModal({ onSuccess, onCancel }: CreateCohortModalProp
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="create-code" className="text-sm font-semibold">
-              {t('createCodeLabel')} <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="create-code"
-              {...register('code')}
-              placeholder={t('createCodePlaceholder')}
-              className="h-11 rounded-xl font-mono uppercase"
-            />
-            <p className="text-xs text-on-surface-variant">{t('createCodeHint')}</p>
-            {errors.code && <p className="text-xs text-destructive mt-1">{errors.code.message}</p>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="create-start-date" className="text-sm font-semibold">
-                {t('createStartDateLabel')}
-              </Label>
-              <Input
-                id="create-start-date"
-                type="date"
-                {...register('startDate')}
-                className="h-11 rounded-xl"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="create-ramp-days" className="text-sm font-semibold">
+            <Label htmlFor="create-ramp-days" className="text-sm font-semibold">
                 {t('createRampDaysLabel')}
               </Label>
               <Input
@@ -151,7 +110,6 @@ export function CreateCohortModal({ onSuccess, onCancel }: CreateCohortModalProp
               />
               <p className="text-xs text-on-surface-variant">{t('createRampDaysHint')}</p>
             </div>
-          </div>
 
           <DialogFooter className="gap-2 pt-4 border-t border-outline-variant">
             <Button

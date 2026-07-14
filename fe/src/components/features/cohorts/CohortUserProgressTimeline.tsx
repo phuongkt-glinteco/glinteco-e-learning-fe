@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/default/select';
 import { CohortUserLessonBreakdown } from './CohortUserLessonBreakdown';
-import type { CohortUserTrackProgressDto } from '@/mocks/cohort-users-progress';
+import type { CohortUserTrackProgressDto } from '@/services/api-client';
 
 interface CohortUserProgressTimelineProps {
   tracks: CohortUserTrackProgressDto[];
@@ -200,7 +200,7 @@ export function CohortUserProgressTimeline({ tracks }: CohortUserProgressTimelin
 
                       <div className="flex items-center gap-4 text-xs text-on-surface-variant">
                         <span>
-                          {t('completedCountLabel', { completed: track.completedLessonsCount, total: track.totalLessonsCount })}
+                          {t('completedCountLabel', { completed: track.completedLessons, total: track.totalLessons })}
                         </span>
                       </div>
                     </div>
@@ -232,7 +232,7 @@ export function CohortUserProgressTimeline({ tracks }: CohortUserProgressTimelin
                   {/* Collapsible Lesson Breakdown */}
                   {isExpanded && (
                     <div className="px-5 pb-5 pt-1 border-t border-outline-variant/60">
-                      <CohortUserLessonBreakdown lessons={track.lessons || []} />
+                      <CohortUserLessonBreakdown lessons={[]} />
                     </div>
                   )}
                 </div>
@@ -420,7 +420,7 @@ export function CohortUserProgressTimeline({ tracks }: CohortUserProgressTimelin
 
                         <div className="flex items-center gap-4 text-xs text-on-surface-variant">
                           <span>
-                            {t('progressCountLabel', { completed: track.completedLessonsCount ?? (track as any).completedLessons ?? 0, total: track.totalLessonsCount ?? (track as any).totalLessons ?? 0 })}
+                            {t('progressCountLabel', { completed: track.completedLessons ?? 0, total: track.totalLessons ?? 0 })}
                           </span>
                         </div>
                       </div>
@@ -452,7 +452,7 @@ export function CohortUserProgressTimeline({ tracks }: CohortUserProgressTimelin
                     {/* Collapsible Lesson List */}
                     {isExpanded && (
                       <div className="px-5 pb-5 pt-3 border-t border-outline-variant/60 bg-surface-container/20">
-                        <CohortUserLessonBreakdown lessons={track.lessons || []} />
+                        <CohortUserLessonBreakdown lessons={[]} />
                       </div>
                     )}
                   </div>

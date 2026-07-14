@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import { ExerciseDetailView } from './ExerciseDetailView';
 import {
@@ -114,12 +114,15 @@ function ExerciseErrorState({
 export default function ExerciseDetailContainer() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const courseId = getRouteParam(params.courseId ?? params.trackId);
   const lessonId = getRouteParam(params.lessonId);
   const exerciseId = getRouteParam(params.exerciseId);
   const routeBase = getLearnerRouteBase(params.trackId);
   const isStandaloneRoute = !courseId || !lessonId;
   const t = useTranslations('ExerciseDetailContainer');
+  const fromQuery = searchParams.get('from');
+  const querySuffix = fromQuery ? `?from=${encodeURIComponent(fromQuery)}` : '';
 
   const [pageData, setPageData] = useState<ExercisePageData | null>(null);
   const [formValues, setFormValues] = useState<LearnerSubmissionFormValues>({ prUrl: '' });
@@ -292,7 +295,7 @@ export default function ExerciseDetailContainer() {
       onBackToTrack={() => {
         const targetTrackId = pageData.exercise.trackId || pageData.course.id;
         if (targetTrackId) {
-          router.push(`/${routeBase}/${targetTrackId}`);
+          router.push(`/${routeBase}/${targetTrackId}${querySuffix}`);
         } else {
           router.push(`/${routeBase}`);
         }

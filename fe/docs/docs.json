@@ -131,6 +131,50 @@
         "tags": ["users"]
       }
     },
+    "/api/v1/users/me/notification-settings": {
+      "get": {
+        "operationId": "UsersController_getNotificationSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lấy cấu hình thông báo thành công.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/NotificationSettingsDto" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Lấy cấu hình thông báo của người dùng hiện tại",
+        "tags": ["users"]
+      },
+      "patch": {
+        "operationId": "UsersController_updateNotificationSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateNotificationSettingsDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật cấu hình thông báo thành công.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/NotificationSettingsDto" }
+              }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "summary": "Cập nhật cấu hình thông báo của người dùng hiện tại",
+        "tags": ["users"]
+      }
+    },
     "/api/v1/auth/google": {
       "post": {
         "description": "Xác thực Google ID Token, kiểm tra domain công ty, tạo user nếu chưa tồn tại và trả về cặp JWT token.",
@@ -1097,6 +1141,13 @@
             }
           },
           {
+            "name": "bookmarked",
+            "required": false,
+            "in": "query",
+            "description": "Chỉ trả về các tài liệu đã được người dùng hiện tại bookmark",
+            "schema": { "example": true, "type": "boolean" }
+          },
+          {
             "name": "limit",
             "required": false,
             "in": "query",
@@ -1808,6 +1859,30 @@
             "type": "number",
             "description": "The avatar hue of the user (0-360)"
           }
+        }
+      },
+      "NotificationSettingsDto": {
+        "type": "object",
+        "properties": {
+          "EXERCISE_REVIEWED": { "type": "boolean" },
+          "EXERCISE_CHANGES_REQUESTED": { "type": "boolean" },
+          "COHORT_ASSIGNED": { "type": "boolean" },
+          "NEW_LESSON_PUBLISHED": { "type": "boolean" }
+        },
+        "required": [
+          "EXERCISE_REVIEWED",
+          "EXERCISE_CHANGES_REQUESTED",
+          "COHORT_ASSIGNED",
+          "NEW_LESSON_PUBLISHED"
+        ]
+      },
+      "UpdateNotificationSettingsDto": {
+        "type": "object",
+        "properties": {
+          "EXERCISE_REVIEWED": { "type": "boolean" },
+          "EXERCISE_CHANGES_REQUESTED": { "type": "boolean" },
+          "COHORT_ASSIGNED": { "type": "boolean" },
+          "NEW_LESSON_PUBLISHED": { "type": "boolean" }
         }
       },
       "SubStatsDto": {

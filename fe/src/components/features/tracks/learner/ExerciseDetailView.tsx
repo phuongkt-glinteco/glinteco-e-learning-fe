@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { Input } from '@/components/ui/forms';
+import { Button } from '@/components/ui/default/button';
 import { MarkdownRenderer } from '@/lib/md-renderer';
 import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui/default/checkbox';
@@ -187,7 +188,7 @@ function ExerciseContent({ exercise }: { exercise: LearnerExerciseDetail }) {
                 href={resource.url ?? '#'}
                 target={resource.url ? '_blank' : undefined}
                 rel={resource.url ? 'noreferrer' : undefined}
-                className="flex min-w-0 items-start gap-3 rounded-lg border border-outline-variant p-4 hover:border-primary/40 hover:bg-primary/5"
+                className="group flex min-w-0 items-start gap-3 rounded-lg border border-outline-variant p-4 hover:border-primary/40 hover:bg-primary/5"
               >
                 <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
                   {resource.kind === 'Link' ? 'play_circle' : 'description'}
@@ -199,6 +200,9 @@ function ExerciseContent({ exercise }: { exercise: LearnerExerciseDetail }) {
                       {resource.content}
                     </span>
                   )}
+                </span>
+                <span className="material-symbols-outlined ml-auto shrink-0 text-[18px] text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
+                  open_in_new
                 </span>
               </a>
             ))}
@@ -269,14 +273,15 @@ function SubmitPanel({
             {submitMessage}
           </p>
         )}
-        <button
+        <Button
           type="submit"
+          size="lg"
+          className="h-auto px-4 py-2.5"
           disabled={disabled || submitting || !prUrl.trim()}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 label-sm text-on-primary transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-surface-container disabled:text-outline"
         >
           <span className="material-symbols-outlined text-[18px]">{submitting ? 'progress_activity' : 'upload'}</span>
           {submitting ? t('submitting') : buttonLabel}
-        </button>
+        </Button>
       </form>
     </section>
   );
@@ -305,22 +310,23 @@ function SubmittedState({
           <span>{formatDateTime(submission.submittedAt)}</span>
         </div>
         {submission.prUrl && (
-          <a href={submission.prUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex max-w-full items-center gap-1 text-primary hover:underline">
+          <a href={submission.prUrl} target="_blank" rel="noreferrer" className="group mt-3 inline-flex max-w-full items-center gap-1 text-primary hover:underline">
             <span className="min-w-0 truncate">{submission.prUrl}</span>
-            <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+            <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">open_in_new</span>
           </a>
         )}
       </div>
       {onBackToTrack && (
         <div className="mt-8 flex justify-center">
-          <button
+          <Button
             type="button"
+            size="lg"
+            className="h-auto px-6 py-2.5"
             onClick={onBackToTrack}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 label-md text-on-primary shadow hover:opacity-90 transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <span className="material-symbols-outlined text-[18px] transition-transform group-hover/button:-translate-x-1">arrow_back</span>
             {t('backToTrack', { defaultValue: 'Back to Track' })}
-          </button>
+          </Button>
         </div>
       )}
     </section>
@@ -483,16 +489,17 @@ function ApprovedState({
           {t('xpAwarded', { xp: exercise.xp })}
         </div>
         {onBackToTrack && (
-          <div className="mt-8 flex justify-center">
-            <button
-              type="button"
-              onClick={onBackToTrack}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 label-md text-on-primary shadow hover:opacity-90 transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-              {t('backToTrack', { defaultValue: 'Back to Track' })}
-            </button>
-          </div>
+        <div className="mt-8 flex justify-center">
+          <Button
+            type="button"
+            size="lg"
+            className="h-auto px-6 py-2.5"
+            onClick={onBackToTrack}
+          >
+            <span className="material-symbols-outlined text-[18px] transition-transform group-hover/button:-translate-x-1">arrow_back</span>
+            {t('backToTrack', { defaultValue: 'Back to Track' })}
+          </Button>
+        </div>
         )}
       </section>
 
@@ -503,11 +510,11 @@ function ApprovedState({
       </InfoSection>
 
       {submission.prUrl && (
-        <a href={submission.prUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-lg border border-outline-variant bg-surface p-5 label-md text-on-surface shadow-sm hover:border-primary/40">
+        <a href={submission.prUrl} target="_blank" rel="noreferrer" className="group flex items-center justify-between gap-3 rounded-lg border border-outline-variant bg-surface p-5 label-md text-on-surface shadow-sm hover:border-primary/40">
           <span className="min-w-0 truncate">{t('prApprovedFor', { trackTitle: track.title })}</span>
           <span className="inline-flex shrink-0 items-center gap-1 text-primary">
             {t('viewPr')}
-            <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+            <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">open_in_new</span>
           </span>
         </a>
       )}
@@ -679,9 +686,9 @@ export function ExerciseDetailView({
                 <button
                   type="button"
                   onClick={onBackToTrack}
-                  className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-5 py-2 label-md text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+                  className="group inline-flex items-center gap-2 rounded-lg border border-outline-variant px-5 py-2 label-md text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  <span className="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-1">arrow_back</span>
                   {t('backToTrack', { defaultValue: 'Back to Track' })}
                 </button>
               </div>
@@ -717,9 +724,9 @@ export function ExerciseDetailView({
                 <button
                   type="button"
                   onClick={onBackToTrack}
-                  className="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-5 py-2 label-md text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+                  className="group inline-flex items-center gap-2 rounded-lg border border-outline-variant px-5 py-2 label-md text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  <span className="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-1">arrow_back</span>
                   {t('backToTrack', { defaultValue: 'Back to Track' })}
                 </button>
               </div>
@@ -745,15 +752,16 @@ export function ExerciseDetailView({
                   <span className="min-w-0 break-words">{startError}</span>
                 </p>
               )}
-              <button
+              <Button
                 type="button"
+                size="lg"
                 onClick={onStartExercise}
                 disabled={!isNotStarted}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 label-sm text-on-primary hover:opacity-90 disabled:cursor-not-allowed disabled:bg-surface-container disabled:text-outline"
+                className="mt-5 h-auto w-full px-4 py-2.5"
               >
-                <span className="material-symbols-outlined text-[18px]">play_arrow</span>
+                <span className="material-symbols-outlined text-[18px] transition-transform group-hover/button:translate-x-1">play_arrow</span>
                 {isInProgress ? t('exerciseStarted') : t('startExercise')}
-              </button>
+              </Button>
             </section>
             <SubmitPanel
               mode="submit"

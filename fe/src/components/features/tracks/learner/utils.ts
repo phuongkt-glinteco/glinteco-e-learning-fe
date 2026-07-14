@@ -246,17 +246,18 @@ export function getContinueLessonId(
 }
 
 export function getAdjacentLessonIds(
-  lessons: Array<Pick<TrackLessonPreview, 'id'>>,
+  lessons: Array<Pick<TrackLessonPreview, 'id' | 'order'>>,
   activeLessonId: string
 ) {
-  const activeLessonIndex = lessons.findIndex((lesson) => lesson.id === activeLessonId);
+  const orderedLessons = [...lessons].sort((a, b) => a.order - b.order);
+  const activeLessonIndex = orderedLessons.findIndex((lesson) => lesson.id === activeLessonId);
 
   return {
     previousLessonId: activeLessonIndex > 0
-      ? lessons[activeLessonIndex - 1]?.id ?? null
+      ? orderedLessons[activeLessonIndex - 1]?.id ?? null
       : null,
     nextLessonId: activeLessonIndex >= 0
-      ? lessons[activeLessonIndex + 1]?.id ?? null
+      ? orderedLessons[activeLessonIndex + 1]?.id ?? null
       : null,
   };
 }

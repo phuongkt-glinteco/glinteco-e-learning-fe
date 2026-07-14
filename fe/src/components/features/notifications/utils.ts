@@ -1,4 +1,10 @@
-import type { HeaderNotification, HeaderNotificationsResult } from './types';
+import {
+  notificationTypes,
+  type AppNotification,
+  type NotificationSettings,
+  type NotificationType,
+  type NotificationsResult,
+} from './types';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null;
@@ -47,7 +53,11 @@ function readNestedTargetUrl(record: Record<string, unknown>) {
   return target ? readNullableString(target, ['targetUrl', 'url', 'href', 'prUrl']) : null;
 }
 
-function normalizeNotification(value: unknown): HeaderNotification | null {
+function isNotificationType(value: string): value is NotificationType {
+  return notificationTypes.includes(value as NotificationType);
+}
+
+function normalizeNotification(value: unknown): AppNotification | null {
   const record = asRecord(value);
   if (!record) {
     return null;
@@ -61,20 +71,24 @@ function normalizeNotification(value: unknown): HeaderNotification | null {
   }
 
   const read = readBoolean(record, ['read', 'isRead'], false);
-  const targetUrl = readNullableString(record, ['targetUrl', 'url', 'href', 'prUrl']) ?? readNestedTargetUrl(record);
+  const actionUrl =
+    readNullableString(record, ['actionUrl', 'targetUrl', 'url', 'href', 'prUrl']) ??
+    readNestedTargetUrl(record);
+  const typeValue = readNullableString(record, ['type']);
 
   return {
     id,
     title,
     message: readNullableString(record, ['message', 'body', 'description']),
     isRead: read,
+    readAt: readNullableString(record, ['readAt', 'read_at']),
     createdAt: readNullableString(record, ['createdAt', 'created_at', 'date']),
-    targetUrl,
-    type: readNullableString(record, ['type']),
+    actionUrl,
+    type: typeValue && isNotificationType(typeValue) ? typeValue : null,
   };
 }
 
-export function normalizeNotificationsResponse(response: unknown): HeaderNotificationsResult {
+export function normalizeNotificationsResponse(response: unknown): NotificationsResult {
   const record = asRecord(response);
   const source = Array.isArray(response)
     ? response
@@ -86,8 +100,7 @@ export function normalizeNotificationsResponse(response: unknown): HeaderNotific
 
   const notifications = source
     .map(normalizeNotification)
-    .filter((notification): notification is HeaderNotification => Boolean(notification))
-    .filter((notification) => !notification.isRead);
+    .filter((notification): notification is AppNotification => Boolean(notification));
 
   const explicitUnreadCount = record
     ? readNumber(record, ['unreadCount', 'unread_count', 'totalUnread'])
@@ -95,14 +108,35 @@ export function normalizeNotificationsResponse(response: unknown): HeaderNotific
 
   return {
     notifications,
-    unreadCount: Math.max(
-      0,
-      explicitUnreadCount ?? notifications.length
-    ),
+    unreadCount: Math.max(0, explicitUnreadCount ?? countUnreadNotifications(notifications)),
   };
 }
 
-export function formatNotificationTime(value: string | null) {
+export function createDefaultNotificationSettings(): NotificationSettings {
+  return {
+    EXERCISE_REVIEWED: true,
+    EXERCISE_CHANGES_REQUESTED: true,
+    COHORT_ASSIGNED: true,
+    NEW_LESSON_PUBLISHED: true,
+  };
+}
+
+export function normalizeNotificationSettingsResponse(response: unknown): NotificationSettings {
+  const defaults = createDefaultNotificationSettings();
+  const record = asRecord(response);
+  const source = asRecord(record?.settings) ?? asRecord(record?.data) ?? record;
+
+  if (!source) {
+    return defaults;
+  }
+
+  return notificationTypes.reduce<NotificationSettings>((settings, key) => {
+    settings[key] = readBoolean(source, [key], defaults[key]);
+    return settings;
+  }, { ...defaults });
+}
+
+export function formatNotificationTime(value: string | null, locale?: string) {
   if (!value) {
     return '';
   }
@@ -112,14 +146,31 @@ export function formatNotificationTime(value: string | null) {
     return '';
   }
 
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  const diffMs = date.getTime() - Date.now();
+  const diffMinutes = Math.round(diffMs / (1000 * 60));
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const ranges: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+    ['year', 60 * 24 * 365],
+    ['month', 60 * 24 * 30],
+    ['week', 60 * 24 * 7],
+    ['day', 60 * 24],
+    ['hour', 60],
+    ['minute', 1],
+  ];
+
+  for (const [unit, minutesPerUnit] of ranges) {
+    if (Math.abs(diffMinutes) >= minutesPerUnit || unit === 'minute') {
+      return formatter.format(Math.round(diffMinutes / minutesPerUnit), unit);
+    }
+  }
+
+  return '';
 }
 
-export function canNavigateNotification(notification: HeaderNotification) {
-  return Boolean(notification.targetUrl);
+export function countUnreadNotifications(notifications: AppNotification[]) {
+  return notifications.reduce((count, notification) => count + (notification.isRead ? 0 : 1), 0);
+}
+
+export function canNavigateNotification(notification: AppNotification) {
+  return Boolean(notification.actionUrl);
 }

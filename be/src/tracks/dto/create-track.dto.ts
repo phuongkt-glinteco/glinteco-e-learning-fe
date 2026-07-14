@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, MaxLength, IsInt, Min, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  MaxLength,
+  IsInt,
+  Min,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateTrackDto {
   @ApiProperty({
@@ -39,7 +46,8 @@ export class CreateTrackDto {
   lessonCount: number;
 
   @ApiPropertyOptional({
-    description: 'Chèn sau Track có ID này (để tự động tính toán order). Nếu bỏ trống sẽ chèn cuối cùng.',
+    description:
+      'Chèn sau Track có ID này (để tự động tính toán order). Nếu bỏ trống sẽ chèn cuối cùng.',
     example: 't4',
   })
   @IsString({ message: 'afterTrackId phải là chuỗi' })

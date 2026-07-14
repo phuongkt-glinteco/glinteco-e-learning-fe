@@ -122,7 +122,7 @@ export function CourseRoadmap({
                       className={`flex items-center gap-1.5 h-9 px-4 ${isCurrent ? 'shadow-md' : ''}`}
                     >
                       {isCompleted ? t('review', { defaultValue: 'Review' }) : isCurrent ? t('continue', { defaultValue: 'Continue' }) : t('locked', { defaultValue: 'Locked' })}
-                      <span className="material-symbols-outlined text-[16px]">
+                      <span className="material-symbols-outlined text-[16px] transition-transform group-hover/button:translate-x-1">
                         {isCompleted || isCurrent ? 'arrow_forward' : 'lock'}
                       </span>
                     </Button>

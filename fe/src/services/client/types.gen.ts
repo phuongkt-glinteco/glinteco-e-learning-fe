@@ -4,6 +4,20 @@ export type ClientOptions = {
     baseUrl: 'https://be-teal-tau.vercel.app/api/v1' | (string & {});
 };
 
+export type NotificationSettingsDto = {
+    EXERCISE_REVIEWED: boolean;
+    EXERCISE_CHANGES_REQUESTED: boolean;
+    COHORT_ASSIGNED: boolean;
+    NEW_LESSON_PUBLISHED: boolean;
+};
+
+export type UpdateNotificationSettingsDto = {
+    EXERCISE_REVIEWED?: boolean;
+    EXERCISE_CHANGES_REQUESTED?: boolean;
+    COHORT_ASSIGNED?: boolean;
+    NEW_LESSON_PUBLISHED?: boolean;
+};
+
 export type UpdateProfileDto = {
     /**
      * The name of the user
@@ -2049,6 +2063,38 @@ export type AdminUsersControllerAssignCohortResponses = {
      */
     200: unknown;
 };
+
+export type UsersControllerGetNotificationSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/notification-settings';
+};
+
+export type UsersControllerGetNotificationSettingsResponses = {
+    /**
+     * L?y c?u hình thông báo thành công.
+     */
+    200: NotificationSettingsDto;
+};
+
+export type UsersControllerGetNotificationSettingsResponse = UsersControllerGetNotificationSettingsResponses[keyof UsersControllerGetNotificationSettingsResponses];
+
+export type UsersControllerUpdateNotificationSettingsData = {
+    body: UpdateNotificationSettingsDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/notification-settings';
+};
+
+export type UsersControllerUpdateNotificationSettingsResponses = {
+    /**
+     * C?p nh?t c?u hình thông báo thành công.
+     */
+    200: NotificationSettingsDto;
+};
+
+export type UsersControllerUpdateNotificationSettingsResponse = UsersControllerUpdateNotificationSettingsResponses[keyof UsersControllerUpdateNotificationSettingsResponses];
 
 export type AuthControllerGoogleLoginData = {
     body: GoogleLoginDto;

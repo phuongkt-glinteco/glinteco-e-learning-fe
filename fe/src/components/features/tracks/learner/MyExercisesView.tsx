@@ -257,19 +257,19 @@ export function MyExercisesView({
                 <CardFooter className="p-5 pt-0 mt-auto flex flex-wrap gap-3 border-t border-outline-variant/50 pt-4">
                   <Button
                     onClick={() => onOpenExercise(exercise)}
-                    className="flex-1 gap-1.5"
+                    className="h-10 flex-1 gap-1.5"
                   >
                     {getPrimaryAction(exercise.status)}
-                    <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+                    <span className="material-symbols-outlined text-[17px] transition-transform group-hover/button:translate-x-1">arrow_forward</span>
                   </Button>
                   {exercise.prUrl && (
                     <Button
                       variant="outline"
                       onClick={() => exercise.prUrl && onOpenPr(exercise.prUrl)}
-                      className="flex-1 gap-1.5"
+                      className="h-10 flex-1 gap-1.5"
                     >
                       Open PR
-                      <span className="material-symbols-outlined text-[17px]">open_in_new</span>
+                      <span className="material-symbols-outlined text-[17px] transition-transform group-hover/button:translate-x-0.5 group-hover/button:-translate-y-0.5">open_in_new</span>
                     </Button>
                   )}
                 </CardFooter>

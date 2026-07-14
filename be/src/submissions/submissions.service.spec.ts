@@ -66,7 +66,7 @@ describe('SubmissionsService', () => {
       email: 'learner@company.com',
       xp: 500,
       level: 1,
-    } as User);
+    });
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubmissionsService,

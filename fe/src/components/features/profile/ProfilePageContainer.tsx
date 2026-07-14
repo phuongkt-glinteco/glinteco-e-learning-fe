@@ -22,6 +22,38 @@ import { ChangePasswordSection } from './ChangePasswordSection';
 
 type TabType = 'overview' | 'edit';
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string') {
+      return message;
+    }
+  }
+
+  return typeof error === 'string' ? error : '';
+}
+
+function isSameUtcDay(value: string | null | undefined, now = new Date()) {
+  if (!value) return false;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+
+  return (
+    date.getUTCFullYear() === now.getUTCFullYear() &&
+    date.getUTCMonth() === now.getUTCMonth() &&
+    date.getUTCDate() === now.getUTCDate()
+  );
+}
+
+function getClaimStorageKey(userId: string) {
+  return `profile:lastClaimedXpAt:${userId}`;
+}
+
 export function ProfilePageContainer() {
   const { updateUser } = useAuth();
   const t = useTranslations('ProfilePage');
@@ -33,8 +65,10 @@ export function ProfilePageContainer() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const [claimedDailyXpAt, setClaimedDailyXpAt] = useState<string | null>(null);
 
   const loading = loadingProfile || loadingStats;
+  const dailyXpClaimedToday = isSameUtcDay(claimedDailyXpAt);
 
   const fetchProfile = useCallback(async () => {
     setLoadingProfile(true);
@@ -70,30 +104,72 @@ export function ProfilePageContainer() {
   }, [t]);
 
   useEffect(() => {
+    if (!profile?.id || typeof window === 'undefined') {
+      setClaimedDailyXpAt(null);
+      return;
+    }
+
+    setClaimedDailyXpAt(window.localStorage.getItem(getClaimStorageKey(profile.id)));
+  }, [profile?.id]);
+
+  useEffect(() => {
+    if (!profile?.id || typeof window === 'undefined') return;
+
+    const storageKey = getClaimStorageKey(profile.id);
+    if (claimedDailyXpAt) {
+      window.localStorage.setItem(storageKey, claimedDailyXpAt);
+    } else {
+      window.localStorage.removeItem(storageKey);
+    }
+  }, [claimedDailyXpAt, profile?.id]);
+
+  useEffect(() => {
     fetchProfile();
     fetchStats();
   }, [fetchProfile, fetchStats]);
 
   const handleClaimDailyXp = async () => {
-    if (claiming) return;
+    if (claiming || dailyXpClaimedToday) return;
     setClaiming(true);
     try {
       const res = await usersControllerClaimDailyXp({ throwOnError: true });
-      toast.success(t('claimDailyXpSuccess'));
-      
-      // Update local stats after claim
-      if (res.data && stats) {
+      const payload = (res.data ?? {}) as {
+        xpAwarded?: number;
+        xp?: number;
+        level?: number;
+        streakDays?: number;
+        lastClaimedXpAt?: string;
+      };
+      const xpAwarded = payload.xpAwarded ?? 50;
+      const claimAt = payload.lastClaimedXpAt ?? new Date().toISOString();
+
+      setClaimedDailyXpAt(claimAt);
+      toast.success(t('claimDailyXpSuccess', { xp: xpAwarded }));
+
+      if (stats) {
         setStats({
           ...stats,
-          xp: (stats.xp || 0) + 10,
-          xpThisWeek: (stats.xpThisWeek || 0) + 10,
+          xp: payload.xp ?? stats.xp + xpAwarded,
+          xpThisWeek: stats.xpThisWeek + xpAwarded,
+          streakDays: payload.streakDays ?? stats.streakDays,
+          level: payload.level ?? stats.level,
         });
       } else {
         fetchStats();
       }
     } catch (err) {
+      const message = getErrorMessage(err).toLowerCase();
+      const alreadyClaimed = message.includes('hôm nay') || message.includes('today') || message.includes('already');
+      if (alreadyClaimed) {
+        setClaimedDailyXpAt(new Date().toISOString());
+        toast.info(t('comeBackTomorrow'));
+        return;
+      }
+
       if (isUiShowError(err)) {
         toast.error(t(`errors.${err.errorCode}`) || err.message);
+      } else if (message) {
+        toast.error(message);
       }
     } finally {
       setClaiming(false);
@@ -170,6 +246,7 @@ export function ProfilePageContainer() {
               stats={stats}
               onClaimDailyXp={handleClaimDailyXp}
               claiming={claiming}
+              claimedToday={dailyXpClaimedToday}
             />
           </aside>
 

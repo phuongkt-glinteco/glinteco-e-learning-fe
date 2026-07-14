@@ -21,6 +21,7 @@
   "none": "Khong co",
   "stageTimeline": "Pipeline",
   "pollingNote": "Tu dong cap nhat khi run thay doi.",
+  "attemptTimeline": "Lich su cac lan chay",
   "selectedStage": "Stage dang chon",
   "summary": "Tom tat",
   "errorDetails": "Chi tiet loi",
@@ -48,9 +49,14 @@
     "failed": "Loi",
     "blocked": "Bi chan",
     "cancelled": "Da huy",
-    "skipped": "Bo qua"
+    "skipped": "Bo qua",
+    "findings": "Con phat hien",
+    "fallback": "Fallback",
+    "waiting_for_user": "Cho nguoi dung",
+    "runner_failure": "Runner gap loi"
   },
   "stages": {
+    "preflight": "Tiền kiểm tra",
     "context": "Context",
     "plan": "Plan",
     "implement": "Implement",
@@ -83,6 +89,11 @@
     "retryStarted": "Bat dau chay lai",
     "runCompleted": "Workflow da hoan thanh",
     "runCancelled": "Workflow da bi huy",
+    "primaryProviderFailed": "Provider chinh that bai",
+    "fallbackAttempted": "Da thu fallback",
+    "fallbackSucceeded": "Fallback thanh cong",
+    "fallbackUnavailable": "Fallback khong san sang",
+    "fallbackBlocked": "Fallback bi chan theo policy",
     "fallback": "Su kien workflow"
   }
 }

@@ -42,7 +42,11 @@ export class CohortController {
 
   @Post()
   @ApiOperation({ summary: 'Khởi tạo một Cohort mới (Admin only)' })
-  @ApiResponse({ status: 201, type: CohortDetailDto, description: 'Khởi tạo thành công.' })
+  @ApiResponse({
+    status: 201,
+    type: CohortDetailDto,
+    description: 'Khởi tạo thành công.',
+  })
   @ApiResponse({ status: 400, description: 'Dữ liệu đầu vào không hợp lệ.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   create(@Body() createCohortDto: CreateCohortDto) {
@@ -53,7 +57,11 @@ export class CohortController {
   @ApiOperation({ summary: 'Lấy danh sách Cohort với phân trang (Admin only)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiResponse({ status: 200, type: CohortListResponseDto, description: 'Lấy danh sách thành công.' })
+  @ApiResponse({
+    status: 200,
+    type: CohortListResponseDto,
+    description: 'Lấy danh sách thành công.',
+  })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
     const pageNum = page ? parseInt(page, 10) : 1;
@@ -65,7 +73,11 @@ export class CohortController {
   @ApiOperation({
     summary: 'Lấy thông tin tổng quan số liệu của Cohort (Admin only)',
   })
-  @ApiResponse({ status: 200, type: CohortDashboardStatsDto, description: 'Lấy thông tin thành công.' })
+  @ApiResponse({
+    status: 200,
+    type: CohortDashboardStatsDto,
+    description: 'Lấy thông tin thành công.',
+  })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   getOverview(@Param('id', ParseUUIDPipe) id: string) {
@@ -76,7 +88,11 @@ export class CohortController {
   @ApiOperation({
     summary: 'Lấy tỷ lệ hoàn thành các track của Cohort (Admin only)',
   })
-  @ApiResponse({ status: 200, type: CohortTrackCompletionResponseDto, description: 'Lấy thông tin thành công.' })
+  @ApiResponse({
+    status: 200,
+    type: CohortTrackCompletionResponseDto,
+    description: 'Lấy thông tin thành công.',
+  })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   getTrackCompletion(@Param('id', ParseUUIDPipe) id: string) {
@@ -102,7 +118,11 @@ export class CohortController {
   @ApiOperation({
     summary: 'Lấy thông tin chi tiết của Cohort theo ID (Admin only)',
   })
-  @ApiResponse({ status: 200, type: CohortDetailDto, description: 'Lấy thông tin thành công.' })
+  @ApiResponse({
+    status: 200,
+    type: CohortDetailDto,
+    description: 'Lấy thông tin thành công.',
+  })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
@@ -111,7 +131,11 @@ export class CohortController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Cập nhật thông tin Cohort (Admin only)' })
-  @ApiResponse({ status: 200, type: CohortDetailDto, description: 'Cập nhật thành công.' })
+  @ApiResponse({
+    status: 200,
+    type: CohortDetailDto,
+    description: 'Cập nhật thành công.',
+  })
   @ApiResponse({ status: 404, description: 'Không tìm thấy Cohort.' })
   @ApiResponse({ status: 403, description: 'Không có quyền truy cập.' })
   update(

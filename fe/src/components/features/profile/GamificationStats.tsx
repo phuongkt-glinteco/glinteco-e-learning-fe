@@ -62,7 +62,7 @@ export function GamificationStats({ stats }: GamificationStatsProps) {
             </div>
           </div>
           <div className="text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full uppercase tracking-wide">
-            ★ {t('tier')} {tierNumber}
+            {"\u2605"} {t('tier')} {tierNumber}
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export function GamificationStats({ stats }: GamificationStatsProps) {
       {/* Streak Card (col-span-1) */}
       <div className="bg-surface rounded-xl border border-outline-variant p-6 shadow-sm flex flex-col items-center justify-center text-center transition-all hover:shadow-md">
         <div className="w-16 h-16 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-3 animate-pulse">
-          <span className="text-3xl">🔥</span>
+          <span className="text-3xl">{"\u{1F525}"}</span>
         </div>
         <div className="text-2xl font-black text-on-surface font-mono">
           {streakDays}

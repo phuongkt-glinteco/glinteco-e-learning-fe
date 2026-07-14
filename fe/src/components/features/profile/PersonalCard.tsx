@@ -142,9 +142,10 @@ interface DailyXpCardProps {
   stats: UserDashboardStatsDto | null;
   onClaimDailyXp?: () => Promise<void>;
   claiming?: boolean;
+  claimedToday?: boolean;
 }
 
-export function DailyXpCard({ stats, onClaimDailyXp, claiming = false }: DailyXpCardProps) {
+export function DailyXpCard({ stats, onClaimDailyXp, claiming = false, claimedToday = false }: DailyXpCardProps) {
   const t = useTranslations('ProfilePage');
 
   if (!stats) {
@@ -171,17 +172,22 @@ export function DailyXpCard({ stats, onClaimDailyXp, claiming = false }: DailyXp
           <h3 className="font-bold text-lg text-on-surface">{t('dailyReward')}</h3>
         </div>
         <p className="text-sm text-on-surface-variant">
-          {t('dailyRewardDesc', { xp: 50 })}
+          {claimedToday ? t('comeBackTomorrow') : t('dailyRewardDesc', { xp: 50 })}
         </p>
         <Button
           onClick={onClaimDailyXp}
-          disabled={claiming}
-          className="bg-primary text-on-primary hover:bg-primary/90 transition-colors py-2 px-4 rounded-lg font-semibold w-full shadow-sm mt-1"
+          disabled={claiming || claimedToday}
+          className="bg-primary text-on-primary hover:bg-primary/90 transition-colors py-2 px-4 rounded-lg font-semibold w-full shadow-sm mt-1 disabled:bg-surface-container-low disabled:text-on-surface-variant disabled:shadow-none"
         >
           {claiming ? (
             <span className="flex items-center gap-2 justify-center">
               <span className="material-symbols-outlined animate-spin text-sm">refresh</span>
               {t('claimDailyXp')}...
+            </span>
+          ) : claimedToday ? (
+            <span className="flex items-center gap-2 justify-center">
+              <span className="material-symbols-outlined text-sm">check_circle</span>
+              {t('claimedToday')}
             </span>
           ) : (
             t('claimDailyXp')

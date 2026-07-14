@@ -109,6 +109,7 @@ export default function CourseDetailContainer() {
   const routeBase = getLearnerRouteBase(params.trackId);
   const t = useTranslations('CourseDetailContainer');
   const fromQuery = searchParams.get('from');
+  const querySuffix = fromQuery ? `?from=${encodeURIComponent(fromQuery)}` : '';
 
   const [track, setTrack] = useState<LearnerTrack | null>(null);
   const [lessons, setLessons] = useState<TrackLessonPreview[]>([]);
@@ -163,14 +164,14 @@ export default function CourseDetailContainer() {
 
   function handleOpenLesson(lessonId: string) {
     if (!courseId || !lessonId) return;
-    router.push(`/${routeBase}/${courseId}/lessons/${lessonId}`);
+    router.push(`/${routeBase}/${courseId}/lessons/${lessonId}${querySuffix}`);
   }
 
   function handleContinueCourse() {
     if (continueLessonId) {
       handleOpenLesson(continueLessonId);
     } else if (nextTrack?.id) {
-      router.push(`/${routeBase}/${nextTrack.id}`);
+      router.push(`/${routeBase}/${nextTrack.id}${querySuffix}`);
     }
   }
 

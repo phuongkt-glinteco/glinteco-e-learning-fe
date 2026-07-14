@@ -61,6 +61,18 @@ export class User {
   @Column({ default: 0 })
   streakDays: number;
 
+  @Column({ default: true, name: 'notify_exercise_reviewed' })
+  notifyExerciseReviewed: boolean;
+
+  @Column({ default: true, name: 'notify_exercise_changes_requested' })
+  notifyExerciseChangesRequested: boolean;
+
+  @Column({ default: true, name: 'notify_cohort_assigned' })
+  notifyCohortAssigned: boolean;
+
+  @Column({ default: true, name: 'notify_new_lesson_published' })
+  notifyNewLessonPublished: boolean;
+
   @Column({ nullable: true })
   cohortId: string;
 

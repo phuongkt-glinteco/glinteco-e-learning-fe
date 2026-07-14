@@ -25,7 +25,7 @@ export class DocumentsService {
   ) {}
 
   async findAll(query: SearchDocumentsDto, userId: string) {
-    const { q, tags, kind, limit = 20, cursor } = query;
+    const { q, tags, kind, limit = 20, cursor, bookmarked } = query;
 
     // Load user's bookmarks to calculate isBookmarked field
     const user = await this.userRepository.findOne({
@@ -72,6 +72,14 @@ export class DocumentsService {
           return 'document.id IN ' + subQuery;
         });
       }
+    }
+
+    if (bookmarked) {
+      const ids = [...bookmarkedDocIds];
+      qb.andWhere(
+        ids.length > 0 ? 'document.id IN (:...bookmarkedDocIds)' : '1 = 0',
+        ids.length > 0 ? { bookmarkedDocIds: ids } : undefined,
+      );
     }
 
     // Sorting: order by createdAt DESC, id ASC for keyset pagination

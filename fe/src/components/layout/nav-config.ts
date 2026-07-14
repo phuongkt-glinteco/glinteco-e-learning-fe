@@ -23,6 +23,8 @@ const adminMainNav: NavItem[] = [
   { label: 'Learner Progress', translationKey: 'learnerProgress', icon: 'trending_up', href: '/admin/progress' },
   { label: 'Review Queue', translationKey: 'reviews', icon: 'rate_review', href: '/admin/reviews' },
   { label: 'Document & Tags', translationKey: 'documentAndTags', icon: 'description', href: '/documents' },
+  { label: 'FAQ Management', translationKey: 'faqManager', icon: 'help_center', href: '/admin/faqs' },
+  { label: 'Support Tickets', translationKey: 'supportTicketManager', icon: 'support_agent', href: '/admin/support-tickets' },
 ];
 
 export const footerNav: NavItem[] = [

@@ -42,5 +42,7 @@
   "leaderboard": "Bảng xếp hạng",
   "userManager": "Quản lý người dùng",
   "learnerProgress": "Tiến độ học viên",
-  "learnerProgressDesc": "Theo dõi tiến độ học tập toàn khóa học, so sánh tốc độ với mức trung bình lớp và kiểm tra chi tiết bài học của từng học viên."
+  "learnerProgressDesc": "Theo dõi tiến độ học tập toàn khóa học, so sánh tốc độ với mức trung bình lớp và kiểm tra chi tiết bài học của từng học viên.",
+  "faqManager": "Quản lý FAQ",
+  "supportTicketManager": "Quản lý Ticket hỗ trợ"
 }

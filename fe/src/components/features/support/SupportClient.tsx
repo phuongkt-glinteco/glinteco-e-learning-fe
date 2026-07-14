@@ -1,106 +1,151 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { useTranslations } from 'next-intl';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
+import { Plus, Edit, Trash2, HelpCircle, ArrowRight, CheckCircle2, ShieldCheck, LifeBuoy } from 'lucide-react';
+import { useAuth } from '@/providers/AuthProvider';
 import {
   Accordion,
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
 } from '@/components/ui/default/accordion';
-
-interface FaqItem {
-  id: string;
-  category: 'setup' | 'git' | 'grading' | 'account';
-  titleKey: string;
-  contentKey: string;
-}
-
-const FAQ_ITEMS: FaqItem[] = [
-  {
-    id: 'faq-1',
-    category: 'setup',
-    titleKey: 'faq1Title',
-    contentKey: 'faq1Content',
-  },
-  {
-    id: 'faq-2',
-    category: 'account',
-    titleKey: 'faq2Title',
-    contentKey: 'faq2Content',
-  },
-  {
-    id: 'faq-3',
-    category: 'git',
-    titleKey: 'faq3Title',
-    contentKey: 'faq3Content',
-  },
-  {
-    id: 'faq-4',
-    category: 'grading',
-    titleKey: 'faq4Title',
-    contentKey: 'faq4Content',
-  },
-  {
-    id: 'faq-5',
-    category: 'account',
-    titleKey: 'faq5Title',
-    contentKey: 'faq5Content',
-  },
-];
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/default/alert-dialog';
+import { type FaqDto, type FaqCategory, type FaqCreateDto, type FaqUpdateDto } from '@/mocks/faq';
+import { faqControllerFindAll, faqControllerCreate, faqControllerUpdate, faqControllerDelete } from '@/services/api-client';
+import { FaqModal } from './FaqModal';
 
 export function SupportClient() {
   const t = useTranslations('SupportPage');
-  
-  // State cho lọc FAQ
+  const locale = useLocale() as 'vi' | 'en';
+  const { user } = useAuth();
+  const router = useRouter();
+  const isAdmin = user?.role === 'admin';
+
+  // State cho danh sách FAQ từ API
+  const [faqs, setFaqs] = useState<FaqDto[]>([]);
+  const [isLoadingFaqs, setIsLoadingFaqs] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [helpfulFeedback, setHelpfulFeedback] = useState<Record<string, boolean>>({});
 
-  // State cho Form gửi yêu cầu hỗ trợ (Mock)
-  const [topic, setTopic] = useState('');
-  const [subject, setSubject] = useState('');
-  const [description, setDescription] = useState('');
-  const [severity, setSeverity] = useState('normal');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [toastType, setToastType] = useState<'none' | 'success'>('none');
+  // State cho Modal Admin CRUD
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingFaq, setEditingFaq] = useState<FaqDto | null>(null);
+  const [deletingFaq, setDeletingFaq] = useState<FaqDto | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Lọc danh sách FAQ theo từ khóa và chủ đề
-  const filteredFaqs = useMemo(() => {
-    return FAQ_ITEMS.filter((item) => {
-      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-      if (!matchesCategory) return false;
+  const loadFaqs = useCallback(async () => {
+    setIsLoadingFaqs(true);
+    try {
+      const res = await faqControllerFindAll({
+        query: { category: selectedCategory === 'all' ? undefined : selectedCategory, q: searchQuery },
+      });
+      setFaqs(res.data);
+    } catch (err) {
+      console.error('Failed to load FAQs:', err);
+    } finally {
+      setIsLoadingFaqs(false);
+    }
+  }, [selectedCategory, searchQuery]);
 
-      if (!searchQuery.trim()) return true;
-      const query = searchQuery.toLowerCase();
-      const title = t(item.titleKey).toLowerCase();
-      const content = t(item.contentKey).toLowerCase();
-      return title.includes(query) || content.includes(query);
-    });
-  }, [selectedCategory, searchQuery, t]);
+  useEffect(() => {
+    loadFaqs();
+  }, [loadFaqs]);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => {
+      setToastMsg(null);
+    }, 4000);
+  };
+
+  const handleOpenCreateModal = () => {
+    setEditingFaq(null);
+    setModalOpen(true);
+  };
+
+  const handleOpenEditModal = (faq: FaqDto, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingFaq(faq);
+    setModalOpen(true);
+  };
+
+  const handleOpenDeleteConfirm = (faq: FaqDto, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeletingFaq(faq);
+  };
+
+  const handleSaveFaq = async (data: FaqCreateDto | FaqUpdateDto) => {
+    if (editingFaq) {
+      await faqControllerUpdate({
+        path: { id: editingFaq.id },
+        body: data as FaqUpdateDto,
+      });
+      showToast(t('faqSavedToast'));
+    } else {
+      await faqControllerCreate({
+        body: data as FaqCreateDto,
+      });
+      showToast(t('faqSavedToast'));
+    }
+    loadFaqs();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingFaq) return;
+    try {
+      await faqControllerDelete({
+        path: { id: deletingFaq.id },
+      });
+      showToast(t('faqDeletedToast'));
+      setDeletingFaq(null);
+      loadFaqs();
+    } catch (err: any) {
+      alert(err?.message || 'Có lỗi khi xóa câu hỏi FAQ');
+    }
+  };
 
   const handleFeedback = (faqId: string, isHelpful: boolean) => {
     setHelpfulFeedback((prev) => ({ ...prev, [faqId]: isHelpful }));
   };
 
-  const handleSubmitSupport = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!subject.trim() || !description.trim()) return;
+  const getQuestionText = (item: FaqDto): string => {
+    if (item.question && item.question[locale]) {
+      return item.question[locale];
+    }
+    if (item.titleKey) {
+      try {
+        const translated = t(item.titleKey);
+        if (translated && translated !== item.titleKey) return translated;
+      } catch {}
+    }
+    return item.question?.vi || item.question?.en || 'FAQ Question';
+  };
 
-    setIsSubmitting(true);
-    // Giả lập gửi API trong 1.2 giây
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubject('');
-      setDescription('');
-      setTopic('');
-      setSeverity('normal');
-      setToastType('success');
-      setTimeout(() => {
-        setToastType('none');
-      }, 4000);
-    }, 1200);
+  const getAnswerText = (item: FaqDto): string => {
+    if (item.answer && item.answer[locale]) {
+      return item.answer[locale];
+    }
+    if (item.contentKey) {
+      try {
+        const translated = t(item.contentKey);
+        if (translated && translated !== item.contentKey) return translated;
+      } catch {}
+    }
+    return item.answer?.vi || item.answer?.en || 'FAQ Answer';
   };
 
   const categories = [
@@ -113,12 +158,44 @@ export function SupportClient() {
 
   return (
     <div className="flex-1 p-4 sm:p-8 lg:p-12 max-w-container-max mx-auto w-full relative animate-fade-in text-on-surface">
+      {/* Admin FAQ Banner if Admin */}
+      {isAdmin && (
+        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border border-amber-500/30 flex items-center justify-between gap-4 flex-wrap shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 font-bold">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-heading text-sm sm:text-base font-bold text-on-surface">{t('adminFaqBannerTitle')}</h3>
+              <p className="text-xs text-on-surface-variant leading-relaxed">{t('adminFaqBannerDesc')}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
+              className="px-3.5 py-2 rounded-xl bg-primary text-on-primary font-bold text-xs shadow-md hover:bg-primary-container transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{t('addFaqBtn')}</span>
+            </button>
+            <Link
+              href="/admin/faqs"
+              className="px-3.5 py-2 rounded-xl bg-surface-container border border-outline-variant text-xs font-semibold hover:bg-surface-container-high transition-colors text-on-surface flex items-center gap-1.5"
+            >
+              <span>Quản lý riêng</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Header Banner */}
       <header className="mb-10 relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/15 via-surface-container-low to-tertiary/10 p-6 sm:p-8 border border-outline-variant/30 shadow-sm">
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
         <div className="flex items-center gap-2 text-primary font-bold mb-3">
           <span className="p-1.5 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <Icon icon="lucide:life-buoy" className="w-5 h-5 animate-spin-slow" />
+            <LifeBuoy className="w-5 h-5 animate-spin-slow" />
           </span>
           <span className="font-label-md text-xs uppercase tracking-widest font-black">{t('subTitle')}</span>
         </div>
@@ -161,16 +238,28 @@ export function SupportClient() {
         </div>
       </div>
 
-      {/* Main Grid: FAQ (Left/7cols) vs Form (Right/5cols) */}
+      {/* Main Grid: FAQ (Left/7cols) vs Overview / Actions (Right/5cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: FAQ Knowledge Base */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="flex flex-col gap-2">
-            <h2 className="font-heading text-xl sm:text-2xl font-bold flex items-center gap-2 text-on-surface">
-              <Icon icon="lucide:book-open" className="w-6 h-6 text-primary" />
-              {t('faqTitle')}
-            </h2>
-            <p className="text-sm text-on-surface-variant">{t('faqSubtitle')}</p>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex flex-col gap-1">
+              <h2 className="font-heading text-xl sm:text-2xl font-bold flex items-center gap-2 text-on-surface">
+                <Icon icon="lucide:book-open" className="w-6 h-6 text-primary" />
+                <span>{t('faqTitle')}</span>
+              </h2>
+              <p className="text-sm text-on-surface-variant">{t('faqSubtitle')}</p>
+            </div>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={handleOpenCreateModal}
+                className="px-3.5 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{t('addFaqBtn')}</span>
+              </button>
+            )}
           </div>
 
           {/* Search Bar */}
@@ -215,7 +304,12 @@ export function SupportClient() {
           </div>
 
           {/* FAQ Accordion List */}
-          {filteredFaqs.length === 0 ? (
+          {isLoadingFaqs ? (
+            <div className="flex flex-col items-center justify-center py-16 space-y-3 bg-surface-container-lowest rounded-2xl border border-outline-variant/30">
+              <Icon icon="lucide:loader-2" className="w-8 h-8 animate-spin text-primary" />
+              <p className="text-sm text-on-surface-variant font-medium">Đang tải câu hỏi FAQ từ API...</p>
+            </div>
+          ) : faqs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 text-center space-y-3">
               <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant/40">
                 <Icon icon="lucide:help-circle" className="w-8 h-8" />
@@ -234,21 +328,46 @@ export function SupportClient() {
             </div>
           ) : (
             <Accordion type="single" collapsible className="space-y-3.5">
-              {filteredFaqs.map((faq) => {
+              {faqs.map((faq) => {
                 const feedbackGiven = helpfulFeedback[faq.id] !== undefined;
                 return (
                   <AccordionItem
                     key={faq.id}
                     value={faq.id}
-                    className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-5 shadow-xs hover:border-primary/30 transition-colors overflow-hidden"
+                    className="bg-surface-container-lowest border border-outline-variant/40 rounded-xl px-5 shadow-xs hover:border-primary/30 transition-colors overflow-hidden group"
                   >
-                    <AccordionTrigger className="text-base font-semibold text-on-surface hover:text-primary py-4">
-                      <span className="text-left leading-snug">{t(faq.titleKey)}</span>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-2 pb-5 text-sm text-on-surface-variant leading-relaxed space-y-4 border-t border-outline-variant/20">
-                      <p>{t(faq.contentKey)}</p>
+                    <div className="flex items-center justify-between py-4 pr-1 gap-3">
+                      <AccordionTrigger className="text-base font-semibold text-on-surface hover:text-primary flex-1 py-0 text-left leading-snug">
+                        <span>{getQuestionText(faq)}</span>
+                      </AccordionTrigger>
 
-                      {/* Helpful Feedback Footer for each FAQ */}
+                      {/* Admin Inline Edit/Delete buttons */}
+                      {isAdmin && (
+                        <div className="flex items-center gap-1.5 flex-shrink-0 opacity-90 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={(e) => handleOpenEditModal(faq, e)}
+                            title={t('editFaqBtn')}
+                            className="p-1.5 rounded-lg border border-outline-variant/40 hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-colors text-on-surface-variant cursor-pointer"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleOpenDeleteConfirm(faq, e)}
+                            title={t('deleteFaqBtn')}
+                            className="p-1.5 rounded-lg border border-outline-variant/40 hover:bg-error/10 hover:border-error/30 hover:text-error transition-colors text-on-surface-variant cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <AccordionContent className="pt-2 pb-5 text-sm text-on-surface-variant leading-relaxed space-y-4 border-t border-outline-variant/20">
+                      <p className="whitespace-pre-wrap">{getAnswerText(faq)}</p>
+
+                      {/* Helpful Feedback Footer */}
                       <div className="flex items-center justify-between pt-3 border-t border-outline-variant/10 text-xs">
                         <span className="text-on-surface-variant/70 font-medium">{t('helpfulQuestion')}</span>
                         {feedbackGiven ? (
@@ -283,122 +402,107 @@ export function SupportClient() {
           )}
         </div>
 
-        {/* Right Column: Support & Feedback Form */}
+        {/* Right Column: Overview Card or Admin Management Links */}
         <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-6">
-          <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 sm:p-7 shadow-sm">
-            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-outline-variant/20">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                <Icon icon="lucide:message-square-plus" className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-heading text-lg font-bold text-on-surface">{t('formTitle')}</h3>
-                <p className="text-xs text-on-surface-variant">{t('formSubtitle')}</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmitSupport} className="space-y-4">
-              {/* Topic Select */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                  {t('topicLabel')} <span className="text-error">*</span>
-                </label>
-                <select
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  required
-                  className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                >
-                  <option value="" disabled>{t('topicSelect')}</option>
-                  <option value="setup">{t('topicSetup')}</option>
-                  <option value="doc">{t('topicDoc')}</option>
-                  <option value="access">{t('topicAccess')}</option>
-                  <option value="other">{t('topicOther')}</option>
-                </select>
-              </div>
-
-              {/* Subject Input */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                  {t('subjectLabel')} <span className="text-error">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder={t('subjectPlaceholder')}
-                  required
-                  className="w-full h-10 px-3 rounded-lg border border-outline-variant bg-surface-container-low text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-                />
-              </div>
-
-              {/* Severity Toggle */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                  {t('severityLabel')}
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSeverity('normal')}
-                    className={`px-3 py-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                      severity === 'normal'
-                        ? 'bg-surface-container border-primary text-primary shadow-xs'
-                        : 'border-outline-variant/40 text-on-surface-variant hover:bg-surface-container-low'
-                    }`}
-                  >
-                    <Icon icon="lucide:smile" className="w-3.5 h-3.5" />
-                    {t('sevNormal').split('(')[0].trim()}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSeverity('urgent')}
-                    className={`px-3 py-2 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                      severity === 'urgent'
-                        ? 'bg-error/10 border-error text-error shadow-xs'
-                        : 'border-outline-variant/40 text-on-surface-variant hover:bg-surface-container-low'
-                    }`}
-                  >
-                    <Icon icon="lucide:alert-triangle" className="w-3.5 h-3.5" />
-                    {t('sevUrgent').split('(')[0].trim()}
-                  </button>
+          {isAdmin ? (
+            /* Admin Management Hub Card */
+            <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+              <div className="flex items-center gap-3 pb-4 border-b border-outline-variant/20">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center flex-shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading text-lg font-bold text-on-surface">Cổng Quản Trị Hỗ Trợ</h3>
+                  <p className="text-xs text-on-surface-variant">Quyền Admin hệ thống đào tạo</p>
                 </div>
               </div>
 
-              {/* Description Textarea */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">
-                  {t('descLabel')} <span className="text-error">*</span>
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={t('descPlaceholder')}
-                  required
-                  rows={4}
-                  className="w-full p-3 rounded-lg border border-outline-variant bg-surface-container-low text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-y min-h-[100px]"
-                />
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                Bạn đang truy cập với tư cách Admin. Bạn có thể thêm, sửa đổi hoặc xóa các câu hỏi FAQ ngay trên danh sách bên trái bằng các nút nhanh gọn, hoặc truy cập các trang quản trị riêng bên dưới.
+              </p>
+
+              <div className="space-y-3 pt-2">
+                <Link
+                  href="/admin/support-tickets"
+                  className="w-full p-4 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-all flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold">
+                      <Icon icon="lucide:ticket" className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-primary group-hover:underline">Quản lý Support Ticket</div>
+                      <div className="text-[11px] text-on-surface-variant">Xem, phản hồi và xử lý ticket học viên</div>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform" />
+                </Link>
+
+                <Link
+                  href="/admin/faqs"
+                  className="w-full p-4 rounded-xl bg-surface-container border border-outline-variant/40 hover:bg-surface-container-high transition-all flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                      <HelpCircle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-on-surface group-hover:underline">Trang Quản Trị FAQ</div>
+                      <div className="text-[11px] text-on-surface-variant">Danh sách, tìm kiếm và tạo mới câu hỏi</div>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-on-surface-variant group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          ) : (
+            /* Learner Support Overview Card & Navigation */
+            <div className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+              <div className="flex items-center gap-3 pb-4 border-b border-outline-variant/20">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                  <Icon icon="lucide:message-square-plus" className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading text-lg font-bold text-on-surface">{t('supportOverviewBoxTitle')}</h3>
+                  <p className="text-xs text-on-surface-variant">{t('supportOverviewBoxDesc')}</p>
+                </div>
               </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting || !subject.trim() || !description.trim() || !topic}
-                className="w-full h-11 bg-primary text-on-primary rounded-xl font-label-md text-sm font-bold shadow-md hover:bg-primary-container hover:shadow-lg transition-all active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer mt-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
-                    <span>{t('submitting')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon icon="lucide:send" className="w-4 h-4" />
-                    <span>{t('submitBtn')}</span>
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
+              <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/30 space-y-3">
+                <div className="flex items-center gap-2.5 text-xs font-semibold text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>Kết nối trực tiếp tới đội ngũ kỹ thuật & mentor</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs font-semibold text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>Hội thoại trực tuyến, lưu log và theo dõi trạng thái xử lý</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs font-semibold text-on-surface">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>Cập nhật liên tục, không thất lạc yêu cầu</span>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => router.push('/support/tickets?action=create')}
+                  className="w-full h-11 bg-primary text-on-primary rounded-xl font-label-md text-sm font-bold shadow-md hover:bg-primary-container hover:shadow-lg transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{t('newTicketBtn')}</span>
+                </button>
+
+                <Link
+                  href="/support/tickets"
+                  className="w-full h-11 bg-surface-container border border-outline-variant text-on-surface rounded-xl font-label-md text-sm font-semibold hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2"
+                >
+                  <Icon icon="lucide:list-checks" className="w-4 h-4 text-primary" />
+                  <span>{t('goToSupportTicketsBtn')}</span>
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Direct Slack Contact Footer Card */}
           <div className="p-4 rounded-xl bg-gradient-to-r from-teal-500/10 to-blue-500/10 border border-teal-500/20 flex items-center gap-3">
@@ -412,19 +516,53 @@ export function SupportClient() {
         </div>
       </div>
 
-      {/* Animated Success Toast */}
+      {/* Modal Add/Edit FAQ */}
+      <FaqModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        initialData={editingFaq}
+        onSave={handleSaveFaq}
+      />
+
+      {/* Delete Confirmation Alert Dialog */}
+      <AlertDialog open={!!deletingFaq} onOpenChange={(open) => !open && setDeletingFaq(null)}>
+        <AlertDialogContent className="bg-surface-container-lowest border border-outline-variant/40 rounded-2xl p-6 shadow-xl max-w-md text-on-surface">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-heading text-lg font-bold text-error flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              <span>{t('deleteConfirmTitle')}</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-on-surface-variant leading-relaxed">
+              {t('deleteConfirmDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-6">
+            <AlertDialogCancel
+              onClick={() => setDeletingFaq(null)}
+              className="rounded-xl border border-outline-variant text-xs font-semibold px-4 py-2 hover:bg-surface-container"
+            >
+              {t('cancelBtn')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="rounded-xl bg-error text-on-error font-bold text-xs px-4 py-2 hover:bg-error/90 shadow-md"
+            >
+              Xác nhận xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Animated Toast */}
       <div
-        className={`fixed bottom-8 right-8 bg-inverse-surface dark:bg-surface-container-highest text-inverse-on-surface dark:text-on-surface px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 transition-all duration-500 z-50 border border-outline-variant/20 ${
-          toastType !== 'none' ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-95 pointer-events-none'
+        className={`fixed bottom-8 right-8 bg-inverse-surface dark:bg-surface-container-highest text-inverse-on-surface dark:text-on-surface px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-500 z-50 border border-outline-variant/20 ${
+          toastMsg ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-24 opacity-0 scale-95 pointer-events-none'
         }`}
         role="status"
         aria-live="polite"
       >
         <span className="material-symbols-outlined text-emerald-500 text-2xl">check_circle</span>
-        <div>
-          <p className="font-label-md text-sm font-bold">{t('toastTitle')}</p>
-          <p className="font-body-sm text-xs opacity-80">{t('toastDesc')}</p>
-        </div>
+        <p className="font-label-md text-sm font-bold">{toastMsg}</p>
       </div>
     </div>
   );

@@ -4,56 +4,34 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Icon } from '@iconify/react';
-import { useTracks } from '@/hooks/useTracks';
-import { tracksControllerDelete, type TrackSummaryDto } from '@/services/api-client';
-import { getAdminTrackExtendedMetadata, type TrackPublishStatus } from '@/mocks/adminTracksMock';
+import { useAdminTracks } from '@/hooks/useAdminTracks';
+import { tracksControllerDelete } from '@/services/api-client';
 import { AdminTrackActionsDropdown } from './AdminTrackActionsDropdown';
+import type { AdminTrackItemDto } from '@/services/api-client';
 
-interface AugmentedAdminTrack extends TrackSummaryDto {
-  publishStatus: TrackPublishStatus;
-  tags: string[];
-  enrolledCount: number;
-  exercisesCount: number;
-}
-
+type TrackStatus = AdminTrackItemDto['status'];
 export function AdminTrackListTable() {
   const t = useTranslations('AdminTracksPage');
-  const { tracks, loading, error, refetch } = useTracks({ limit: 100 });
+  const { tracks, loading, error, refetch } = useAdminTracks();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | TrackPublishStatus>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | TrackStatus>('ALL');
   const [deleteModalTrack, setDeleteModalTrack] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Combine real tracks with mock extended attributes using strict typing
-  const augmentedTracks = useMemo<AugmentedAdminTrack[]>(() => {
-    return tracks.map((track) => {
-      const ext = getAdminTrackExtendedMetadata(track.id);
-      return {
-        ...track,
-        publishStatus: ext.status,
-        tags: ext.tags,
-        enrolledCount: ext.enrolledLearnersCount,
-        exercisesCount: 0,
-      };
-    });
-  }, [tracks]);
-
   // Filter & Search logic
   const filteredTracks = useMemo(() => {
-    return augmentedTracks.filter((track) => {
+    return tracks.filter((track) => {
       const matchSearch =
         !searchQuery.trim() ||
         track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        track.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (track.description && track.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        track.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        track.id.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchStatus =
-        statusFilter === 'ALL' || track.publishStatus === statusFilter;
+        statusFilter === 'ALL' || track.status === statusFilter;
 
       return matchSearch && matchStatus;
     });
-  }, [augmentedTracks, searchQuery, statusFilter]);
+  }, [tracks, searchQuery, statusFilter]);
 
   const handleDelete = async () => {
     if (!deleteModalTrack) return;
@@ -72,23 +50,23 @@ export function AdminTrackListTable() {
     }
   };
 
-  const getStatusBadge = (status: TrackPublishStatus) => {
+  const getStatusBadge = (status: TrackStatus) => {
     switch (status) {
-      case 'published':
+      case 'Active':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300">
             <Icon icon="lucide:check-circle-2" className="w-3.5 h-3.5" />
-            {t('statusPublished')}
+            {t('statusActive')}
           </span>
         );
-      case 'draft':
+      case 'Developing':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300">
             <Icon icon="lucide:file-edit" className="w-3.5 h-3.5" />
-            {t('statusDraft')}
+            {t('statusDeveloping')}
           </span>
         );
-      case 'archived':
+      case 'Archived':
       default:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400">
@@ -132,9 +110,9 @@ export function AdminTrackListTable() {
           {(
             [
               { value: 'ALL', label: t('filterStatusAll') },
-              { value: 'published', label: t('statusPublished') },
-              { value: 'draft', label: t('statusDraft') },
-              { value: 'archived', label: t('statusArchived') },
+              { value: 'Active', label: t('statusActive') },
+              { value: 'Developing', label: t('statusDeveloping') },
+              { value: 'Archived', label: t('statusArchived') },
             ] as const
           ).map((tab) => {
             const isActive = statusFilter === tab.value;
@@ -202,11 +180,9 @@ export function AdminTrackListTable() {
                           >
                             {track.title}
                           </Link>
-                          {track.description && (
-                            <p className="text-on-surface-variant text-xs line-clamp-1 mt-0.5">
-                              {track.description}
-                            </p>
-                          )}
+                          <p className="text-on-surface-variant text-xs line-clamp-1 mt-0.5">
+                            {/* Track description no longer returned by API */}
+                          </p>
                           <span className="text-[10px] font-mono text-on-surface-variant/60 mt-1 block">
                             ID: {track.id}
                           </span>
@@ -217,43 +193,43 @@ export function AdminTrackListTable() {
                     {/* Column 2: Tags */}
                     <td className="px-5 py-4">
                       <div className="flex flex-wrap gap-1.5 max-w-[220px]">
-                        {track.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-surface-container text-on-surface border border-outline-variant/60"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+                        {/* Tags no longer returned by API */}
+                        <span className="text-xs text-on-surface-variant/60 italic">-</span>
                       </div>
                     </td>
 
                     {/* Column 3: Status */}
-                    <td className="px-5 py-4">{getStatusBadge(track.publishStatus)}</td>
+                    <td className="px-5 py-4">{getStatusBadge(track.status)}</td>
 
                     {/* Column 4: Content Stats */}
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1 text-on-surface-variant">
                         <span className="inline-flex items-center gap-1.5 font-medium text-on-surface">
                           <Icon icon="lucide:book-open" className="w-3.5 h-3.5 text-primary" />
-                          {t('statsLessons', { count: track.lessonCount ?? 0 })}
+                          {t('statsLessons', { count: track.totalLessons ?? 0 })}
                         </span>
                         <span className="inline-flex items-center gap-1.5 text-[11px]">
                           <Icon icon="lucide:file-check" className="w-3.5 h-3.5 text-on-surface-variant" />
-                          {t('statsExercises', { count: track.exercisesCount ?? 0 })}
+                          {t('statsExercises', { count: 0 })}
                         </span>
                       </div>
                     </td>
 
                     {/* Column 5: Learners */}
                     <td className="px-5 py-4">
-                      <span className="inline-flex items-center gap-1.5 font-bold text-on-surface">
-                        <Icon icon="lucide:users" className="w-3.5 h-3.5 text-primary" />
-                        {t('statsEnrolled', { count: track.enrolledCount })}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="inline-flex items-center gap-1.5 font-bold text-on-surface">
+                          <Icon icon="lucide:users" className="w-3.5 h-3.5 text-primary" />
+                          {t('statsEnrolled', { count: track.enrolledCount })}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 text-xs text-on-surface-variant">
+                          <Icon icon="lucide:check-circle" className="w-3.5 h-3.5 text-emerald-500" />
+                          {t('statsCompleted', { count: track.completedCount, percent: Math.round((track.avgCompletion || 0) * 100) })}
+                        </span>
+                      </div>
                     </td>
 
-                    {/* Column 6: Actions */}
+                    {/* Column 5: Actions */}
                     <td className="px-5 py-4 text-right">
                       <AdminTrackActionsDropdown
                         trackId={track.id}

@@ -34,5 +34,9 @@
   "statsLessons": "{count} bài học",
   "statsExercises": "{count} bài tập",
   "statsEnrolled": "{count} học viên",
-  "manageLessons": "Quản lý bài học"
+  "manageLessons": "Quản lý bài học",
+  "statusActive": "Đang hoạt động",
+  "statusDeveloping": "Đang phát triển",
+  "statsCompleted": "Hoàn thành: {count} ({percent}%)",
+  "fetchError": "Không thể tải danh sách lộ trình"
 }

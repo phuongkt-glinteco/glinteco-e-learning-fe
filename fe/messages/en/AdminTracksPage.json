@@ -34,5 +34,9 @@
   "statsLessons": "{count} lessons",
   "statsExercises": "{count} exercises",
   "statsEnrolled": "{count} enrolled",
-  "manageLessons": "Manage lessons"
+  "manageLessons": "Manage lessons",
+  "statusActive": "Active",
+  "statusDeveloping": "Developing",
+  "statsCompleted": "Completed: {count} ({percent}%)",
+  "fetchError": "Failed to fetch admin tracks"
 }

@@ -11,8 +11,8 @@ export interface LessonRootProps {
   estimatedTime?: string;
   order?: number;
   type: LessonType;
-  documents?: any[];
-  exercises?: any[];
+  documents?: unknown[];
+  exercises?: unknown[];
 }
 
 // 2. Định nghĩa các Enum / Type cho Code Block (chia theo nhóm như mô tả)
@@ -106,8 +106,10 @@ export interface LessonBlockProps {
     xp?: number;
     type?: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK";
     viewStyle?: "inline_interactive" | "navigation_card";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     content?: any;
     // legacy support
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     exerciseData?: any;
     instruction?: string;
   };
@@ -119,8 +121,9 @@ export interface LessonBlockProps {
     documentId?: string;
     url: string;
     altText: string;
-    kind?: "guide" | "reference" | "runbook" | "tutorial" | "link";
+    kind?: "guide" | "reference" | "runbook" | "tutorial" | "link" | string;
     description?: string;
+    tags?: Array<{ id: string; name: string }>;
   };
   ExternalLinkBlock: {
     url: string;

@@ -59,17 +59,7 @@ export function AdminTrackActionsDropdown({
             <span>{t('manageLessons')}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              router.push(`/admin/tracks/${trackId}/edit`);
-            }}
-            className="w-full px-3.5 py-2.5 text-left text-xs font-semibold text-on-surface hover:bg-surface-container/50 flex items-center gap-2.5 transition-colors cursor-pointer"
-          >
-            <Icon icon="lucide:edit-3" className="w-4 h-4 text-amber-600" />
-            <span>{t('edit')}</span>
-          </button>
+          
 
           <div className="my-1 border-t border-outline-variant/60" />
 

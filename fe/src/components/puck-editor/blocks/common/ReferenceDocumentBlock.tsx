@@ -3,48 +3,101 @@ import { useTranslations } from "next-intl";
 import { ComponentConfig } from "@puckeditor/core";
 import { FileText, ExternalLink } from "lucide-react";
 import { LessonBlockProps } from "../../types";
-import { DocumentPickerField } from "../../fields";
+import { DocumentPickerField, type DocumentItem } from "../../fields";
+import { useSafePuck } from "../../helper";
+
+function DocumentPickerFieldWrapper({
+  value,
+  onChange,
+  readOnly,
+}: {
+  value?: string;
+  onChange: (val: string) => void;
+  readOnly?: boolean;
+}) {
+  const puck = useSafePuck();
+  const arr = value ? [{ id: value, title: `Tài liệu ID: ${value}` }] : [];
+
+  const handleSelectDocuments = (items: DocumentItem[]) => {
+    const doc = items[0];
+    if (!doc) {
+      onChange("");
+      return;
+    }
+    onChange(doc.id || "");
+
+    if (puck?.appState && puck.dispatch) {
+      const selector = puck.appState.ui.itemSelector;
+      if (selector && typeof selector.index === "number") {
+        const currentData = puck.appState.data;
+        const newContent = [...(currentData.content || [])];
+        const currentBlock = newContent[selector.index];
+        if (currentBlock && currentBlock.type === "ReferenceDocumentBlock") {
+          const updatedBlock = {
+            ...currentBlock,
+            props: {
+              ...currentBlock.props,
+              documentId: doc.id || "",
+              altText: doc.title || "",
+              url: doc.url || "",
+              kind: doc.kind?.toLowerCase() || "reference",
+              tags: doc.tags || [],
+            },
+          };
+          puck.dispatch({
+            type: "replace",
+            destinationIndex: selector.index,
+            destinationZone: selector.zone || "default-zone",
+            data: updatedBlock,
+          });
+        }
+      }
+    }
+  };
+
+  return (
+    <DocumentPickerField
+      value={arr}
+      onChange={handleSelectDocuments}
+      readOnly={readOnly}
+    />
+  );
+}
 
 export const ReferenceDocumentBlock: ComponentConfig<
   LessonBlockProps["ReferenceDocumentBlock"]
 > = {
   fields: {
-    altText: {
-      type: "text",
-      label: "Tên hiển thị tài liệu",
-    },
-    url: {
-      type: "text",
-      label: "Đường dẫn tài liệu (URL)",
-    },
-    kind: {
-      type: "select",
-      label: "Phân loại tài liệu",
-      options: [
-        { label: "Hướng dẫn (Guide)", value: "guide" },
-        { label: "Tài liệu tham khảo (Reference)", value: "reference" },
-        { label: "Quy trình (Runbook)", value: "runbook" },
-        { label: "Bài hướng dẫn (Tutorial)", value: "tutorial" },
-        { label: "Liên kết ngoài (Link)", value: "link" },
-      ],
-    },
-    description: {
-      type: "textarea",
-      label: "Mô tả ngắn về tài liệu",
-    },
     documentId: {
       type: "custom",
       label: "Chọn tài liệu từ hệ thống",
-      render: ({ value, onChange, readOnly }) => {
-        const arr = value ? [{ id: value, title: `Tài liệu ID: ${value}` }] : [];
-        return (
-          <DocumentPickerField
-            value={arr}
-            onChange={(items) => onChange(items[0]?.id || "")}
-            readOnly={readOnly}
-          />
-        );
-      },
+      render: ({ value, onChange, readOnly }) => (
+        <DocumentPickerFieldWrapper
+          value={value}
+          onChange={(val) => onChange(val)}
+          readOnly={readOnly}
+        />
+      ),
+    },
+    altText: {
+      type: "custom",
+      render: () => <></>,
+    },
+    url: {
+      type: "custom",
+      render: () => <></>,
+    },
+    kind: {
+      type: "custom",
+      render: () => <></>,
+    },
+    description: {
+      type: "custom",
+      render: () => <></>,
+    },
+    tags: {
+      type: "custom",
+      render: () => <></>,
     },
   },
   defaultProps: {
@@ -54,7 +107,7 @@ export const ReferenceDocumentBlock: ComponentConfig<
     description: "",
     documentId: "",
   },
-  render: ({ altText, url, documentId, kind, description }) => {
+  render: ({ altText, url, documentId, kind, description, tags }) => {
     const t = useTranslations("PuckEditor.Common.documentEmbed");
     const title = altText || t("defaultTitle");
 
@@ -67,7 +120,7 @@ export const ReferenceDocumentBlock: ComponentConfig<
           className="inline-flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:bg-surface/80"
         >
           <div className="flex min-w-0 items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
+            <FileText className="w-5 h-5 text-primary shrink-0" />
             <span className="truncate underline decoration-primary/40 underline-offset-4">
               {title}
             </span>
@@ -78,12 +131,24 @@ export const ReferenceDocumentBlock: ComponentConfig<
                 {kind}
               </span>
             )}
+            {tags && tags.length > 0 && (
+              <div className="flex items-center gap-1">
+                {tags.map((tag, idx) => (
+                  <span
+                    key={tag.id || idx}
+                    className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                  >
+                    #{tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
             {documentId && (
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-normal text-primary">
                 {t("internalBadge")}
               </span>
             )}
-            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+            <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
           </div>
         </a>
         {description && (

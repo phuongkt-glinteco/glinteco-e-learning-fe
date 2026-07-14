@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { documentsControllerFindAll, documentsControllerCreate } from '@/services/client';
+import { documentsControllerFindAll } from '@/services/client';
 import type { DocumentResponseDto } from '@/services/client';
 import {
   Dialog,
@@ -14,12 +14,14 @@ import {
 import { Button } from '@/components/ui/default/button';
 import { Input } from '@/components/ui/default/input';
 import { Badge } from '@/components/ui/default/badge';
-import { FileText, X, Plus, Loader2, ExternalLink } from 'lucide-react';
+import { FileText, X, Plus, ExternalLink, Loader2 } from 'lucide-react';
 
 export interface DocumentItem {
   id?: string;
   title?: string;
   url?: string;
+  kind?: string;
+  tags?: Array<{ id: string; name: string }>;
 }
 
 export interface DocumentPickerFieldProps {
@@ -57,20 +59,12 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
   const t = useTranslations('PuckEditor.Common.DocumentPicker');
 
   const [openSelect, setOpenSelect] = useState(false);
-  const [openQuickCreate, setOpenQuickCreate] = useState(false);
 
   const [search, setSearch] = useState('');
   const [selectedKind, setSelectedKind] = useState<'ALL' | DocumentKind>('ALL');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<DocumentResponseDto[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  // Quick Create draft state
-  const [draftTitle, setDraftTitle] = useState('');
-  const [draftKind, setDraftKind] = useState<DocumentKind>('Guide');
-  const [draftUrl, setDraftUrl] = useState('');
-  const [createLoading, setCreateLoading] = useState(false);
-  const [titleError, setTitleError] = useState('');
 
   const currentItems = Array.isArray(value) ? value : [];
 
@@ -114,15 +108,6 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
     setOpenSelect(true);
   };
 
-  const handleOpenQuickCreate = () => {
-    if (readOnly) return;
-    setDraftTitle('');
-    setDraftKind('Guide');
-    setDraftUrl('');
-    setTitleError('');
-    setOpenQuickCreate(true);
-  };
-
   const toggleSelect = (doc: DocumentResponseDto) => {
     const id = doc.id;
     if (!id) return;
@@ -148,48 +133,14 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
             id: found.id,
             title,
             url: typeof found.url === 'string' ? found.url : undefined,
+            kind: found.kind,
+            tags: found.tags || [],
           });
         }
       }
     }
     onChange(newSelectedItems);
     setOpenSelect(false);
-  };
-
-  const handleConfirmQuickCreate = async () => {
-    if (!draftTitle.trim()) {
-      setTitleError(t('docTitleLabel'));
-      return;
-    }
-    setCreateLoading(true);
-    let newId = `skeleton-doc-${Date.now()}`;
-    const title = draftTitle.trim();
-    try {
-      const res = await documentsControllerCreate({
-        body: {
-          title,
-          kind: draftKind,
-          url: draftUrl.trim() || undefined,
-          content: '',
-        },
-      });
-      if (res.data && (res.data as any).id) {
-        newId = (res.data as any).id;
-      }
-    } catch {
-      // Offline / Skeleton draft mode fallback
-    } finally {
-      setCreateLoading(false);
-    }
-
-    registerDocumentTitle(newId, title);
-    const nextItem: DocumentItem = {
-      id: newId,
-      title,
-      url: draftUrl.trim() || undefined,
-    };
-    onChange([...currentItems, nextItem]);
-    setOpenQuickCreate(false);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -257,31 +208,18 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
         )}
       </div>
 
-      {/* Hành động: Chọn từ hệ thống / Tạo nhanh */}
+      {/* Hành động: Chọn từ hệ thống */}
       {!readOnly && (
-        <div className="grid grid-cols-2 gap-1.5">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleOpenSelect}
-            className="text-xs h-8 flex items-center justify-center gap-1.5 border-dashed border-border hover:border-primary hover:text-primary cursor-pointer"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>{t('selectExistingBtn')}</span>
-          </Button>
-
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={handleOpenQuickCreate}
-            className="text-xs h-8 flex items-center justify-center gap-1 cursor-pointer"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>{t('quickCreateBtn')}</span>
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleOpenSelect}
+          className="w-full text-xs h-8 flex items-center justify-center gap-1.5 border-dashed border-border hover:border-primary hover:text-primary cursor-pointer"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>{t('selectExistingBtn')}</span>
+        </Button>
       )}
 
       {/* DIALOG 1: Chọn tài liệu có sẵn từ hệ thống theo 5 loại */}
@@ -371,88 +309,6 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
             </Button>
             <Button type="button" size="sm" onClick={handleConfirmSelect}>
               {t('confirmBtn')} ({selectedIds.length})
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* DIALOG 2: Tạo nhanh tài liệu (Skeleton Draft) */}
-      <Dialog open={openQuickCreate} onOpenChange={setOpenQuickCreate}>
-        <DialogContent className="max-w-md bg-surface border-border">
-          <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-foreground">
-              {t('dialogQuickCreateTitle')}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">
-                {t('docTitleLabel')}
-              </label>
-              <Input
-                placeholder={t('docTitlePlaceholder')}
-                value={draftTitle}
-                onChange={(e) => {
-                  setDraftTitle(e.target.value);
-                  if (titleError) setTitleError('');
-                }}
-                className={`h-9 text-xs bg-surface-container-lowest ${
-                  titleError ? 'border-destructive' : 'border-border'
-                }`}
-              />
-              {titleError && (
-                <p className="text-[11px] text-destructive">{titleError}</p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">
-                {t('docKindLabel')}
-              </label>
-              <select
-                value={draftKind}
-                onChange={(e) => setDraftKind(e.target.value as DocumentKind)}
-                className="w-full h-9 text-xs rounded-md border border-border bg-surface-container-lowest px-2.5 outline-none text-foreground"
-              >
-                <option value="Guide">Guide</option>
-                <option value="Reference">Reference</option>
-                <option value="Runbook">Runbook</option>
-                <option value="Tutorial">Tutorial</option>
-                <option value="Link">Link</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">
-                {t('docUrlLabel')}
-              </label>
-              <Input
-                placeholder={t('docUrlPlaceholder')}
-                value={draftUrl}
-                onChange={(e) => setDraftUrl(e.target.value)}
-                className="h-9 text-xs bg-surface-container-lowest border-border"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setOpenQuickCreate(false)}
-            >
-              {t('cancelBtn')}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleConfirmQuickCreate}
-              disabled={createLoading}
-            >
-              {createLoading && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-              {t('createDraftBtn')}
             </Button>
           </DialogFooter>
         </DialogContent>

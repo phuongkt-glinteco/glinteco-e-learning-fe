@@ -23,6 +23,7 @@ export interface ExerciseData {
   status?: "draft" | "complete";
   type?: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK";
   xp?: number;
+  isMandatory?: boolean;
   previewData?: {
     brief?: string;
     repoUrl?: string;

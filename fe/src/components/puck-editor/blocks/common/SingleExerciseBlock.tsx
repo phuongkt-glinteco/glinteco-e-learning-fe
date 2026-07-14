@@ -11,10 +11,13 @@ import {
   FileText,
   Circle,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { LessonBlockProps } from "../../types";
 import { ExerciseSelectorField, type ExerciseData } from "../../fields";
 import { useLessonExercisesStore } from "../../../../stores/lessonExercisesStore";
+import { exercisesControllerSubmitAuto } from "../../../../../../services/client";
+import type { AutoGradeResultDto } from "../../../../../../services/client/types.gen";
 
 const typeConfig: Record<string, { icon: React.ElementType; borderClass: string; badgeClass: string }> = {
   PR_REVIEW: {
@@ -120,11 +123,81 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
     const t = useTranslations("PuckEditor.Common.exerciseEmbed");
     const registerExercise = useLessonExercisesStore((state) => state.registerExercise);
 
+    const [selectedAnswers, setSelectedAnswers] = React.useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+    const [submitResult, setSubmitResult] = React.useState<AutoGradeResultDto | null>(null);
+
+    const handleSubmitQuiz = async () => {
+      const data = (content || {}) as ExerciseData;
+      if (!data.exerciseId) return;
+      setIsSubmitting(true);
+      try {
+        const res = await exercisesControllerSubmitAuto({
+          path: { id: data.exerciseId },
+          body: {
+            answers: [{ questionId: "1", answer: selectedAnswers["1"] || "" }],
+          }
+        });
+        setSubmitResult(res.data as AutoGradeResultDto);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    const handleSubmitFill = async () => {
+       const data = (content || {}) as ExerciseData;
+       if (!data.exerciseId) return;
+       setIsSubmitting(true);
+       try {
+         const template = data.previewData?.fillTemplate || "";
+         const parts = template.split(/{{(\w+)}}/g);
+         const answers: any[] = [];
+         parts.forEach((part, i) => {
+           if (i % 2 === 1) {
+             const id = part;
+             answers.push({ questionId: id, answer: selectedAnswers[id] || "" });
+           }
+         });
+         const res = await exercisesControllerSubmitAuto({
+           path: { id: data.exerciseId },
+           body: { answers }
+         });
+         setSubmitResult(res.data as AutoGradeResultDto);
+       } catch (err) {
+         console.error(err);
+       } finally {
+         setIsSubmitting(false);
+       }
+    };
+
+    const renderFillInBlankInteractive = () => {
+        const data = (content || {}) as ExerciseData;
+        const template = data.previewData?.fillTemplate || "";
+        const parts = template.split(/{{(\w+)}}/g);
+        return parts.map((part, i) => {
+          if (i % 2 === 1) {
+            const blankId = part;
+            return (
+              <input
+                key={i}
+                className="inline-block border border-outline-variant bg-surface rounded px-2 mx-1 py-0.5 text-[12px] w-20 text-center focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                value={selectedAnswers[blankId] || ""}
+                onChange={(e) => setSelectedAnswers({...selectedAnswers, [blankId]: e.target.value})}
+              />
+            );
+          }
+          return <span key={i}>{part}</span>;
+        });
+    };
+
     useEffect(() => {
       if (content?.exerciseId && id) {
-        registerExercise(id, content);
+        // We inject isMandatory to the content data so GroupExerciseBlock can use it
+        registerExercise(id, { ...content, isMandatory: Boolean(isMandatory) });
       }
-    }, [content, id, registerExercise]);
+    }, [content, id, isMandatory, registerExercise]);
 
     const data = (content || {}) as ExerciseData;
     const isDraft = data.status === "draft";
@@ -214,50 +287,84 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
         </div>
 
         {effectiveType === "QUIZ" && viewStyle === "inline_interactive" && (
-          <div className="space-y-2 rounded-lg border border-outline-variant/60 bg-surface/70 p-3">
+          <div className="space-y-3 rounded-lg border border-outline-variant/60 bg-surface/70 p-4">
             <p className="text-label-sm font-semibold text-foreground">
               {t("quizQuestionLabel")}
             </p>
             <p className="text-body-sm text-on-surface-variant">
               {data.previewData?.question || t("quizQuestionFallback")}
             </p>
-            <div className="space-y-1.5 pt-1">
+            <div className="space-y-2 pt-1">
               {quizAnswers.length > 0 ? (
                 quizAnswers.map((answer, index) => {
-                  const isCorrect = Boolean(answer.correct);
+                  const isSelected = selectedAnswers["1"] === answer.text;
                   return (
-                    <div
+                    <button
                       key={`${answer.text}-${index}`}
-                      className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-body-xs ${
-                        isCorrect
-                          ? "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/20"
-                          : "border-outline-variant/60 bg-surface"
+                      type="button"
+                      onClick={() => setSelectedAnswers({ ...selectedAnswers, "1": answer.text })}
+                      className={`flex w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-body-sm transition-colors ${
+                        isSelected
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-outline-variant/60 bg-surface hover:bg-surface-container"
                       }`}
                     >
-                      {isCorrect ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      {isSelected ? (
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
                       ) : (
-                        <Circle className="h-3.5 w-3.5 text-muted-foreground" />
+                        <Circle className="h-4 w-4 text-muted-foreground" />
                       )}
                       <span className="truncate">{answer.text}</span>
-                    </div>
+                    </button>
                   );
                 })
               ) : (
                 <p className="text-body-xs text-muted-foreground">{t("quizAnswerFallback")}</p>
               )}
             </div>
+            <div className="pt-2 border-t border-outline-variant/60 flex items-center justify-between">
+              <button
+                type="button"
+                disabled={!selectedAnswers["1"] || isSubmitting}
+                onClick={handleSubmitQuiz}
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-label-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              >
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {submitResult ? "Làm lại" : "Nộp bài"}
+              </button>
+              {submitResult && (
+                <span className={`text-label-sm font-medium ${submitResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                   {submitResult.passed ? "Bạn đã trả lời đúng!" : "Bạn đã trả lời sai!"}
+                </span>
+              )}
+            </div>
           </div>
         )}
 
         {effectiveType === "FILL_IN_BLANK" && viewStyle === "inline_interactive" && (
-          <div className="space-y-2 rounded-lg border border-outline-variant/60 bg-surface/70 p-3">
+          <div className="space-y-3 rounded-lg border border-outline-variant/60 bg-surface/70 p-4">
             <p className="text-label-sm font-semibold text-foreground">
               {t("fillTemplateLabel")}
             </p>
-            <pre className="overflow-x-auto rounded-md bg-surface-container-low px-3 py-2 text-[11px] text-on-surface-variant whitespace-pre-wrap">
-              {fillPreview}
-            </pre>
+            <div className="rounded-md bg-surface-container-low px-4 py-3 text-[13px] text-on-surface-variant leading-loose whitespace-pre-wrap font-mono">
+              {renderFillInBlankInteractive()}
+            </div>
+            <div className="pt-2 border-t border-outline-variant/60 flex items-center justify-between">
+              <button
+                type="button"
+                disabled={isSubmitting || Object.keys(selectedAnswers).length === 0}
+                onClick={handleSubmitFill}
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-label-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              >
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {submitResult ? "Làm lại" : "Nộp bài"}
+              </button>
+              {submitResult && (
+                <span className={`text-label-sm font-medium ${submitResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                   {submitResult.passed ? "Bạn đã làm đúng!" : "Bạn đã làm sai!"}
+                </span>
+              )}
+            </div>
           </div>
         )}
 

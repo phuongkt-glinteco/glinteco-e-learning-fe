@@ -97,29 +97,23 @@ export interface LessonBlockProps {
     columns: 1 | 2 | 3 | 4;
     gap: "sm" | "md" | "lg";
   };
-  ExerciseEmbedBlock: {
-    exerciseData?: {
-      exerciseId: string;
-      status?: "draft" | "complete";
-      type?: "pr" | "minigame_quiz" | "minigame_fill";
-      xp?: number;
-      instruction?: string;
-      previewData?: {
-        brief?: string;
-        repoUrl?: string;
-        questionCount?: number;
-        blankCount?: number;
-        question?: string;
-        answerType?: "single" | "multi";
-        answers?: Array<{ text: string; correct: boolean }>;
-        fillTemplate?: string;
-      };
-      title?: string;
-    } | null;
+  SingleExerciseBlock: {
     title?: string;
-    type?: "pr" | "minigame_quiz" | "minigame_fill";
+    isMandatory?: boolean;
+    tag?: string;
+    difficulty?: "Beginner" | "Intermediate" | "Advanced";
+    estimatedTime?: string;
     xp?: number;
+    type?: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK";
+    viewStyle?: "inline_interactive" | "navigation_card";
+    content?: any;
+    // legacy support
+    exerciseData?: any;
     instruction?: string;
+  };
+  GroupExerciseBlock: {
+    title?: string;
+    description?: string;
   };
   ReferenceDocumentBlock: {
     documentId?: string;

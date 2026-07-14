@@ -19,7 +19,8 @@ import {
   CalloutBlock,
   FlexLayoutBlock,
   GridLayoutBlock,
-  ExerciseEmbedBlock,
+  SingleExerciseBlock,
+  GroupExerciseBlock,
   ReferenceDocumentBlock,
   ExternalLinkBlock,
   ImageBlock,
@@ -89,7 +90,7 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
       },
       media: {
         title: t("categories.media"),
-        components: ["ImageBlock", "ExternalLinkBlock", "ReferenceDocumentBlock", "ExerciseEmbedBlock"],
+        components: ["ImageBlock", "ExternalLinkBlock", "ReferenceDocumentBlock", "SingleExerciseBlock", "GroupExerciseBlock"],
       },
       code: {
         title: t("categories.code"),
@@ -192,7 +193,8 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
       CalloutBlock: { ...CalloutBlock, label: "Callout" },
       FlexLayoutBlock: { ...FlexLayoutBlock, label: "Flex Layout" },
       GridLayoutBlock: { ...GridLayoutBlock, label: "Grid Layout" },
-      ExerciseEmbedBlock: { ...ExerciseEmbedBlock, label: "Exercise" },
+      SingleExerciseBlock: { ...SingleExerciseBlock, label: "Exercise" },
+      GroupExerciseBlock: { ...GroupExerciseBlock, label: "Group Exercise" },
       ReferenceDocumentBlock: { ...ReferenceDocumentBlock, label: "Document" },
       ExternalLinkBlock: { ...ExternalLinkBlock, label: "Link" },
       ImageBlock: { ...ImageBlock, label: "Image" },
@@ -245,7 +247,7 @@ export const lessonPuckConfig: Config<LessonBlockProps, LessonRootProps> = {
     },
     media: {
       title: "🖼️ Hình ảnh & Liên kết",
-      components: ["ImageBlock", "ExternalLinkBlock", "ReferenceDocumentBlock", "ExerciseEmbedBlock"],
+      components: ["ImageBlock", "ExternalLinkBlock", "ReferenceDocumentBlock", "SingleExerciseBlock", "GroupExerciseBlock"],
     },
     code: {
       title: "💻 Code & Terminal",
@@ -340,7 +342,8 @@ fields: {
     CalloutBlock: { ...CalloutBlock, label: "Callout" },
     FlexLayoutBlock: { ...FlexLayoutBlock, label: "Flex Layout" },
     GridLayoutBlock: { ...GridLayoutBlock, label: "Grid Layout" },
-    ExerciseEmbedBlock: { ...ExerciseEmbedBlock, label: "Exercise" },
+    SingleExerciseBlock: { ...SingleExerciseBlock, label: "Exercise" },
+    GroupExerciseBlock: { ...GroupExerciseBlock, label: "Group Exercise" },
     ReferenceDocumentBlock: { ...ReferenceDocumentBlock, label: "Document" },
     ExternalLinkBlock: { ...ExternalLinkBlock, label: "Link" },
     ImageBlock: { ...ImageBlock, label: "Image" },

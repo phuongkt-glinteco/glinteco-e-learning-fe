@@ -21,7 +21,7 @@ export interface ExerciseData {
   exerciseId: string;
   title: string;
   status?: "draft" | "complete";
-  type?: "pr" | "minigame_quiz" | "minigame_fill";
+  type?: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK";
   xp?: number;
   previewData?: {
     brief?: string;
@@ -198,7 +198,7 @@ const QuizEditor: React.FC<{
 const TypePickerDialog: React.FC<{
   open: boolean;
   onClose: () => void;
-  onSelect: (type: "pr" | "minigame_quiz" | "minigame_fill") => void;
+  onSelect: (type: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK") => void;
 }> = ({ open, onClose, onSelect }) => {
   const t = useTranslations("PuckEditor.Common.ExerciseSelector");
   return (
@@ -212,7 +212,7 @@ const TypePickerDialog: React.FC<{
         <div className="grid grid-cols-1 gap-3 py-4">
           <button
             type="button"
-            onClick={() => onSelect("pr")}
+            onClick={() => onSelect("PR_REVIEW")}
             className="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-left"
           >
             <div className="shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -225,7 +225,7 @@ const TypePickerDialog: React.FC<{
           </button>
           <button
             type="button"
-            onClick={() => onSelect("minigame_quiz")}
+            onClick={() => onSelect("QUIZ")}
             className="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-left"
           >
             <div className="shrink-0 w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
@@ -238,7 +238,7 @@ const TypePickerDialog: React.FC<{
           </button>
           <button
             type="button"
-            onClick={() => onSelect("minigame_fill")}
+            onClick={() => onSelect("FILL_IN_BLANK")}
             className="flex items-center gap-3 p-4 rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer text-left"
           >
             <div className="shrink-0 w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
@@ -297,6 +297,7 @@ const PRCreateModal: React.FC<{
             overview: "",
             objectives: [],
             steps: [],
+            type: "PR_REVIEW",
           },
           throwOnError: true,
         });
@@ -310,7 +311,7 @@ const PRCreateModal: React.FC<{
         exerciseId,
         title: title.trim(),
         status: isComplete ? "complete" : "draft",
-        type: "pr",
+        type: "PR_REVIEW",
         xp: initData?.xp ?? 20,
         previewData: { brief: brief.trim(), repoUrl: repoUrl.trim() || undefined },
       });
@@ -408,7 +409,7 @@ const MinigameCreateDialog: React.FC<{
     setTitle(initData?.title || "");
     setBrief(initData?.previewData?.brief || "");
     const initType: MinigameSubType =
-      initData?.type === "minigame_fill"
+      initData?.type === "FILL_IN_BLANK"
         ? "fill"
         : "quiz";
     setSubType(initType);
@@ -444,7 +445,7 @@ const MinigameCreateDialog: React.FC<{
 
     setSaving(true);
     try {
-      const actualType = subType === "quiz" ? "minigame_quiz" : "minigame_fill";
+      const actualType = subType === "quiz" ? "QUIZ" : "FILL_IN_BLANK";
       const draftId = `draft-mg-${Date.now()}`;
 
       const previewData: ExerciseData["previewData"] = {
@@ -464,9 +465,21 @@ const MinigameCreateDialog: React.FC<{
 
       let exerciseId = draftId;
       if (isComplete) {
-        const contentPayload = subType === "quiz"
-          ? JSON.stringify({ question, answerType, answers: answers.filter((a) => a.text.trim()) })
-          : JSON.stringify({ code: fillCode, blanks });
+        let questionsData: any[] = [];
+        if (subType === "quiz") {
+          questionsData = [{
+             id: "1",
+             prompt: question.trim(),
+             options: answers.filter((a) => a.text.trim()).map(a => a.text.trim()),
+             correctAnswer: answers.filter(a => a.correct && a.text.trim()).map(a => a.text.trim()).join(',')
+          }];
+        } else {
+          questionsData = blanks.map((b, i) => ({
+             id: b.id || String(i+1),
+             prompt: fillCode,
+             correctAnswer: b.answer
+          }));
+        }
 
         const res = await exercisesControllerCreate({
           body: {
@@ -476,10 +489,12 @@ const MinigameCreateDialog: React.FC<{
             difficulty: "Beginner",
             estimatedTime: "15 mins",
             xp: initData?.xp ?? 10,
-            brief: brief.trim(),
-            overview: contentPayload,
-            objectives: [],
-            steps: [],
+            brief: brief.trim() || `Bài tập thực hành dạng ${actualType}`,
+            overview: 'Hoàn thành các câu hỏi để kiểm tra và củng cố kiến thức bài học.',
+            objectives: ['Hoàn thành chính xác các câu hỏi theo yêu cầu'],
+            steps: ['Đọc kỹ câu hỏi', 'Lựa chọn hoặc điền đáp án chính xác', 'Nộp bài để hệ thống tự động chấm điểm'],
+            type: actualType,
+            questionsData,
           },
           throwOnError: true,
         });
@@ -616,7 +631,7 @@ const MinigameCreateDialog: React.FC<{
 
 function useCurrentSelectedExerciseProps(): {
   title?: string;
-  type?: "pr" | "minigame_quiz" | "minigame_fill";
+  type?: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK";
   xp?: number;
 } {
   const puck = useSafePuck();
@@ -634,10 +649,10 @@ function useCurrentSelectedExerciseProps(): {
     const item =
       items[selector.index] ||
       items.find((b: any) => b.props?.id === (selector as any).id);
-    if (!item || item.type !== "ExerciseEmbedBlock") return {};
+    if (!item || item.type !== "SingleExerciseBlock") return {};
     return (item.props || {}) as {
       title?: string;
-      type?: "pr" | "minigame_quiz" | "minigame_fill";
+      type?: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK";
       xp?: number;
     };
   }, [puck?.appState]);
@@ -668,9 +683,9 @@ export const ExerciseSelectorField: React.FC<{
   const [showMinigameDialog, setShowMinigameDialog] = useState(false);
   const [prModalMode, setPrModalMode] = useState<"create" | "complete">("create");
 
-  const handleTypeSelect = (type: "pr" | "minigame_quiz" | "minigame_fill") => {
+  const handleTypeSelect = (type: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK") => {
     setShowTypePicker(false);
-    if (type === "pr") {
+    if (type === "PR_REVIEW") {
       setPrModalMode("create");
       setShowPRModal(true);
     } else {
@@ -688,7 +703,7 @@ export const ExerciseSelectorField: React.FC<{
       const customEvent = evt as CustomEvent<{ exerciseId?: string }>;
       if (!customEvent.detail?.exerciseId) return;
       if (!value?.exerciseId || customEvent.detail.exerciseId !== value.exerciseId) return;
-      if (value.type === "pr") {
+      if (value.type === "PR_REVIEW") {
         setPrModalMode("complete");
         setShowPRModal(true);
       }
@@ -707,9 +722,9 @@ export const ExerciseSelectorField: React.FC<{
           <button
             type="button"
             onClick={() => {
-              if (effectiveInitData?.type === "minigame_quiz" || effectiveInitData?.type === "minigame_fill") {
+              if (effectiveInitData?.type === "QUIZ" || effectiveInitData?.type === "FILL_IN_BLANK") {
                 setShowMinigameDialog(true);
-              } else if (effectiveInitData?.type === "pr") {
+              } else if (effectiveInitData?.type === "PR_REVIEW") {
                 setPrModalMode("create");
                 setShowPRModal(true);
               } else {
@@ -763,9 +778,9 @@ export const ExerciseSelectorField: React.FC<{
           )}
           {value.type && !isDraft && (
             <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
-              {value.type === "pr"
+              {value.type === "PR_REVIEW"
                 ? t("exerciseTypePr")
-                : value.type === "minigame_quiz"
+                : value.type === "QUIZ"
                   ? t("exerciseTypeQuiz")
                   : t("exerciseTypeFill")}
             </span>
@@ -775,7 +790,7 @@ export const ExerciseSelectorField: React.FC<{
           {t("exerciseIdLabel")}: {value.exerciseId.slice(0, 12)}...
         </p>
       </div>
-      {!readOnly && isDraft && value.type === "pr" && (
+      {!readOnly && isDraft && value.type === "PR_REVIEW" && (
         <Button
           type="button"
           size="sm"

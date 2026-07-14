@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ComponentConfig } from "@puckeditor/core";
@@ -14,49 +14,83 @@ import {
 } from "lucide-react";
 import { LessonBlockProps } from "../../types";
 import { ExerciseSelectorField, type ExerciseData } from "../../fields";
+import { useLessonExercisesStore } from "../../../../stores/lessonExercisesStore";
 
 const typeConfig: Record<string, { icon: React.ElementType; borderClass: string; badgeClass: string }> = {
-  pr: {
+  PR_REVIEW: {
     icon: Code,
     borderClass: "border-blue-200 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/20",
     badgeClass: "bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-200",
   },
-  minigame_quiz: {
+  QUIZ: {
     icon: ListChecks,
     borderClass: "border-purple-200 bg-purple-50 dark:border-purple-700 dark:bg-purple-950/20",
     badgeClass: "bg-purple-100 text-purple-700 dark:bg-purple-800 dark:text-purple-200",
   },
-  minigame_fill: {
+  FILL_IN_BLANK: {
     icon: FileText,
     borderClass: "border-emerald-200 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/20",
     badgeClass: "bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-200",
   },
 };
 
-type ExerciseEmbedBlockProps = LessonBlockProps["ExerciseEmbedBlock"];
+type SingleExerciseBlockProps = LessonBlockProps["SingleExerciseBlock"];
 
-export const ExerciseEmbedBlock: ComponentConfig<ExerciseEmbedBlockProps> = {
+export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
   fields: {
     title: {
       type: "text",
       label: "Tiêu đề bài tập",
     },
-    type: {
-      type: "select",
-      label: "Loại bài tập",
+    isMandatory: {
+      type: "radio",
+      label: "Bắt buộc",
       options: [
-        { label: "Lập trình (PR)", value: "pr" },
-        { label: "Trắc nghiệm (Quiz)", value: "minigame_quiz" },
-        { label: "Điền khuyết (Fill-in-the-blank)", value: "minigame_fill" },
+        { label: "Có", value: true },
+        { label: "Không", value: false },
+      ]
+    },
+    tag: {
+      type: "text",
+      label: "Tag (Vd: JavaScript)",
+    },
+    difficulty: {
+      type: "select",
+      label: "Độ khó",
+      options: [
+        { label: "Beginner", value: "Beginner" },
+        { label: "Intermediate", value: "Intermediate" },
+        { label: "Advanced", value: "Advanced" },
       ],
+    },
+    estimatedTime: {
+      type: "text",
+      label: "Thời gian ước tính (Vd: 10m)",
     },
     xp: {
       type: "number",
       label: "Điểm thưởng (XP)",
     },
-    exerciseData: {
+    type: {
+      type: "select",
+      label: "Loại bài tập",
+      options: [
+        { label: "Lập trình (PR)", value: "PR_REVIEW" },
+        { label: "Trắc nghiệm (Quiz)", value: "QUIZ" },
+        { label: "Điền khuyết (Fill-in-the-blank)", value: "FILL_IN_BLANK" },
+      ],
+    },
+    viewStyle: {
+      type: "select",
+      label: "Kiểu hiển thị",
+      options: [
+        { label: "Thẻ điều hướng (Navigation Card)", value: "navigation_card" },
+        { label: "Làm trực tiếp trong bài (Inline)", value: "inline_interactive" },
+      ],
+    },
+    content: {
       type: "custom",
-      label: "Bài tập hệ thống",
+      label: "Nội dung bài tập",
       render: ({ value, onChange, readOnly, data }: any) => (
         <ExerciseSelectorField
           value={value as ExerciseData | null}
@@ -73,21 +107,34 @@ export const ExerciseEmbedBlock: ComponentConfig<ExerciseEmbedBlockProps> = {
   },
   defaultProps: {
     title: "",
-    type: "pr",
+    isMandatory: true,
+    tag: "",
+    difficulty: "Beginner",
+    estimatedTime: "10m",
     xp: 20,
-    exerciseData: null,
+    type: "PR_REVIEW",
+    viewStyle: "navigation_card",
+    content: null,
   },
-  render: ({ exerciseData, title, type, xp, instruction }: ExerciseEmbedBlockProps) => {
+  render: ({ content, title, type, xp, viewStyle, id }) => {
     const t = useTranslations("PuckEditor.Common.exerciseEmbed");
-    const data = (exerciseData || {}) as ExerciseData;
+    const registerExercise = useLessonExercisesStore((state) => state.registerExercise);
+
+    useEffect(() => {
+      if (content?.exerciseId && id) {
+        registerExercise(id, content);
+      }
+    }, [content, id, registerExercise]);
+
+    const data = (content || {}) as ExerciseData;
     const isDraft = data.status === "draft";
     const effectiveType = type || data.type;
     const cfg = effectiveType ? typeConfig[effectiveType] : null;
-    const typeLabel = effectiveType === "pr"
+    const typeLabel = effectiveType === "PR_REVIEW"
       ? t("typePr")
-      : effectiveType === "minigame_quiz"
+      : effectiveType === "QUIZ"
         ? t("typeQuiz")
-        : effectiveType === "minigame_fill"
+        : effectiveType === "FILL_IN_BLANK"
           ? t("typeFill")
           : "";
     const Icon = isDraft ? AlertTriangle : (cfg?.icon || HelpCircle);
@@ -98,7 +145,7 @@ export const ExerciseEmbedBlock: ComponentConfig<ExerciseEmbedBlockProps> = {
         : cfg?.borderClass || "border-primary/20 bg-primary/5";
 
     const displayTitle = title || data?.title || t("defaultTitle");
-    const displayDesc = instruction || data?.previewData?.brief || "";
+    const displayDesc = data?.previewData?.brief || "";
     const displayXp = xp ?? data?.xp ?? 20;
     const quizAnswers = Array.isArray(data.previewData?.answers)
       ? data.previewData.answers.slice(0, 4)
@@ -124,7 +171,6 @@ export const ExerciseEmbedBlock: ComponentConfig<ExerciseEmbedBlockProps> = {
 
     return (
       <div className={`my-6 border rounded-xl p-6 space-y-3 ${borderClass}`}>
-        {/* Header row */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-2 font-semibold text-body-lg">
@@ -157,17 +203,17 @@ export const ExerciseEmbedBlock: ComponentConfig<ExerciseEmbedBlockProps> = {
             )}
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label-xs text-muted-foreground">
-              {effectiveType === "minigame_quiz" && data.previewData?.questionCount && (
+              {effectiveType === "QUIZ" && data.previewData?.questionCount && (
                 <span>{t("questionCount", { count: data.previewData.questionCount })}</span>
               )}
-              {effectiveType === "minigame_fill" && data.previewData?.blankCount && (
+              {effectiveType === "FILL_IN_BLANK" && data.previewData?.blankCount && (
                 <span>{t("blankCount", { count: data.previewData.blankCount })}</span>
               )}
             </div>
           </div>
         </div>
 
-        {effectiveType === "minigame_quiz" && (
+        {effectiveType === "QUIZ" && viewStyle === "inline_interactive" && (
           <div className="space-y-2 rounded-lg border border-outline-variant/60 bg-surface/70 p-3">
             <p className="text-label-sm font-semibold text-foreground">
               {t("quizQuestionLabel")}
@@ -204,7 +250,7 @@ export const ExerciseEmbedBlock: ComponentConfig<ExerciseEmbedBlockProps> = {
           </div>
         )}
 
-        {effectiveType === "minigame_fill" && (
+        {effectiveType === "FILL_IN_BLANK" && viewStyle === "inline_interactive" && (
           <div className="space-y-2 rounded-lg border border-outline-variant/60 bg-surface/70 p-3">
             <p className="text-label-sm font-semibold text-foreground">
               {t("fillTemplateLabel")}
@@ -215,13 +261,13 @@ export const ExerciseEmbedBlock: ComponentConfig<ExerciseEmbedBlockProps> = {
           </div>
         )}
 
-        {effectiveType === "pr" && data.previewData?.repoUrl && (
+        {effectiveType === "PR_REVIEW" && data.previewData?.repoUrl && (
           <div className="rounded-lg border border-outline-variant/60 bg-surface/70 px-3 py-2 text-body-xs text-on-surface-variant">
             {t("repoLabel")}: {data.previewData.repoUrl}
           </div>
         )}
 
-        {!isDraft && (
+        {!isDraft && viewStyle === "navigation_card" && (
           <div>
             <Link
               href={`/exercises/${data.exerciseId}`}
@@ -233,7 +279,7 @@ export const ExerciseEmbedBlock: ComponentConfig<ExerciseEmbedBlockProps> = {
           </div>
         )}
 
-        {isDraft && data.type === "pr" && (
+        {isDraft && data.type === "PR_REVIEW" && (
           <p className="text-body-xs text-amber-700 dark:text-amber-300">
             {t("completeDraftHint")}
           </p>

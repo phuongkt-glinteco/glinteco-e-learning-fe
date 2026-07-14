@@ -255,7 +255,7 @@ export function deriveLessonSidebarState(
   const derivedHeadings: DerivedHeadingItem[] = [];
 
   content.forEach((block, idx) => {
-    if (block.type === "ExerciseEmbedBlock") {
+    if (block.type === "SingleExerciseBlock") {
       const exData = block.props?.exerciseData as
         | {
             exerciseId?: string;

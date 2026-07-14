@@ -74,6 +74,7 @@ export function AdminTrackManagementClient({ trackId }: AdminTrackManagementClie
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
+  const [icon, setIcon] = useState('');
   const [publishStatus, setPublishStatus] = useState<TrackPublishStatus>('Developing');
 
   const fetchData = useCallback(async () => {
@@ -92,6 +93,7 @@ export function AdminTrackManagementClient({ trackId }: AdminTrackManagementClie
         setTitle(fetchedTrack.title || '');
         setDescription(fetchedTrack.description || '');
         setEstimatedTime(fetchedTrack.estimatedTime || '');
+        setIcon(fetchedTrack.icon || '');
 
         setTree([
           { label: t('breadcrumbTracks'), href: '/admin/tracks' },
@@ -133,6 +135,7 @@ export function AdminTrackManagementClient({ trackId }: AdminTrackManagementClie
           title: title.trim(),
           description: description.trim(),
           estimatedTime: estimatedTime.trim(),
+          icon: icon.trim(),
           status: publishStatus,
         },
       });
@@ -259,6 +262,19 @@ export function AdminTrackManagementClient({ trackId }: AdminTrackManagementClie
                   value={estimatedTime}
                   onChange={(e) => setEstimatedTime(e.target.value)}
                   placeholder="e.g. 10 hours"
+                  className="w-full h-10 px-3.5 rounded-xl bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-shadow"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Icon
+                </label>
+                <input
+                  type="text"
+                  value={icon}
+                  onChange={(e) => setIcon(e.target.value)}
+                  placeholder="e.g. Code, Book, Rocket"
                   className="w-full h-10 px-3.5 rounded-xl bg-background border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-shadow"
                 />
               </div>

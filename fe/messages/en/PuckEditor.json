@@ -125,7 +125,14 @@
       "exerciseTypeFill": "Fill",
       "exerciseIdLabel": "ID",
       "draftBadge": "Draft",
-      "completeDraftBtn": "Complete"
+      "completeDraftBtn": "Complete",
+      "defaultBrief": "Practical exercise type {type}",
+      "defaultOverview": "Complete the questions to test and consolidate your lesson knowledge.",
+      "defaultObjective": "Accurately complete the questions as required",
+      "defaultStep1": "Read the question carefully",
+      "defaultStep2": "Select or fill in the correct answer",
+      "defaultStep3": "Submit for automatic grading",
+      "saveFailed": "Failed to save exercise!"
     },
     "exerciseEmbed": {
       "defaultTitle": "Attached exercise",

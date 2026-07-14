@@ -490,10 +490,10 @@ const MinigameCreateDialog: React.FC<{
             difficulty: "Beginner",
             estimatedTime: "15 mins",
             xp: initData?.xp ?? 10,
-            brief: brief.trim() || `Bài tập thực hành dạng ${actualType}`,
-            overview: 'Hoàn thành các câu hỏi để kiểm tra và củng cố kiến thức bài học.',
-            objectives: ['Hoàn thành chính xác các câu hỏi theo yêu cầu'],
-            steps: ['Đọc kỹ câu hỏi', 'Lựa chọn hoặc điền đáp án chính xác', 'Nộp bài để hệ thống tự động chấm điểm'],
+            brief: brief.trim() || t("defaultBrief", { type: actualType }),
+            overview: t("defaultOverview"),
+            objectives: [t("defaultObjective")],
+            steps: [t("defaultStep1"), t("defaultStep2"), t("defaultStep3")],
             type: actualType,
             questionsData,
           },
@@ -779,11 +779,13 @@ export const ExerciseSelectorField: React.FC<{
           )}
           {value.type && !isDraft && (
             <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
-              {value.type === "PR_REVIEW"
-                ? t("exerciseTypePr")
-                : value.type === "QUIZ"
-                  ? t("exerciseTypeQuiz")
-                  : t("exerciseTypeFill")}
+              {t(
+                value.type === "PR_REVIEW"
+                  ? "exerciseTypePr"
+                  : value.type === "QUIZ"
+                  ? "exerciseTypeQuiz"
+                  : "exerciseTypeFill"
+              )}
             </span>
           )}
         </div>

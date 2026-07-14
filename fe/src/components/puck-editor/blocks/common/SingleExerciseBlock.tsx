@@ -16,8 +16,8 @@ import {
 import { LessonBlockProps } from "../../types";
 import { ExerciseSelectorField, type ExerciseData } from "../../fields";
 import { useLessonExercisesStore } from "../../../../stores/lessonExercisesStore";
-import { exercisesControllerSubmitAuto } from "../../../../../../services/client";
-import type { AutoGradeResultDto } from "../../../../../../services/client/types.gen";
+import { exercisesControllerSubmitAuto } from "@/services/api-client";
+import type { AutoGradeResultDto } from "@/services/client/types.gen";
 
 const typeConfig: Record<string, { icon: React.ElementType; borderClass: string; badgeClass: string }> = {
   PR_REVIEW: {
@@ -119,7 +119,7 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
     viewStyle: "navigation_card",
     content: null,
   },
-  render: ({ content, title, type, xp, viewStyle, id }) => {
+  render: ({ content, title, type, xp, viewStyle, isMandatory, id }) => {
     const t = useTranslations("PuckEditor.Common.exerciseEmbed");
     const registerExercise = useLessonExercisesStore((state) => state.registerExercise);
 
@@ -335,6 +335,7 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
               {submitResult && (
                 <span className={`text-label-sm font-medium ${submitResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                    {submitResult.passed ? "Bạn đã trả lời đúng!" : "Bạn đã trả lời sai!"}
+                   {submitResult.score !== undefined && ` (${submitResult.score}%)`}
                 </span>
               )}
             </div>
@@ -362,6 +363,7 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
               {submitResult && (
                 <span className={`text-label-sm font-medium ${submitResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                    {submitResult.passed ? "Bạn đã làm đúng!" : "Bạn đã làm sai!"}
+                   {submitResult.score !== undefined && ` (${submitResult.score}%)`}
                 </span>
               )}
             </div>

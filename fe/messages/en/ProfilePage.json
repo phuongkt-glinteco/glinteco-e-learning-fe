@@ -59,7 +59,9 @@
   "saveChanges": "Save Changes",
   "saving": "Saving...",
   "updateSuccess": "Profile updated successfully!",
-  "securityDescription": "Update your account password. Enter your new password directly without old password verification.",
+  "securityDescription": "Update your account security password. Please enter your current password and new password.",
+  "currentPassword": "Current Password",
+  "currentPasswordPlaceholder": "Enter current password...",
   "newPassword": "New Password",
   "newPasswordPlaceholder": "Enter new password (min 6 chars)...",
   "confirmPassword": "Confirm New Password",
@@ -84,10 +86,11 @@
   "reloading": "Reloading...",
   "errors": {
     "nameRequired": "Please enter your full name.",
+    "currentPasswordRequired": "Please enter your current password.",
     "passwordTooShort": "Password must be at least 6 characters.",
     "passwordMismatch": "Confirm password does not match.",
     "SESSION_EXPIRED": "Session expired. Please log in again.",
     "SYSTEM_ERROR": "A system error occurred. Please try again later.",
-    "PASSWORD_CHANGE_FAILED": "Failed to change password. Please try again."
+    "PASSWORD_CHANGE_FAILED": "Password change failed. Please try again."
   }
 }

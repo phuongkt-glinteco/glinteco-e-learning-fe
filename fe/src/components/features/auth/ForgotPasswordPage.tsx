@@ -21,6 +21,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
   const [resetToken, setResetToken] = useState<string | null>(null);
+  const [resetUrl, setResetUrl] = useState<string | null>(null);
 
   const {
     register,
@@ -41,10 +42,14 @@ export default function ForgotPasswordPage() {
     setResetToken(null);
 
     try {
-      const response = await requestPasswordReset(email);
+      const response: any = await requestPasswordReset(email);
       setSubmittedEmail(email);
-      if (response && response.resetToken) {
+      if (response && response.resetUrl) {
+        setResetUrl(response.resetUrl);
+        if (response.resetToken) setResetToken(response.resetToken);
+      } else if (response && response.resetToken) {
         setResetToken(response.resetToken);
+        setResetUrl(`/reset-password?token=${response.resetToken}`);
       }
     } catch (err) {
       setError(isUiShowError(err) ? err.errorCode : 'UNKNOWN_ERROR');
@@ -81,16 +86,20 @@ export default function ForgotPasswordPage() {
               </div>
               <h2 className="text-2xl font-bold text-on-surface mb-3">{t('successTitle')}</h2>
               
-              {resetToken ? (
-                <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-center">
-                  <p className="text-sm text-blue-800 dark:text-blue-300 mb-4 font-medium">
+              {resetUrl || resetToken ? (
+                <div className="mb-8 p-4 bg-primary/5 border border-primary/20 rounded-xl text-center space-y-3">
+                  <p className="text-sm text-on-surface-variant font-medium">
                     {t('devModeTokenReady')}
                   </p>
-                  <Button asChild className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white">
-                    <Link href={`/reset-password?token=${resetToken}`}>
-                      {t('resetNowButton')}
+                  <div>
+                    <Link
+                      href={resetUrl || `/reset-password?token=${resetToken}`}
+                      className="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 font-semibold text-sm hover:underline transition-colors"
+                    >
+                      <span>{t('resetNowButton')}</span>
+                      <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                     </Link>
-                  </Button>
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-on-surface-variant mb-8">

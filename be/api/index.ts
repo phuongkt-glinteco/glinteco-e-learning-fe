@@ -21,9 +21,10 @@ async function bootstrap() {
   });
 
   // Swagger OpenAPI Documentation - Generated dynamically
-  const currentServerUrl = process.env.NODE_ENV === 'production'
-    ? 'https://be-teal-tau.vercel.app/api/v1'
-    : `http://localhost:${process.env.PORT || 5000}/${apiPrefix}`;
+  const currentServerUrl =
+    process.env.NODE_ENV === 'production'
+      ? 'https://be-teal-tau.vercel.app/api/v1'
+      : `http://localhost:${process.env.PORT || 5000}/${apiPrefix}`;
 
   const config = new DocumentBuilder()
     .setTitle('RAMP UP — Engineering Onboarding Portal API')
@@ -41,6 +42,22 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+
+  // Strip prefix from path keys
+  if (document.paths) {
+    const newPaths: any = {};
+    for (const pathKey of Object.keys(document.paths)) {
+      const pathItem = document.paths[pathKey];
+      let relativePath = pathKey;
+      const prefix = `/${apiPrefix}`;
+      if (relativePath.startsWith(prefix)) {
+        relativePath = relativePath.slice(prefix.length);
+      }
+      newPaths[relativePath || '/'] = pathItem;
+    }
+    document.paths = newPaths;
+  }
+
   const yamlContent = yaml.dump(document);
 
   // Redirect Swagger UI static assets to CDN and serve raw/JSON OpenAPI doc directly
@@ -58,19 +75,29 @@ async function bootstrap() {
       }
     }
     if (req.url.includes('swagger-ui.css')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+      );
     }
     if (req.url.includes('swagger-ui-bundle.js')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
+      );
     }
     if (req.url.includes('swagger-ui-standalone-preset.js')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
+      );
     }
     if (req.url.includes('favicon-32x32.png')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-32x32.png');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-32x32.png',
+      );
     }
     if (req.url.includes('favicon-16x16.png')) {
-      return res.redirect('https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-16x16.png');
+      return res.redirect(
+        'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/favicon-16x16.png',
+      );
     }
     next();
   });
@@ -84,7 +111,8 @@ async function bootstrap() {
   );
 
   SwaggerModule.setup(`${apiPrefix}/docs`, app, document, {
-    customCssUrl: 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
+    customCssUrl:
+      'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css',
     customJs: [
       'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js',
       'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js',
@@ -96,7 +124,9 @@ async function bootstrap() {
   // Run baseline SQL query to populate migrations table on production
   try {
     const dataSource = app.get(DataSource);
-    await dataSource.query(`CREATE TABLE IF NOT EXISTS "migrations" ("id" SERIAL PRIMARY KEY, "timestamp" bigint NOT NULL, "name" varchar NOT NULL)`);
+    await dataSource.query(
+      `CREATE TABLE IF NOT EXISTS "migrations" ("id" SERIAL PRIMARY KEY, "timestamp" bigint NOT NULL, "name" varchar NOT NULL)`,
+    );
     await dataSource.query(`
       INSERT INTO "migrations" ("timestamp", "name")
       SELECT 1781611485949, 'InitialSchema1781611485949' WHERE NOT EXISTS (SELECT 1 FROM "migrations" WHERE name = 'InitialSchema1781611485949');
@@ -137,8 +167,12 @@ async function bootstrap() {
       WHERE table_name = 'tracks' AND column_name = 'title'
     `);
     if (tracksTitleCol.length === 0) {
-      console.log('⚠️ Column "title" does not exist on "tracks" table. Removing UpdateTracksAndLessonsSchema from migrations to trigger it.');
-      await dataSource.query(`DELETE FROM "migrations" WHERE name = 'UpdateTracksAndLessonsSchema1784400000000'`);
+      console.log(
+        '⚠️ Column "title" does not exist on "tracks" table. Removing UpdateTracksAndLessonsSchema from migrations to trigger it.',
+      );
+      await dataSource.query(
+        `DELETE FROM "migrations" WHERE name = 'UpdateTracksAndLessonsSchema1784400000000'`,
+      );
     }
 
     // Check if column 'last_claimed_xp_at' exists on 'users' table
@@ -147,15 +181,22 @@ async function bootstrap() {
       WHERE table_name = 'users' AND column_name = 'last_claimed_xp_at'
     `);
     if (usersXpCol.length === 0) {
-      console.log('⚠️ Column "last_claimed_xp_at" does not exist on "users" table. Removing AddLastClaimedXpAtToUsers from migrations to trigger it.');
-      await dataSource.query(`DELETE FROM "migrations" WHERE name = 'AddLastClaimedXpAtToUsers1784301323000'`);
+      console.log(
+        '⚠️ Column "last_claimed_xp_at" does not exist on "users" table. Removing AddLastClaimedXpAtToUsers from migrations to trigger it.',
+      );
+      await dataSource.query(
+        `DELETE FROM "migrations" WHERE name = 'AddLastClaimedXpAtToUsers1784301323000'`,
+      );
     }
 
     console.log('Running any pending migrations...');
     await dataSource.runMigrations();
     console.log('✅ Migrations completed successfully.');
   } catch (dbErr) {
-    console.error('❌ Failed to run baseline migrations check/insert or migrations:', dbErr);
+    console.error(
+      '❌ Failed to run baseline migrations check/insert or migrations:',
+      dbErr,
+    );
   }
 
   expressApp = app.getHttpAdapter().getInstance();

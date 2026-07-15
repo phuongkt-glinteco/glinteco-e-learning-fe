@@ -6,14 +6,9 @@ import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
 import { AuthModule } from '../modules/auth/auth.module';
 import { SubmissionNotificationsListener } from './listeners/submission-notifications.listener';
-import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Notification, User]),
-    AuthModule,
-    MailModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Notification, User]), AuthModule],
   controllers: [NotificationsController],
   providers: [NotificationsService, SubmissionNotificationsListener],
   exports: [NotificationsService],

@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Document } from '../database/entities/document.entity';
-import { Tag } from '../database/entities/tag.entity';
+import { Tag, TagCategory } from '../database/entities/tag.entity';
 import { User } from '../database/entities/user.entity';
 import { SearchDocumentsDto } from './dto/search-documents.dto';
 import { CreateDocumentDto } from './dto/create-document.dto';
@@ -25,7 +25,7 @@ export class DocumentsService {
   ) {}
 
   async findAll(query: SearchDocumentsDto, userId: string) {
-    const { q, tags, kind, limit = 20, cursor, bookmarked } = query;
+    const { q, tags, kind, limit = 20, cursor } = query;
 
     // Load user's bookmarks to calculate isBookmarked field
     const user = await this.userRepository.findOne({
@@ -72,14 +72,6 @@ export class DocumentsService {
           return 'document.id IN ' + subQuery;
         });
       }
-    }
-
-    if (bookmarked) {
-      const ids = [...bookmarkedDocIds];
-      qb.andWhere(
-        ids.length > 0 ? 'document.id IN (:...bookmarkedDocIds)' : '1 = 0',
-        ids.length > 0 ? { bookmarkedDocIds: ids } : undefined,
-      );
     }
 
     // Sorting: order by createdAt DESC, id ASC for keyset pagination
@@ -309,8 +301,9 @@ export class DocumentsService {
 
   // --- Tags Logic ---
 
-  async findAllTags() {
+  async findAllTags(category?: TagCategory) {
     return await this.tagRepository.find({
+      where: category ? { category } : {},
       order: { name: 'ASC' },
     });
   }
@@ -326,7 +319,10 @@ export class DocumentsService {
       throw new ConflictException(`Tag với tên '${name}' đã tồn tại`);
     }
 
-    const tag = this.tagRepository.create({ name });
+    const tag = this.tagRepository.create({
+      name,
+      category: createTagDto.category ?? TagCategory.GENERAL,
+    });
     return await this.tagRepository.save(tag);
   }
 

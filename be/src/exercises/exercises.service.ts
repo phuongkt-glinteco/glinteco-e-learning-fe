@@ -1,13 +1,26 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { Exercise } from '../database/entities/exercise.entity';
+import {
+  Exercise,
+  ExerciseType,
+  ExerciseQuestion,
+} from '../database/entities/exercise.entity';
 import { Track } from '../database/entities/track.entity';
 import { Document } from '../database/entities/document.entity';
-import { Submission } from '../database/entities/submission.entity';
+import {
+  Submission,
+  SubmissionStatus,
+} from '../database/entities/submission.entity';
+import { UserRole } from '../database/entities/user.entity';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { UpdateExerciseDto } from './dto/update-exercise.dto';
 import { ExerciseQueryDto } from './dto/exercise-query.dto';
+import { SubmitAutoDto, AutoGradeResultDto } from './dto/submit-auto.dto';
 
 @Injectable()
 export class ExercisesService {
@@ -45,6 +58,10 @@ export class ExercisesService {
       objectives: dto.objectives,
       steps: dto.steps,
       hint: dto.hint,
+      type: dto.type ?? ExerciseType.PR_REVIEW,
+      questionsData: dto.questionsData ?? null,
+      targetScore: dto.targetScore ?? 100,
+      isMandatory: dto.isMandatory ?? true,
     });
 
     if (dto.resourceDocIds && dto.resourceDocIds.length > 0) {
@@ -97,6 +114,8 @@ export class ExercisesService {
         status: sub ? sub.status : 'pending',
         prUrl: sub ? sub.prUrl : null,
         lessonId: e.lessonId,
+        type: e.type,
+        isMandatory: e.isMandatory,
       };
     });
 
@@ -107,7 +126,22 @@ export class ExercisesService {
     return { data };
   }
 
-  async findOne(id: string, userId: string) {
+  /**
+   * GLI-92: remove every `correctAnswer` before questions are serialized to
+   * a learner. Done server-side so answers can never leak via devtools.
+   */
+  private sanitizeQuestionsData(
+    questions: ExerciseQuestion[] | null,
+  ): Array<Omit<ExerciseQuestion, 'correctAnswer'>> | null {
+    if (!questions) return null;
+    return questions.map((q) => {
+      const { correctAnswer: _stripped, ...safe } = q;
+      void _stripped;
+      return safe;
+    });
+  }
+
+  async findOne(id: string, userId: string, role?: UserRole) {
     const exercise = await this.exerciseRepository.findOne({
       where: { id },
       relations: { track: true, resources: true },
@@ -120,6 +154,12 @@ export class ExercisesService {
     const submission = await this.submissionRepository.findOne({
       where: { exerciseId: id, userId },
     });
+
+    // GLI-92: only Admins may see correctAnswer inside questionsData.
+    const questionsData =
+      role === UserRole.ADMIN
+        ? exercise.questionsData
+        : this.sanitizeQuestionsData(exercise.questionsData);
 
     return {
       id: exercise.id,
@@ -139,6 +179,101 @@ export class ExercisesService {
       status: submission ? submission.status : 'pending',
       prUrl: submission ? submission.prUrl : null,
       lessonId: exercise.lessonId,
+      type: exercise.type,
+      isMandatory: exercise.isMandatory,
+      targetScore: exercise.targetScore,
+      questionsData,
+    };
+  }
+
+  /**
+   * GLI-92: auto-grade a QUIZ / FILL_IN_BLANK attempt.
+   * - First passing attempt marks the exercise completed (approved
+   *   submission log).
+   * - Later attempts are graded and returned but never mutate DB state.
+   */
+  async submitAuto(
+    exerciseId: string,
+    userId: string,
+    dto: SubmitAutoDto,
+  ): Promise<AutoGradeResultDto> {
+    const exercise = await this.exerciseRepository.findOne({
+      where: { id: exerciseId },
+    });
+    if (!exercise) {
+      throw new NotFoundException(
+        `Không tìm thấy bài tập với ID: ${exerciseId}`,
+      );
+    }
+
+    if (
+      exercise.type !== ExerciseType.QUIZ &&
+      exercise.type !== ExerciseType.FILL_IN_BLANK
+    ) {
+      throw new BadRequestException(
+        'Bài tập này không hỗ trợ tự động chấm điểm (chỉ QUIZ hoặc FILL_IN_BLANK).',
+      );
+    }
+
+    const questions = exercise.questionsData;
+    if (!questions || questions.length === 0) {
+      throw new BadRequestException('Bài tập chưa được cấu hình câu hỏi.');
+    }
+
+    const answerMap = new Map(dto.answers.map((a) => [a.questionId, a.answer]));
+
+    const normalize = (value: string): string =>
+      exercise.type === ExerciseType.FILL_IN_BLANK
+        ? value.trim().toLowerCase()
+        : value.trim();
+
+    const results = questions.map((q) => {
+      const given = answerMap.get(q.id);
+      const correct =
+        given !== undefined && normalize(given) === normalize(q.correctAnswer);
+      return { questionId: q.id, correct };
+    });
+
+    const correctCount = results.filter((r) => r.correct).length;
+    const score = Math.round((correctCount / questions.length) * 100);
+    const targetScore = exercise.targetScore ?? 100;
+    const passed = score >= targetScore;
+
+    const existing = await this.submissionRepository.findOne({
+      where: { exerciseId, userId },
+    });
+    const alreadyCompleted = existing?.status === SubmissionStatus.APPROVED;
+
+    let completed = alreadyCompleted;
+    // First passing attempt: mark completed + persist a submission log.
+    // Replays after completion never touch the DB (no junk logs, no
+    // status flapping).
+    if (passed && !alreadyCompleted) {
+      if (existing) {
+        existing.status = SubmissionStatus.APPROVED;
+        existing.submittedAt = new Date();
+        await this.submissionRepository.save(existing);
+      } else {
+        const submission = this.submissionRepository.create({
+          exerciseId,
+          userId,
+          prUrl: 'auto-graded',
+          status: SubmissionStatus.APPROVED,
+          submittedAt: new Date(),
+        });
+        await this.submissionRepository.save(submission);
+      }
+      completed = true;
+    }
+
+    return {
+      score,
+      correctCount,
+      totalQuestions: questions.length,
+      targetScore,
+      passed,
+      completed,
+      results,
     };
   }
 
@@ -180,6 +315,15 @@ export class ExercisesService {
         dto.objectives !== undefined ? dto.objectives : exercise.objectives,
       steps: dto.steps !== undefined ? dto.steps : exercise.steps,
       hint: dto.hint !== undefined ? dto.hint : exercise.hint,
+      type: dto.type !== undefined ? dto.type : exercise.type,
+      questionsData:
+        dto.questionsData !== undefined
+          ? dto.questionsData
+          : exercise.questionsData,
+      targetScore:
+        dto.targetScore !== undefined ? dto.targetScore : exercise.targetScore,
+      isMandatory:
+        dto.isMandatory !== undefined ? dto.isMandatory : exercise.isMandatory,
     });
 
     if (dto.resourceDocIds !== undefined) {

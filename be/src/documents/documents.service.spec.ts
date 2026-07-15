@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DocumentsService } from './documents.service';
 import { Document, DocumentKind } from '../database/entities/document.entity';
-import { Tag } from '../database/entities/tag.entity';
+import { Tag, TagCategory } from '../database/entities/tag.entity';
 import { User } from '../database/entities/user.entity';
 import { SearchDocumentsDto } from './dto/search-documents.dto';
 import { CreateDocumentDto } from './dto/create-document.dto';
@@ -131,26 +131,6 @@ describe('DocumentsService', () => {
 
       const result = await service.findAll(queryDto, 'user-1');
       expect(result.data).toHaveLength(0);
-    });
-
-    it('should return only the current user\'s bookmarked documents', async () => {
-      const bookmarked = [{ id: 'doc-1' }];
-      mockUserRepository.findOne.mockResolvedValue({
-        id: 'user-1',
-        bookmarkedDocuments: bookmarked,
-      });
-      mockQueryBuilder.getMany.mockResolvedValue([
-        { id: 'doc-1', title: 'Saved doc', tags: [], createdAt: new Date() },
-      ]);
-
-      const result = await service.findAll({ bookmarked: true }, 'user-1');
-
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
-        'document.id IN (:...bookmarkedDocIds)',
-        { bookmarkedDocIds: ['doc-1'] },
-      );
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].isBookmarked).toBe(true);
     });
   });
 
@@ -380,6 +360,19 @@ describe('DocumentsService', () => {
       const result = await service.findAllTags();
       expect(result).toEqual(tags);
       expect(mockTagRepository.find).toHaveBeenCalledWith({
+        where: {},
+        order: { name: 'ASC' },
+      });
+    });
+
+    it('should filter tags by category (GLI-94)', async () => {
+      const tags = [{ id: 'tag-1', name: 'React', category: 'TRACK' }];
+      mockTagRepository.find.mockResolvedValue(tags);
+
+      const result = await service.findAllTags(TagCategory.TRACK);
+      expect(result).toEqual(tags);
+      expect(mockTagRepository.find).toHaveBeenCalledWith({
+        where: { category: TagCategory.TRACK },
         order: { name: 'ASC' },
       });
     });

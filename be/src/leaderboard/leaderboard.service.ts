@@ -25,7 +25,7 @@ export class LeaderboardService {
     let cohortId = queryCohortId;
     if (scope === LeaderboardScope.COHORT && !cohortId) {
       const user = await this.userRepository.findOne({ where: { id: userId } });
-      cohortId = user?.cohortId;
+      cohortId = user?.cohortId || undefined;
       if (!cohortId) {
         throw new BadRequestException(
           'Học viên hiện tại không thuộc khóa học (cohort) nào.',

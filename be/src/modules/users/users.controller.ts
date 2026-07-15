@@ -6,6 +6,8 @@ import {
   Body,
   Param,
   Query,
+  Req,
+  UnauthorizedException,
   ForbiddenException,
   UseGuards,
   ParseUUIDPipe,
@@ -18,10 +20,6 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import {
-  NotificationSettingsDto,
-  UpdateNotificationSettingsDto,
-} from './dto/notification-settings.dto';
 import { UserQueryDto } from './dto/user-query.dto';
 import { UserDashboardStatsDto } from './dto/user-dashboard-stats.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,6 +27,13 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User, UserRole } from '../../database/entities/user.entity';
+
+interface RequestWithUser {
+  user: {
+    id: string;
+    role: string;
+  };
+}
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -71,36 +76,6 @@ export class UsersController {
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
     return this.usersService.updateProfile(currentUser.id, updateProfileDto);
-  }
-
-  @Get('me/notification-settings')
-  @ApiOperation({ summary: 'Lấy cấu hình thông báo của người dùng hiện tại' })
-  @ApiResponse({
-    status: 200,
-    type: NotificationSettingsDto,
-    description: 'Lấy cấu hình thông báo thành công.',
-  })
-  async getNotificationSettings(@CurrentUser() currentUser: User) {
-    return this.usersService.getNotificationSettings(currentUser.id);
-  }
-
-  @Patch('me/notification-settings')
-  @ApiOperation({
-    summary: 'Cập nhật cấu hình thông báo của người dùng hiện tại',
-  })
-  @ApiResponse({
-    status: 200,
-    type: NotificationSettingsDto,
-    description: 'Cập nhật cấu hình thông báo thành công.',
-  })
-  async updateNotificationSettings(
-    @CurrentUser() currentUser: User,
-    @Body() updateNotificationSettingsDto: UpdateNotificationSettingsDto,
-  ) {
-    return this.usersService.updateNotificationSettings(
-      currentUser.id,
-      updateNotificationSettingsDto,
-    );
   }
 
   @Get('me/stats')

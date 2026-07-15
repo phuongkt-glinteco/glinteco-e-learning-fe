@@ -8,14 +8,18 @@ import { User, UserRole } from '../../database/entities/user.entity';
 import { SubmissionCreatedEvent } from '../events/submission-created.event';
 import { SubmissionResubmittedEvent } from '../events/submission-resubmitted.event';
 import { SubmissionReviewedEvent } from '../events/submission-reviewed.event';
-import { MailService } from '../../mail/mail.service';
+
+jest.mock('nodemailer', () => ({
+  createTransport: jest.fn().mockReturnValue({
+    sendMail: jest.fn().mockResolvedValue({ messageId: '123' }),
+  }),
+}));
 
 describe('SubmissionNotificationsListener', () => {
   let listener: SubmissionNotificationsListener;
   let notificationsService: jest.Mocked<Pick<NotificationsService, 'create'>>;
   let userRepository: jest.Mocked<Pick<Repository<User>, 'find'>>;
   let configService: jest.Mocked<Pick<ConfigService, 'get'>>;
-  let mailService: jest.Mocked<Pick<MailService, 'sendMail'>>;
 
   const mockAdmins = [
     {
@@ -41,12 +45,9 @@ describe('SubmissionNotificationsListener', () => {
       get: jest.fn().mockImplementation((key: string) => {
         if (key === 'SLACK_ADMIN_WEBHOOK_URL')
           return 'https://slack.com/webhook';
+        if (key === 'SMTP_HOST') return 'localhost';
         return undefined;
       }),
-    };
-
-    mailService = {
-      sendMail: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -63,10 +64,6 @@ describe('SubmissionNotificationsListener', () => {
         {
           provide: ConfigService,
           useValue: configService,
-        },
-        {
-          provide: MailService,
-          useValue: mailService,
         },
       ],
     }).compile();

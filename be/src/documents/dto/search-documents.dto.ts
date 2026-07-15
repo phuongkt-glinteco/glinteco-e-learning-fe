@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsInt, Min, Max, IsEnum, IsBoolean } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsOptional, IsString, IsInt, Min, Max, IsEnum } from 'class-validator';
+import { Type } from 'class-transformer';
 import { DocumentKind } from '../../database/entities/document.entity';
 
 export class SearchDocumentsDto {
@@ -30,15 +30,6 @@ export class SearchDocumentsDto {
     message: `kind phải là một trong các giá trị: ${Object.values(DocumentKind).join(', ')}`,
   })
   kind?: DocumentKind;
-
-  @ApiPropertyOptional({
-    description: 'Chỉ trả về các tài liệu đã được người dùng hiện tại bookmark',
-    example: true,
-  })
-  @IsOptional()
-  @Transform(({ value }) => value === true || value === 'true')
-  @IsBoolean()
-  bookmarked?: boolean;
 
   @ApiPropertyOptional({
     description: 'Số lượng tài liệu tối đa trả về trên mỗi trang',

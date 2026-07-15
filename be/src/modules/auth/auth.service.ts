@@ -4,7 +4,6 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,16 +15,18 @@ import { createHash, randomUUID, randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { RefreshToken } from '../../database/entities/refresh-token.entity';
 import { User, UserRole } from '../../database/entities/user.entity';
+import { Cohort } from '../../database/entities/cohort.entity';
 import { UsersService } from '../users/users.service';
 import { AuthTokensDto } from './dto/auth-tokens.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordResponseDto } from './dto/forgot-password-response.dto';
 import {
   JwtPayload,
   RefreshTokenPayload,
 } from './interfaces/jwt-payload.interface';
-import { MailService } from '../../mail/mail.service';
 
 const SALT_ROUNDS = 10;
 const DEFAULT_ACCESS_EXPIRES_IN = 900; // 15 minutes
@@ -34,7 +35,7 @@ const DEFAULT_REFRESH_EXPIRES_IN = 604800; // 7 days
 /**
  * User-facing shape of a user record: the entity with the password hash
  * stripped, regardless of how it was loaded.
- */
+ * */
 export type SafeUser = Omit<User, 'password'>;
 
 @Injectable()
@@ -50,9 +51,10 @@ export class AuthService {
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Cohort)
+    private readonly cohortRepository: Repository<Cohort>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly mailService: MailService,
   ) {
     this.googleClientId = this.configService.get<string>(
       'GOOGLE_CLIENT_ID',
@@ -70,11 +72,24 @@ export class AuthService {
       throw new BadRequestException('Email đã được sử dụng');
     }
 
+    let defaultCohort = await this.cohortRepository.findOne({
+      where: { isActive: true, isDefault: true },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!defaultCohort) {
+      defaultCohort = await this.cohortRepository.findOne({
+        where: { isActive: true },
+        order: { createdAt: 'DESC' },
+      });
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
     const user = await this.usersService.create({
       name: dto.name,
       email: dto.email,
       password: passwordHash,
+      cohortId: defaultCohort ? defaultCohort.id : null,
     });
 
     return this.sanitize(user);
@@ -86,6 +101,7 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
+    await this.checkBanStatus(user);
     return this.issueTokens(user, dto.rememberMe);
   }
 
@@ -141,7 +157,26 @@ export class AuthService {
       );
     }
 
+    await this.checkBanStatus(user);
+
     return this.issueTokens(user, payload.rememberMe);
+  }
+
+  private async checkBanStatus(user: User): Promise<void> {
+    if (user.isActive === false) {
+      if (user.bannedUntil && new Date() > user.bannedUntil) {
+        user.isActive = true;
+        user.banReason = null;
+        user.bannedUntil = null;
+        await this.userRepository.save(user);
+      } else {
+        throw new UnauthorizedException({
+          statusCode: 403,
+          error: 'AccountBanned',
+          message: `Tài khoản của bạn đã bị khóa. Lý do: ${user.banReason || 'Không có lý do'}`,
+        });
+      }
+    }
   }
 
   /**
@@ -262,6 +297,7 @@ export class AuthService {
     this.assertAllowedDomain(email, payload.hd);
 
     const user = await this.findOrCreateUser(payload, email);
+    await this.checkBanStatus(user);
     return this.buildAuthResponse(user);
   }
 
@@ -339,103 +375,59 @@ export class AuthService {
 
   private async buildAuthResponse(user: User): Promise<AuthResponseDto> {
     const tokens = await this.issueTokens(user);
+    const userWithCohort = await this.usersService.findById(user.id);
+    const resolvedUser = userWithCohort || user;
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        title: user.title ?? null,
-        avatarHue: user.avatarHue ?? 0,
-        cohortId: user.cohortId ?? null,
-        level: user.level,
-        xp: user.xp,
-        streakDays: user.streakDays,
-        joinedAt: user.createdAt,
+        id: resolvedUser.id,
+        email: resolvedUser.email,
+        name: resolvedUser.name,
+        role: resolvedUser.role,
+        title: resolvedUser.title ?? null,
+        avatarHue: resolvedUser.avatarHue ?? 0,
+        cohortId: resolvedUser.cohortId ?? null,
+        cohort: resolvedUser.cohort
+          ? { id: resolvedUser.cohort.id, name: resolvedUser.cohort.name }
+          : null,
+        level: resolvedUser.level,
+        xp: resolvedUser.xp,
+        streakDays: resolvedUser.streakDays,
+        joinedAt: resolvedUser.createdAt,
       },
     };
   }
 
-  async forgotPassword(email: string): Promise<{ message: string }> {
+  async forgotPassword(email: string): Promise<ForgotPasswordResponseDto> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      return {
-        message:
-          'Nếu tài khoản tồn tại với email này, đường dẫn khôi phục mật khẩu đã được gửi qua email.',
-      };
+      // Security measure: Do not leak whether an email exists or not
+      return { success: true, message: 'Tạo yêu cầu thành công' };
     }
 
     const token = randomBytes(32).toString('hex');
     const hashedToken = createHash('sha256').update(token).digest('hex');
 
-    const expires = new Date();
-    expires.setHours(expires.getHours() + 1);
+    // Token expires in exactly 15 minutes
+    const expires = new Date(Date.now() + 15 * 60 * 1000);
 
     await this.userRepository.update(user.id, {
       resetPasswordToken: hashedToken,
       resetPasswordExpires: expires,
     });
 
-    const frontendUrl = this.configService
-      .get<string>('FRONTEND_URL', 'http://localhost:6336')
-      .replace(/\/$/, '');
-    const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+    const resetLink = `http://localhost:6336/reset-password?token=${token}`;
+    this.logger.log(`[Mock Email] Password Reset Link: ${resetLink}`);
+    console.log(`[Mock Email] Password Reset Link: ${resetLink}`);
 
-    try {
-      await this.mailService.sendMail({
-        to: user.email,
-        subject: '[RAMP UP] Reset your password',
-        html: this.buildResetPasswordEmail(resetLink),
-        text: `Reset your RAMP UP password: ${resetLink}`,
-      });
-    } catch (error) {
-      await this.userRepository.update(user.id, {
-        resetPasswordToken: null,
-        resetPasswordExpires: null,
-      });
-
-      if (error instanceof ServiceUnavailableException) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        'Could not send password reset email',
-      );
-    }
-
-    return { message: 'Đường dẫn khôi phục mật khẩu đã được gửi qua email.' };
-  }
-
-  private buildResetPasswordEmail(resetLink: string): string {
-    return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Reset your RAMP UP password</title>
-</head>
-<body style="font-family: Inter, Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 32px;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
-    <tr>
-      <td style="padding: 24px; background: #2563eb; color: #ffffff; border-radius: 8px 8px 0 0;">
-        <h1 style="font-size: 20px; margin: 0;">RAMP UP Password Reset</h1>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 24px;">
-        <p style="font-size: 15px; line-height: 24px;">We received a request to reset your RAMP UP password.</p>
-        <p style="font-size: 15px; line-height: 24px;">Use the button below within the next hour to set a new password.</p>
-        <p style="margin: 28px 0;">
-          <a href="${resetLink}" style="display: inline-block; background: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 18px; border-radius: 6px; font-weight: 600;">Reset password</a>
-        </p>
-        <p style="font-size: 13px; line-height: 20px; color: #64748b;">If the button does not work, copy and paste this link into your browser:</p>
-        <p style="font-size: 13px; line-height: 20px; word-break: break-all;"><a href="${resetLink}" style="color: #2563eb;">${resetLink}</a></p>
-        <p style="font-size: 13px; line-height: 20px; color: #64748b;">If you did not request a password reset, you can ignore this email.</p>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+    // Returning token directly in response is a temporary test measure
+    return {
+      success: true,
+      message: 'Tạo yêu cầu thành công',
+      resetToken: token,
+      resetUrl: `/reset-password?token=${token}`,
+    };
   }
 
   async resetPassword(
@@ -448,7 +440,7 @@ export class AuthService {
       where: {
         resetPasswordToken: hashedToken,
       },
-      select: { id: true, email: true, name: true, resetPasswordExpires: true },
+      select: { id: true, resetPasswordExpires: true },
     });
 
     if (!user) {
@@ -469,74 +461,33 @@ export class AuthService {
       resetPasswordExpires: null,
     });
 
-    await this.sendPasswordChangedNotification(user);
-
     return { message: 'Mật khẩu đã được thay đổi thành công.' };
   }
 
-  private async sendPasswordChangedNotification(
-    user: Pick<User, 'email' | 'name'>,
-  ): Promise<void> {
-    const changedAt = new Date();
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+  ): Promise<{ success: boolean; message: string }> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      select: { id: true, password: true },
+    });
 
-    try {
-      await this.mailService.sendMail({
-        to: user.email,
-        subject: '[RAMP UP] Your password was changed',
-        html: this.buildPasswordChangedEmail(user.name, changedAt),
-        text: this.buildPasswordChangedText(user.name, changedAt),
-      });
-    } catch (error) {
-      this.logger.error(
-        `Password changed notification email failed for ${user.email}`,
-        error instanceof Error ? error.stack : String(error),
-      );
+    if (!user || !user.password) {
+      throw new BadRequestException('Người dùng không hợp lệ');
     }
-  }
 
-  private buildPasswordChangedEmail(name: string, changedAt: Date): string {
-    const displayName = name || 'there';
-    const changedAtText = changedAt.toISOString();
+    const isMatch = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('Mật khẩu hiện tại không chính xác');
+    }
 
-    return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Your RAMP UP password was changed</title>
-</head>
-<body style="font-family: Inter, Arial, sans-serif; background: #f8fafc; color: #0f172a; margin: 0; padding: 32px;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 560px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
-    <tr>
-      <td style="padding: 24px; background: #0f172a; color: #ffffff; border-radius: 8px 8px 0 0;">
-        <h1 style="font-size: 20px; margin: 0;">RAMP UP Security Alert</h1>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding: 24px;">
-        <p style="font-size: 15px; line-height: 24px;">Hi ${displayName},</p>
-        <p style="font-size: 15px; line-height: 24px;">Your RAMP UP account password was changed successfully.</p>
-        <p style="font-size: 15px; line-height: 24px;">If this was you, no further action is needed.</p>
-        <p style="font-size: 15px; line-height: 24px;">If you did not make this change, please contact the administrator or reset your password immediately.</p>
-        <p style="font-size: 13px; line-height: 20px; color: #64748b;">Time: ${changedAtText}</p>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-  }
+    const hashedPassword = await bcrypt.hash(dto.newPassword, SALT_ROUNDS);
 
-  private buildPasswordChangedText(name: string, changedAt: Date): string {
-    const displayName = name || 'there';
+    await this.userRepository.update(user.id, {
+      password: hashedPassword,
+    });
 
-    return [
-      `Hi ${displayName},`,
-      '',
-      'Your RAMP UP account password was changed successfully.',
-      '',
-      'If this was you, no further action is needed.',
-      'If you did not make this change, please contact the administrator or reset your password immediately.',
-      '',
-      `Time: ${changedAt.toISOString()}`,
-    ].join('\n');
+    return { success: true, message: 'Mật khẩu đã được thay đổi thành công.' };
   }
 }

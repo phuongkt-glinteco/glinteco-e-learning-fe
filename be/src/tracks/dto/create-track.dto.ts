@@ -6,7 +6,9 @@ import {
   IsInt,
   Min,
   IsOptional,
+  IsEnum,
 } from 'class-validator';
+import { TrackStatus } from '../../database/entities/track.entity';
 
 export class CreateTrackDto {
   @ApiProperty({
@@ -53,4 +55,15 @@ export class CreateTrackDto {
   @IsString({ message: 'afterTrackId phải là chuỗi' })
   @IsOptional()
   afterTrackId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Trạng thái lộ trình (GLI-94). Mặc định: Active.',
+    enum: TrackStatus,
+    example: TrackStatus.DEVELOPING,
+  })
+  @IsEnum(TrackStatus, {
+    message: 'status phải là một trong: Developing, Active, Archived',
+  })
+  @IsOptional()
+  status?: TrackStatus;
 }

@@ -24,6 +24,8 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordResponseDto } from './dto/forgot-password-response.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('auth')
@@ -118,6 +120,9 @@ export class AuthController {
       title: user.title ?? null,
       avatarHue: user.avatarHue ?? 0,
       cohortId: user.cohortId ?? null,
+      cohort: user.cohort
+        ? { id: user.cohort.id, name: user.cohort.name }
+        : null,
       level: user.level,
       xp: user.xp,
       streakDays: user.streakDays,
@@ -130,16 +135,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Yêu cầu khôi phục mật khẩu qua email.' })
   @ApiResponse({
     status: 200,
-    description:
-      'Nếu tài khoản tồn tại, đường dẫn khôi phục mật khẩu đã được gửi.',
-    schema: {
-      example: {
-        message:
-          'Nếu tài khoản tồn tại với email này, đường dẫn khôi phục mật khẩu đã được gửi qua email.',
-      },
-    },
+    type: ForgotPasswordResponseDto,
+    description: 'Yêu cầu khôi phục mật khẩu thành công.',
   })
-  forgotPassword(@Body() dto: ForgotPasswordDto): Promise<{ message: string }> {
+  forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<ForgotPasswordResponseDto> {
     return this.authService.forgotPassword(dto.email);
   }
 
@@ -149,14 +150,30 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: 'Mật khẩu đã được thay đổi thành công.',
-    schema: {
-      example: {
-        message: 'Mật khẩu đã được thay đổi thành công.',
-      },
-    },
   })
   @ApiResponse({ status: 400, description: 'Token không hợp lệ hoặc hết hạn.' })
   resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
     return this.authService.resetPassword(dto.token, dto.password);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Thay đổi mật khẩu trong trang cá nhân.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Mật khẩu đã được thay đổi thành công.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Mật khẩu cũ không chính xác hoặc dữ liệu không hợp lệ.',
+  })
+  @ApiResponse({ status: 401, description: 'Thiếu hoặc sai access token.' })
+  changePassword(
+    @CurrentUser() user: User,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<{ success: boolean; message: string }> {
+    return this.authService.changePassword(user.id, dto);
   }
 }

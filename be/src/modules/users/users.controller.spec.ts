@@ -3,10 +3,6 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { ForbiddenException } from '@nestjs/common';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import {
-  NotificationSettingsDto,
-  UpdateNotificationSettingsDto,
-} from './dto/notification-settings.dto';
 import { User, UserRole } from '../../database/entities/user.entity';
 
 describe('UsersController', () => {
@@ -18,8 +14,6 @@ describe('UsersController', () => {
     findAll: jest.fn(),
     findOneOrFail: jest.fn(),
     claimDailyXp: jest.fn(),
-    getNotificationSettings: jest.fn(),
-    updateNotificationSettings: jest.fn(),
   };
 
   const mockLearner = {
@@ -105,50 +99,6 @@ describe('UsersController', () => {
 
       const result = await controller.updateProfile(mockLearner, dto);
       expect(mockUsersService.updateProfile).toHaveBeenCalledWith(
-        'user-123',
-        dto,
-      );
-      expect(result).toEqual(mockResult);
-    });
-  });
-
-  describe('getNotificationSettings', () => {
-    it('should call service.getNotificationSettings with userId', async () => {
-      const mockResult: NotificationSettingsDto = {
-        EXERCISE_REVIEWED: true,
-        EXERCISE_CHANGES_REQUESTED: true,
-        COHORT_ASSIGNED: false,
-        NEW_LESSON_PUBLISHED: true,
-      };
-      mockUsersService.getNotificationSettings.mockResolvedValue(mockResult);
-
-      const result = await controller.getNotificationSettings(mockLearner);
-      expect(mockUsersService.getNotificationSettings).toHaveBeenCalledWith(
-        'user-123',
-      );
-      expect(result).toEqual(mockResult);
-    });
-  });
-
-  describe('updateNotificationSettings', () => {
-    it('should call service.updateNotificationSettings with userId and dto', async () => {
-      const dto: UpdateNotificationSettingsDto = {
-        EXERCISE_REVIEWED: false,
-        COHORT_ASSIGNED: true,
-      };
-      const mockResult: NotificationSettingsDto = {
-        EXERCISE_REVIEWED: false,
-        EXERCISE_CHANGES_REQUESTED: true,
-        COHORT_ASSIGNED: true,
-        NEW_LESSON_PUBLISHED: true,
-      };
-      mockUsersService.updateNotificationSettings.mockResolvedValue(mockResult);
-
-      const result = await controller.updateNotificationSettings(
-        mockLearner,
-        dto,
-      );
-      expect(mockUsersService.updateNotificationSettings).toHaveBeenCalledWith(
         'user-123',
         dto,
       );

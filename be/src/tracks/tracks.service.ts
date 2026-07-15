@@ -5,12 +5,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, LessThan, MoreThan } from 'typeorm';
-import { Track } from '../database/entities/track.entity';
+import { Track, TrackStatus } from '../database/entities/track.entity';
+import { Exercise } from '../database/entities/exercise.entity';
+import {
+  Submission,
+  SubmissionStatus,
+} from '../database/entities/submission.entity';
 import {
   TrackProgress,
   ProgressStatus,
 } from '../database/entities/track-progress.entity';
-import { Lesson, LessonType } from '../database/entities/lesson.entity';
+import { Lesson } from '../database/entities/lesson.entity';
 import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { User } from '../database/entities/user.entity';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -32,6 +37,10 @@ export class TracksService {
     private readonly lessonProgressRepository: Repository<LessonProgress>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Exercise)
+    private readonly exerciseRepository: Repository<Exercise>,
+    @InjectRepository(Submission)
+    private readonly submissionRepository: Repository<Submission>,
   ) {}
 
   // Resolve user level based on XP to sync gamification state
@@ -116,17 +125,12 @@ export class TracksService {
       // Update previous track completion status for the next iteration
       previousCompleted = trackProgressStatus === ProgressStatus.COMPLETED;
 
-      // Translate status to the API expected string: "locked", "in_progress", "completed"
-      let apiStatus: 'completed' | 'in_progress' | 'locked' = 'locked';
-      if (trackProgressStatus === ProgressStatus.COMPLETED) {
-        apiStatus = 'completed';
-      } else if (
-        trackProgressStatus === ProgressStatus.IN_PROGRESS ||
-        i === 0 ||
-        (i > 0 && resolvedTracks[i - 1]?.status === 'completed')
-      ) {
-        apiStatus = 'in_progress';
-      }
+      // GLI-90: tracks are freely accessible — no sequential lock between
+      // tracks. Status only distinguishes completed vs in_progress.
+      const apiStatus: 'completed' | 'in_progress' | 'locked' =
+        trackProgressStatus === ProgressStatus.COMPLETED
+          ? 'completed'
+          : 'in_progress';
 
       const sortedLessons = [...lessonsInTrack].sort(
         (a, b) => a.order - b.order,
@@ -141,10 +145,9 @@ export class TracksService {
             ? currentLesson.id
             : sortedLessons[0]?.id || null;
 
-      const accessStatus =
-        apiStatus === 'locked' ? ('locked' as const) : ('unlocked' as const);
-      const lockedReason =
-        apiStatus === 'locked' ? 'Hoàn thành track trước để mở khóa' : null;
+      // GLI-90: every track is accessible regardless of the previous one.
+      const accessStatus = 'unlocked' as const;
+      const lockedReason: string | null = null;
 
       resolvedTracks.push({
         id: track.id,
@@ -357,6 +360,7 @@ export class TracksService {
       icon: 'flag',
       order,
       lessonsCount: 0,
+      status: createTrackDto.status ?? TrackStatus.ACTIVE,
     });
 
     const savedTrack = await this.trackRepository.save(track);
@@ -392,10 +396,81 @@ export class TracksService {
     if (updateTrackDto.icon !== undefined) {
       track.icon = updateTrackDto.icon;
     }
+    if (updateTrackDto.status !== undefined) {
+      track.status = updateTrackDto.status;
+    }
 
     await this.trackRepository.save(track);
 
     return this.findOne(id);
+  }
+
+  /**
+   * GLI-94: admin track list with per-track statistics. Aggregations are
+   * computed with two grouped queries (lessons per track, progress per
+   * track) so the query count stays constant regardless of track count.
+   */
+  async adminList() {
+    const tracks = await this.trackRepository.find({
+      order: { order: 'ASC' },
+    });
+
+    const lessonCounts = await this.lessonRepository
+      .createQueryBuilder('lesson')
+      .select('lesson.trackId', 'trackId')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('lesson.trackId')
+      .getRawMany<{ trackId: string; count: string }>();
+    const lessonCountMap = new Map(
+      lessonCounts.map((r) => [r.trackId, Number(r.count)]),
+    );
+
+    const progressStats = await this.trackProgressRepository
+      .createQueryBuilder('tp')
+      .select('tp.trackId', 'trackId')
+      .addSelect('COUNT(*)', 'enrolled')
+      .addSelect('COALESCE(SUM(tp.lessonsCompleted), 0)', 'lessonsdone')
+      .addSelect(
+        'SUM(CASE WHEN tp.status = :completed THEN 1 ELSE 0 END)',
+        'completedcount',
+      )
+      .setParameter('completed', ProgressStatus.COMPLETED)
+      .groupBy('tp.trackId')
+      .getRawMany<{
+        trackId: string;
+        enrolled: string;
+        lessonsdone: string;
+        completedcount: string;
+      }>();
+    const statsMap = new Map(progressStats.map((r) => [r.trackId, r]));
+
+    const data = tracks.map((track) => {
+      const totalLessons = lessonCountMap.get(track.id) ?? 0;
+      const stats = statsMap.get(track.id);
+      const enrolledCount = stats ? Number(stats.enrolled) : 0;
+      const lessonsDone = stats ? Number(stats.lessonsdone) : 0;
+      const avgCompletion =
+        enrolledCount > 0 && totalLessons > 0
+          ? Math.round((lessonsDone / (enrolledCount * totalLessons)) * 100)
+          : 0;
+
+      return {
+        id: track.id,
+        title: track.title,
+        order: track.order,
+        status: track.status,
+        level: track.level,
+        estimatedTime: track.estimatedTime,
+        totalLessons,
+        enrolledCount,
+        completedCount: stats ? Number(stats.completedcount) : 0,
+        avgCompletion,
+        createdAt: track.createdAt,
+        updatedAt: track.updatedAt,
+      };
+    });
+
+    return { data };
   }
 
   async delete(id: string) {
@@ -528,15 +603,24 @@ export class TracksService {
         .map((lp) => lp.lessonId),
     );
 
-    const data = lessons.map((lesson) => ({
-      id: lesson.id,
-      title: lesson.title,
-      description: lesson.description,
-      order: lesson.order,
-      estimatedTime: lesson.estimatedTime,
-      type: lesson.type,
-      completed: completedLessonIds.has(lesson.id),
-    }));
+    // GLI-90: a lesson is locked until the one directly before it (by
+    // order) is completed. The first lesson is always unlocked.
+    let previousCompleted = true;
+    const data = lessons.map((lesson) => {
+      const completed = completedLessonIds.has(lesson.id);
+      const locked = !previousCompleted;
+      previousCompleted = completed;
+      return {
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        order: lesson.order,
+        estimatedTime: lesson.estimatedTime,
+        type: lesson.type,
+        completed,
+        locked,
+      };
+    });
 
     return { data };
   }
@@ -759,6 +843,53 @@ export class TracksService {
         unlockedTrackId: null,
         message: 'Lesson already completed',
       };
+    }
+
+    // GLI-90: sequential lesson lock inside a track — the lesson directly
+    // before this one (by order) must be completed first.
+    const previousLesson = await this.lessonRepository.findOne({
+      where: { trackId, order: LessThan(lesson.order) },
+      order: { order: 'DESC' },
+    });
+    if (previousLesson) {
+      const prevProgress = await this.lessonProgressRepository.findOne({
+        where: { lessonId: previousLesson.id, userId },
+      });
+      if (!prevProgress?.completedAt) {
+        throw new BadRequestException(
+          'Vui lòng hoàn thành bài học trước đó để mở khóa bài học này.',
+        );
+      }
+    }
+
+    // GLI-90: every mandatory exercise attached to the lesson must be
+    // finished (approved submission) before the lesson can be completed.
+    const mandatoryExercises = await this.exerciseRepository.find({
+      where: { lessonId, isMandatory: true },
+    });
+    if (mandatoryExercises.length > 0) {
+      const approvedSubmissions = await this.submissionRepository.find({
+        where: {
+          userId,
+          exerciseId: In(mandatoryExercises.map((e) => e.id)),
+          status: SubmissionStatus.APPROVED,
+        },
+      });
+      const approvedIds = new Set(approvedSubmissions.map((s) => s.exerciseId));
+      const pendingMandatory = mandatoryExercises.filter(
+        (e) => !approvedIds.has(e.id),
+      );
+      if (pendingMandatory.length > 0) {
+        throw new BadRequestException({
+          statusCode: 400,
+          message:
+            'Vui lòng hoàn thành các bài tập bắt buộc trước khi kết thúc bài học.',
+          pendingMandatoryExercises: pendingMandatory.map((e) => ({
+            id: e.id,
+            title: e.title,
+          })),
+        });
+      }
     }
 
     if (!lessonProgress) {

@@ -17,12 +17,15 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { DocumentsService } from './documents.service';
 import { SearchDocumentsDto } from './dto/search-documents.dto';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
 import { CreateTagDto } from './dto/create-tag.dto';
+import { TagQueryDto } from './dto/tag-query.dto';
+import { TagCategory } from '../database/entities/tag.entity';
 import { BookmarkResponseDto } from './dto/bookmark-response.dto';
 import {
   DocumentResponseDto,
@@ -140,11 +143,14 @@ export class DocumentsController {
 
   // --- Tags Endpoints ---
 
-  @ApiOperation({ summary: 'Lấy tất cả các thẻ phân loại (Tags)' })
+  @ApiOperation({
+    summary: 'Lấy tất cả các thẻ phân loại (Tags), hỗ trợ lọc theo category',
+  })
+  @ApiQuery({ name: 'category', enum: TagCategory, required: false })
   @ApiResponse({ status: 200, description: 'Lấy danh sách tags thành công.' })
   @Get('tags')
-  async findAllTags() {
-    return this.documentsService.findAllTags();
+  async findAllTags(@Query() query: TagQueryDto) {
+    return this.documentsService.findAllTags(query.category);
   }
 
   @ApiOperation({ summary: 'Tạo thẻ phân loại mới (Admin only)' })

@@ -23,6 +23,7 @@ import {
 import { FeatureBarPortal } from '@/components/layout/FeatureBarPortal';
 import { LessonEditorBottomBar, type ViewportMode } from './LessonEditorBottomBar';
 import { useLessonDraftStore } from '@/stores/lessonDraftStore';
+import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { AILessonGeneratorModal } from './AILessonGeneratorModal';
 
 type LessonEditorPageProps = {
@@ -75,30 +76,72 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   useEffect(() => {
     const draft = getDraft(draftKey);
     if (draft) {
-      setTitle(draft.title || '');
-      setDescription(draft.description || '');
-      setEstimatedTime(draft.estimatedTime || '15 min');
-      setLessonType(draft.type || 'reading');
-      setOrder(draft.order || 1);
-      setBody(draft.body || '');
+      const dTitle = draft.title || '';
+      const dDesc = draft.description || '';
+      const dTime = draft.estimatedTime || '15 min';
+      const dType = draft.type || 'reading';
+      const dOrder = draft.order || 1;
+      const dBody = draft.body || '';
+      setTitle(dTitle);
+      setDescription(dDesc);
+      setEstimatedTime(dTime);
+      setLessonType(dType);
+      setOrder(dOrder);
+      setBody(dBody);
+      if (dBody.trim() && dBody !== '{"content":[]}') {
+        const parsed = parseBodyToPuckData(dBody, {
+          title: dTitle,
+          description: dDesc,
+          estimatedTime: dTime,
+          order: dOrder,
+          type: dType,
+          documents: [],
+          exercises: [],
+        });
+        setCurrentPuckData(parsed);
+        setAiVersion((v) => v + 1);
+      }
     }
   }, [draftKey, getDraft]);
 
   useEffect(() => {
     if (!lessonId) return;
     async function fetchLesson() {
-      if (!trackId || !lessonId) return;
+      if (!lessonId) return;
       try {
         const res = await lessonsControllerFindOneLesson({ path: { id: lessonId }, throwOnError: true });
         const found = res.data as LessonDetailDto;
-        if (found && !getDraft(draftKey)) {
+        if (found) {
           setLoadedLesson(found);
-          setTitle(found.title ?? '');
-          setDescription(found.description ?? '');
-          setLessonType(found.type ?? 'reading');
-          setOrder(found.order ?? 1);
-          setBody(found.body ?? '');
-          setEstimatedTime(found.estimatedTime ?? '15 min');
+          const draft = getDraft(draftKey);
+          const hasValidDraft = draft && draft.body && draft.body.trim() !== '' && draft.body !== '{"content":[]}';
+          if (!hasValidDraft) {
+            const fTitle = found.title ?? '';
+            const fDesc = found.description ?? '';
+            const fType = (found.type as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment') ?? 'reading';
+            const fOrder = found.order ?? 1;
+            const fBody = found.body ?? '';
+            const fTime = found.estimatedTime ?? '15 min';
+
+            setTitle(fTitle);
+            setDescription(fDesc);
+            setLessonType(fType);
+            setOrder(fOrder);
+            setBody(fBody);
+            setEstimatedTime(fTime);
+
+            const parsed = parseBodyToPuckData(fBody, {
+              title: fTitle,
+              description: fDesc,
+              estimatedTime: fTime,
+              order: fOrder,
+              type: fType,
+              documents: found.relatedDocs || [],
+              exercises: [],
+            });
+            setCurrentPuckData(parsed);
+            setAiVersion((v) => v + 1);
+          }
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Không thể tải dữ liệu bài học';
@@ -110,17 +153,65 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
 
   useEffect(() => {
     if (lessonId) return;
-    if (!trackId || editIndex === undefined) return;
-    const entry = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
+    if (editIndex === undefined) return;
     const idx = Number(editIndex);
-    if (entry?.track?.lessons?.[idx] && !getDraft(draftKey)) {
-      const lesson = entry.track.lessons[idx];
-      setTitle(lesson.title ?? '');
-      setDescription(lesson.description ?? '');
-      setLessonType((lesson.type as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment') ?? 'reading');
-      setOrder(lesson.order ?? idx + 1);
-      setBody(lesson.body ?? '');
-      setEstimatedTime(lesson.estimatedTime ?? '15 min');
+    const draft = getDraft(draftKey);
+    const hasValidDraft = draft && draft.body && draft.body.trim() !== '' && draft.body !== '{"content":[]}';
+    if (hasValidDraft) return;
+
+    const trackDraftLessons = useTrackDraftStore.getState().lessons;
+    const storeLesson = trackDraftLessons?.[idx];
+    if (storeLesson) {
+      const sTitle = storeLesson.title || '';
+      const sTime = storeLesson.estimatedTime || '15 min';
+      const sBody = storeLesson.body || '';
+      setTitle(sTitle);
+      setEstimatedTime(sTime);
+      setBody(sBody);
+      setOrder(idx + 1);
+      const parsed = parseBodyToPuckData(sBody, {
+        title: sTitle,
+        description: '',
+        estimatedTime: sTime,
+        order: idx + 1,
+        type: 'reading',
+        documents: [],
+        exercises: [],
+      });
+      setCurrentPuckData(parsed);
+      setAiVersion((v) => v + 1);
+      return;
+    }
+
+    if (trackId) {
+      const entry = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
+      if (entry?.track?.lessons?.[idx]) {
+        const lesson = entry.track.lessons[idx];
+        const lTitle = lesson.title ?? '';
+        const lDesc = lesson.description ?? '';
+        const lType = (lesson.type as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment') ?? 'reading';
+        const lOrder = lesson.order ?? idx + 1;
+        const lBody = lesson.body ?? '';
+        const lTime = lesson.estimatedTime ?? '15 min';
+
+        setTitle(lTitle);
+        setDescription(lDesc);
+        setLessonType(lType);
+        setOrder(lOrder);
+        setBody(lBody);
+        setEstimatedTime(lTime);
+        const parsed = parseBodyToPuckData(lBody, {
+          title: lTitle,
+          description: lDesc,
+          estimatedTime: lTime,
+          order: lOrder,
+          type: lType,
+          documents: [],
+          exercises: [],
+        });
+        setCurrentPuckData(parsed);
+        setAiVersion((v) => v + 1);
+      }
     }
   }, [trackId, editIndex, lessonId, draftKey, getDraft]);
 
@@ -233,6 +324,21 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
           setSaving(false);
           return;
         }
+      } else if (editIndex !== undefined) {
+        const store = useTrackDraftStore.getState();
+        const idx = Number(editIndex);
+        const draftLessonObj = {
+          title: updatedTitle,
+          estimatedTime: updatedTime,
+          body: jsonBody,
+        };
+        if (!isNaN(idx) && idx >= 0 && idx < store.lessons.length) {
+          store.updateLesson(idx, draftLessonObj);
+        } else {
+          store.addLesson(draftLessonObj);
+        }
+        clearDraft(draftKey);
+        toast.success(t('createSuccess'));
       }
     } catch (err: unknown) {
       setSaving(false);

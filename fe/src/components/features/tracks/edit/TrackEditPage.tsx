@@ -238,7 +238,7 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
               onDescriptionChange={useTrackDraftStore.getState().setDescription}
               ns="EditTrackPage"
             />
-            <CurriculumSection ns="EditTrackPage" />
+            <CurriculumSection ns="EditTrackPage" trackId={trackId} existingLessons={existingLessons} />
 
             <LinkedExercisesCard
               trackId={trackId}

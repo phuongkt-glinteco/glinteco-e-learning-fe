@@ -10,6 +10,8 @@ export interface UserDto {
   avatarColorHsl: string;
   title?: string;
   createdAt: string;
+  status?: 'active' | 'banned';
+  banReason?: string | null;
 }
 
 export interface UserQueryParams {

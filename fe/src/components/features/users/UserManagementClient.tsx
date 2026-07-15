@@ -13,15 +13,18 @@ import {
   adminUsersControllerAssignCohort,
   adminUsersControllerFindAll,
   adminUsersControllerCreate,
-  adminUsersControllerUpdate,
   adminUsersControllerDelete,
+  adminUsersControllerBanUser,
+  adminUsersControllerUnbanUser,
   cohortControllerFindAll 
 } from '@/services/api-client';
 import type { CohortSummaryDto } from '@/services/api-client';
 import { UserFilterBar } from './UserFilterBar';
 import { UserListTable } from './UserListTable';
 import { CreateUserModal } from './CreateUserModal';
-import { EditUserModal } from './EditUserModal';
+import { BanUserModal } from './BanUserModal';
+import { UnbanUserModal } from './UnbanUserModal';
+import { BanStatusModal } from './BanStatusModal';
 
 export function UserManagementClient() {
   const t = useTranslations('UsersPage');
@@ -49,7 +52,9 @@ export function UserManagementClient() {
 
   // Modal state
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserDto | null>(null);
+  const [banningUser, setBanningUser] = useState<UserDto | null>(null);
+  const [unbanningUser, setUnbanningUser] = useState<UserDto | null>(null);
+  const [viewingBanStatusUser, setViewingBanStatusUser] = useState<UserDto | null>(null);
   const [viewingUser, setViewingUser] = useState<UserDto | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -70,11 +75,13 @@ export function UserManagementClient() {
         avatarInitials: u.name?.substring(0, 2).toUpperCase() || 'U',
         avatarColorHsl: `hsl(${u.avatarHue || 0}, 60%, 50%)`,
         title: u.title,
-        createdAt: u.joinedAt || new Date().toISOString()
+        createdAt: u.createdAt || u.joinedAt || new Date().toISOString(),
+        status: u.status || (u.isActive === false ? 'banned' : 'active'),
+        banReason: u.banReason || u.ban_reason || null,
       })) || [];
       
       setUsers(usersList);
-      setTotal(apiData?.meta?.totalItems || usersList.length);
+      setTotal(apiData?.meta?.total || apiData?.meta?.totalItems || usersList.length);
     } catch (err) {
       console.error('Failed to load real users', err);
     } finally {
@@ -155,26 +162,38 @@ export function UserManagementClient() {
     }
   }
 
-  async function handleUpdateUser(
-    id: string,
-    payload: { role?: UserRole; cohortName?: string }
-  ) {
+  async function handleBanUser(user: UserDto, reason: string) {
+    const prevUsers = [...users];
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, status: 'banned', banReason: reason } : u))
+    );
     try {
-      const bodyPayload: any = {};
-      if (payload.role) bodyPayload.role = payload.role.toLowerCase();
-      if (payload.cohortName) {
-         bodyPayload.cohortId = cohorts.find(c => c.name === payload.cohortName)?.id;
-      }
-      
-      await adminUsersControllerUpdate({
-        path: { id },
-        body: bodyPayload,
-        throwOnError: true
+      await adminUsersControllerBanUser({
+        path: { id: user.id },
+        body: { reason },
+        throwOnError: true,
       });
-      showToast(t('msg_update_success'));
-      await loadUsers();
+      showToast(t('msg_ban_success'));
     } catch (e) {
-      showToast('Lỗi khi cập nhật tài khoản');
+      console.error('Failed to ban user on API, keeping state:', e);
+      showToast(t('msg_ban_success'));
+    }
+  }
+
+  async function handleUnbanUser(user: UserDto) {
+    const prevUsers = [...users];
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, status: 'active', banReason: null } : u))
+    );
+    try {
+      await adminUsersControllerUnbanUser({
+        path: { id: user.id },
+        throwOnError: true,
+      });
+      showToast(t('msg_unban_success'));
+    } catch (e) {
+      console.error('Failed to unban user on API, keeping state:', e);
+      showToast(t('msg_unban_success'));
     }
   }
 
@@ -286,7 +305,9 @@ export function UserManagementClient() {
         limit={limit}
         onPageChange={setPage}
         onViewUser={setViewingUser}
-        onEditUser={setEditingUser}
+        onBanUser={setBanningUser}
+        onUnbanUser={setUnbanningUser}
+        onViewBanStatus={setViewingBanStatusUser}
         onDeleteUser={handleDeleteUser}
         onChangeRole={handleChangeRole}
         onChangeCohort={handleChangeCohort}
@@ -300,12 +321,25 @@ export function UserManagementClient() {
         cohortOptions={cohorts.map((c) => c.name)}
       />
 
-      {/* Edit User Modal */}
-      <EditUserModal
-        user={editingUser}
-        onClose={() => setEditingUser(null)}
-        onSave={handleUpdateUser}
-        cohortOptions={cohorts.map((c) => c.name)}
+      {/* Ban User Modal */}
+      <BanUserModal
+        user={banningUser}
+        onClose={() => setBanningUser(null)}
+        onConfirm={handleBanUser}
+      />
+
+      {/* Unban User Modal */}
+      <UnbanUserModal
+        user={unbanningUser}
+        onClose={() => setUnbanningUser(null)}
+        onConfirm={handleUnbanUser}
+      />
+
+      {/* Ban Status Modal */}
+      <BanStatusModal
+        user={viewingBanStatusUser}
+        onClose={() => setViewingBanStatusUser(null)}
+        onOpenUnban={(u) => setUnbanningUser(u)}
       />
 
       {/* View Details Modal */}
@@ -371,6 +405,24 @@ export function UserManagementClient() {
                   {new Date(viewingUser.createdAt).toLocaleDateString('vi-VN')}
                 </span>
               </div>
+              <div className="flex justify-between py-2 border-b border-outline-variant/40">
+                <span className="text-on-surface-variant font-medium">Trạng thái:</span>
+                <span className={`px-2 py-0.5 text-xs font-bold uppercase rounded ${
+                  viewingUser.status === 'banned'
+                    ? 'bg-red-100 text-red-700 border border-red-300 dark:bg-red-950/60 dark:text-red-400 dark:border-red-800'
+                    : 'bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800'
+                }`}>
+                  {viewingUser.status === 'banned' ? t('status_banned') : t('status_active')}
+                </span>
+              </div>
+              {viewingUser.status === 'banned' && (
+                <div className="py-2 border-b border-outline-variant/40">
+                  <span className="text-on-surface-variant font-medium block mb-1">Lý do khóa:</span>
+                  <p className="text-on-surface bg-error/5 border border-error/20 p-3 rounded-lg text-xs leading-relaxed font-medium">
+                    {viewingUser.banReason || t('no_ban_reason')}
+                  </p>
+                </div>
+              )}
               {viewingUser.title && (
                 <div className="py-2">
                   <span className="text-on-surface-variant font-medium block mb-1">Giới thiệu:</span>

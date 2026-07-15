@@ -19,7 +19,9 @@ interface UserListTableProps {
   limit: number;
   onPageChange: (newPage: number) => void;
   onViewUser: (user: UserDto) => void;
-  onEditUser: (user: UserDto) => void;
+  onBanUser: (user: UserDto) => void;
+  onUnbanUser: (user: UserDto) => void;
+  onViewBanStatus: (user: UserDto) => void;
   onDeleteUser: (user: UserDto) => void;
   onChangeRole: (userId: string, newRole: string) => void;
   onChangeCohort: (userId: string, newCohort: string) => void;
@@ -34,7 +36,9 @@ export function UserListTable({
   limit,
   onPageChange,
   onViewUser,
-  onEditUser,
+  onBanUser,
+  onUnbanUser,
+  onViewBanStatus,
   onDeleteUser,
   onChangeRole,
   onChangeCohort,
@@ -119,12 +123,22 @@ export function UserListTable({
                           {user.avatarInitials}
                         </div>
                         <div className="min-w-0">
-                          <p
-                            onClick={() => onViewUser(user)}
-                            className="font-semibold text-sm text-on-surface hover:text-primary transition-colors cursor-pointer truncate"
-                          >
-                            {user.fullName}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p
+                              onClick={() => onViewUser(user)}
+                              className="font-semibold text-sm text-on-surface hover:text-primary transition-colors cursor-pointer truncate"
+                            >
+                              {user.fullName}
+                            </p>
+                            {user.status === 'banned' && (
+                              <span
+                                className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-red-100 text-red-700 border border-red-300 dark:bg-red-950/60 dark:text-red-400 dark:border-red-800 shrink-0"
+                                title={user.banReason || t('status_banned')}
+                              >
+                                {t('status_banned')}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-on-surface-variant truncate">
                             {user.email}
                           </p>
@@ -186,8 +200,9 @@ export function UserListTable({
                     <td className="px-6 py-4 text-right">
                       <UserActionsDropdown
                         user={user}
-                        onView={onViewUser}
-                        onEdit={onEditUser}
+                        onBan={onBanUser}
+                        onUnban={onUnbanUser}
+                        onViewBanStatus={onViewBanStatus}
                         onDelete={onDeleteUser}
                       />
                     </td>

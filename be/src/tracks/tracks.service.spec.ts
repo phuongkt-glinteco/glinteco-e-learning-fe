@@ -9,6 +9,11 @@ import {
 import { Lesson } from '../database/entities/lesson.entity';
 import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { User } from '../database/entities/user.entity';
+import { Exercise } from '../database/entities/exercise.entity';
+import {
+  Submission,
+  SubmissionStatus,
+} from '../database/entities/submission.entity';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { CreateLessonDto } from './dto/create-lesson.dto';
 import { ReorderTracksDto } from './dto/reorder-tracks.dto';
@@ -99,6 +104,16 @@ describe('TracksService', () => {
     save: jest.fn(),
   };
 
+  const mockExerciseRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+  };
+
+  const mockSubmissionRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
@@ -115,8 +130,21 @@ describe('TracksService', () => {
           useValue: mockLessonProgressRepository,
         },
         { provide: getRepositoryToken(User), useValue: mockUserRepository },
+        {
+          provide: getRepositoryToken(Exercise),
+          useValue: mockExerciseRepository,
+        },
+        {
+          provide: getRepositoryToken(Submission),
+          useValue: mockSubmissionRepository,
+        },
       ],
     }).compile();
+
+    // GLI-90 defaults: no mandatory exercises and no approved submissions
+    // unless a test overrides these.
+    mockExerciseRepository.find.mockResolvedValue([]);
+    mockSubmissionRepository.find.mockResolvedValue([]);
 
     service = module.get<TracksService>(TracksService);
   });
@@ -203,8 +231,22 @@ describe('TracksService', () => {
 
     it('should slice data correctly according to limit and page', async () => {
       const tracks = [
-        { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
-        { id: 'track-2', title: 'Track 2', estimatedTime: '3h', description: 'Desc 2', order: 2, lessons: [] },
+        {
+          id: 'track-1',
+          title: 'Track 1',
+          estimatedTime: '2h',
+          description: 'Desc 1',
+          order: 1,
+          lessons: [],
+        },
+        {
+          id: 'track-2',
+          title: 'Track 2',
+          estimatedTime: '3h',
+          description: 'Desc 2',
+          order: 2,
+          lessons: [],
+        },
       ];
       mockTrackRepository.find.mockResolvedValue(tracks);
       mockTrackProgressRepository.find.mockResolvedValue([]);
@@ -254,8 +296,22 @@ describe('TracksService', () => {
 
     it('should resolve fallback dynamic status for non-first track if previous completed', async () => {
       const allTracks = [
-        { id: 'track-1', title: 'Track 1', estimatedTime: '2h', description: 'Desc 1', order: 1, lessons: [] },
-        { id: 'track-2', title: 'Track 2', estimatedTime: '3h', description: 'Desc 2', order: 2, lessons: [] },
+        {
+          id: 'track-1',
+          title: 'Track 1',
+          estimatedTime: '2h',
+          description: 'Desc 1',
+          order: 1,
+          lessons: [],
+        },
+        {
+          id: 'track-2',
+          title: 'Track 2',
+          estimatedTime: '3h',
+          description: 'Desc 2',
+          order: 2,
+          lessons: [],
+        },
       ];
       mockTrackRepository.findOne.mockImplementation(async (options: any) => {
         if (options?.where?.id === 'track-2') {
@@ -264,7 +320,10 @@ describe('TracksService', () => {
         if (options?.where?.order) {
           // Check LessThan / MoreThan operators using TypeORM structure
           // Or just check if it's the LessThan query (order < 2)
-          if (options.where.order._value === 2 && options.where.order._type === 'lessThan') {
+          if (
+            options.where.order._value === 2 &&
+            options.where.order._type === 'lessThan'
+          ) {
             return allTracks[0]; // track-1
           }
         }
@@ -334,11 +393,22 @@ describe('TracksService', () => {
     });
 
     it('should update fields', async () => {
-      const track = { id: 'track-1', title: 'Old Title', description: 'Old Desc', estimatedTime: '1h', icon: 'flag', order: 1, lessons: [] };
+      const track = {
+        id: 'track-1',
+        title: 'Old Title',
+        description: 'Old Desc',
+        estimatedTime: '1h',
+        icon: 'flag',
+        order: 1,
+        lessons: [],
+      };
       mockTrackRepository.findOne.mockResolvedValue(track);
       mockTrackRepository.save.mockImplementation((x) => Promise.resolve(x));
 
-      const result = await service.update('track-1', { title: 'New Title', description: 'New Desc' });
+      const result = await service.update('track-1', {
+        title: 'New Title',
+        description: 'New Desc',
+      });
       expect(result.title).toBe('New Title');
       expect(result.description).toBe('New Desc');
     });
@@ -443,7 +513,13 @@ describe('TracksService', () => {
     it('should return lessons belonging to track with estimatedTime tags', async () => {
       mockTrackRepository.findOne.mockResolvedValue({ id: 'track-1' });
       mockLessonRepository.find.mockResolvedValue([
-        { id: 'lesson-1', title: 'L1', order: 1, estimatedTime: '30m', body: 'B' },
+        {
+          id: 'lesson-1',
+          title: 'L1',
+          order: 1,
+          estimatedTime: '30m',
+          body: 'B',
+        },
       ]);
 
       const result = await service.findLessons('track-1', 'user-1');
@@ -457,7 +533,12 @@ describe('TracksService', () => {
     it('should throw NotFoundException if track not found', async () => {
       mockTrackRepository.findOne.mockResolvedValue(null);
       await expect(
-        service.createLesson('invalid', { title: 'L', order: 1, estimatedTime: '30m', body: 'C' }),
+        service.createLesson('invalid', {
+          title: 'L',
+          order: 1,
+          estimatedTime: '30m',
+          body: 'C',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -586,7 +667,9 @@ describe('TracksService', () => {
       const currentTrack = { id: 'track-1', order: 1 };
       const nextTrack = { id: 'track-2', order: 2 };
 
-      mockLessonRepository.findOne.mockResolvedValue(lesson);
+      mockLessonRepository.findOne
+        .mockResolvedValueOnce(lesson) // the lesson being completed
+        .mockResolvedValueOnce(null); // GLI-90: no previous lesson (first in track)
       mockLessonProgressRepository.findOne.mockResolvedValue(null);
       mockLessonProgressRepository.create.mockReturnValue({
         lessonId: 'lesson-1',
@@ -627,7 +710,9 @@ describe('TracksService', () => {
         status: ProgressStatus.IN_PROGRESS,
       };
 
-      mockLessonRepository.findOne.mockResolvedValue(lesson);
+      mockLessonRepository.findOne
+        .mockResolvedValueOnce(lesson) // the lesson being completed
+        .mockResolvedValueOnce(null); // GLI-90: no previous lesson (first in track)
       mockLessonProgressRepository.findOne.mockResolvedValue(null);
       mockLessonProgressRepository.create.mockReturnValue({
         lessonId: 'lesson-1',
@@ -663,7 +748,9 @@ describe('TracksService', () => {
         startedAt: null,
       };
 
-      mockLessonRepository.findOne.mockResolvedValue(lesson);
+      mockLessonRepository.findOne
+        .mockResolvedValueOnce(lesson) // the lesson being completed
+        .mockResolvedValueOnce(null); // GLI-90: no previous lesson (first in track)
       mockLessonProgressRepository.findOne.mockResolvedValue(null);
       mockLessonProgressRepository.create.mockReturnValue({
         lessonId: 'lesson-1',
@@ -687,6 +774,78 @@ describe('TracksService', () => {
       expect(result.unlockedTrackId).toBe('track-2');
       expect(nextProgress.status).toBe(ProgressStatus.IN_PROGRESS);
       expect(nextProgress.startedAt).toBeDefined();
+    });
+
+    it('should reject completion when the previous lesson is not completed (GLI-90 sequential lock)', async () => {
+      const lesson = { id: 'lesson-2', trackId: 'track-1', order: 2 };
+      const previousLesson = { id: 'lesson-1', trackId: 'track-1', order: 1 };
+
+      mockLessonRepository.findOne
+        .mockResolvedValueOnce(lesson)
+        .mockResolvedValueOnce(previousLesson);
+      // No progress rows at all: neither for the target nor the previous one.
+      mockLessonProgressRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.completeLesson('lesson-2', 'user-1'),
+      ).rejects.toThrow('Vui lòng hoàn thành bài học trước đó');
+    });
+
+    it('should reject completion with pending mandatory exercises (GLI-90)', async () => {
+      const lesson = { id: 'lesson-1', trackId: 'track-1', order: 1 };
+
+      mockLessonRepository.findOne
+        .mockResolvedValueOnce(lesson)
+        .mockResolvedValueOnce(null); // no previous lesson
+      mockLessonProgressRepository.findOne.mockResolvedValue(null);
+      mockExerciseRepository.find.mockResolvedValue([
+        { id: 'ex-1', title: 'Bài tập 1', isMandatory: true },
+      ]);
+      mockSubmissionRepository.find.mockResolvedValue([]); // nothing approved
+
+      await expect(
+        service.completeLesson('lesson-1', 'user-1'),
+      ).rejects.toMatchObject({
+        response: {
+          statusCode: 400,
+          message:
+            'Vui lòng hoàn thành các bài tập bắt buộc trước khi kết thúc bài học.',
+          pendingMandatoryExercises: [{ id: 'ex-1', title: 'Bài tập 1' }],
+        },
+      });
+    });
+
+    it('should complete lesson when mandatory exercises are approved (GLI-90)', async () => {
+      const lesson = { id: 'lesson-1', trackId: 'track-1', order: 1 };
+      const user = { id: 'user-1', xp: 100, level: 1 };
+
+      mockLessonRepository.findOne
+        .mockResolvedValueOnce(lesson)
+        .mockResolvedValueOnce(null);
+      mockLessonProgressRepository.findOne.mockResolvedValue(null);
+      mockExerciseRepository.find.mockResolvedValue([
+        { id: 'ex-1', title: 'Bài tập 1', isMandatory: true },
+      ]);
+      mockSubmissionRepository.find.mockResolvedValue([
+        { exerciseId: 'ex-1', status: SubmissionStatus.APPROVED },
+      ]);
+      mockLessonProgressRepository.create.mockReturnValue({
+        lessonId: 'lesson-1',
+        completedAt: new Date(),
+      });
+      mockLessonRepository.count.mockResolvedValue(2);
+      mockLessonRepository.find.mockResolvedValue([lesson, { id: 'l2' }]);
+      mockLessonProgressRepository.count.mockResolvedValue(1);
+      mockTrackProgressRepository.findOne.mockResolvedValue({
+        trackId: 'track-1',
+        userId: 'user-1',
+        lessonsCompleted: 0,
+        status: ProgressStatus.IN_PROGRESS,
+      });
+      mockUserRepository.findOne.mockResolvedValue(user);
+
+      const result = await service.completeLesson('lesson-1', 'user-1');
+      expect(result.xpAwarded).toBe(40);
     });
   });
 });

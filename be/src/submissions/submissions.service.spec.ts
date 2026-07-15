@@ -66,7 +66,7 @@ describe('SubmissionsService', () => {
       email: 'learner@company.com',
       xp: 500,
       level: 1,
-    } as User);
+    });
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubmissionsService,
@@ -189,8 +189,8 @@ describe('SubmissionsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw BadRequestException if status is not changes', async () => {
-      const oldSub = { id: 'sub-1', status: SubmissionStatus.SUBMITTED };
+    it('should throw BadRequestException if submission is already approved (GLI-92)', async () => {
+      const oldSub = { id: 'sub-1', status: SubmissionStatus.APPROVED };
       mockSubmissionRepository.findOne.mockResolvedValue(oldSub);
       await expect(
         service.resubmit('ex-1', 'user-1', 'https://github.com/pr/1'),

@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, MaxLength, IsInt, Min, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  MaxLength,
+  IsInt,
+  Min,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
+import { TrackStatus } from '../../database/entities/track.entity';
 
 export class CreateTrackDto {
   @ApiProperty({
@@ -39,10 +48,22 @@ export class CreateTrackDto {
   lessonCount: number;
 
   @ApiPropertyOptional({
-    description: 'Chèn sau Track có ID này (để tự động tính toán order). Nếu bỏ trống sẽ chèn cuối cùng.',
+    description:
+      'Chèn sau Track có ID này (để tự động tính toán order). Nếu bỏ trống sẽ chèn cuối cùng.',
     example: 't4',
   })
   @IsString({ message: 'afterTrackId phải là chuỗi' })
   @IsOptional()
   afterTrackId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Trạng thái lộ trình (GLI-94). Mặc định: Active.',
+    enum: TrackStatus,
+    example: TrackStatus.DEVELOPING,
+  })
+  @IsEnum(TrackStatus, {
+    message: 'status phải là một trong: Developing, Active, Archived',
+  })
+  @IsOptional()
+  status?: TrackStatus;
 }

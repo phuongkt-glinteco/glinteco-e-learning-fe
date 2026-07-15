@@ -52,6 +52,15 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.LEARNER })
   role: UserRole;
 
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
+  @Column({ type: 'varchar', nullable: true, name: 'ban_reason' })
+  banReason?: string | null;
+
+  @Column({ type: 'timestamp', nullable: true, name: 'banned_until' })
+  bannedUntil?: Date | null;
+
   @Column({ default: 1 })
   level: number;
 
@@ -62,7 +71,7 @@ export class User {
   streakDays: number;
 
   @Column({ nullable: true })
-  cohortId: string;
+  cohortId?: string | null;
 
   @ManyToOne(() => Cohort, (cohort) => cohort.users)
   @JoinColumn({ name: 'cohortId' })

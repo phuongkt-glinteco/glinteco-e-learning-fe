@@ -20,6 +20,10 @@ import { Lesson } from '../database/entities/lesson.entity';
 import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { CreateCohortDto } from './dto/create-cohort.dto';
 import { UpdateCohortDto } from './dto/update-cohort.dto';
+import {
+  CohortUsersProgressQueryDto,
+  CohortUsersProgressResponseDto,
+} from './dto/cohort-users-progress.dto';
 
 @Injectable()
 export class CohortService {
@@ -329,5 +333,124 @@ export class CohortService {
     }
 
     return csvRows.join('\n');
+  }
+
+  /**
+   * GLI-83: Cohort -> Users -> Tracks aggregated progress.
+   * Uses a fixed number of grouped queries (users page, tracks, lessons per
+   * track, completed lessons per user+track, track_progress rows) so the
+   * query count is constant regardless of cohort size — no N+1.
+   */
+  async getUsersProgress(
+    cohortId: string,
+    query: CohortUsersProgressQueryDto,
+  ): Promise<CohortUsersProgressResponseDto> {
+    await this.findOne(cohortId); // 404 if the cohort does not exist
+
+    const { search, trackId } = query;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const usersQb = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.cohortId = :cohortId', { cohortId })
+      .andWhere('user.role = :role', { role: UserRole.LEARNER });
+    if (search) {
+      usersQb.andWhere(
+        '(LOWER(user.name) LIKE :search OR LOWER(user.email) LIKE :search)',
+        { search: `%${search.toLowerCase()}%` },
+      );
+    }
+    const [users, totalUsers] = await usersQb
+      .orderBy('user.name', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const tracks = await this.trackRepository.find({
+      where: trackId ? { id: trackId } : {},
+      order: { order: 'ASC' },
+    });
+    const trackIds = tracks.map((t) => t.id);
+
+    if (users.length === 0 || tracks.length === 0) {
+      return { cohortId, totalUsers, page, limit, data: [] };
+    }
+
+    const userIds = users.map((u) => u.id);
+
+    const lessonCounts = await this.lessonRepository
+      .createQueryBuilder('lesson')
+      .select('lesson.trackId', 'trackId')
+      .addSelect('COUNT(*)', 'count')
+      .where('lesson.trackId IN (:...trackIds)', { trackIds })
+      .groupBy('lesson.trackId')
+      .getRawMany<{ trackId: string; count: string }>();
+    const lessonCountMap = new Map(
+      lessonCounts.map((r) => [r.trackId, Number(r.count)]),
+    );
+
+    const completedRows = await this.lessonProgressRepository
+      .createQueryBuilder('lp')
+      .innerJoin(Lesson, 'lesson', 'lesson.id = lp.lessonId')
+      .select('lp.userId', 'userId')
+      .addSelect('lesson.trackId', 'trackId')
+      .addSelect('COUNT(*)', 'count')
+      .where('lp.userId IN (:...userIds)', { userIds })
+      .andWhere('lesson.trackId IN (:...trackIds)', { trackIds })
+      .andWhere('lp.completedAt IS NOT NULL')
+      .groupBy('lp.userId')
+      .addGroupBy('lesson.trackId')
+      .getRawMany<{ userId: string; trackId: string; count: string }>();
+    const completedMap = new Map(
+      completedRows.map((r) => [`${r.userId}:${r.trackId}`, Number(r.count)]),
+    );
+
+    const progressRows = await this.trackProgressRepository.find({
+      where: { userId: In(userIds), trackId: In(trackIds) },
+    });
+    const progressMap = new Map(
+      progressRows.map((p) => [`${p.userId}:${p.trackId}`, p]),
+    );
+
+    const data = users.map((user) => ({
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      avatarHue: user.avatarHue ?? null,
+      level: user.level,
+      xp: user.xp,
+      tracks: tracks.map((track) => {
+        const totalLessons = lessonCountMap.get(track.id) ?? 0;
+        const completedLessons =
+          completedMap.get(`${user.id}:${track.id}`) ?? 0;
+        const progressPct =
+          totalLessons > 0
+            ? Math.round((completedLessons / totalLessons) * 100)
+            : 0;
+
+        const saved = progressMap.get(`${user.id}:${track.id}`);
+        let status: 'not_started' | 'in_progress' | 'completed' = 'not_started';
+        if (
+          saved?.status === ProgressStatus.COMPLETED ||
+          (totalLessons > 0 && completedLessons === totalLessons)
+        ) {
+          status = 'completed';
+        } else if (completedLessons > 0 || saved) {
+          status = 'in_progress';
+        }
+
+        return {
+          trackId: track.id,
+          title: track.title,
+          progressPct,
+          completedLessons,
+          totalLessons,
+          status,
+        };
+      }),
+    }));
+
+    return { cohortId, totalUsers, page, limit, data };
   }
 }

@@ -8,6 +8,7 @@ import { CreateTagDto } from './dto/create-tag.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { DocumentKind } from '../database/entities/document.entity';
+import { TagCategory } from '../database/entities/tag.entity';
 
 describe('DocumentsController', () => {
   let controller: DocumentsController;
@@ -155,9 +156,17 @@ describe('DocumentsController', () => {
   describe('findAllTags', () => {
     it('should delegate findAllTags to service', async () => {
       mockDocumentsService.findAllTags.mockResolvedValue([]);
-      const result = await controller.findAllTags();
-      expect(mockDocumentsService.findAllTags).toHaveBeenCalled();
+      const result = await controller.findAllTags({});
+      expect(mockDocumentsService.findAllTags).toHaveBeenCalledWith(undefined);
       expect(result).toEqual([]);
+    });
+
+    it('should pass the category filter to the service (GLI-94)', async () => {
+      mockDocumentsService.findAllTags.mockResolvedValue([]);
+      await controller.findAllTags({ category: TagCategory.EXERCISE });
+      expect(mockDocumentsService.findAllTags).toHaveBeenCalledWith(
+        TagCategory.EXERCISE,
+      );
     });
   });
 

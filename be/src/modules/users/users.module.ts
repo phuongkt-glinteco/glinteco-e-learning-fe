@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { AdminUsersController } from './admin-users.controller';
 import {
   User,
   Cohort,
@@ -14,6 +15,8 @@ import {
   Document,
   Tag,
   LessonProgress,
+  RefreshToken,
+  Notification,
 } from '../../database/entities';
 
 @Module({
@@ -30,9 +33,11 @@ import {
       Document,
       Tag,
       LessonProgress,
+      RefreshToken,
+      Notification,
     ]),
   ],
-  controllers: [UsersController],
+  controllers: [UsersController, AdminUsersController],
   providers: [UsersService],
   exports: [UsersService],
 })

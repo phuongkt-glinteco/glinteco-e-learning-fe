@@ -23,6 +23,16 @@ export class UserProfileDto {
   @ApiProperty({ type: String, nullable: true })
   cohortId: string | null;
 
+  @ApiProperty({
+    type: 'object',
+    nullable: true,
+    properties: {
+      id: { type: 'string' },
+      name: { type: 'string' },
+    },
+  })
+  cohort: { id: string; name: string } | null;
+
   @ApiProperty()
   level: number;
 

@@ -13,6 +13,8 @@ import {
   Document,
   Tag,
   LessonProgress,
+  RefreshToken,
+  Notification,
 } from '../../database/entities';
 
 describe('UsersModule', () => {
@@ -41,6 +43,10 @@ describe('UsersModule', () => {
       .overrideProvider(getRepositoryToken(Tag))
       .useValue({})
       .overrideProvider(getRepositoryToken(LessonProgress))
+      .useValue({})
+      .overrideProvider(getRepositoryToken(RefreshToken))
+      .useValue({})
+      .overrideProvider(getRepositoryToken(Notification))
       .useValue({})
       .compile();
 

@@ -32,6 +32,17 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!user) {
       throw new UnauthorizedException();
     }
+    if (user.isActive === false) {
+      if (user.bannedUntil && new Date() > user.bannedUntil) {
+        // Expired ban, treat as active
+      } else {
+        throw new UnauthorizedException({
+          statusCode: 403,
+          error: 'AccountBanned',
+          message: `Tài khoản của bạn đã bị khóa. Lý do: ${user.banReason || 'Không có lý do'}`,
+        });
+      }
+    }
     return user;
   }
 }

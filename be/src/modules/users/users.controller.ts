@@ -85,7 +85,9 @@ export class UsersController {
     type: UserDashboardStatsDto,
     description: 'Lấy chỉ số thành công.',
   })
-  async getStats(@CurrentUser() currentUser: User): Promise<UserDashboardStatsDto> {
+  async getStats(
+    @CurrentUser() currentUser: User,
+  ): Promise<UserDashboardStatsDto> {
     return this.usersService.getStats(currentUser.id);
   }
 

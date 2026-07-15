@@ -132,7 +132,11 @@ describe('SubmissionsController', () => {
   describe('findAll', () => {
     it('should delegate findAll to service', async () => {
       const query = { status: SubmissionStatus.SUBMITTED };
-      mockSubmissionsService.findAll.mockResolvedValue({ data: [], nextCursor: null, hasMore: false });
+      mockSubmissionsService.findAll.mockResolvedValue({
+        data: [],
+        nextCursor: null,
+        hasMore: false,
+      });
 
       const result = await controller.findAll(query);
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith(query);
@@ -143,7 +147,11 @@ describe('SubmissionsController', () => {
   describe('findMine', () => {
     it('should delegate findAll with userId filter to service', async () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
-      mockSubmissionsService.findAll.mockResolvedValue({ data: [], nextCursor: null, hasMore: false });
+      mockSubmissionsService.findAll.mockResolvedValue({
+        data: [],
+        nextCursor: null,
+        hasMore: false,
+      });
 
       const result = await controller.findMine(req);
       expect(mockSubmissionsService.findAll).toHaveBeenCalledWith({
@@ -242,4 +250,3 @@ describe('SubmissionsController', () => {
     });
   });
 });
-

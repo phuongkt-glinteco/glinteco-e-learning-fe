@@ -23,8 +23,7 @@ import {
 import { FeatureBarPortal } from '@/components/layout/FeatureBarPortal';
 import { LessonEditorBottomBar, type ViewportMode } from './LessonEditorBottomBar';
 import { useLessonDraftStore } from '@/stores/lessonDraftStore';
-import { mockAiGenerateLesson } from '@/mocks/ai-service';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { AILessonGeneratorModal } from './AILessonGeneratorModal';
 
 type LessonEditorPageProps = {
   trackId?: string;
@@ -55,6 +54,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   const [currentPuckData, setCurrentPuckData] = useState<LessonPuckData | null>(null);
   const [saving, setSaving] = useState(false);
   const [uiValidationError, setUiValidationError] = useState<string | null>(null);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -64,7 +64,6 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   const [body, setBody] = useState('');
   const [isEditing, setIsEditing] = useState<boolean>(true);
   const [viewport, setViewport] = useState<ViewportMode>('desktop');
-  const [aiGenerating, setAiGenerating] = useState(false);
   const [aiVersion, setAiVersion] = useState(0);
 
   const lessonConfig = useLessonPuckConfig();
@@ -101,8 +100,9 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
           setBody(found.body ?? '');
           setEstimatedTime(found.estimatedTime ?? '15 min');
         }
-      } catch {
-        // silent
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Không thể tải dữ liệu bài học';
+        toast.error(msg);
       }
     }
     fetchLesson();
@@ -134,6 +134,27 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     exercises: [],
   });
 
+  async function refreshTrackCache(tId: string) {
+    try {
+      const refreshRes = await lessonsControllerFindLessons({
+        path: { id: tId },
+        throwOnError: true,
+      });
+      const fullTrack = queryCache.get<CachedTrackEntry>(`/tracks/${tId}`);
+      if (fullTrack) {
+        queryCache.set(`/tracks/${tId}`, {
+          ...fullTrack,
+          track: {
+            ...fullTrack.track,
+            lessons: (refreshRes.data as { items?: CachedLesson[] })?.items || [],
+          },
+        });
+      }
+    } catch (err: unknown) {
+      console.error('Failed to refresh track lessons cache:', err);
+    }
+  }
+
   async function handlePublishPuck(data: LessonPuckData) {
     const payload = serializePuckDataToPayload(data, {
       title,
@@ -162,7 +183,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
       title: updatedTitle,
       description: updatedDescription,
       estimatedTime: updatedTime,
-      type: (updatedType as any) || lessonType,
+      type: (updatedType as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment') || lessonType,
       order: updatedOrder,
       body: jsonBody,
     });
@@ -185,21 +206,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
 
         clearDraft(draftKey);
         toast.success(t('updateSuccess'));
-
-        const refreshRes = await lessonsControllerFindLessons({
-          path: { id: trackId },
-          throwOnError: true,
-        });
-        const fullTrack = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
-        if (fullTrack) {
-          queryCache.set(`/tracks/${trackId}`, {
-            ...fullTrack,
-            track: {
-              ...fullTrack.track,
-              lessons: (refreshRes.data as { items?: CachedLesson[] })?.items || [],
-            },
-          });
-        }
+        await refreshTrackCache(trackId);
       } else if (trackId) {
         const createRes = await lessonsControllerCreateLesson({
           path: { id: trackId },
@@ -219,21 +226,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
         const createdLesson = createRes.data as { id?: string } | undefined;
         const newLessonId = createdLesson?.id;
 
-        const refreshRes = await lessonsControllerFindLessons({
-          path: { id: trackId },
-          throwOnError: true,
-        });
-
-        const fullTrack = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
-        if (fullTrack) {
-          queryCache.set(`/tracks/${trackId}`, {
-            ...fullTrack,
-            track: {
-              ...fullTrack.track,
-              lessons: (refreshRes.data as { items?: CachedLesson[] })?.items || [],
-            },
-          });
-        }
+        await refreshTrackCache(trackId);
 
         if (newLessonId) {
           router.replace(`/tracks/${trackId}/lessons/${newLessonId}/edit`);
@@ -241,27 +234,36 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
           return;
         }
       }
-    } catch {
+    } catch (err: unknown) {
       setSaving(false);
+      const msg = err instanceof Error ? err.message : 'Có lỗi xảy ra khi lưu bài học';
+      toast.error(msg);
       return;
     }
     setSaving(false);
     router.back();
   }
 
-  async function handleAiGenerate() {
-    try {
-      const generatedData = await mockAiGenerateLesson({
-        title,
-        description,
-        estimatedTime,
-        type: lessonType,
-      });
-      setCurrentPuckData(generatedData as any);
-      setAiVersion((v) => v + 1);
-    } catch {
-      toast.error(t('aiGenerateFailed'));
+  function handleAiGenerate() {
+    setAiModalOpen(true);
+  }
+
+  function handleConfirmAiGenerate(generatedData: LessonPuckData) {
+    setCurrentPuckData(generatedData);
+    if (generatedData.root?.props) {
+      if (generatedData.root.props.title) setTitle(String(generatedData.root.props.title));
+      if (generatedData.root.props.description) setDescription(String(generatedData.root.props.description));
+      if (generatedData.root.props.estimatedTime) setEstimatedTime(String(generatedData.root.props.estimatedTime));
+      if (generatedData.root.props.type) {
+        const typeStr = String(generatedData.root.props.type);
+        if (['video', 'reading', 'quiz', 'coding', 'assignment'].includes(typeStr)) {
+          setLessonType(typeStr as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment');
+        }
+      }
     }
+    setBody(JSON.stringify(generatedData));
+    setAiVersion((v) => v + 1);
+    toast.success(t('aiGenerateSuccess'));
   }
 
   return (
@@ -287,7 +289,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
       />
 
       {uiValidationError && (
-        <div className="mx-4 mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-600 dark:text-red-400 font-medium flex items-center justify-between">
+        <div className="mx-4 mt-4 p-3 bg-error/10 border border-error/30 rounded-lg text-sm text-error font-medium flex items-center justify-between">
           <span>⚠️ {uiValidationError}</span>
           <button
             type="button"
@@ -304,7 +306,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
           <PuckStudio
             key={`${lessonId || "new"}-${title}-${aiVersion}`}
             config={lessonConfig}
-            initialData={puckData}
+            initialData={currentPuckData || puckData}
             onChange={(newData) => setCurrentPuckData(newData)}
             onPublish={handlePublishPuck}
             overrides={{ headerActions: () => null }}
@@ -325,6 +327,15 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
           </div>
         )}
       </div>
+
+      <AILessonGeneratorModal
+        open={aiModalOpen}
+        onOpenChange={setAiModalOpen}
+        initialTitle={title}
+        initialDescription={description}
+        initialEstimatedTime={estimatedTime}
+        onConfirmGenerate={handleConfirmAiGenerate}
+      />
     </main>
   );
 }

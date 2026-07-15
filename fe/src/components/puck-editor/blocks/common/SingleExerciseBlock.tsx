@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ComponentConfig } from "@puckeditor/core";
 import {
@@ -15,6 +16,8 @@ import {
 } from "lucide-react";
 import { LessonBlockProps } from "../../types";
 import { ExerciseSelectorField, type ExerciseData } from "../../fields";
+import { parseFillInBlankTokens } from "../../fields/fillInBlankUtils";
+import { useSafePuck } from "../../helper";
 import { useLessonExercisesStore } from "../../../../stores/lessonExercisesStore";
 import { exercisesControllerSubmitAuto } from "@/services/api-client";
 import type { AutoGradeResultDto } from "@/services/client/types.gen";
@@ -122,6 +125,10 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
   render: ({ content, title, type, xp, viewStyle, isMandatory, id }) => {
     const t = useTranslations("PuckEditor.Common.exerciseEmbed");
     const registerExercise = useLessonExercisesStore((state) => state.registerExercise);
+    const pathname = usePathname();
+    const puckObj = useSafePuck();
+    const isPuckEditingCanvas = (puckObj?.appState as any)?.isEditing === true;
+    const isAdminView = isPuckEditingCanvas || pathname?.includes('/admin') || pathname?.includes('/edit');
 
     const [selectedAnswers, setSelectedAnswers] = React.useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -149,17 +156,27 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
     const handleSubmitFill = async () => {
        const data = (content || {}) as ExerciseData;
        if (!data.exerciseId) return;
+       const template = data.previewData?.fillTemplate || "";
+       const { tokens } = parseFillInBlankTokens(template);
+       const answers: any[] = [];
+       let missing = false;
+       tokens.forEach((tToken) => {
+         const id = tToken.id;
+         const val = (selectedAnswers[id] || "").trim();
+         if (!val) missing = true;
+         answers.push({ questionId: id, answer: val });
+       });
+       if (missing || answers.length === 0) {
+         setSubmitResult({
+           passed: false,
+           score: undefined,
+           results: [],
+           message: "Vui lòng điền đầy đủ tất cả các ô trống trước khi nộp bài."
+         } as any);
+         return;
+       }
        setIsSubmitting(true);
        try {
-         const template = data.previewData?.fillTemplate || "";
-         const parts = template.split(/{{(\w+)}}/g);
-         const answers: any[] = [];
-         parts.forEach((part, i) => {
-           if (i % 2 === 1) {
-             const id = part;
-             answers.push({ questionId: id, answer: selectedAnswers[id] || "" });
-           }
-         });
          const res = await exercisesControllerSubmitAuto({
            path: { id: data.exerciseId },
            body: { answers }
@@ -175,15 +192,34 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
     const renderFillInBlankInteractive = () => {
         const data = (content || {}) as ExerciseData;
         const template = data.previewData?.fillTemplate || "";
-        const parts = template.split(/{{(\w+)}}/g);
+        const { parts } = parseFillInBlankTokens(template);
         return parts.map((part, i) => {
-          if (i % 2 === 1) {
-            const blankId = part;
+          const match = part.match(/^\[(\d+)_(\d+)\]$/);
+          if (match) {
+            const blankId = match[1].trim();
+            const blank = data.previewData?.blanks?.find((b: any) => String(b.id) === blankId);
+            const targetLen = match[2] ? Number(match[2]) : blank?.answer?.length;
+            if (isAdminView) {
+              return (
+                <span
+                  key={`${blankId}-${i}`}
+                  className="inline-block font-bold underline decoration-2 decoration-primary text-primary mx-0.5 px-1 rounded bg-primary/10 dark:bg-primary/20"
+                  title={`Blank #${blankId} (${targetLen || '?' } ký tự)`}
+                >
+                  {blank?.answer || `[${blankId}_${targetLen || '?'}]`}
+                </span>
+              );
+            }
+            const value = selectedAnswers[blankId] || "";
             return (
               <input
-                key={i}
-                className="inline-block border border-outline-variant bg-surface rounded px-2 mx-1 py-0.5 text-[12px] w-20 text-center focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                value={selectedAnswers[blankId] || ""}
+                key={`${blankId}-${i}`}
+                type="text"
+                maxLength={targetLen}
+                placeholder="___"
+                style={{ width: targetLen ? `${Math.max(4, targetLen + 2)}ch` : `${Math.max(4, value.length + 1)}ch` }}
+                className="inline-block border border-outline-variant bg-surface-container-low dark:bg-surface-container rounded px-2 mx-1 py-0.5 text-[13px] text-center font-mono text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                value={value}
                 onChange={(e) => setSelectedAnswers({...selectedAnswers, [blankId]: e.target.value})}
               />
             );
@@ -347,22 +383,25 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
             <p className="text-label-sm font-semibold text-foreground">
               {t("fillTemplateLabel")}
             </p>
-            <div className="rounded-md bg-surface-container-low px-4 py-3 text-[13px] text-on-surface-variant leading-loose whitespace-pre-wrap font-mono">
-              {renderFillInBlankInteractive()}
+            <div className="rounded-md bg-surface-container-low px-4 py-3 text-[13px] text-on-surface-variant leading-relaxed overflow-x-auto font-mono">
+              <pre className="whitespace-pre-wrap">{renderFillInBlankInteractive()}</pre>
             </div>
             <div className="pt-2 border-t border-outline-variant/60 flex items-center justify-between">
               <button
                 type="button"
-                disabled={isSubmitting || Object.keys(selectedAnswers).length === 0}
-                onClick={handleSubmitFill}
-                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-label-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                disabled={isSubmitting}
+                onClick={() => {
+                  if (submitResult) setSubmitResult(null);
+                  else handleSubmitFill();
+                }}
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-label-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors cursor-pointer"
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {submitResult ? "Làm lại" : "Nộp bài"}
               </button>
               {submitResult && (
-                <span className={`text-label-sm font-medium ${submitResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                   {submitResult.passed ? "Bạn đã làm đúng!" : "Bạn đã làm sai!"}
+                <span className={`text-label-sm font-medium ${(submitResult as any).message ? 'text-amber-600 dark:text-amber-400' : submitResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                   {(submitResult as any).message || (submitResult.passed ? "Bạn đã làm đúng!" : "Bạn đã làm sai!")}
                    {submitResult.score !== undefined && ` (${submitResult.score}%)`}
                 </span>
               )}

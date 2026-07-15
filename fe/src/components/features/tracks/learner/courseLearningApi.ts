@@ -1,6 +1,7 @@
 import {
   exercisesControllerFindAll,
   exercisesControllerFindOne,
+  exercisesControllerSubmitAuto,
   submissionsControllerFindHistory,
   submissionsControllerFindMine,
   submissionsControllerFindOne,
@@ -14,6 +15,7 @@ import {
   lessonsControllerFindOneLesson,
   lessonsControllerCompleteLesson,
 } from '@/services/api-client';
+import type { AutoAnswerDto, AutoGradeResultDto } from '@/services/api-client';
 import type {
   LearnerExercise,
   LearnerExerciseFeedItem,
@@ -525,6 +527,23 @@ export async function resubmitExercise(
   });
 
   return normalizeSubmissionState(extractSubmissionContract(response.data));
+}
+
+export async function submitAutoExercise(
+  exerciseId: string,
+  answers: AutoAnswerDto[]
+): Promise<AutoGradeResultDto> {
+  const response = await exercisesControllerSubmitAuto({
+    path: { id: exerciseId },
+    body: { answers },
+    throwOnError: true,
+    ...silentErrorToastOptions,
+  });
+
+  if (!response.data) {
+    throw new Error('Failed to retrieve automated grading results.');
+  }
+  return response.data;
 }
 
 export async function fetchSubmissionHistory(

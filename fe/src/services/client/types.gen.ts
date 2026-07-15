@@ -846,15 +846,17 @@ export type ExerciseSummaryDto = {
     /**
      * Đường dẫn PR nộp bài tập
      */
-    prUrl: {
+    prUrl: string | {
         [key: string]: unknown;
     } | null;
     /**
      * ID của bài học liên kết với bài tập (nếu có)
      */
-    lessonId: {
+    lessonId: string | {
         [key: string]: unknown;
     } | null;
+    type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
+    isMandatory?: boolean;
 };
 
 export type ExerciseListResponseDto = {
@@ -1082,13 +1084,13 @@ export type ExerciseDetailDto = {
     /**
      * Các mục tiêu cần đạt được
      */
-    objectives: {
+    objectives?: Array<string> | {
         [key: string]: unknown;
     };
     /**
      * Các bước hướng dẫn thực hiện
      */
-    steps: {
+    steps?: Array<string> | {
         [key: string]: unknown;
     };
     /**
@@ -1106,15 +1108,19 @@ export type ExerciseDetailDto = {
     /**
      * Đường dẫn PR nộp bài tập
      */
-    prUrl: {
+    prUrl: string | {
         [key: string]: unknown;
     } | null;
     /**
      * ID của bài học liên kết với bài tập (nếu có)
      */
-    lessonId: {
+    lessonId: string | {
         [key: string]: unknown;
     } | null;
+    type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
+    isMandatory?: boolean;
+    targetScore?: number;
+    questionsData?: Array<ExerciseQuestionDto> | null;
 };
 
 export type AutoAnswerDto = {
@@ -2073,7 +2079,7 @@ export type UsersControllerGetNotificationSettingsData = {
 
 export type UsersControllerGetNotificationSettingsResponses = {
     /**
-     * L?y c?u h�nh th�ng b�o th�nh c�ng.
+     * L?y c?u h�nh th�ng b�o th�nh c�ng.
      */
     200: NotificationSettingsDto;
 };
@@ -2089,7 +2095,7 @@ export type UsersControllerUpdateNotificationSettingsData = {
 
 export type UsersControllerUpdateNotificationSettingsResponses = {
     /**
-     * C?p nh?t c?u h�nh th�ng b�o th�nh c�ng.
+     * C?p nh?t c?u h�nh th�ng b�o th�nh c�ng.
      */
     200: NotificationSettingsDto;
 };

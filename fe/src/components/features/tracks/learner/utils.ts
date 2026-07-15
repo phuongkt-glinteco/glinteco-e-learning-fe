@@ -1,6 +1,7 @@
 import type {
   DocumentResponseDto,
   ExerciseDetailDto,
+  ExerciseQuestionDto,
   ExerciseSummaryDto,
   LessonDetailDto,
   LessonProgressItemDto,
@@ -25,6 +26,7 @@ import type {
   LearnerSubmissionStatus,
   LearnerTrack,
   LessonType,
+  ExerciseType,
   TrackLessonPreview,
   TrackStatus,
 } from './types';
@@ -87,16 +89,19 @@ export type ExerciseSummaryContract = Partial<Omit<ExerciseSummaryDto, 'lessonId
   lessonId?: unknown;
   prUrl?: unknown;
   status?: unknown;
-  isMandatory?: unknown;
+  isMandatory?: boolean | unknown;
+  type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK' | unknown;
 };
 export type ExerciseDetailContract = Omit<ExerciseDetailDto, 'lessonId' | 'prUrl' | 'objectives' | 'steps' | 'resources' | 'status'> & {
   lessonId?: unknown;
   prUrl?: unknown;
-  objectives?: unknown;
-  steps?: unknown;
+  objectives?: string[] | unknown;
+  steps?: string[] | unknown;
   resources?: unknown;
   status?: unknown;
-  isMandatory?: unknown;
+  isMandatory?: boolean | unknown;
+  type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK' | unknown;
+  questionsData?: ExerciseQuestionDto[] | unknown;
 };
 export type SubmissionDetailContract = Omit<
   SubmissionDetailDto,
@@ -443,6 +448,15 @@ function normalizeLessonType(value: LessonType | null | undefined): LessonType {
   return value ?? DEFAULT_LESSON_TYPE;
 }
 
+function normalizeExerciseType(value: unknown): ExerciseType {
+  if (typeof value === 'string') {
+    const upper = value.trim().toUpperCase();
+    if (upper === 'QUIZ') return 'QUIZ';
+    if (upper === 'FILL_IN_BLANK') return 'FILL_IN_BLANK';
+  }
+  return 'PR_REVIEW';
+}
+
 export function normalizeTrackSummary(track: TrackSummaryContract, index: number): LearnerTrack | null {
   if (!track.id) return null;
   const accessStatus = track.accessStatus ?? (track.status === 'locked' ? 'locked' : 'unlocked');
@@ -633,6 +647,7 @@ export function normalizeExerciseSummary(exercise: ExerciseSummaryContract): Lea
     isMandatory: normalizeBoolean(exercise.isMandatory),
     tag: normalizeTag(exercise.tag),
     prUrl: normalizeUrl(exercise.prUrl),
+    type: normalizeExerciseType(exercise.type),
   };
 }
 
@@ -655,6 +670,9 @@ export function normalizeExerciseDetail(exercise: ExerciseDetailContract): Learn
     steps: normalizeTextList(exercise.steps),
     resources: normalizeExerciseResources(exercise.resources),
     hint: normalizeNullableString(exercise.hint),
+    questionsData: Array.isArray(exercise.questionsData)
+      ? (exercise.questionsData as ExerciseQuestionDto[])
+      : [],
   };
 }
 

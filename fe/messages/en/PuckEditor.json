@@ -100,6 +100,24 @@
       "code": "💻 Code & Terminal",
       "callout": "💡 Notes & Callouts",
       "layout": "📐 Layout"
+    },
+    "fillInBlankEditor": {
+      "selectModeTitle": "Select blank mode",
+      "selectingMode": "Selecting...",
+      "selectBlankBtn": "Select blank",
+      "undoTitle": "Undo",
+      "redoTitle": "Redo",
+      "codeModeBtn": "Code",
+      "previewModeBtn": "Preview",
+      "blankCountLabel": "{count} blank(s)",
+      "sourceCodeLabel": "Source code / Text",
+      "selectModeHint": "In select blank mode — highlight text to create blank",
+      "sourceCodePlaceholder": "Paste source code or text here...",
+      "previewLabel": "Preview",
+      "noContent": "No content",
+      "previewBorderedLabel": "Preview (blanks in bordered boxes)",
+      "blankListLabel": "Blank list",
+      "deleteBtn": "Delete"
     }
   },
   "Common": {
@@ -348,5 +366,23 @@
       "blankListLabel": "Blank list",
       "deleteBtn": "Delete"
     }
+  },
+  "fillInBlankEditor": {
+    "selectModeTitle": "Select blank mode",
+    "selectingMode": "Selecting...",
+    "selectBlankBtn": "Select blank",
+    "undoTitle": "Undo",
+    "redoTitle": "Redo",
+    "codeModeBtn": "Code",
+    "previewModeBtn": "Preview",
+    "blankCountLabel": "{count} blank(s)",
+    "sourceCodeLabel": "Source code / Text",
+    "selectModeHint": "In select blank mode — highlight text to create blank",
+    "sourceCodePlaceholder": "Paste source code or text here...",
+    "previewLabel": "Preview",
+    "noContent": "No content",
+    "previewBorderedLabel": "Preview (blanks in bordered boxes)",
+    "blankListLabel": "Blank list",
+    "deleteBtn": "Delete"
   }
 }

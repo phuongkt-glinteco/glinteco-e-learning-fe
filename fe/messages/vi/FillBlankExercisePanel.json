@@ -1,0 +1,13 @@
+{
+  "title": "Hoàn thành đoạn mã tương tác",
+  "defaultBrief": "Điền vào các ô trống bên dưới để hoàn thiện đúng cú pháp và logic đoạn mã.",
+  "verifiedSuccessTitle": "Xác minh đoạn mã thành công!",
+  "verifiedFailedTitle": "Phát hiện lỗi trong đoạn mã",
+  "verifiedSuccessDesc": "Toàn bộ {count} vị trí trống đã chính xác về cú pháp và logic.",
+  "verifiedFailedDesc": "Vui lòng kiểm tra lại đáp án. Một số từ khóa hoặc cú pháp chưa chính xác.",
+  "checkCode": "Kiểm tra mã",
+  "checkingCode": "Đang xác minh...",
+  "continueToNext": "Tiếp tục bài sau",
+  "tryAgain": "Thử lại",
+  "blankLabel": "Vị trí #{index}"
+}

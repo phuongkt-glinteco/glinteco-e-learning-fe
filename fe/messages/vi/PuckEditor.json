@@ -100,6 +100,24 @@
       "code": "💻 Code & Terminal",
       "callout": "💡 Ghi chú & Chú ý",
       "layout": "📐 Bố cục (Layout)"
+    },
+    "fillInBlankEditor": {
+      "selectModeTitle": "Chế độ chọn blank",
+      "selectingMode": "Đang chọn...",
+      "selectBlankBtn": "Chọn blank",
+      "undoTitle": "Hoàn tác",
+      "redoTitle": "Làm lại",
+      "codeModeBtn": "Code",
+      "previewModeBtn": "Preview",
+      "blankCountLabel": "{count} blank(s)",
+      "sourceCodeLabel": "Mã nguồn / Câu văn",
+      "selectModeHint": "Đang ở chế độ chọn blank — bôi đen text để tạo blank",
+      "sourceCodePlaceholder": "Dán mã nguồn hoặc nội dung bài tập vào đây...",
+      "previewLabel": "Xem trước",
+      "noContent": "Chưa có nội dung",
+      "previewBorderedLabel": "Xem trước (blanks trong ô viền)",
+      "blankListLabel": "Danh sách chỗ trống",
+      "deleteBtn": "Xoá"
     }
   },
   "Common": {
@@ -348,5 +366,23 @@
       "blankListLabel": "Danh sách chỗ trống",
       "deleteBtn": "Xoá"
     }
+  },
+  "fillInBlankEditor": {
+    "selectModeTitle": "Chế độ chọn blank",
+    "selectingMode": "Đang chọn...",
+    "selectBlankBtn": "Chọn blank",
+    "undoTitle": "Hoàn tác",
+    "redoTitle": "Làm lại",
+    "codeModeBtn": "Code",
+    "previewModeBtn": "Preview",
+    "blankCountLabel": "{count} blank(s)",
+    "sourceCodeLabel": "Mã nguồn / Câu văn",
+    "selectModeHint": "Đang ở chế độ chọn blank — bôi đen text để tạo blank",
+    "sourceCodePlaceholder": "Dán mã nguồn hoặc nội dung bài tập vào đây...",
+    "previewLabel": "Xem trước",
+    "noContent": "Chưa có nội dung",
+    "previewBorderedLabel": "Xem trước (blanks trong ô viền)",
+    "blankListLabel": "Danh sách chỗ trống",
+    "deleteBtn": "Xoá"
   }
 }

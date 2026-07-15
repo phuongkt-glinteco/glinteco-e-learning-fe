@@ -1,8 +1,9 @@
-import type { TrackSummaryDto } from '@/services/api-client';
+import type { TrackSummaryDto, ExerciseQuestionDto } from '@/services/api-client';
 
 export type TrackStatus = NonNullable<TrackSummaryDto['status']>;
 export type CourseAccessStatus = 'unlocked' | 'locked';
 export type LessonType = 'video' | 'reading' | 'quiz' | 'coding' | 'assignment';
+export type ExerciseType = 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
 
 export interface LearnerTrack {
   id: string;
@@ -60,6 +61,7 @@ export interface LearnerExercise {
   isMandatory: boolean | null;
   tag: string;
   prUrl: string | null;
+  type: ExerciseType;
 }
 
 export type LearnerSubmissionStatus =
@@ -113,6 +115,7 @@ export interface LearnerExerciseDetail extends LearnerExercise {
   steps: string[];
   resources: LearnerExerciseResource[];
   hint: string | null;
+  questionsData: ExerciseQuestionDto[];
 }
 
 export interface LearnerExerciseFeedItem extends LearnerExercise {

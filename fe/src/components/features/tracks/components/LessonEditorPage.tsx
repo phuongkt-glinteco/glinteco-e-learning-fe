@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
@@ -215,7 +215,30 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     }
   }, [trackId, editIndex, lessonId, draftKey, getDraft]);
 
-  const puckData: LessonPuckData = parseBodyToPuckData(body, {
+  // Auto-save draft whenever currentPuckData or metadata changes (debounced by 800ms)
+  useEffect(() => {
+    if (!currentPuckData) return;
+    const timer = setTimeout(() => {
+      const payload = serializePuckDataToPayload(currentPuckData, {
+        title,
+        description,
+        estimatedTime,
+        order,
+        type: lessonType,
+      });
+      saveDraft(draftKey, {
+        title: payload.title,
+        description: payload.description,
+        estimatedTime: payload.estimatedTime,
+        type: (payload.type as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment') || lessonType,
+        order: payload.order,
+        body: payload.body,
+      });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [currentPuckData, title, description, estimatedTime, lessonType, order, draftKey, saveDraft]);
+
+  const puckData: LessonPuckData = useMemo(() => parseBodyToPuckData(body, {
     title,
     description,
     estimatedTime,
@@ -223,7 +246,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     type: lessonType,
     documents: loadedLesson?.relatedDocs || [],
     exercises: [],
-  });
+  }), [body, title, description, estimatedTime, order, lessonType, loadedLesson]);
 
   async function refreshTrackCache(tId: string) {
     try {
@@ -410,7 +433,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
       <div className="flex-1 w-full h-full flex flex-col overflow-hidden min-h-0">
         {isEditing ? (
           <PuckStudio
-            key={`${lessonId || "new"}-${title}-${aiVersion}`}
+            key={`${lessonId || "new"}-${aiVersion}`}
             config={lessonConfig}
             initialData={currentPuckData || puckData}
             onChange={(newData) => setCurrentPuckData(newData)}

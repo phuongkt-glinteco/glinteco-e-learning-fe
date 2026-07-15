@@ -38,6 +38,8 @@ import TracksTimeline from './TracksTimeline.json';
 import LinkedExercisesCard from './LinkedExercisesCard.json';
 import MyExercisesContainer from './MyExercisesContainer.json';
 import AiWorkflowDashboard from './AiWorkflowDashboard.json';
+import QuizExercisePanel from './QuizExercisePanel.json';
+import FillBlankExercisePanel from './FillBlankExercisePanel.json';
 import ProfilePage from './ProfilePage.json';
 import LeaderboardPage from './LeaderboardPage.json';
 import CohortsPage from './CohortsPage.json';
@@ -96,6 +98,8 @@ const messages: Record<string, unknown> = {
   SupportPage,
   ResourceDocumentPickerDialog,
   PuckEditor,
+  QuizExercisePanel,
+  FillBlankExercisePanel,
 };
 
 export default messages;

@@ -11,5 +11,9 @@
   "retry": "Retry",
   "tracks": "Learning Tracks",
   "historyLoadFailed": "Failed to load submission history.",
-  "SUBMIT_EXERCISE_FAILED": "Failed to submit exercise. Please check your pull request URL and try again."
+  "SUBMIT_EXERCISE_FAILED": "Failed to submit exercise. Please check your pull request URL and try again.",
+  "autoSubmitFailed": "Failed to grade exercise answers.",
+  "emptyPrUrlError": "Please enter a pull request URL.",
+  "invalidUrlError": "Please enter a valid URL.",
+  "invalidPrUrlError": "Please enter a valid GitHub pull request URL."
 }

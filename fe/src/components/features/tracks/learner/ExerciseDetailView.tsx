@@ -7,6 +7,29 @@ import { MarkdownRenderer } from '@/lib/md-renderer';
 import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui/default/checkbox';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
+import {
+  Send,
+  ArrowLeft,
+  ExternalLink,
+  RefreshCw,
+  History as HistoryIcon,
+  CheckCircle2,
+  Play,
+  PlayCircle,
+  HelpCircle,
+  AlertCircle,
+  Upload,
+  Loader2,
+  Check,
+  Sparkles,
+  MessageSquare,
+  Flag,
+  FileText,
+  CheckSquare,
+} from 'lucide-react';
+import type { AutoGradeResultDto } from '@/services/api-client';
+import { QuizExercisePanel } from './QuizExercisePanel';
+import { FillBlankExercisePanel } from './FillBlankExercisePanel';
 import type {
   LearnerExerciseDetail,
   LearnerLesson,
@@ -28,51 +51,62 @@ interface ExerciseDetailViewProps {
   historyItems: LearnerSubmissionHistoryItem[];
   historyLoading: boolean;
   historyError: string | null;
+  autoAnswers?: Record<string, string>;
+  autoGradeResult?: AutoGradeResultDto | null;
+  onAutoAnswerChange?: (questionId: string, answer: string) => void;
+  onAutoSubmit?: () => void;
+  onAutoRetry?: () => void;
   onPrUrlChange: (value: string) => void;
   onStartExercise: () => void;
   onSubmit: () => void;
   onRetryHistory: () => void;
   onBackToTrack?: () => void;
+  onContinue?: () => void;
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) return 'Not available';
+const SUBMISSION_STATUS_CONFIG: Record<
+  LearnerSubmissionState['status'],
+  { labelKey: string; badgeClass: string }
+> = {
+  in_progress: {
+    labelKey: 'statusInProgress',
+    badgeClass: 'border-primary/20 bg-primary/10 text-primary',
+  },
+  approved: {
+    labelKey: 'statusCompleted',
+    badgeClass: 'border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-300',
+  },
+  changes: {
+    labelKey: 'actionRequired',
+    badgeClass: 'border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300',
+  },
+  rejected: {
+    labelKey: 'statusRejected',
+    badgeClass: 'border-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300',
+  },
+  submitted: {
+    labelKey: 'statusInReview',
+    badgeClass: 'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  },
+  pending: {
+    labelKey: 'statusNotStarted',
+    badgeClass: 'border-border bg-surface-container text-muted-foreground',
+  },
+};
+
+function formatDateTime(value: string | null, fallback = 'Not available') {
+  if (!value) return fallback;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
 function getStatusLabel(status: LearnerSubmissionState['status']) {
-  switch (status) {
-    case 'in_progress':
-      return 'statusInProgress';
-    case 'approved':
-      return 'statusCompleted';
-    case 'changes':
-      return 'actionRequired';
-    case 'rejected':
-      return 'statusRejected';
-    case 'submitted':
-      return 'statusInReview';
-    case 'pending':
-      return 'statusNotStarted';
-  }
+  return SUBMISSION_STATUS_CONFIG[status].labelKey;
 }
 
 function getStatusBadgeClass(status: LearnerSubmissionState['status']) {
-  switch (status) {
-    case 'in_progress':
-      return 'border-primary-fixed bg-primary-fixed text-primary';
-    case 'approved':
-      return 'border-green-200 bg-green-50 text-green-700';
-    case 'changes':
-    case 'rejected':
-      return 'border-error-container bg-error-container text-on-error-container';
-    case 'submitted':
-      return 'border-secondary-fixed bg-secondary-fixed text-secondary';
-    case 'pending':
-      return 'border-primary-fixed bg-primary-fixed text-primary';
-  }
+  return SUBMISSION_STATUS_CONFIG[status].badgeClass;
 }
 
 function InfoSection({
@@ -81,15 +115,27 @@ function InfoSection({
   children,
   className = '',
 }: {
-  icon: string;
+  icon: ReactNode | string;
   title: string;
   children: ReactNode;
   className?: string;
 }) {
+  const renderIcon = () => {
+    if (typeof icon !== 'string') return icon;
+    switch (icon) {
+      case 'flag': return <Flag className="h-5 w-5 text-primary" />;
+      case 'integration_instructions':
+      case 'article': return <FileText className="h-5 w-5 text-primary" />;
+      case 'fact_check': return <CheckSquare className="h-5 w-5 text-primary" />;
+      case 'mode_comment': return <MessageSquare className="h-5 w-5 text-primary" />;
+      default: return <HelpCircle className="h-5 w-5 text-primary" />;
+    }
+  };
+
   return (
     <section className={`rounded-lg border border-outline-variant bg-surface p-5 shadow-sm ${className}`}>
       <div className="flex items-center gap-2 border-b border-outline-variant pb-3">
-        <span className="material-symbols-outlined text-[20px] text-primary">{icon}</span>
+        {renderIcon()}
         <h2 className="headline-sm text-on-surface">{title}</h2>
       </div>
       <div className="mt-4">{children}</div>
@@ -190,9 +236,11 @@ function ExerciseContent({ exercise }: { exercise: LearnerExerciseDetail }) {
                 rel={resource.url ? 'noreferrer' : undefined}
                 className="group flex min-w-0 items-start gap-3 rounded-lg border border-outline-variant p-4 hover:border-primary/40 hover:bg-primary/5"
               >
-                <span className="material-symbols-outlined text-[20px] text-on-surface-variant">
-                  {resource.kind === 'Link' ? 'play_circle' : 'description'}
-                </span>
+                {resource.kind === 'Link' ? (
+                  <PlayCircle className="mt-0.5 h-5 w-5 shrink-0 text-on-surface-variant" />
+                ) : (
+                  <FileText className="mt-0.5 h-5 w-5 shrink-0 text-on-surface-variant" />
+                )}
                 <span className="min-w-0">
                   <span className="block label-md break-words text-on-surface">{resource.title}</span>
                   {resource.content && (
@@ -201,9 +249,7 @@ function ExerciseContent({ exercise }: { exercise: LearnerExerciseDetail }) {
                     </span>
                   )}
                 </span>
-                <span className="material-symbols-outlined ml-auto shrink-0 text-[18px] text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  open_in_new
-                </span>
+                <ExternalLink className="ml-auto h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
             ))}
           </div>
@@ -241,7 +287,7 @@ function SubmitPanel({
   return (
     <section className={`rounded-lg border border-outline-variant bg-surface p-5 shadow-sm ${disabled ? 'opacity-55' : ''}`}>
       <div className="flex items-center gap-2 border-b border-outline-variant pb-3">
-        <span className="material-symbols-outlined text-[20px] text-primary">send</span>
+        <Send className="h-5 w-5 text-primary" />
         <h2 className="headline-sm text-on-surface">{title}</h2>
       </div>
       <form
@@ -263,23 +309,23 @@ function SubmitPanel({
         />
         {submitError && (
           <p className="flex items-start gap-1.5 label-sm text-error">
-            <span className="material-symbols-outlined mt-0.5 text-[15px]">error</span>
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             {submitError}
           </p>
         )}
         {submitMessage && (
           <p className="flex items-start gap-1.5 label-sm text-tertiary">
-            <span className="material-symbols-outlined mt-0.5 text-[15px]">task_alt</span>
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
             {submitMessage}
           </p>
         )}
         <Button
           type="submit"
           size="lg"
-          className="h-auto px-4 py-2.5"
+          className="h-auto gap-2 px-4 py-2.5"
           disabled={disabled || submitting || !prUrl.trim()}
         >
-          <span className="material-symbols-outlined text-[18px]">{submitting ? 'progress_activity' : 'upload'}</span>
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
           {submitting ? t('submitting') : buttonLabel}
         </Button>
       </form>
@@ -298,21 +344,19 @@ function SubmittedState({
   return (
     <section className="rounded-lg border border-outline-variant bg-surface p-8 text-center shadow-sm">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-tertiary-fixed/40">
-        <span className="material-symbols-outlined text-[36px] text-tertiary">
-          check_circle
-        </span>
+        <CheckCircle2 className="h-9 w-9 text-tertiary" />
       </div>
       <h2 className="headline-lg mt-6 text-on-surface">{t('submissionReceived')}</h2>
       <p className="body-md mt-2 text-on-surface-variant">{t('waitingMentorReview')}</p>
       <div className="mx-auto mt-6 max-w-[680px] rounded-lg border border-outline-variant bg-surface-container-low p-4 text-left">
         <div className="flex justify-between gap-3 border-b border-outline-variant pb-3 label-sm text-on-surface">
           <span>{t('submitted')}</span>
-          <span>{formatDateTime(submission.submittedAt)}</span>
+          <span>{formatDateTime(submission.submittedAt, t('notAvailable', { defaultValue: 'Not available' }))}</span>
         </div>
         {submission.prUrl && (
           <a href={submission.prUrl} target="_blank" rel="noreferrer" className="group mt-3 inline-flex max-w-full items-center gap-1 text-primary hover:underline">
             <span className="min-w-0 truncate">{submission.prUrl}</span>
-            <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">open_in_new</span>
+            <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </a>
         )}
       </div>
@@ -321,10 +365,10 @@ function SubmittedState({
           <Button
             type="button"
             size="lg"
-            className="h-auto px-6 py-2.5"
+            className="h-auto gap-2 px-6 py-2.5"
             onClick={onBackToTrack}
           >
-            <span className="material-symbols-outlined text-[18px] transition-transform group-hover/button:-translate-x-1">arrow_back</span>
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover/button:-translate-x-1" />
             {t('backToTrack', { defaultValue: 'Back to Track' })}
           </Button>
         </div>
@@ -350,7 +394,7 @@ function ReviewHistorySection({
     <section className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
       <div className="flex flex-col gap-3 border-b border-outline-variant pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="material-symbols-outlined text-[20px] text-primary">history</span>
+          <HistoryIcon className="h-5 w-5 text-primary" />
           <div className="min-w-0">
             <h2 className="headline-sm text-on-surface">{t('reviewHistory')}</h2>
             <p className="body-sm text-on-surface-variant">{t('reviewHistoryDescription')}</p>
@@ -362,7 +406,7 @@ function ReviewHistorySection({
             onClick={onRetry}
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-outline-variant px-3 py-2 label-sm text-on-surface hover:bg-surface-container-low"
           >
-            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            <RefreshCw className="h-4 w-4" />
             {t('retryHistory')}
           </button>
         )}
@@ -381,13 +425,13 @@ function ReviewHistorySection({
       ) : error ? (
         <div className="mt-4 rounded-lg border border-error-container bg-error-container/30 p-4 text-on-error-container">
           <p className="flex items-start gap-2 label-sm">
-            <span className="material-symbols-outlined mt-0.5 text-[16px]">error</span>
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span className="min-w-0 break-words">{error}</span>
           </p>
         </div>
       ) : items.length === 0 ? (
         <div className="mt-4 rounded-lg border border-dashed border-outline-variant bg-surface-container-low p-5 text-center">
-          <span className="material-symbols-outlined text-[28px] text-on-surface-variant">history_toggle_off</span>
+          <HistoryIcon className="mx-auto h-7 w-7 text-on-surface-variant" />
           <p className="label-md mt-2 text-on-surface">{t('historyEmptyTitle')}</p>
           <p className="body-sm mt-1 text-on-surface-variant">{t('historyEmptyDescription')}</p>
         </div>
@@ -401,9 +445,7 @@ function ReviewHistorySection({
               <li key={item.id} className="relative flex min-w-0 gap-3">
                 <div className="flex flex-col items-center">
                   <span className={`flex h-9 w-9 items-center justify-center rounded-full ${isReviewEvent ? 'bg-secondary-fixed text-secondary' : 'bg-primary-fixed text-primary'}`}>
-                    <span className="material-symbols-outlined text-[19px]">
-                      {isReviewEvent ? 'rate_review' : 'upload_file'}
-                    </span>
+                    {isReviewEvent ? <MessageSquare className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
                   </span>
                 </div>
                 <article className="min-w-0 flex-1 rounded-lg border border-outline-variant bg-surface-container-low p-4">
@@ -412,7 +454,7 @@ function ReviewHistorySection({
                       <p className="label-md text-on-surface">
                         {isReviewEvent ? t('historyReviewEvent') : t('historySubmissionEvent')}
                       </p>
-                      <p className="body-sm text-on-surface-variant">{formatDateTime(eventTime)}</p>
+                      <p className="body-sm text-on-surface-variant">{formatDateTime(eventTime, t('notAvailable', { defaultValue: 'Not available' }))}</p>
                     </div>
                     <span className={`w-fit rounded-full border px-2.5 py-1 label-sm ${getStatusBadgeClass(item.status)}`}>
                       {t(getStatusLabel(item.status))}
@@ -427,7 +469,7 @@ function ReviewHistorySection({
                       className="mt-3 inline-flex max-w-full min-w-0 items-center gap-1 text-primary hover:underline"
                     >
                       <span className="min-w-0 truncate">{item.prUrl}</span>
-                      <span className="material-symbols-outlined shrink-0 text-[16px]">open_in_new</span>
+                      <ExternalLink className="h-4 w-4 shrink-0" />
                     </a>
                   )}
 
@@ -445,7 +487,7 @@ function ReviewHistorySection({
                       )}
                       {item.submittedAt && (
                         <p>
-                          <span className="font-medium text-on-surface">{t('submitted')}:</span> {formatDateTime(item.submittedAt)}
+                          <span className="font-medium text-on-surface">{t('submitted')}:</span> {formatDateTime(item.submittedAt, t('notAvailable', { defaultValue: 'Not available' }))}
                         </p>
                       )}
                     </div>
@@ -476,16 +518,14 @@ function ApprovedState({
     <div className="flex min-w-0 flex-col gap-6">
       <section className="rounded-lg border border-tertiary-container bg-tertiary-fixed/20 p-8 text-center shadow-sm">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-tertiary-container">
-          <span className="material-symbols-outlined  text-[44px] text-on-tertiary">
-          check
-          </span>
+          <Check className="h-11 w-11 text-on-tertiary" />
         </div>
         <h2 className="headline-lg mt-6 text-on-surface">{t('exercisePassed')}</h2>
         <p className="body-md mx-auto mt-3 max-w-xl text-on-surface-variant">
           {t('outstandingWork')}
         </p>
         <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-secondary-fixed bg-secondary-fixed/50 px-5 py-2 label-md text-secondary">
-          <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+          <Sparkles className="h-4 w-4" />
           {t('xpAwarded', { xp: exercise.xp })}
         </div>
         {onBackToTrack && (
@@ -493,10 +533,10 @@ function ApprovedState({
           <Button
             type="button"
             size="lg"
-            className="h-auto px-6 py-2.5"
+            className="h-auto gap-2 px-6 py-2.5"
             onClick={onBackToTrack}
           >
-            <span className="material-symbols-outlined text-[18px] transition-transform group-hover/button:-translate-x-1">arrow_back</span>
+            <ArrowLeft className="h-4 w-4 transition-transform group-hover/button:-translate-x-1" />
             {t('backToTrack', { defaultValue: 'Back to Track' })}
           </Button>
         </div>
@@ -514,7 +554,7 @@ function ApprovedState({
           <span className="min-w-0 truncate">{t('prApprovedFor', { trackTitle: track.title })}</span>
           <span className="inline-flex shrink-0 items-center gap-1 text-primary">
             {t('viewPr')}
-            <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">open_in_new</span>
+            <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </span>
         </a>
       )}
@@ -549,11 +589,11 @@ function StatusAside({
           </div>
           <div className="flex justify-between gap-3">
             <span>{t('submitted')}</span>
-            <span className="text-right text-on-surface">{formatDateTime(submission.submittedAt)}</span>
+            <span className="text-right text-on-surface">{formatDateTime(submission.submittedAt, t('notAvailable', { defaultValue: 'Not available' }))}</span>
           </div>
           <div className="flex justify-between gap-3">
             <span>{t('reviewed')}</span>
-            <span className="text-right text-on-surface">{formatDateTime(submission.reviewedAt)}</span>
+            <span className="text-right text-on-surface">{formatDateTime(submission.reviewedAt, t('notAvailable', { defaultValue: 'Not available' }))}</span>
           </div>
         </div>
       </section>
@@ -585,11 +625,17 @@ export function ExerciseDetailView({
   historyItems,
   historyLoading,
   historyError,
+  autoAnswers,
+  autoGradeResult,
+  onAutoAnswerChange,
+  onAutoSubmit,
+  onAutoRetry,
   onPrUrlChange,
   onStartExercise,
   onSubmit,
   onRetryHistory,
   onBackToTrack,
+  onContinue,
 }: ExerciseDetailViewProps) {
   const t = useTranslations('ExerciseDetailView');
   const isNotStarted = submission.status === 'pending';
@@ -633,7 +679,40 @@ export function ExerciseDetailView({
         </div>
       </header>
 
-      {isApproved ? (
+      {exercise.type === 'QUIZ' || exercise.type === 'FILL_IN_BLANK' ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <main className="min-w-0">
+            {exercise.type === 'QUIZ' ? (
+              <QuizExercisePanel
+                exercise={exercise}
+                answers={autoAnswers || {}}
+                gradeResult={autoGradeResult || null}
+                submitting={submitting}
+                error={submitError}
+                onAnswerChange={onAutoAnswerChange || (() => {})}
+                onSubmit={onAutoSubmit || (() => {})}
+                onRetry={onAutoRetry || (() => {})}
+                onBack={onBackToTrack}
+                onContinue={onContinue || onBackToTrack}
+              />
+            ) : (
+              <FillBlankExercisePanel
+                exercise={exercise}
+                answers={autoAnswers || {}}
+                gradeResult={autoGradeResult || null}
+                submitting={submitting}
+                error={submitError}
+                onAnswerChange={onAutoAnswerChange || (() => {})}
+                onSubmit={onAutoSubmit || (() => {})}
+                onRetry={onAutoRetry || (() => {})}
+                onBack={onBackToTrack}
+                onContinue={onContinue || onBackToTrack}
+              />
+            )}
+          </main>
+          <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
+        </div>
+      ) : isApproved ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <ApprovedState exercise={exercise} submission={submission} track={track} onBackToTrack={onBackToTrack} />
           <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
@@ -688,7 +767,7 @@ export function ExerciseDetailView({
                   onClick={onBackToTrack}
                   className="group inline-flex items-center gap-2 rounded-lg border border-outline-variant px-5 py-2 label-md text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-1">arrow_back</span>
+                  <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                   {t('backToTrack', { defaultValue: 'Back to Track' })}
                 </button>
               </div>
@@ -726,7 +805,7 @@ export function ExerciseDetailView({
                   onClick={onBackToTrack}
                   className="group inline-flex items-center gap-2 rounded-lg border border-outline-variant px-5 py-2 label-md text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-1">arrow_back</span>
+                  <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                   {t('backToTrack', { defaultValue: 'Back to Track' })}
                 </button>
               </div>
@@ -748,7 +827,7 @@ export function ExerciseDetailView({
               <p className="body-sm mt-2 text-on-surface-variant">{startCardCopy}</p>
               {startError && (
                 <p className="mt-4 flex items-start gap-1.5 rounded-lg border border-error-container bg-error-container/30 p-3 text-left label-sm text-on-error-container">
-                  <span className="material-symbols-outlined mt-0.5 text-[15px]">error</span>
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span className="min-w-0 break-words">{startError}</span>
                 </p>
               )}
@@ -757,9 +836,9 @@ export function ExerciseDetailView({
                 size="lg"
                 onClick={onStartExercise}
                 disabled={!isNotStarted}
-                className="mt-5 h-auto w-full px-4 py-2.5"
+                className="mt-5 h-auto w-full gap-2 px-4 py-2.5"
               >
-                <span className="material-symbols-outlined text-[18px] transition-transform group-hover/button:translate-x-1">play_arrow</span>
+                <Play className="h-4 w-4 fill-current" />
                 {isInProgress ? t('exerciseStarted') : t('startExercise')}
               </Button>
             </section>
@@ -777,12 +856,14 @@ export function ExerciseDetailView({
         </div>
       )}
 
-      <ReviewHistorySection
-        items={historyItems}
-        loading={historyLoading}
-        error={historyError}
-        onRetry={onRetryHistory}
-      />
+      {!(exercise.type === 'QUIZ' || exercise.type === 'FILL_IN_BLANK') || historyItems.length > 0 ? (
+        <ReviewHistorySection
+          items={historyItems}
+          loading={historyLoading}
+          error={historyError}
+          onRetry={onRetryHistory}
+        />
+      ) : null}
     </div>
   );
 }

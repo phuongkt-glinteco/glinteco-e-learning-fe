@@ -10,35 +10,42 @@ import {
   fetchStandaloneExercisePage,
   resubmitExercise,
   submitExercise,
+  submitAutoExercise,
   type ExercisePageData,
 } from './courseLearningApi';
 import type { LearnerSubmissionFormValues, LearnerSubmissionHistoryItem } from './types';
+import type { AutoAnswerDto, AutoGradeResultDto } from '@/services/api-client';
 import { getErrorMessage, getLearnerRouteBase, getRouteParam } from './utils';
 import { isUiShowError } from '@/services/errors';
+import { RefreshCw } from 'lucide-react';
 
 import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
-function validatePullRequestUrl(value: string): string | null {
-  if (!value) return 'Please enter a pull request URL.';
+import { useTranslations } from 'next-intl';
+
+function validatePullRequestUrl(
+  value: string,
+  t: (key: string, options?: { defaultValue: string }) => string
+): string | null {
+  if (!value) return t('emptyPrUrlError', { defaultValue: 'Please enter a pull request URL.' });
 
   let url: URL;
   try {
     url = new URL(value);
   } catch {
-    return 'Please enter a valid URL.';
+    return t('invalidUrlError', { defaultValue: 'Please enter a valid URL.' });
   }
 
   const isGithubUrl = url.hostname === 'github.com' || url.hostname.endsWith('.github.com');
   const isPullRequestPath = /^\/[^/]+\/[^/]+\/pull\/\d+\/?$/.test(url.pathname);
 
   if (!isGithubUrl || !isPullRequestPath) {
-    return 'Please enter a valid GitHub pull request URL.';
+    return t('invalidPrUrlError', { defaultValue: 'Please enter a valid GitHub pull request URL.' });
   }
 
   return null;
 }
 
 import { RedirectToParent } from '@/components/ui';
-import { useTranslations } from 'next-intl';
 
 function ExerciseLoadingState() {
   return (
@@ -102,7 +109,7 @@ function ExerciseErrorState({
             onClick={onRetry}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 label-sm text-on-primary hover:opacity-90 cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            <RefreshCw className="h-4 w-4" />
             {t('retry', { defaultValue: 'Retry' })}
           </button>
         </div>
@@ -132,6 +139,8 @@ export default function ExerciseDetailContainer() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
+  const [autoAnswers, setAutoAnswers] = useState<Record<string, string>>({});
+  const [autoGradeResult, setAutoGradeResult] = useState<AutoGradeResultDto | null>(null);
   const [historyItems, setHistoryItems] = useState<LearnerSubmissionHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
@@ -159,16 +168,24 @@ export default function ExerciseDetailContainer() {
     }
   }, [t]);
 
-  const loadExercise = useCallback(async () => {
+  const loadExercise = useCallback(async (preserveState?: boolean | unknown) => {
+    const shouldPreserve = typeof preserveState === 'boolean' && preserveState;
     if (!exerciseId) {
       setError(t('missingRouteParam', { defaultValue: 'Missing exercise route parameter.' }));
       setLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
-    setSubmitError(null);
+    if (!shouldPreserve) {
+      setLoading(true);
+      setError(null);
+      setSubmitError(null);
+      setAutoAnswers({});
+      setAutoGradeResult(null);
+    } else {
+      setError(null);
+      setSubmitError(null);
+    }
 
     try {
       const nextPageData = isStandaloneRoute
@@ -197,7 +214,9 @@ export default function ExerciseDetailContainer() {
     } catch (loadError: unknown) {
       setError(getErrorMessage(loadError, t('loadFailed', { defaultValue: 'Failed to load exercise details.' })));
     } finally {
-      setLoading(false);
+      if (!shouldPreserve) {
+        setLoading(false);
+      }
     }
   }, [courseId, lessonId, exerciseId, isStandaloneRoute, routeBase, setTree, pushNode, tree.length, loadSubmissionHistory]);
 
@@ -209,9 +228,9 @@ export default function ExerciseDetailContainer() {
     if (!pageData || !exerciseId) return;
 
     const nextPrUrl = formValues.prUrl.trim();
-    const validationError = validatePullRequestUrl(nextPrUrl);
+    const validationError = validatePullRequestUrl(nextPrUrl, t);
     if (validationError) {
-      setSubmitError(validationError); // Could also translate these if needed
+      setSubmitError(validationError);
       return;
     }
 
@@ -253,6 +272,43 @@ export default function ExerciseDetailContainer() {
     );
   }
 
+  function handleAutoAnswerChange(questionId: string, answer: string) {
+    setAutoAnswers((prev) => ({ ...prev, [questionId]: answer }));
+    if (autoGradeResult) {
+      setAutoGradeResult(null);
+      setSubmitError(null);
+    }
+  }
+
+  async function handleAutoSubmit() {
+    if (!pageData || !exerciseId) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    setSubmitMessage(null);
+    try {
+      const answersPayload: AutoAnswerDto[] = Object.entries(autoAnswers).map(([qId, answer]) => ({
+        questionId: qId,
+        answer,
+      }));
+      const result = await submitAutoExercise(exerciseId, answersPayload);
+      setAutoGradeResult(result);
+      if (result.passed) {
+        await loadExercise(true);
+      }
+    } catch (err: unknown) {
+      console.error('Auto grade error:', err);
+      setSubmitError(getErrorMessage(err, t('autoSubmitFailed', { defaultValue: 'Failed to grade exercise answers.' })));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleAutoRetry() {
+    setAutoGradeResult(null);
+    setSubmitError(null);
+    setSubmitMessage(null);
+  }
+
   function getBackHrefPath() {
     const fallbackHref = isStandaloneRoute
       ? '/exercises'
@@ -288,16 +344,44 @@ export default function ExerciseDetailContainer() {
       historyItems={historyItems}
       historyLoading={historyLoading}
       historyError={historyError}
+      autoAnswers={autoAnswers}
+      autoGradeResult={autoGradeResult}
+      onAutoAnswerChange={handleAutoAnswerChange}
+      onAutoSubmit={handleAutoSubmit}
+      onAutoRetry={handleAutoRetry}
       onPrUrlChange={(value) => setFormValues({ prUrl: value })}
       onStartExercise={handleStartExercise}
       onSubmit={handleSubmit}
       onRetryHistory={() => loadSubmissionHistory(pageData.submission.id)}
       onBackToTrack={() => {
-        const targetTrackId = pageData.exercise.trackId || pageData.course.id;
-        if (targetTrackId) {
-          router.push(`/${routeBase}/${targetTrackId}${querySuffix}`);
+        const targetPath = getBackHrefPath();
+        if (targetPath) {
+          router.push(`${targetPath}${querySuffix}`);
         } else {
-          router.push(`/${routeBase}`);
+          const targetTrackId = pageData.exercise.trackId || pageData.course.id;
+          if (targetTrackId) {
+            router.push(`/${routeBase}/${targetTrackId}${querySuffix}`);
+          } else {
+            router.push(`/${routeBase}`);
+          }
+        }
+      }}
+      onContinue={() => {
+        if (isStandaloneRoute) {
+          router.push('/exercises');
+          return;
+        }
+        const currentIndex = pageData.lessons.findIndex((l) => l.id === pageData.activeLesson.id);
+        if (currentIndex !== -1 && currentIndex < pageData.lessons.length - 1) {
+          const nextLesson = pageData.lessons[currentIndex + 1];
+          router.push(`/${routeBase}/${pageData.course.id}/lessons/${nextLesson.id}${querySuffix}`);
+        } else {
+          const targetTrackId = pageData.exercise.trackId || pageData.course.id;
+          if (targetTrackId) {
+            router.push(`/${routeBase}/${targetTrackId}${querySuffix}`);
+          } else {
+            router.push(`/${routeBase}`);
+          }
         }
       }}
     />

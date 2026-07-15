@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   Plus, Code, Loader2, ListChecks, FileText, Check, Trash2, Pencil,
 } from "lucide-react";
-import { exercisesControllerCreate } from "@/services/api-client";
+import { exercisesControllerCreate, exercisesControllerUpdate, exercisesControllerFindOne } from "@/services/api-client";
 import type { ExerciseDetailDto } from "@/services/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/default/dialog";
 import { Button } from "@/components/ui/default/button";
@@ -33,6 +33,9 @@ export interface ExerciseData {
     answerType?: "single" | "multi";
     answers?: Array<{ text: string; correct: boolean }>;
     fillTemplate?: string;
+    hint?: string;
+    prompt?: string;
+    blanks?: Array<{ id: string; start: number; end: number; answer: string }> | Array<{ id: string; answer: string }>;
   };
 }
 
@@ -305,27 +308,44 @@ const FullPRCreateModal: React.FC<{
     try {
       let exerciseId = initData?.exerciseId || `draft-pr-${Date.now()}`;
       if (isComplete) {
-        const res = await exercisesControllerCreate({
-          body: {
-            title: title.trim(),
-            trackId: trackId !== "_" ? trackId : "00000000-0000-0000-0000-000000000000",
-            tag: tag.trim() || "pr",
-            difficulty,
-            estimatedTime: estimatedTime.trim() || "30 mins",
-            xp: Number(xp) || 20,
-            brief: brief.trim() || t("defaultBrief", { type: "PR_REVIEW" }),
-            overview: overview.trim() || t("defaultOverview"),
-            objectives: objectives.filter((o) => o.trim().length > 0),
-            steps: steps.filter((s) => s.trim().length > 0),
-            hint: hint.trim() || undefined,
-            type: "PR_REVIEW",
-          },
-          throwOnError: true,
-        });
-        if (!(res.data as ExerciseDetailDto | undefined)?.id) {
-          throw new Error("missing-exercise-id");
+        const isExistingServerExercise =
+          initData?.exerciseId &&
+          !initData.exerciseId.startsWith("draft-") &&
+          !initData.exerciseId.startsWith("skeleton-");
+
+        const payloadBody = {
+          title: title.trim(),
+          trackId: trackId !== "_" ? trackId : "00000000-0000-0000-0000-000000000000",
+          tag: tag.trim() || "pr",
+          difficulty,
+          estimatedTime: estimatedTime.trim() || "30 mins",
+          xp: Number(xp) || 20,
+          brief: brief.trim() || t("defaultBrief", { type: "PR_REVIEW" }),
+          overview: overview.trim() || t("defaultOverview"),
+          objectives: objectives.filter((o) => o.trim().length > 0),
+          steps: steps.filter((s) => s.trim().length > 0),
+          hint: hint.trim() || undefined,
+          type: "PR_REVIEW" as const,
+        };
+
+        if (isExistingServerExercise) {
+          const existingId = initData!.exerciseId!;
+          const res = await exercisesControllerUpdate({
+            path: { id: existingId },
+            body: payloadBody,
+            throwOnError: true,
+          });
+          exerciseId = (res.data as ExerciseDetailDto)?.id || existingId;
+        } else {
+          const res = await exercisesControllerCreate({
+            body: payloadBody,
+            throwOnError: true,
+          });
+          if (!(res.data as ExerciseDetailDto | undefined)?.id) {
+            throw new Error("missing-exercise-id");
+          }
+          exerciseId = (res.data as ExerciseDetailDto).id as string;
         }
-        exerciseId = (res.data as ExerciseDetailDto).id as string;
       }
 
       onSaved({
@@ -537,6 +557,18 @@ const MinigameCreateDialog: React.FC<{
   const [subType, setSubType] = useState<MinigameSubType>("quiz");
   const [saving, setSaving] = useState(false);
 
+  // Quiz state
+  const [question, setQuestion] = useState("");
+  const [answerType, setAnswerType] = useState<"single" | "multi">("single");
+  const [answers, setAnswers] = useState<QuizAnswer[]>([]);
+
+  // Fill state
+  const [fillCode, setFillCode] = useState("");
+  const [blanks, setBlanks] = useState<Blank[]>([]);
+
+  // Common optional hint state
+  const [hint, setHint] = useState("");
+
   React.useEffect(() => {
     if (!open) return;
     const initType: MinigameSubType =
@@ -546,6 +578,7 @@ const MinigameCreateDialog: React.FC<{
     setSubType(initType);
     if (initData?.previewData) {
       if (initData.previewData.question) setQuestion(initData.previewData.question);
+      if (initData.previewData.prompt && !initData.previewData.question) setQuestion(initData.previewData.prompt);
       if (initData.previewData.answerType) setAnswerType(initData.previewData.answerType);
       if (initData.previewData.answers) {
         setAnswers(
@@ -556,18 +589,96 @@ const MinigameCreateDialog: React.FC<{
           }))
         );
       }
-      if (initData.previewData.fillTemplate) setFillCode(initData.previewData.fillTemplate);
+      if (initData.previewData.fillTemplate) {
+        setFillCode(initData.previewData.fillTemplate);
+        if (initData.previewData.blanks && initData.previewData.blanks.length > 0) {
+          setBlanks((initData.previewData.blanks as any[]).map((b: any) => {
+            if (!b.answer) {
+              const qData = (initData as any).questionsData?.find((q: any) => String(q.id) === String(b.id));
+              return { ...b, answer: qData?.correctAnswer || qData?.answer || "" };
+            }
+            return b;
+          }));
+        } else {
+          const template = initData.previewData.fillTemplate;
+          const reconstructed: Blank[] = [];
+          const parts = template.split(/(\[\d+_\d+\]|\[\[[^\]]+\]\])/g);
+          let currOffset = 0;
+          parts.forEach((part) => {
+            const match = part.match(/^\[(\d+)_(\d+)\]$|^\[\[([^\]]+)\]\]$/);
+            if (match) {
+              const bId = (match[1] || match[3]).trim();
+              const qData = (initData as any).questionsData?.find((q: any) => String(q.id) === bId);
+              reconstructed.push({
+                id: bId,
+                start: currOffset,
+                end: currOffset + part.length,
+                answer: qData?.correctAnswer || qData?.answer || "",
+              });
+            }
+            currOffset += part.length;
+          });
+          if (reconstructed.length > 0) setBlanks(reconstructed);
+        }
+      }
+      if (initData.previewData.hint) setHint(initData.previewData.hint);
+    }
+
+    if (initData?.exerciseId && !initData.exerciseId.startsWith("draft-") && !initData.exerciseId.startsWith("skeleton-")) {
+      exercisesControllerFindOne({ path: { id: initData.exerciseId } })
+        .then((res) => {
+          const detail = res.data as ExerciseDetailDto | undefined;
+          if (detail?.questionsData) {
+            if (initType === "fill" || detail.type === "FILL_IN_BLANK") {
+              setBlanks((prevBlanks) => {
+                if (prevBlanks.length > 0) {
+                  return prevBlanks.map((b) => {
+                    const q = detail.questionsData?.find((qd) => String(qd.id) === String(b.id));
+                    return { ...b, answer: q?.correctAnswer || b.answer };
+                  });
+                } else {
+                  const template = initData?.previewData?.fillTemplate || detail.brief || "";
+                  const reconstructed: Blank[] = [];
+                  const parts = template.split(/(\[\d+_\d+\]|\[\[[^\]]+\]\])/g);
+                  let currOffset = 0;
+                  parts.forEach((part) => {
+                    const match = part.match(/^\[(\d+)_(\d+)\]$|^\[\[([^\]]+)\]\]$/);
+                    if (match) {
+                      const bId = (match[1] || match[3]).trim();
+                      const q = detail.questionsData?.find((qd) => String(qd.id) === bId);
+                      reconstructed.push({
+                        id: bId,
+                        start: currOffset,
+                        end: currOffset + part.length,
+                        answer: q?.correctAnswer || "",
+                      });
+                    }
+                    currOffset += part.length;
+                  });
+                  return reconstructed;
+                }
+              });
+            } else if (initType === "quiz" || detail.type === "QUIZ") {
+              const q0 = detail.questionsData[0];
+              if (q0) {
+                if (q0.prompt) setQuestion(q0.prompt);
+                if (q0.options && q0.options.length > 0) {
+                  const correctSet = new Set((q0.correctAnswer || "").split(",").map((s) => s.trim()));
+                  setAnswers(
+                    q0.options.map((opt, i) => ({
+                      id: String(i + 1),
+                      text: opt,
+                      correct: correctSet.has(opt.trim()),
+                    }))
+                  );
+                }
+              }
+            }
+          }
+        })
+        .catch((e) => console.error("Failed to load server exercise details:", e));
     }
   }, [open, initData]);
-
-  // Quiz state
-  const [question, setQuestion] = useState("");
-  const [answerType, setAnswerType] = useState<"single" | "multi">("single");
-  const [answers, setAnswers] = useState<QuizAnswer[]>([]);
-
-  // Fill state
-  const [fillCode, setFillCode] = useState("");
-  const [blanks, setBlanks] = useState<Blank[]>([]);
 
   const isQuizComplete = question.trim() && answers.some((a) => a.text.trim() && a.correct);
   const isFillComplete = fillCode.trim() && blanks.length > 0;
@@ -579,6 +690,7 @@ const MinigameCreateDialog: React.FC<{
     setAnswers([]);
     setFillCode("");
     setBlanks([]);
+    setHint("");
   }, []);
 
   const handleSave = async () => {
@@ -587,11 +699,12 @@ const MinigameCreateDialog: React.FC<{
 
     setSaving(true);
     try {
-      const actualType = subType === "quiz" ? "QUIZ" : "FILL_IN_BLANK";
+      const actualType: "QUIZ" | "FILL_IN_BLANK" = subType === "quiz" ? "QUIZ" : "FILL_IN_BLANK";
       const draftId = initData?.exerciseId || `draft-mg-${Date.now()}`;
 
       const previewData: ExerciseData["previewData"] = {
         brief: initData?.previewData?.brief || undefined,
+        hint: hint.trim() || undefined,
       };
       if (subType === "quiz") {
         previewData.questionCount = answers.filter((a) => a.text.trim()).length;
@@ -603,47 +716,72 @@ const MinigameCreateDialog: React.FC<{
       } else {
         previewData.blankCount = blanks.length;
         previewData.fillTemplate = fillCode;
+        previewData.prompt = question.trim() || undefined;
+        previewData.blanks = blanks;
       }
 
       let exerciseId = draftId;
       if (isComplete) {
+        const isExistingServerExercise =
+          initData?.exerciseId &&
+          !initData.exerciseId.startsWith("draft-") &&
+          !initData.exerciseId.startsWith("skeleton-");
+
         let questionsData: any[] = [];
         if (subType === "quiz") {
-          questionsData = [{
-             id: "1",
-             prompt: question.trim(),
-             options: answers.filter((a) => a.text.trim()).map(a => a.text.trim()),
-             correctAnswer: answers.filter(a => a.correct && a.text.trim()).map(a => a.text.trim()).join(',')
-          }];
+          questionsData = [
+            {
+              id: "1",
+              prompt: question.trim() || effectiveTitle || "Quiz Question",
+              options: answers.filter((a) => a.text.trim()).map((a) => a.text.trim()),
+              correctAnswer: answers
+                .filter((a) => a.correct && a.text.trim())
+                .map((a) => a.text.trim())
+                .join(","),
+            },
+          ];
         } else {
           questionsData = blanks.map((b, i) => ({
-             id: b.id || String(i+1),
-             prompt: fillCode,
-             correctAnswer: b.answer
+            id: b.id || String(i + 1),
+            prompt: fillCode || effectiveTitle || "Fill in the blank",
+            correctAnswer: b.answer,
           }));
         }
 
-        const res = await exercisesControllerCreate({
-          body: {
-            title: effectiveTitle,
-            trackId: trackId !== "_" ? trackId : "00000000-0000-0000-0000-000000000000",
-            tag: "minigame",
-            difficulty: "Beginner",
-            estimatedTime: "15 mins",
-            xp: initData?.xp ?? 10,
-            brief: initData?.previewData?.brief || t("defaultBrief", { type: actualType }),
-            overview: t("defaultOverview"),
-            objectives: [t("defaultObjective")],
-            steps: [t("defaultStep1"), t("defaultStep2"), t("defaultStep3")],
-            type: actualType,
-            questionsData,
-          },
-          throwOnError: true,
-        });
-        if (!(res.data as ExerciseDetailDto | undefined)?.id) {
-          throw new Error("missing-exercise-id");
+        const payloadBody = {
+          title: effectiveTitle,
+          trackId: trackId !== "_" ? trackId : "00000000-0000-0000-0000-000000000000",
+          tag: "minigame",
+          difficulty: "Beginner" as const,
+          estimatedTime: "15 mins",
+          xp: initData?.xp ?? 10,
+          hint: hint.trim() || undefined,
+          brief: question.trim() || initData?.previewData?.brief || t("defaultBrief", { type: actualType }),
+          overview: t("defaultOverview"),
+          objectives: [t("defaultObjective")],
+          steps: [t("defaultStep1"), t("defaultStep2"), t("defaultStep3")],
+          type: actualType,
+          questionsData,
+        };
+
+        if (isExistingServerExercise) {
+          const existingId = initData!.exerciseId!;
+          const res = await exercisesControllerUpdate({
+            path: { id: existingId },
+            body: payloadBody,
+            throwOnError: true,
+          });
+          exerciseId = (res.data as ExerciseDetailDto)?.id || existingId;
+        } else {
+          const res = await exercisesControllerCreate({
+            body: payloadBody,
+            throwOnError: true,
+          });
+          if (!(res.data as ExerciseDetailDto | undefined)?.id) {
+            throw new Error("missing-exercise-id");
+          }
+          exerciseId = (res.data as ExerciseDetailDto).id as string;
         }
-        exerciseId = (res.data as ExerciseDetailDto).id as string;
       }
 
       onSaved({
@@ -656,8 +794,9 @@ const MinigameCreateDialog: React.FC<{
       });
       reset();
       onClose();
-    } catch {
-      toast.error(t("saveFailed"));
+    } catch (err: any) {
+      console.error("Save minigame error:", err);
+      toast.error(err?.body?.message || err?.message || t("saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -706,22 +845,51 @@ const MinigameCreateDialog: React.FC<{
 
           {/* Content by sub-type */}
           {subType === "quiz" ? (
-            <QuizEditor
-              question={question}
-              onQuestionChange={setQuestion}
-              answerType={answerType}
-              onAnswerTypeChange={setAnswerType}
-              answers={answers}
-              onAnswersChange={setAnswers}
-            />
+            <div className="space-y-3">
+              <QuizEditor
+                question={question}
+                onQuestionChange={setQuestion}
+                answerType={answerType}
+                onAnswerTypeChange={setAnswerType}
+                answers={answers}
+                onAnswersChange={setAnswers}
+              />
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-secondary">Gợi ý (Hint - Tùy chọn)</label>
+                <Input
+                  value={hint}
+                  onChange={(e) => setHint(e.target.value)}
+                  placeholder="Gợi ý giúp học viên trả lời câu hỏi..."
+                  className="text-xs"
+                />
+              </div>
+            </div>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-secondary">Đề bài / Hướng dẫn điền khuyết (Question/Prompt)</label>
+                <Input
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Vd: Hoàn thành đoạn code bên dưới bằng cách điền từ khóa thích hợp..."
+                  className="text-xs"
+                />
+              </div>
               <FillInBlankEditor
                 value={fillCode}
                 onChange={setFillCode}
                 blanks={blanks}
                 onBlanksChange={setBlanks}
               />
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-secondary">Gợi ý (Hint - Tùy chọn)</label>
+                <Input
+                  value={hint}
+                  onChange={(e) => setHint(e.target.value)}
+                  placeholder="Gợi ý giúp học viên hoàn thành bài tập..."
+                  className="text-xs"
+                />
+              </div>
             </div>
           )}
         </div>

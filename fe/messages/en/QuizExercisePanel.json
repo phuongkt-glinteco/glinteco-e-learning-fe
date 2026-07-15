@@ -1,0 +1,15 @@
+{
+  "mandatory": "Mandatory",
+  "hint": "Hint",
+  "hideHint": "Hide Hint",
+  "correct": "Correct",
+  "incorrect": "Incorrect",
+  "whyCorrectTitle": "Why is this correct?",
+  "gradingFeedbackTitle": "Grading Feedback",
+  "defaultPassedExplanation": "Your selection accurately satisfies the requirements for this concept.",
+  "defaultFailedExplanation": "Please review the concepts described in the lesson overview and try again.",
+  "checkAnswer": "Check Answer",
+  "checking": "Checking...",
+  "continueToNext": "Continue to Next",
+  "tryAgain": "Try Again"
+}

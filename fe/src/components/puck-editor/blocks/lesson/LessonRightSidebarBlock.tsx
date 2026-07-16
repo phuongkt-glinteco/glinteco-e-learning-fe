@@ -3,7 +3,7 @@
 import React from "react";
 import { useTranslations } from "next-intl";
 import { LessonRightSidebar } from "../../../features/tracks/components/LessonRightSidebar";
-import { deriveLessonSidebarState, useSafePuck } from "../../helper";
+import { useLessonSSOT, useSafePuck } from "../../helper";
 
 export interface LessonRightSidebarBlockProps {
   id?: string;
@@ -20,16 +20,10 @@ export const LessonRightSidebarBlock: React.FC<LessonRightSidebarBlockProps> = (
   const puck = useSafePuck();
   const isEditing = Boolean(puck);
 
-  const derivedState = React.useMemo(() => {
-    const content = (puck?.appState?.data?.content || []) as Array<{
-      type?: string;
-      props?: Record<string, unknown>;
-    }>;
-    return deriveLessonSidebarState(content, {
-      defaultExerciseTitle: t("defaultExerciseTitle"),
-      defaultDocTitle: t("defaultDocTitle"),
-    });
-  }, [puck?.appState?.data?.content, t]);
+  const derivedState = useLessonSSOT({
+    defaultExerciseTitle: t("defaultExerciseTitle"),
+    defaultDocTitle: t("defaultDocTitle"),
+  });
 
   const handleSelectExercise = React.useCallback(
     (blockIndex?: number) => {
@@ -48,9 +42,7 @@ export const LessonRightSidebarBlock: React.FC<LessonRightSidebarBlockProps> = (
       <LessonRightSidebar
         lesson={{ documents: derivedState.documents }}
         exercises={derivedState.exercises}
-        canvasHeadings={
-          derivedState.headings.length > 0 ? derivedState.headings : undefined
-        }
+        canvasHeadings={derivedState.headings}
         showToLearner={showToLearner}
         maxHeadingLevel={maxHeadingLevel}
         isEditing={isEditing}

@@ -1,3 +1,4 @@
+import React from "react";
 import { usePuck } from "@puckeditor/core";
 import { LessonPuckData, LessonRootProps } from "./types";
 
@@ -17,6 +18,7 @@ export function parseBodyToPuckData(
     type: fallbackRoot.type || "reading",
     documents: fallbackRoot.documents || [],
     exercises: fallbackRoot.exercises || [],
+    headings: fallbackRoot.headings || [],
   };
 
   const ensureFixedZones = (existingZones?: Record<string, any[]>) => {
@@ -89,6 +91,8 @@ export function parseBodyToPuckData(
               fallbackRoot.documents || parsed.root?.props?.documents || [],
             exercises:
               fallbackRoot.exercises || parsed.root?.props?.exercises || [],
+            headings:
+              fallbackRoot.headings || parsed.root?.props?.headings || [],
           },
         },
         zones: ensureFixedZones(parsed.zones),
@@ -224,10 +228,12 @@ export function useSafePuck() {
 
 export interface DerivedExerciseItem {
   id?: string;
+  exerciseId?: string;
   title?: string;
   blockIndex?: number;
-  status?: "draft" | "complete";
-  type?: "pr" | "minigame_quiz" | "minigame_fill";
+  status?: "draft" | "complete" | string;
+  type?: "pr" | "minigame_quiz" | "minigame_fill" | "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK" | string;
+  isMandatory?: boolean;
 }
 
 export interface DerivedDocumentItem {
@@ -244,7 +250,8 @@ export interface DerivedHeadingItem {
 
 export function deriveLessonSidebarState(
   content: Array<{ type?: string; props?: Record<string, unknown> }>,
-  fallbacks: { defaultExerciseTitle: string; defaultDocTitle: string }
+  fallbacks: { defaultExerciseTitle: string; defaultDocTitle: string },
+  rootProps?: { exercises?: unknown[]; documents?: unknown[]; headings?: unknown[] }
 ): {
   documents: DerivedDocumentItem[];
   exercises: DerivedExerciseItem[];
@@ -259,17 +266,22 @@ export function deriveLessonSidebarState(
       const exData = (block.props?.content || block.props?.exerciseData) as
         | {
             exerciseId?: string;
+            id?: string;
             title?: string;
-            status?: "draft" | "complete";
-            type?: "pr" | "minigame_quiz" | "minigame_fill";
+            status?: "draft" | "complete" | string;
+            type?: "pr" | "minigame_quiz" | "minigame_fill" | "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK" | string;
+            isMandatory?: boolean;
           }
         | undefined;
-      if (exData?.exerciseId) {
+      const idStr = exData?.exerciseId || exData?.id;
+      if (idStr) {
         derivedExs.push({
-          id: exData.exerciseId,
-          title: exData.title || fallbacks.defaultExerciseTitle,
-          status: exData.status || "complete",
-          type: exData.type,
+          id: idStr,
+          exerciseId: idStr,
+          title: exData?.title || fallbacks.defaultExerciseTitle,
+          status: exData?.status || "complete",
+          type: exData?.type,
+          isMandatory: Boolean((block.props as any)?.isMandatory ?? exData?.isMandatory),
           blockIndex: idx,
         });
       }
@@ -311,9 +323,69 @@ export function deriveLessonSidebarState(
     }
   });
 
+  const exercisesSSOT: DerivedExerciseItem[] =
+    Array.isArray(rootProps?.exercises) && rootProps.exercises.length > 0
+      ? rootProps.exercises.map((item: any, idx) => {
+          const idStr = item.exerciseId || item.id || `ex-${idx}`;
+          return {
+            id: idStr,
+            exerciseId: idStr,
+            title: item.title || fallbacks.defaultExerciseTitle,
+            status: item.status || "complete",
+            type: item.type,
+            isMandatory: Boolean(item.isMandatory),
+            blockIndex: item.blockIndex ?? idx,
+          };
+        })
+      : derivedExs;
+
+  const documentsSSOT: DerivedDocumentItem[] =
+    Array.isArray(rootProps?.documents) && rootProps.documents.length > 0
+      ? rootProps.documents.map((item: any, idx) => {
+          const docId = item.id || item.documentId || item.url || `doc-${idx}`;
+          return {
+            id: docId,
+            title: item.title || item.altText || fallbacks.defaultDocTitle,
+            url: item.url,
+          };
+        })
+      : derivedDocs;
+
+  const headingsSSOT: DerivedHeadingItem[] =
+    Array.isArray(rootProps?.headings) && rootProps.headings.length > 0
+      ? rootProps.headings.map((item: any, idx) => ({
+          id: item.id || slugifyHeadingId(item.text || item.title || `h-${idx}`, idx),
+          text: item.text || item.title || `Heading ${idx + 1}`,
+          level: Number(item.level) || 2,
+        }))
+      : derivedHeadings;
+
   return {
-    documents: derivedDocs,
-    exercises: derivedExs,
-    headings: derivedHeadings,
+    documents: documentsSSOT,
+    exercises: exercisesSSOT,
+    headings: headingsSSOT,
   };
+}
+
+export const LessonSSOTContext = React.createContext<{
+  exercises: DerivedExerciseItem[];
+  documents: DerivedDocumentItem[];
+  headings: DerivedHeadingItem[];
+} | null>(null);
+
+export function useLessonSSOT(fallbacks?: { defaultExerciseTitle?: string; defaultDocTitle?: string }) {
+  const context = React.useContext(LessonSSOTContext);
+  const puck = useSafePuck();
+  if (context) {
+    return context;
+  }
+  if (puck?.appState?.data) {
+    const content = (puck.appState.data.content || []) as Array<{ type?: string; props?: Record<string, unknown> }>;
+    const rootProps = (puck.appState.data.root?.props || {}) as Record<string, unknown>;
+    return deriveLessonSidebarState(content, {
+      defaultExerciseTitle: fallbacks?.defaultExerciseTitle || "Exercise",
+      defaultDocTitle: fallbacks?.defaultDocTitle || "Document",
+    }, rootProps);
+  }
+  return { exercises: [], documents: [], headings: [] };
 }

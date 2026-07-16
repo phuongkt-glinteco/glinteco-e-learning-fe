@@ -707,7 +707,7 @@ const MinigameCreateDialog: React.FC<{
         hint: hint.trim() || undefined,
       };
       if (subType === "quiz") {
-        previewData.questionCount = answers.filter((a) => a.text.trim()).length;
+        previewData.questionCount = initData?.previewData?.questionCount || 1;
         previewData.question = question.trim() || undefined;
         previewData.answerType = answerType;
         previewData.answers = answers

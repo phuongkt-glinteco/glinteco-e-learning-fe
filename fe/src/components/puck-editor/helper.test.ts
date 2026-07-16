@@ -106,18 +106,76 @@ describe('helper', () => {
       expect(result.exercises).toHaveLength(2);
       expect(result.exercises[0]).toEqual({
         id: 'ex-1',
+        exerciseId: 'ex-1',
         title: 'Exercise via content',
         status: 'complete',
         type: 'PR_REVIEW',
+        isMandatory: false,
         blockIndex: 0,
       });
       expect(result.exercises[1]).toEqual({
         id: 'ex-2',
+        exerciseId: 'ex-2',
         title: 'Exercise via exerciseData',
         status: 'draft',
         type: 'QUIZ',
+        isMandatory: false,
         blockIndex: 1,
       });
+    });
+
+    it('prioritizes rootProps.exercises and rootProps.documents when provided (Single Source of Truth)', () => {
+      const content = [
+        {
+          type: 'SingleExerciseBlock',
+          props: {
+            content: { exerciseId: 'canvas-ex-1', title: 'Canvas Ex' },
+          },
+        },
+      ];
+      const rootProps = {
+        exercises: [
+          { exerciseId: 'ssot-ex-1', title: 'SSOT Ex 1', isMandatory: true, type: 'QUIZ' },
+        ],
+        documents: [
+          { id: 'ssot-doc-1', title: 'SSOT Doc 1', url: 'https://example.com' },
+        ],
+        headings: [
+          { id: 'ssot-heading-1', title: 'SSOT Heading 1', level: 1 },
+        ],
+      };
+
+      const result = deriveLessonSidebarState(
+        content,
+        { defaultExerciseTitle: 'Default Ex', defaultDocTitle: 'Default Doc' },
+        rootProps
+      );
+
+      expect(result.exercises).toEqual([
+        {
+          id: 'ssot-ex-1',
+          exerciseId: 'ssot-ex-1',
+          title: 'SSOT Ex 1',
+          status: 'complete',
+          type: 'QUIZ',
+          isMandatory: true,
+          blockIndex: 0,
+        },
+      ]);
+      expect(result.documents).toEqual([
+        {
+          id: 'ssot-doc-1',
+          title: 'SSOT Doc 1',
+          url: 'https://example.com',
+        },
+      ]);
+      expect(result.headings).toEqual([
+        {
+          id: 'ssot-heading-1',
+          text: 'SSOT Heading 1',
+          level: 1,
+        },
+      ]);
     });
   });
 });

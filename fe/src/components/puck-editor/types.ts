@@ -6,13 +6,14 @@ export type LessonType = LessonDetailDto["type"]; // 'video' | 'reading' | 'quiz
 
 // 1. Root Metadata chuẩn của Lesson (Đồng bộ với DTO gửi lên Backend)
 export interface LessonRootProps {
-  title: string;
+  title?: string;
   description?: string;
   estimatedTime?: string;
   order?: number;
-  type: LessonType;
+  type?: LessonType;
   documents?: unknown[];
   exercises?: unknown[];
+  headings?: unknown[];
 }
 
 // 2. Định nghĩa các Enum / Type cho Code Block (chia theo nhóm như mô tả)

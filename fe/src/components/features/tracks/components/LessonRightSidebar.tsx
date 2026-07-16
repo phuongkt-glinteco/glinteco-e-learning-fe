@@ -158,7 +158,7 @@ export function LessonRightSidebar({
   const t = useTranslations('PuckEditor.Common.sidebar');
 
   const headings = useMemo(() => {
-    if (canvasHeadings && canvasHeadings.length > 0) {
+    if (canvasHeadings !== undefined) {
       return canvasHeadings.filter((item) => item.level <= maxHeadingLevel);
     }
 

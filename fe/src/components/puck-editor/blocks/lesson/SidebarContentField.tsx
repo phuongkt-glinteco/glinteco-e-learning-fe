@@ -3,7 +3,7 @@
 import React from "react";
 import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { BookOpen, FileText, AlertTriangle } from "lucide-react";
+import { BookOpen, FileText, AlertTriangle, Hash, RefreshCw } from "lucide-react";
 import { deriveLessonSidebarState, useSafePuck } from "../../helper";
 import { useLessonDraftStore } from "../../../../stores/lessonDraftStore";
 
@@ -44,8 +44,8 @@ export const SidebarContentField: React.FC = () => {
     return deriveLessonSidebarState(content, {
       defaultExerciseTitle: t("defaultExerciseTitle"),
       defaultDocTitle: t("defaultDocTitle"),
-    });
-  }, [draft?.body, puck?.appState?.data?.content, t]);
+    }, (puck?.appState?.data?.root?.props || {}) as Record<string, unknown>);
+  }, [draft?.body, puck?.appState?.data?.content, puck?.appState?.data?.root?.props, t]);
 
   const handleCompleteDraft = React.useCallback(
     (exercise: { id?: string; blockIndex?: number }) => {
@@ -66,8 +66,72 @@ export const SidebarContentField: React.FC = () => {
     [puck]
   );
 
+  const handleSyncHeadings = React.useCallback(() => {
+    if (!puck?.appState?.data) return;
+    const content = (puck.appState.data.content || []) as Array<{
+      type?: string;
+      props?: Record<string, unknown>;
+    }>;
+    const { headings } = deriveLessonSidebarState(content, {
+      defaultExerciseTitle: t("defaultExerciseTitle"),
+      defaultDocTitle: t("defaultDocTitle"),
+    });
+    puck.dispatch({
+      type: "setData",
+      data: {
+        ...puck.appState.data,
+        root: {
+          ...(puck.appState.data.root || {}),
+          props: {
+            ...((puck.appState.data.root?.props || {}) as Record<string, unknown>),
+            headings,
+          },
+        },
+      } as any,
+    });
+  }, [puck, t]);
+
   return (
     <div className="space-y-4 pt-2">
+      {/* Headings Section (SSOT Table of Contents) */}
+      <div className="space-y-2 border-b border-outline-variant/60 pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-label-sm font-semibold text-foreground">
+            <Hash className="w-4 h-4 text-primary" />
+            <span>Mục lục ({derivedState.headings.length})</span>
+          </div>
+          {puck && (
+            <button
+              type="button"
+              onClick={handleSyncHeadings}
+              className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
+              title="Đồng bộ mục lục từ nội dung canvas vào root props"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Đồng bộ</span>
+            </button>
+          )}
+        </div>
+        {derivedState.headings.length > 0 ? (
+          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            {derivedState.headings.map((h, i) => (
+              <div
+                key={h.id || i}
+                className="flex items-center gap-2 p-1.5 rounded-lg text-xs border bg-surface-container-low border-outline-variant/60"
+                style={{ paddingLeft: `${Math.max(1, h.level - 1) * 12 + 6}px` }}
+              >
+                <span className="shrink-0 text-[10px] font-bold text-muted-foreground bg-surface px-1.5 py-0.5 rounded border">
+                  H{h.level}
+                </span>
+                <span className="truncate flex-1 font-medium">{h.text}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-label-xs text-muted-foreground italic">Chưa có mục lục. Nhấn Đồng bộ nếu vừa thêm Heading.</p>
+        )}
+      </div>
+
       {/* Exercises Section */}
       <div className="space-y-2">
         <div className="flex items-center gap-2 text-label-sm font-semibold text-foreground">

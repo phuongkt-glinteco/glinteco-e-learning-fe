@@ -37,46 +37,10 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
   return useMemo<Config<LessonBlockProps, LessonRootProps>>(() => ({
     // 1. Cấu hình Root Metadata bắt buộc của Lesson (dịch động label & option theo locale)
     root: {
-      fields: {
-        title: {
-          type: "text",
-          label: t("root.titleLabel"),
-        },
-        description: {
-          type: "textarea",
-          label: t("root.descriptionLabel"),
-        },
-        estimatedTime: {
-          type: "text",
-          label: t("root.estimatedTimeLabel"),
-        },
-        type: {
-          type: "select",
-          label: t("root.typeLabel"),
-          options: [
-            { label: t("root.types.reading"), value: "reading" },
-            { label: t("root.types.video"), value: "video" },
-            { label: t("root.types.quiz"), value: "quiz" },
-            { label: t("root.types.coding"), value: "coding" },
-            { label: t("root.types.assignment"), value: "assignment" },
-          ],
-        },
-      },
-      defaultProps: {
-        title: "Tiêu đề bài học mới",
-        description: "Mô tả nội dung chính của bài học này...",
-        estimatedTime: "15 mins",
-        order: 1,
-        type: "reading",
-      },
-      render: ({ title, description, estimatedTime, order, type, children }) => (
-        <LessonRootHeader
-          title={title}
-          description={description}
-          estimatedTime={estimatedTime}
-          order={order}
-          type={type}
-        >
+      fields: {},
+      defaultProps: {},
+      render: ({ children, ...props }) => (
+        <LessonRootHeader {...props}>
           {children}
         </LessonRootHeader>
       ),
@@ -205,37 +169,10 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
 // Cấu hình tĩnh mặc định (phòng trường hợp dùng ở Server Component hoặc non-hook)
 export const lessonPuckConfig: Config<LessonBlockProps, LessonRootProps> = {
   root: {
-    fields: {
-      title: { type: "text", label: "Tiêu đề bài học (Bắt buộc)" },
-      description: { type: "textarea", label: "Mô tả ngắn" },
-      estimatedTime: { type: "text", label: "Thời gian ước tính (VD: 15 mins)" },
-      type: {
-        type: "select",
-        label: "Phân loại bài học",
-        options: [
-          { label: "Lý thuyết (Reading)", value: "reading" },
-          { label: "Video bài giảng (Video)", value: "video" },
-          { label: "Câu hỏi nhanh (Quiz)", value: "quiz" },
-          { label: "Lập trình (Coding)", value: "coding" },
-          { label: "Bài tập lớn (Assignment)", value: "assignment" },
-        ],
-      },
-    },
-    defaultProps: {
-      title: "Tiêu đề bài học mới",
-      description: "Mô tả nội dung chính của bài học này...",
-      estimatedTime: "15 mins",
-      order: 1,
-      type: "reading",
-    },
-    render: ({ title, description, estimatedTime, order, type, children }) => (
-      <LessonRootHeader
-        title={title}
-        description={description}
-        estimatedTime={estimatedTime}
-        order={order}
-        type={type}
-      >
+    fields: {},
+    defaultProps: {},
+    render: ({ children, ...props }) => (
+      <LessonRootHeader {...props}>
         {children}
       </LessonRootHeader>
     ),

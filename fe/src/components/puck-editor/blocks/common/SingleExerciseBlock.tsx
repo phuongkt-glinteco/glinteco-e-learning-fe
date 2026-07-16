@@ -18,7 +18,6 @@ import { LessonBlockProps } from "../../types";
 import { ExerciseSelectorField, type ExerciseData } from "../../fields";
 import { parseFillInBlankTokens } from "../../fields/fillInBlankUtils";
 import { useSafePuck } from "../../helper";
-import { useLessonExercisesStore } from "../../../../stores/lessonExercisesStore";
 import { exercisesControllerSubmitAuto } from "@/services/api-client";
 import type { AutoGradeResultDto } from "@/services/client/types.gen";
 
@@ -124,7 +123,6 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
   },
   render: ({ content, title, type, xp, viewStyle, isMandatory, id }) => {
     const t = useTranslations("PuckEditor.Common.exerciseEmbed");
-    const registerExercise = useLessonExercisesStore((state) => state.registerExercise);
     const pathname = usePathname();
     const puckObj = useSafePuck();
     const isPuckEditingCanvas = (puckObj?.appState as any)?.isEditing === true;
@@ -228,13 +226,6 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
         });
     };
 
-    useEffect(() => {
-      if (content?.exerciseId && id) {
-        // We inject isMandatory to the content data so GroupExerciseBlock can use it
-        registerExercise(id, { ...content, isMandatory: Boolean(isMandatory) });
-      }
-    }, [content, id, isMandatory, registerExercise]);
-
     const data = (content || {}) as ExerciseData;
     const isDraft = data.status === "draft";
     const effectiveType = type || data.type;
@@ -324,6 +315,12 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
 
         {effectiveType === "QUIZ" && viewStyle === "inline_interactive" && (
           <div className="space-y-3 rounded-lg border border-outline-variant/60 bg-surface/70 p-4">
+            {submitResult && (
+              <div className={`flex items-center justify-between rounded-md px-3.5 py-2 text-label-sm font-medium ${submitResult.passed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-300 dark:border-rose-800'}`}>
+                <span>{submitResult.passed ? "Bạn đã trả lời đúng!" : "Bạn đã trả lời sai!"}</span>
+                {submitResult.score !== undefined && <span className="font-bold">{submitResult.score}%</span>}
+              </div>
+            )}
             <p className="text-label-sm font-semibold text-foreground">
               {t("quizQuestionLabel")}
             </p>
@@ -363,23 +360,23 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
                 type="button"
                 disabled={!selectedAnswers["1"] || isSubmitting}
                 onClick={handleSubmitQuiz}
-                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-label-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-label-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors cursor-pointer"
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {submitResult ? "Làm lại" : "Nộp bài"}
               </button>
-              {submitResult && (
-                <span className={`text-label-sm font-medium ${submitResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                   {submitResult.passed ? "Bạn đã trả lời đúng!" : "Bạn đã trả lời sai!"}
-                   {submitResult.score !== undefined && ` (${submitResult.score}%)`}
-                </span>
-              )}
             </div>
           </div>
         )}
 
         {effectiveType === "FILL_IN_BLANK" && viewStyle === "inline_interactive" && (
           <div className="space-y-3 rounded-lg border border-outline-variant/60 bg-surface/70 p-4">
+            {submitResult && (
+              <div className={`flex items-center justify-between rounded-md px-3.5 py-2 text-label-sm font-medium ${(submitResult as any).message ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-300 dark:border-amber-800' : submitResult.passed ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-300 dark:border-rose-800'}`}>
+                <span>{(submitResult as any).message || (submitResult.passed ? "Bạn đã làm đúng!" : "Bạn đã làm sai!")}</span>
+                {submitResult.score !== undefined && <span className="font-bold">{submitResult.score}%</span>}
+              </div>
+            )}
             <p className="text-label-sm font-semibold text-foreground">
               {t("fillTemplateLabel")}
             </p>
@@ -399,12 +396,6 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {submitResult ? "Làm lại" : "Nộp bài"}
               </button>
-              {submitResult && (
-                <span className={`text-label-sm font-medium ${(submitResult as any).message ? 'text-amber-600 dark:text-amber-400' : submitResult.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                   {(submitResult as any).message || (submitResult.passed ? "Bạn đã làm đúng!" : "Bạn đã làm sai!")}
-                   {submitResult.score !== undefined && ` (${submitResult.score}%)`}
-                </span>
-              )}
             </div>
           </div>
         )}

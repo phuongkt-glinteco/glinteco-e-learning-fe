@@ -136,33 +136,44 @@ export function AdminTrackListTable() {
 
       {/* Table Container */}
       <div className="rounded-2xl border border-outline-variant bg-surface overflow-hidden shadow-sm">
-        {loading ? (
-          <div className="p-12 text-center text-xs text-on-surface-variant">
-            {t('deleting')}
-          </div>
-        ) : error ? (
-          <div className="p-12 text-center text-xs text-error">
-            {t('loadError')}
-          </div>
-        ) : filteredTracks.length === 0 ? (
-          <div className="p-12 text-center text-xs text-on-surface-variant">
-            {t('emptyTitle')}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
-                  <th className="px-5 py-3.5">{t('colTrack')}</th>
-                  <th className="px-5 py-3.5">{t('colTags')}</th>
-                  <th className="px-5 py-3.5">{t('colStatus')}</th>
-                  <th className="px-5 py-3.5">{t('colStats')}</th>
-                  <th className="px-5 py-3.5">{t('colLearners')}</th>
-                  <th className="px-5 py-3.5 text-right">{t('colActions')}</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
+                <th className="px-5 py-3.5">{t('colTrack')}</th>
+                <th className="px-5 py-3.5">{t('colTags')}</th>
+                <th className="px-5 py-3.5">{t('colStatus')}</th>
+                <th className="px-5 py-3.5">{t('colStats')}</th>
+                <th className="px-5 py-3.5">{t('colLearners')}</th>
+                <th className="px-5 py-3.5 text-right">{t('colActions')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant/60 text-xs">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-16 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Icon icon="lucide:loader-2" className="w-7 h-7 text-primary animate-spin" />
+                      <span className="text-sm font-medium text-on-surface-variant">
+                        {t('loading', { defaultValue: 'Đang tải danh sách lộ trình...' })}
+                      </span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/60 text-xs">
-                {filteredTracks.map((track) => (
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="p-12 text-center text-xs text-error font-medium">
+                    {t('loadError')}
+                  </td>
+                </tr>
+              ) : filteredTracks.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-12 text-center text-xs text-on-surface-variant">
+                    {t('emptyTitle')}
+                  </td>
+                </tr>
+              ) : (
+                filteredTracks.map((track) => (
                   <tr
                     key={track.id}
                     className="hover:bg-surface-container/30 transition-colors"
@@ -237,11 +248,11 @@ export function AdminTrackListTable() {
                       />
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}

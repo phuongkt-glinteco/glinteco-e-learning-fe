@@ -38,5 +38,6 @@
   "statusActive": "Đang hoạt động",
   "statusDeveloping": "Đang phát triển",
   "statsCompleted": "Hoàn thành: {count} ({percent}%)",
-  "fetchError": "Không thể tải danh sách lộ trình"
+  "fetchError": "Không thể tải danh sách lộ trình",
+  "loading": "Đang tải danh sách lộ trình..."
 }

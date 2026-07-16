@@ -9,7 +9,6 @@ import { useTracks } from '@/hooks/useTracks';
 import { tracksControllerDelete } from '@/services/api-client';
 import { AppButton } from '@/components/ui/buttons';
 import Modal from '@/components/ui/Modal';
-import Skeleton from '@/components/ui/loading/Skeleton';
 import { TrackActionsDropdown } from './TrackActionsDropdown';
 
 const STATUS_CONFIG: Record<string, { cls: string; icon: string }> = {
@@ -212,30 +211,7 @@ export default function TrackListTable() {
 
       {/* Table Card */}
       <div className="bg-surface-container-lowest border border-outline-variant rounded-lg card-shadow overflow-hidden w-full">
-        {loading ? (
-          <div className="p-lg space-y-md w-full">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} height={48} rounded="rounded-lg" className="w-full" />
-            ))}
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center py-2xl gap-md">
-            <div className="w-12 h-12 rounded-lg bg-error/10 flex items-center justify-center">
-              <Icon icon="lucide:alert-circle" className="text-2xl text-error" />
-            </div>
-            <p className="text-body-sm text-on-surface-variant">{t('error')}</p>
-            <AppButton variant="outline" onClick={refetch}>
-              {t('retry')}
-            </AppButton>
-          </div>
-        ) : tracks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-2xl gap-md">
-            <div className="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center">
-              <Icon icon="lucide:folder-open" className="text-2xl text-on-surface-variant" />
-            </div>
-            <p className="text-body-sm text-on-surface-variant">{t('empty')}</p>
-          </div>
-        ) : (
+        <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant">
@@ -254,46 +230,84 @@ export default function TrackListTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
-              {tracks.map((track) => (
-                <tr
-                  key={track.id}
-                  className="even:bg-background hover:bg-surface-container transition-colors duration-200 group"
-                >
-                  <td className="px-lg py-md">
-                    <Link
-                      href={`/admin/tracks/${track.id}`}
-                      className="flex flex-col gap-0.5 group/link"
-                    >
-                      <span className="font-label-md text-on-surface group-hover/link:text-primary transition-colors duration-200">
-                        {track.title}
-                      </span>
-                      <span className="text-body-sm text-on-surface-variant line-clamp-1">
-                        {track.description}
-                      </span>
-                    </Link>
-                  </td>
-                  <td className="px-lg py-md">
-                    <div className="flex items-center gap-1.5 text-on-surface-variant">
-                      <Icon icon="lucide:book-open" className="w-4 h-4" />
-                      <span className="text-body-sm font-medium">
-                        {t('table.lessons', { count: track.lessonCount })}
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="py-16 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <Icon icon="lucide:loader-2" className="w-7 h-7 text-primary animate-spin" />
+                      <span className="text-sm font-medium text-on-surface-variant">
+                        {t('loading', { defaultValue: 'Đang tải danh sách lộ trình...' })}
                       </span>
                     </div>
                   </td>
-                  <td className="px-lg py-md">
-                    <StatusChip status={track.status} label={statusLabel(track.status)} />
-                  </td>
-                  <td className="px-lg py-md text-right">
-                    <TrackActionsDropdown
-                      trackId={track.id}
-                      onDelete={() => setDeleteTarget({ id: track.id, title: track.title })}
-                    />
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={4} className="py-2xl text-center">
+                    <div className="flex flex-col items-center justify-center gap-md">
+                      <div className="w-12 h-12 rounded-lg bg-error/10 flex items-center justify-center">
+                        <Icon icon="lucide:alert-circle" className="text-2xl text-error" />
+                      </div>
+                      <p className="text-body-sm text-on-surface-variant">{t('error')}</p>
+                      <AppButton variant="outline" onClick={refetch}>
+                        {t('retry')}
+                      </AppButton>
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : tracks.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-2xl text-center">
+                    <div className="flex flex-col items-center justify-center gap-md">
+                      <div className="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center">
+                        <Icon icon="lucide:folder-open" className="text-2xl text-on-surface-variant" />
+                      </div>
+                      <p className="text-body-sm text-on-surface-variant">{t('empty')}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                tracks.map((track) => (
+                  <tr
+                    key={track.id}
+                    className="even:bg-background hover:bg-surface-container transition-colors duration-200 group"
+                  >
+                    <td className="px-lg py-md">
+                      <Link
+                        href={`/admin/tracks/${track.id}`}
+                        className="flex flex-col gap-0.5 group/link"
+                      >
+                        <span className="font-label-md text-on-surface group-hover/link:text-primary transition-colors duration-200">
+                          {track.title}
+                        </span>
+                        <span className="text-body-sm text-on-surface-variant line-clamp-1">
+                          {track.description}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="px-lg py-md">
+                      <div className="flex items-center gap-1.5 text-on-surface-variant">
+                        <Icon icon="lucide:book-open" className="w-4 h-4" />
+                        <span className="text-body-sm font-medium">
+                          {t('table.lessons', { count: track.lessonCount })}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-lg py-md">
+                      <StatusChip status={track.status} label={statusLabel(track.status)} />
+                    </td>
+                    <td className="px-lg py-md text-right">
+                      <TrackActionsDropdown
+                        trackId={track.id}
+                        onDelete={() => setDeleteTarget({ id: track.id, title: track.title })}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
 
         {/* Pagination */}
         {meta && tracks.length > 0 && (

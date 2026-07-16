@@ -38,5 +38,6 @@
   "statusActive": "Active",
   "statusDeveloping": "Developing",
   "statsCompleted": "Completed: {count} ({percent}%)",
-  "fetchError": "Failed to fetch admin tracks"
+  "fetchError": "Failed to fetch admin tracks",
+  "loading": "Loading tracks..."
 }

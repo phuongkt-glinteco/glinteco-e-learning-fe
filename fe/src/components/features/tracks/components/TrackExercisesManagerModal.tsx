@@ -107,7 +107,7 @@ export function TrackExercisesManagerModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0 overflow-hidden bg-surface-container-lowest border border-outline-variant shadow-xl rounded-2xl">
+        <DialogContent className="max-w-3xl sm:max-w-3xl max-h-[85vh] flex flex-col p-0 overflow-hidden bg-surface-container-lowest border border-outline-variant shadow-xl rounded-2xl">
           <DialogHeader className="p-6 pb-4 border-b border-outline-variant bg-surface flex flex-row items-center justify-between">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2.5">
@@ -266,7 +266,7 @@ export function TrackExercisesManagerModal({
           {deleteError && (
             <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
               <Icon icon="lucide:alert-circle" className="w-4 h-4 shrink-0" />
-              <span>{deleteError}</span>
+              <span>{t(deleteError, { defaultValue: deleteError })}</span>
             </div>
           )}
 

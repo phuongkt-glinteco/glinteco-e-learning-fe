@@ -122,7 +122,7 @@ export default function LinkedExercisesCard({ trackId, exercises = [], onDeleteE
           {deleteError && (
             <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
               <span className="material-symbols-outlined text-base">error</span>
-              <span>{t(deleteError)}</span>
+              <span>{t(deleteError, { defaultValue: deleteError })}</span>
             </div>
           )}
 

@@ -53,5 +53,9 @@
   "NOT_FOUND": "Không tìm thấy tài nguyên yêu cầu.",
   "UNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
   "viewNextTrack": "Xem lộ trình tiếp theo",
-  "nextTrack": "Lộ trình tiếp theo: "
+  "nextTrack": "Lộ trình tiếp theo: ",
+  "DELETE_EXERCISE_FAILED": "Không thể xóa bài tập. Vui lòng thử lại.",
+  "EXERCISE_NOT_FOUND": "Bài tập không tồn tại hoặc đã bị xóa.",
+  "UNAUTHORIZED": "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+  "INTERNAL_SERVER_ERROR": "Lỗi hệ thống từ máy chủ. Vui lòng thử lại sau."
 }

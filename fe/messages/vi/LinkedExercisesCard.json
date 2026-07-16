@@ -18,5 +18,12 @@
   "deleteExerciseModalTitle": "Xác nhận xóa bài tập",
   "deleteExerciseModalBody": "Bạn có chắc chắn muốn xóa bài tập này? Thao tác này sẽ xóa vĩnh viễn và không thể hoàn tác.",
   "cancel": "Hủy",
-  "delete": "Xóa bài tập"
+  "delete": "Xóa bài tập",
+  "UNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+  "DELETE_EXERCISE_FAILED": "Không thể xóa bài tập. Vui lòng thử lại.",
+  "EXERCISE_NOT_FOUND": "Bài tập không tồn tại hoặc đã bị xóa.",
+  "NOT_FOUND": "Không tìm thấy bài tập.",
+  "UNAUTHORIZED": "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
+  "FORBIDDEN": "Bạn không có quyền xóa bài tập này.",
+  "INTERNAL_SERVER_ERROR": "Lỗi hệ thống từ máy chủ. Vui lòng thử lại sau."
 }

@@ -3,5 +3,8 @@
   "defaultMessage": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
   "errorCode": "Mã lỗi",
   "goHome": "Về Trang Chủ",
-  "goToLogin": "Đi đến Đăng Nhập"
+  "goToLogin": "Đi đến Đăng Nhập",
+  "UNKNOWN_ERROR": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+  "MISSING_MESSAGE": "Lỗi thiếu từ khóa đa ngôn ngữ. Vui lòng thử lại hoặc báo cáo quản trị viên.",
+  "NEXT_INTL_MISSING_MESSAGE": "Lỗi thiếu từ khóa đa ngôn ngữ."
 }

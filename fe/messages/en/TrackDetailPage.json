@@ -53,5 +53,9 @@
   "NOT_FOUND": "The requested resource could not be found.",
   "UNKNOWN_ERROR": "An unexpected error occurred. Please try again.",
   "viewNextTrack": "View Next Track",
-  "nextTrack": "Next Track: "
+  "nextTrack": "Next Track: ",
+  "DELETE_EXERCISE_FAILED": "Failed to delete exercise. Please try again.",
+  "EXERCISE_NOT_FOUND": "The exercise does not exist or has already been deleted.",
+  "UNAUTHORIZED": "Session expired. Please log in again.",
+  "INTERNAL_SERVER_ERROR": "Server error occurred. Please try again later."
 }

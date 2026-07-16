@@ -18,5 +18,12 @@
   "deleteExerciseModalTitle": "Delete Exercise",
   "deleteExerciseModalBody": "Are you sure you want to delete this exercise? This action cannot be undone.",
   "cancel": "Cancel",
-  "delete": "Delete Exercise"
+  "delete": "Delete Exercise",
+  "UNKNOWN_ERROR": "An unexpected error occurred. Please try again.",
+  "DELETE_EXERCISE_FAILED": "Failed to delete exercise. Please try again.",
+  "EXERCISE_NOT_FOUND": "The exercise does not exist or has already been deleted.",
+  "NOT_FOUND": "Exercise not found.",
+  "UNAUTHORIZED": "Session expired. Please log in again.",
+  "FORBIDDEN": "You do not have permission to delete this exercise.",
+  "INTERNAL_SERVER_ERROR": "Server error occurred. Please try again later."
 }

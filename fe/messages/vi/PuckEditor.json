@@ -30,7 +30,13 @@
       "loadError": "Không thể tải dữ liệu bài học",
       "saveError": "Có lỗi xảy ra khi lưu bài học",
       "savedAt": "Lưu lúc {time}",
-      "loadingLesson": "Đang tải dữ liệu bài học..."
+      "loadingLesson": "Đang tải dữ liệu bài học...",
+      "saveResultSuccessTitle": "Lưu bài học thành công!",
+      "saveResultErrorTitle": "Lưu bài học thất bại",
+      "saveResultSuccessDesc": "Dữ liệu bài học đã được lưu vào hệ thống. Bạn muốn tiếp tục thực hiện thao tác nào dưới đây?",
+      "stayAndEditBtn": "Tiếp tục sửa",
+      "backToTrackBtn": "Về lộ trình",
+      "goToLessonDetailBtn": "Xem bài học"
     },
     "aiModal": {
       "title": "Trợ lý AI Tạo Bài Học Tự Động (Puck Studio)",

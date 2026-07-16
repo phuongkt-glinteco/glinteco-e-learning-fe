@@ -30,7 +30,13 @@
       "loadError": "Failed to load lesson data",
       "saveError": "An error occurred while saving the lesson",
       "savedAt": "Saved at {time}",
-      "loadingLesson": "Loading lesson data..."
+      "loadingLesson": "Loading lesson data...",
+      "saveResultSuccessTitle": "Lesson saved successfully!",
+      "saveResultErrorTitle": "Failed to save lesson",
+      "saveResultSuccessDesc": "Lesson data has been saved to the system. Where would you like to go next?",
+      "stayAndEditBtn": "Keep editing",
+      "backToTrackBtn": "Back to track",
+      "goToLessonDetailBtn": "View lesson"
     },
     "aiModal": {
       "title": "AI Lesson Generator (Puck Studio)",

@@ -26,6 +26,15 @@ import { LessonEditorBottomBar, type ViewportMode } from './LessonEditorBottomBa
 import { useLessonDraftStore, type LessonDraftData } from '@/stores/lessonDraftStore';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { AILessonGeneratorModal } from './AILessonGeneratorModal';
+import Modal from '@/components/ui/Modal';
+import { AppButton } from '@/components/ui/buttons';
+
+type SaveResultModalState = {
+  status: 'success' | 'error';
+  mode: 'create' | 'update' | 'draft';
+  savedLessonId?: string;
+  errorMessage?: string;
+} | null;
 
 type LessonEditorPageProps = {
   trackId?: string;
@@ -65,6 +74,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   const [saving, setSaving] = useState(false);
   const [uiValidationError, setUiValidationError] = useState<string | null>(null);
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [saveResultModal, setSaveResultModal] = useState<SaveResultModalState>(null);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -406,6 +416,11 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
         useLessonDraftStore.getState().clearDraft(draftKey);
         toast.success(t('updateSuccess'));
         await refreshTrackCache(trackId);
+        setSaveResultModal({
+          status: 'success',
+          mode: 'update',
+          savedLessonId: lessonId,
+        });
       } else if (trackId) {
         const createRes = await lessonsControllerCreateLesson({
           path: { id: trackId },
@@ -427,11 +442,11 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
 
         await refreshTrackCache(trackId);
 
-        if (newLessonId) {
-          router.replace(`/tracks/${trackId}/lessons/${newLessonId}/edit`);
-          setSaving(false);
-          return;
-        }
+        setSaveResultModal({
+          status: 'success',
+          mode: 'create',
+          savedLessonId: newLessonId,
+        });
       } else if (editIndex !== undefined) {
         const store = useTrackDraftStore.getState();
         const idx = Number(editIndex);
@@ -447,15 +462,23 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
         }
         useLessonDraftStore.getState().clearDraft(draftKey);
         toast.success(t('createSuccess'));
+        setSaveResultModal({
+          status: 'success',
+          mode: 'draft',
+        });
       }
     } catch (err: unknown) {
       setSaving(false);
       const msg = err instanceof Error ? err.message : t('saveError');
       toast.error(msg);
+      setSaveResultModal({
+        status: 'error',
+        mode: lessonId ? 'update' : editIndex !== undefined ? 'draft' : 'create',
+        errorMessage: msg,
+      });
       return;
     }
     setSaving(false);
-    router.back();
   }
 
   function handleRestoreDirtyDraft() {
@@ -629,6 +652,113 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
         initialEstimatedTime={estimatedTime}
         onConfirmGenerate={handleConfirmAiGenerate}
       />
+
+      <Modal
+        open={!!saveResultModal}
+        onClose={() => setSaveResultModal(null)}
+        width={540}
+        title={
+          saveResultModal?.status === 'success'
+            ? t('saveResultSuccessTitle', { defaultValue: 'Lưu bài học thành công!' })
+            : t('saveResultErrorTitle', { defaultValue: 'Lưu bài học thất bại' })
+        }
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center ${
+                saveResultModal?.status === 'success'
+                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400'
+                  : 'bg-error/10 text-error'
+              }`}
+            >
+              <Icon
+                icon={saveResultModal?.status === 'success' ? 'lucide:check-circle-2' : 'lucide:alert-circle'}
+                className="w-6 h-6"
+              />
+            </div>
+            <div className="space-y-1 flex-1 pt-0.5">
+              <p className="text-sm text-on-surface-variant leading-relaxed">
+                {saveResultModal?.status === 'success'
+                  ? t('saveResultSuccessDesc', {
+                      defaultValue:
+                        'Dữ liệu bài học đã được lưu vào hệ thống. Bạn muốn tiếp tục thực hiện thao tác nào dưới đây?',
+                    })
+                  : saveResultModal?.errorMessage || t('errorOccurred')}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-4 border-t border-outline-variant/60 w-full">
+            {saveResultModal?.status === 'success' ? (
+              <>
+                <AppButton
+                  variant="outline"
+                  className="px-2 py-2 text-xs sm:text-sm font-medium justify-center w-full whitespace-nowrap"
+                  onClick={() => {
+                    const modalState = saveResultModal;
+                    setSaveResultModal(null);
+                    if (modalState.mode === 'create' && modalState.savedLessonId && trackId) {
+                      window.history.replaceState(
+                        null,
+                        '',
+                        `/admin/tracks/${trackId}/lessons/${modalState.savedLessonId}/edit`
+                      );
+                    }
+                  }}
+                >
+                  {t('stayAndEditBtn', { defaultValue: 'Tiếp tục sửa' })}
+                </AppButton>
+
+                <AppButton
+                  variant="outline"
+                  className="px-2 py-2 text-xs sm:text-sm font-medium justify-center w-full whitespace-nowrap"
+                  onClick={() => {
+                    setSaveResultModal(null);
+                    if (trackId) {
+                      router.push(`/admin/tracks/${trackId}`);
+                    } else if (editIndex !== undefined) {
+                      router.push('/admin/tracks/create');
+                    } else {
+                      router.back();
+                    }
+                  }}
+                >
+                  {t('backToTrackBtn', { defaultValue: 'Về lộ trình' })}
+                </AppButton>
+
+                <AppButton
+                  variant="primary"
+                  className="px-2 py-2 text-xs sm:text-sm font-medium justify-center w-full whitespace-nowrap"
+                  onClick={() => {
+                    const savedId = saveResultModal.savedLessonId || lessonId;
+                    setSaveResultModal(null);
+                    if (trackId && savedId) {
+                      router.push(`/tracks/${trackId}/lessons/${savedId}`);
+                    } else if (trackId) {
+                      router.push(`/admin/tracks/${trackId}`);
+                    } else {
+                      router.push('/admin/tracks/create');
+                    }
+                  }}
+                >
+                  {t('goToLessonDetailBtn', { defaultValue: 'Xem bài học' })}
+                </AppButton>
+              </>
+            ) : (
+              <div className="sm:col-span-3 flex justify-end">
+                <AppButton
+                  variant="primary"
+                  className="px-6 py-2 text-xs sm:text-sm font-medium justify-center"
+                  onClick={() => setSaveResultModal(null)}
+                >
+                  {t('closeBtn', { defaultValue: 'Đóng' })}
+                </AppButton>
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal>
     </main>
   );
 }

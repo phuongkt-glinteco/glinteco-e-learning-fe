@@ -8,6 +8,8 @@
   "saveTrack": "Save Track",
   "saving": "Saving...",
   "loadError": "Failed to load track",
+  "failedToLoad": "Failed to load track data",
+  "retry": "Retry",
   "backToTracks": "Back to Tracks",
   "liveSummary": "Live Summary",
   "trackSummary": "Track Summary",

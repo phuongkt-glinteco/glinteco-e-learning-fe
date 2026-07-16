@@ -9,12 +9,7 @@ import {
   Undo2,
   Redo2,
   RotateCcw,
-  Eye,
-  Edit3,
   Loader2,
-  Monitor,
-  Tablet,
-  Smartphone,
   Sparkles,
 } from 'lucide-react';
 
@@ -24,10 +19,6 @@ interface LessonEditorBottomBarProps {
   onSave: () => void;
   saving?: boolean;
   canSave?: boolean;
-  onPreviewToggle?: () => void;
-  isPreview?: boolean;
-  viewport?: ViewportMode;
-  onViewportChange?: (vp: ViewportMode) => void;
   onHandleAiGenerate?: () => void;
   onReset?: () => void;
   onUndo?: () => void;
@@ -39,10 +30,6 @@ export function LessonEditorBottomBar({
   onSave,
   saving = false,
   canSave = true,
-  onPreviewToggle,
-  isPreview = false,
-  viewport = 'desktop',
-  onViewportChange,
   onHandleAiGenerate,
   onReset,
   onUndo,
@@ -128,83 +115,23 @@ export function LessonEditorBottomBar({
           </button>
         )}
       </div>
-      {!isPreview && (
-          <button
-            type="button"
-            onClick={handleAiGenerate}
-            disabled={aiGenerating}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
-          >
-            {aiGenerating ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Sparkles className="w-3.5 h-3.5" />
-            )}
-            {aiGenerating ? t('aiGenerating') : t('aiGenerateBtn')}
-          </button>
-      )}
 
-      {/* Cụm Viewport Simulation + Preview & Save + Nút thu gọn */}
+      <button
+        type="button"
+        onClick={handleAiGenerate}
+        disabled={aiGenerating}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+      >
+        {aiGenerating ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : (
+          <Sparkles className="w-3.5 h-3.5" />
+        )}
+        {aiGenerating ? t('aiGenerating') : t('aiGenerateBtn')}
+      </button>
+
+      {/* Cụm Save + Nút thu gọn */}
       <div className="flex items-center gap-3 flex-wrap">
-        {isPreview && onViewportChange && (
-          <div className="flex items-center gap-1 bg-surface-container-low border border-border rounded-lg p-1">
-            <button
-              type="button"
-              onClick={() => onViewportChange('desktop')}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
-                viewport === 'desktop'
-                  ? 'bg-primary text-on-primary shadow-sm'
-                  : 'text-secondary hover:text-foreground'
-              }`}
-              title={t('viewportDesktop')}
-            >
-              <Monitor className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">{t('viewportDesktop')}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onViewportChange('tablet')}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
-                viewport === 'tablet'
-                  ? 'bg-primary text-on-primary shadow-sm'
-                  : 'text-secondary hover:text-foreground'
-              }`}
-              title={t('viewportTablet')}
-            >
-              <Tablet className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">{t('viewportTablet')}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onViewportChange('mobile')}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
-                viewport === 'mobile'
-                  ? 'bg-primary text-on-primary shadow-sm'
-                  : 'text-secondary hover:text-foreground'
-              }`}
-              title={t('viewportMobile')}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">{t('viewportMobile')}</span>
-            </button>
-          </div>
-        )}
-
-        {onPreviewToggle && (
-          <button
-            type="button"
-            onClick={onPreviewToggle}
-            className={`px-4 py-1.5 rounded-lg border transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer ${
-              isPreview
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-border bg-surface-container-low hover:bg-surface-variant text-secondary hover:text-foreground'
-            }`}
-          >
-            {isPreview ? <Edit3 className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            <span>{isPreview ? t('backToEditBtn') : t('previewBtn')}</span>
-          </button>
-        )}
-
         <button
           type="button"
           onClick={onSave}

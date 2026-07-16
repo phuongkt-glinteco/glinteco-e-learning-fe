@@ -16,13 +16,12 @@ import { queryCache } from '@/lib/queryCache';
 import {
   useLessonPuckConfig,
   PuckStudio,
-  PuckViewer,
   parseBodyToPuckData,
   serializePuckDataToPayload,
   type LessonPuckData,
 } from '@/components/puck-editor';
 import { FeatureBarPortal } from '@/components/layout/FeatureBarPortal';
-import { LessonEditorBottomBar, type ViewportMode } from './LessonEditorBottomBar';
+import { LessonEditorBottomBar } from './LessonEditorBottomBar';
 import { useLessonDraftStore, type LessonDraftData } from '@/stores/lessonDraftStore';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { AILessonGeneratorModal } from './AILessonGeneratorModal';
@@ -82,8 +81,6 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   const [lessonType, setLessonType] = useState<'video' | 'reading' | 'quiz' | 'coding' | 'assignment'>('reading');
   const [order, setOrder] = useState(1);
   const [body, setBody] = useState('');
-  const [isEditing, setIsEditing] = useState<boolean>(true);
-  const [viewport, setViewport] = useState<ViewportMode>('desktop');
   const [aiVersion, setAiVersion] = useState(0);
 
   const lessonConfig = useLessonPuckConfig();
@@ -550,10 +547,6 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
               useLessonDraftStore.getState().clearDraft(draftKey);
               setBody('');
             }}
-            isPreview={!isEditing}
-            onPreviewToggle={() => setIsEditing(!isEditing)}
-            viewport={viewport}
-            onViewportChange={(vp) => setViewport(vp)}
           />
         }
       />
@@ -602,46 +595,30 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
       )}
 
       <div className="flex-1 w-full h-full flex flex-col overflow-hidden min-h-0">
-        {isEditing ? (
-          <PuckStudio
-            key={`${lessonId || "new"}-${aiVersion}`}
-            config={lessonConfig}
-            initialData={currentPuckData || puckData}
-            onChange={(newData) => {
-              setCurrentPuckData(newData);
-              if (!isPuckReadyRef.current) {
-                isPuckReadyRef.current = true;
-                const existingDraft = useLessonDraftStore.getState().getDraft(draftKey);
-                if (dirtyDraftToRestore === null && (!existingDraft || existingDraft.isDirty !== true)) {
-                  const initialPayload = serializePuckDataToPayload(newData, {
-                    title,
-                    description,
-                    estimatedTime,
-                    order,
-                    type: lessonType,
-                  });
-                  baselinePayloadRef.current = JSON.stringify(initialPayload);
-                }
+        <PuckStudio
+          key={`${lessonId || "new"}-${aiVersion}`}
+          config={lessonConfig}
+          initialData={currentPuckData || puckData}
+          onChange={(newData) => {
+            setCurrentPuckData(newData);
+            if (!isPuckReadyRef.current) {
+              isPuckReadyRef.current = true;
+              const existingDraft = useLessonDraftStore.getState().getDraft(draftKey);
+              if (dirtyDraftToRestore === null && (!existingDraft || existingDraft.isDirty !== true)) {
+                const initialPayload = serializePuckDataToPayload(newData, {
+                  title,
+                  description,
+                  estimatedTime,
+                  order,
+                  type: lessonType,
+                });
+                baselinePayloadRef.current = JSON.stringify(initialPayload);
               }
-            }}
-            onPublish={handlePublishPuck}
-            overrides={{ headerActions: () => null }}
-          />
-        ) : (
-          <div className="w-full h-full overflow-y-auto bg-surface-container-low p-4 md:p-8 flex justify-center">
-            <div
-              className={`transition-all duration-300 w-full ${
-                viewport === 'tablet'
-                  ? 'max-w-[768px] border border-border rounded-2xl shadow-xl bg-surface overflow-hidden'
-                  : viewport === 'mobile'
-                    ? 'max-w-[375px] border border-border rounded-2xl shadow-xl bg-surface overflow-hidden'
-                    : 'w-full bg-surface'
-              }`}
-            >
-              <PuckViewer config={lessonConfig} data={currentPuckData || puckData} />
-            </div>
-          </div>
-        )}
+            }
+          }}
+          onPublish={handlePublishPuck}
+          overrides={{ headerActions: () => null }}
+        />
       </div>
 
       <AILessonGeneratorModal

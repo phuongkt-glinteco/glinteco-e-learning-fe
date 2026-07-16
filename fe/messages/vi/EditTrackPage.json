@@ -8,6 +8,8 @@
   "saveTrack": "Lưu Lộ Trình",
   "saving": "Đang lưu...",
   "loadError": "Không thể tải lộ trình",
+  "failedToLoad": "Không thể tải dữ liệu lộ trình học",
+  "retry": "Thử lại",
   "backToTracks": "Quay Lại Danh Sách",
   "liveSummary": "Tóm Tắt Trực Tiếp",
   "trackSummary": "Tóm Tắt Lộ Trình",

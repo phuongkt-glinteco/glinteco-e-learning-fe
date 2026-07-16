@@ -23,6 +23,7 @@ import { TrackLessonsManagerCard } from '../edit/TrackLessonsManagerCard';
 import LinkedExercisesCard from '../detail/LinkedExercisesCard';
 import AdminCurriculumRoadmap from '../detail/AdminCurriculumRoadmap';
 import TrackStatusCard from '../detail/TrackStatusCard';
+import { isTrackDirectExercise } from '../utils';
 
 type LessonStatus = 'completed' | 'in_progress' | 'locked';
 
@@ -109,7 +110,8 @@ export function AdminTrackManagementClient({ trackId }: AdminTrackManagementClie
         }
       }
 
-      setExercises(exRes?.data?.data ?? []);
+      const rawExercises = exRes?.data?.data ?? [];
+      setExercises(rawExercises.filter(isTrackDirectExercise));
     } catch (err) {
       console.error(err);
       setError(true);

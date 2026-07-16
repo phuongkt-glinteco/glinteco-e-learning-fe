@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Modal } from '@/components/ui';
 import { exercisesControllerRemove } from '@/services/api-client';
 import { UiShowError } from '@/services/errors';
 import type { ExerciseSummaryDto } from '@/services/api-client';
+import { isTrackDirectExercise } from '../utils';
+import { TrackExercisesActionsDropdown } from '../components/TrackExercisesActionsDropdown';
+import { TrackExercisesManagerModal } from '../components/TrackExercisesManagerModal';
 
 interface LinkedExercisesCardProps {
   trackId: string;
@@ -20,27 +23,36 @@ const DIFFICULTY_COLORS: Record<string, string> = {
   Advanced: 'text-error bg-error-container',
 };
 
-export default function LinkedExercisesCard({ trackId, exercises, onDeleteExercise }: LinkedExercisesCardProps) {
+export default function LinkedExercisesCard({ trackId, exercises = [], onDeleteExercise }: LinkedExercisesCardProps) {
   const t = useTranslations('TrackDetailPage');
+  const filteredExercises = useMemo(() => exercises.filter(isTrackDirectExercise), [exercises]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [managerModalOpen, setManagerModalOpen] = useState(false);
 
   return (
     <>
       <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
-        <div className="mb-4">
+        <div className="flex items-center justify-between mb-4">
           <h3 className="font-headline-sm text-on-surface">{t('linkedExercises')}</h3>
+          <Link
+            href={`/admin/tracks/${trackId}/exercises/new`}
+            className="text-primary hover:bg-primary/10 px-2.5 py-1 rounded-lg text-label-sm font-label-sm transition-colors cursor-pointer flex items-center gap-1 border border-primary/20"
+          >
+            <span className="material-symbols-outlined text-[16px]">add</span>
+            <span>{t('addExercise', { defaultValue: 'Thêm' })}</span>
+          </Link>
         </div>
 
-        {exercises.length === 0 ? (
+        {filteredExercises.length === 0 ? (
           <div className="py-8 text-center text-outline font-label-sm border border-dashed border-outline-variant rounded-lg">
             <span className="material-symbols-outlined text-[32px] block mb-2">fitness_center</span>
             {t('noExercises')}
           </div>
         ) : (
-          <div className="space-y-3">
-            {exercises.slice(0, 5).map((ex) => (
+          <div className="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">
+            {filteredExercises.slice(0, 5).map((ex) => (
               <div
                 key={ex.id}
                 className="p-3 border border-outline-variant rounded-lg hover:border-primary hover:bg-primary-container/[0.02] transition-all flex gap-3 group"
@@ -65,36 +77,36 @@ export default function LinkedExercisesCard({ trackId, exercises, onDeleteExerci
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0 self-center">
-                  <Link
-                    href={`/admin/tracks/${trackId}/exercises/${ex.id}/edit`}
-                    className="p-1.5 text-outline hover:text-primary transition-colors cursor-pointer block"
-                    title="Edit exercise"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">edit</span>
-                  </Link>
-                  <button
-                    onClick={() => setDeletingId(ex.id!)}
-                    className="p-1.5 text-outline hover:text-error transition-colors cursor-pointer"
-                    title={t('deleteExercise')}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">delete</span>
-                  </button>
+                <div className="shrink-0 self-center">
+                  <TrackExercisesActionsDropdown
+                    trackId={trackId}
+                    exerciseId={ex.id!}
+                    onDelete={() => setDeletingId(ex.id!)}
+                  />
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {exercises.length > 5 && (
-          <Link
-            href={`/admin/exercises?trackId=${trackId}`}
-            className="w-full mt-4 py-2 text-primary font-label-md border-t border-outline-variant pt-4 hover:underline block text-center"
+        {filteredExercises.length > 5 && (
+          <button
+            type="button"
+            onClick={() => setManagerModalOpen(true)}
+            className="w-full mt-4 py-2 text-primary font-label-md border-t border-outline-variant pt-4 hover:underline block text-center cursor-pointer"
           >
-            {t('viewAll', { count: exercises.length })}
-          </Link>
+            {t('viewAll', { count: filteredExercises.length, defaultValue: `Xem & quản lý tất cả (${filteredExercises.length})` })}
+          </button>
         )}
       </section>
+
+      <TrackExercisesManagerModal
+        open={managerModalOpen}
+        onOpenChange={setManagerModalOpen}
+        trackId={trackId}
+        exercises={exercises}
+        onDeleteExercise={onDeleteExercise}
+      />
 
       <Modal
         open={!!deletingId}

@@ -5,5 +5,18 @@
   "noExercises": "No linked exercises yet.",
   "showLess": "Show less",
   "showMore": "Show {count} more exercise",
-  "showMorePlural": "Show {count} more exercises"
+  "showMorePlural": "Show {count} more exercises",
+  "editAction": "Edit",
+  "deleteAction": "Delete",
+  "viewAllAndManage": "View & manage all ({count})",
+  "managerModalTitle": "Manage Track Direct Exercises",
+  "managerModalDesc": "Manage standalone exercises belonging directly to this track.",
+  "searchPlaceholder": "Search exercises by title...",
+  "filterAll": "All",
+  "noFilterResults": "No exercises match the selected filters.",
+  "noExerciseDescription": "No description provided",
+  "deleteExerciseModalTitle": "Delete Exercise",
+  "deleteExerciseModalBody": "Are you sure you want to delete this exercise? This action cannot be undone.",
+  "cancel": "Cancel",
+  "delete": "Delete Exercise"
 }

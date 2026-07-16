@@ -5,5 +5,18 @@
   "noExercises": "Chưa có bài tập nào được liên kết.",
   "showLess": "Thu gọn",
   "showMore": "Xem thêm {count} bài tập",
-  "showMorePlural": "Xem thêm {count} bài tập"
+  "showMorePlural": "Xem thêm {count} bài tập",
+  "editAction": "Sửa",
+  "deleteAction": "Xóa",
+  "viewAllAndManage": "Xem & quản lý tất cả ({count})",
+  "managerModalTitle": "Quản lý bài tập trực tiếp của Track",
+  "managerModalDesc": "Quản lý danh sách các bài tập tổng hợp không thuộc riêng bài học nào trong Track.",
+  "searchPlaceholder": "Tìm kiếm theo tên bài tập...",
+  "filterAll": "Tất cả",
+  "noFilterResults": "Không tìm thấy bài tập nào phù hợp với bộ lọc.",
+  "noExerciseDescription": "Không có mô tả chi tiết",
+  "deleteExerciseModalTitle": "Xác nhận xóa bài tập",
+  "deleteExerciseModalBody": "Bạn có chắc chắn muốn xóa bài tập này? Thao tác này sẽ xóa vĩnh viễn và không thể hoàn tác.",
+  "cancel": "Hủy",
+  "delete": "Xóa bài tập"
 }

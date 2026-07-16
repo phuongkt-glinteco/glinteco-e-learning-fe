@@ -22,6 +22,7 @@ import { TrackPreview } from '../detail/TrackPreview';
 import { LinkedExercisesCard } from '../components/LinkedExercisesCard';
 import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
+import { isTrackDirectExercise } from '../utils';
 
 interface TrackEditPageProps {
   trackId: string;
@@ -63,7 +64,7 @@ export default function TrackEditPage({ trackId }: TrackEditPageProps) {
 
         const track = trackRes.data as TrackDetailDto | undefined;
         const lessonList = (lessonsRes.data?.data ?? []) as LessonSummaryDto[];
-        const exerciseList = (exercisesRes.data?.data ?? []) as ExerciseSummaryDto[];
+        const exerciseList = ((exercisesRes.data?.data ?? []).filter(isTrackDirectExercise)) as ExerciseSummaryDto[];
 
         const store = useTrackDraftStore.getState();
         store.setTitle(track?.title?.trim() ?? '');

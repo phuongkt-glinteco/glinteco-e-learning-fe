@@ -29,7 +29,8 @@
       "discardDraftBtn": "Discard & Delete draft",
       "loadError": "Failed to load lesson data",
       "saveError": "An error occurred while saving the lesson",
-      "savedAt": "Saved at {time}"
+      "savedAt": "Saved at {time}",
+      "loadingLesson": "Loading lesson data..."
     },
     "aiModal": {
       "title": "AI Lesson Generator (Puck Studio)",

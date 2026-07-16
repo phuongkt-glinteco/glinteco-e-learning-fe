@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useTranslations, useFormatter } from 'next-intl';
+import { Icon } from '@iconify/react';
 import {
   lessonsControllerCreateLesson,
   lessonsControllerUpdateLesson,
@@ -77,6 +78,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
 
   const lessonConfig = useLessonPuckConfig();
   const [loadedLesson, setLoadedLesson] = useState<LessonDetailDto | null>(null);
+  const [isLoadingLesson, setIsLoadingLesson] = useState<boolean>(Boolean(lessonId || editIndex !== undefined));
 
   const baselinePayloadRef = useRef<string | null>(null);
   const isPuckReadyRef = useRef<boolean>(false);
@@ -177,6 +179,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     if (!lessonId) return;
     async function fetchLesson() {
       if (!lessonId) return;
+      setIsLoadingLesson(true);
       try {
         const res = await lessonsControllerFindOneLesson({ path: { id: lessonId }, throwOnError: true });
         const found = res.data as LessonDetailDto;
@@ -205,6 +208,8 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : tRef.current('loadError');
         toast.error(msg);
+      } finally {
+        setIsLoadingLesson(false);
       }
     }
     fetchLesson();
@@ -236,6 +241,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
         setDirtyDraftToRestore(null);
         if (draft) useLessonDraftStore.getState().clearDraft(draftKey);
       }
+      setIsLoadingLesson(false);
       return;
     }
 
@@ -263,6 +269,7 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
         }
       }
     }
+    setIsLoadingLesson(false);
   }, [trackId, editIndex, lessonId, draftKey, applyLessonDataToState]);
 
   // Auto-save draft whenever currentPuckData or metadata changes (debounced by 800ms)
@@ -491,6 +498,19 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     setBody(JSON.stringify(generatedData));
     setAiVersion((v) => v + 1);
     toast.success(t('aiGenerateSuccess'));
+  }
+
+  if (isLoadingLesson) {
+    return (
+      <main className="w-full flex-1 flex flex-col items-center justify-center bg-surface-container-lowest min-h-screen">
+        <div className="flex flex-col items-center justify-center gap-3 p-8 rounded-2xl bg-surface border border-outline-variant shadow-sm max-w-xs w-full text-center animate-in fade-in duration-200">
+          <Icon icon="lucide:loader-2" className="w-8 h-8 text-primary animate-spin" />
+          <span className="text-sm font-medium text-on-surface-variant">
+            {t('loadingLesson', { defaultValue: 'Đang tải dữ liệu bài học...' })}
+          </span>
+        </div>
+      </main>
+    );
   }
 
   return (

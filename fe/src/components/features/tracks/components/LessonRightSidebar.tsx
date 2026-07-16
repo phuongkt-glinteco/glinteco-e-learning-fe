@@ -288,7 +288,7 @@ export function LessonRightSidebar({
           {lesson?.documents && lesson.documents.length > 0 ? (
             lesson.documents.map((doc: any, i: number) => (
               <div
-                key={doc.id || i}
+                key={`doc-${i}`}
                 className="flex items-center justify-between gap-2 p-2 rounded-lg bg-surface-container-low border border-outline-variant/60 text-body-xs"
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -342,7 +342,7 @@ export function LessonRightSidebar({
               const isDraft = ex.status === 'draft';
               return (
               <div
-                key={ex.id || i}
+                key={`ex-${i}`}
                 className={`flex items-center justify-between gap-2 p-2 rounded-lg border text-body-xs ${
                   isDraft
                     ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-700'

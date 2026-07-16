@@ -234,12 +234,16 @@ export interface DerivedExerciseItem {
   status?: "draft" | "complete" | string;
   type?: "pr" | "minigame_quiz" | "minigame_fill" | "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK" | string;
   isMandatory?: boolean;
+  content?: unknown;
 }
 
 export interface DerivedDocumentItem {
   id?: string;
   title?: string;
   url?: string;
+  kind?: string;
+  tags?: Array<{ id: string; name: string }>;
+  description?: string;
 }
 
 export interface DerivedHeadingItem {
@@ -260,6 +264,8 @@ export function deriveLessonSidebarState(
   const derivedDocs: DerivedDocumentItem[] = [];
   const derivedExs: DerivedExerciseItem[] = [];
   const derivedHeadings: DerivedHeadingItem[] = [];
+  const seenExIds = new Set<string>();
+  const seenDocIds = new Set<string>();
 
   content.forEach((block, idx) => {
     if (block.type === "SingleExerciseBlock") {
@@ -274,7 +280,8 @@ export function deriveLessonSidebarState(
           }
         | undefined;
       const idStr = exData?.exerciseId || exData?.id;
-      if (idStr) {
+      if (idStr && !seenExIds.has(idStr)) {
+        seenExIds.add(idStr);
         derivedExs.push({
           id: idStr,
           exerciseId: idStr,
@@ -283,6 +290,7 @@ export function deriveLessonSidebarState(
           type: exData?.type,
           isMandatory: Boolean((block.props as any)?.isMandatory ?? exData?.isMandatory),
           blockIndex: idx,
+          content: (block.props as any)?.content || (block.props as any)?.exerciseData,
         });
       }
       return;
@@ -298,11 +306,16 @@ export function deriveLessonSidebarState(
         (block.props?.title as string | undefined) ||
         fallbacks.defaultDocTitle;
 
-      if (docId || url || title) {
+      const uniqueId = docId || url;
+      if ((docId || url || title) && (!uniqueId || !seenDocIds.has(uniqueId))) {
+        if (uniqueId) seenDocIds.add(uniqueId);
         derivedDocs.push({
           id: docId || url || `doc-${idx}`,
           title,
           url,
+          ...(block.props?.kind ? { kind: block.props.kind as string } : {}),
+          ...(block.props?.tags ? { tags: block.props.tags as Array<{ id: string; name: string }> } : {}),
+          ...(block.props?.description ? { description: block.props.description as string } : {}),
         });
       }
       return;
@@ -335,6 +348,7 @@ export function deriveLessonSidebarState(
             type: item.type,
             isMandatory: Boolean(item.isMandatory),
             blockIndex: item.blockIndex ?? idx,
+            content: item.content,
           };
         })
       : derivedExs;
@@ -347,6 +361,9 @@ export function deriveLessonSidebarState(
             id: docId,
             title: item.title || item.altText || fallbacks.defaultDocTitle,
             url: item.url,
+            ...(item.kind ? { kind: item.kind } : {}),
+            ...(item.tags ? { tags: item.tags } : {}),
+            ...(item.description ? { description: item.description } : {}),
           };
         })
       : derivedDocs;

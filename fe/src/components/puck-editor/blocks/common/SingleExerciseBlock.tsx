@@ -17,7 +17,8 @@ import {
 import { LessonBlockProps } from "../../types";
 import { ExerciseSelectorField, type ExerciseData } from "../../fields";
 import { parseFillInBlankTokens } from "../../fields/fillInBlankUtils";
-import { useSafePuck } from "../../helper";
+import { useSafePuck, useLessonSSOT } from "../../helper";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/default/dialog";
 import { exercisesControllerSubmitAuto } from "@/services/api-client";
 import type { AutoGradeResultDto } from "@/services/client/types.gen";
 
@@ -41,8 +42,106 @@ const typeConfig: Record<string, { icon: React.ElementType; borderClass: string;
 
 type SingleExerciseBlockProps = LessonBlockProps["SingleExerciseBlock"];
 
+function ExerciseQuickSelectSSOTButton({ readOnly }: { readOnly?: boolean }) {
+  const puck = useSafePuck();
+  const { exercises: rootExercises } = useLessonSSOT({ defaultExerciseTitle: "Bài tập" });
+  const [open, setOpen] = React.useState(false);
+
+  const handleSelectEx = (ex: any) => {
+    if (readOnly || !puck?.appState || !puck.dispatch) return;
+    const selector = puck.appState.ui.itemSelector;
+    if (selector && typeof selector.index === "number") {
+      const currentData = puck.appState.data;
+      const newContent = [...(currentData.content || [])];
+      const currentBlock = newContent[selector.index];
+      if (currentBlock && currentBlock.type === "SingleExerciseBlock") {
+        const exId = ex.exerciseId || ex.id || "";
+        const storedContent = ex.content || {};
+        const updatedBlock = {
+          ...currentBlock,
+          props: {
+            ...currentBlock.props,
+            title: storedContent.title || ex.title || currentBlock.props.title || "Bài tập",
+            type: storedContent.type || ex.type || currentBlock.props.type || "QUIZ",
+            xp: storedContent.xp ?? ex.xp ?? currentBlock.props.xp ?? 20,
+            content: {
+              ...storedContent,
+              exerciseId: exId,
+              title: storedContent.title || ex.title || "Bài tập",
+              status: storedContent.status || ex.status || "draft",
+              type: storedContent.type || ex.type || "QUIZ",
+              xp: storedContent.xp ?? ex.xp ?? 20,
+            },
+          },
+        };
+        puck.dispatch({
+          type: "replace",
+          destinationIndex: selector.index,
+          destinationZone: selector.zone || "default-zone",
+          data: updatedBlock,
+        });
+      }
+    }
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => !readOnly && setOpen(true)}
+        disabled={readOnly || rootExercises.length === 0}
+        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary/30 bg-primary/10 text-primary font-medium text-xs hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+      >
+        <ListChecks className="w-4 h-4 shrink-0" />
+        <span>⚡ Chọn từ danh sách Root Props ({rootExercises.length})</span>
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md bg-surface border-border">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+              <ListChecks className="w-4 h-4 text-primary" />
+              <span>Danh sách bài tập trong bài học</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5 max-h-72 overflow-y-auto py-2">
+            {rootExercises.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic text-center py-4">Chưa có bài tập nào trong Root Props.</p>
+            ) : (
+              rootExercises.map((ex, i) => {
+                const exId = ex.exerciseId || ex.id || "";
+                return (
+                  <div
+                    key={exId || i}
+                    onClick={() => handleSelectEx(ex)}
+                    className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-outline-variant/60 bg-surface-container-lowest hover:bg-primary/5 hover:border-primary/40 transition-colors cursor-pointer"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-foreground truncate">{ex.title || `Bài tập #${i + 1}`}</p>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium mt-1 inline-block">
+                        {ex.type === "PR_REVIEW" ? "PR" : ex.type === "QUIZ" ? "Quiz" : ex.type === "FILL_IN_BLANK" ? "Fill" : ex.type || "Ex"}
+                      </span>
+                    </div>
+                    <span className="shrink-0 text-xs text-primary font-medium">Chọn</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
   fields: {
+    quickSelectFromSSOT: {
+      type: "custom",
+      label: "Lấy nhanh từ Root Props",
+      render: ({ readOnly }: any) => <ExerciseQuickSelectSSOTButton readOnly={readOnly} />,
+    },
     title: {
       type: "text",
       label: "Tiêu đề bài tập",
@@ -127,6 +226,18 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
     const puckObj = useSafePuck();
     const isPuckEditingCanvas = (puckObj?.appState as any)?.isEditing === true;
     const isAdminView = isPuckEditingCanvas || pathname?.includes('/admin') || pathname?.includes('/edit');
+
+    const { exercises: rootExercises } = useLessonSSOT({ defaultExerciseTitle: "Bài tập" });
+    const inlineExercises = React.useMemo(
+      () => rootExercises.filter((ex) => ex.blockIndex !== undefined),
+      [rootExercises]
+    );
+    const data = (content || {}) as ExerciseData;
+    const currentExIndex = inlineExercises.findIndex(
+      (ex) => (ex.exerciseId || ex.id) === data?.exerciseId
+    );
+    const questionCurrent = currentExIndex >= 0 ? currentExIndex + 1 : 1;
+    const questionTotal = inlineExercises.length || 1;
 
     const [selectedAnswers, setSelectedAnswers] = React.useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -226,7 +337,6 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
         });
     };
 
-    const data = (content || {}) as ExerciseData;
     const isDraft = data.status === "draft";
     const effectiveType = type || data.type;
     const cfg = effectiveType ? typeConfig[effectiveType] : null;
@@ -304,7 +414,7 @@ export const SingleExerciseBlock: ComponentConfig<SingleExerciseBlockProps> = {
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label-xs text-muted-foreground">
               {effectiveType === "QUIZ" && data.previewData?.questionCount && (
-                <span>{t("questionCount", { count: data.previewData.questionCount })}</span>
+                <span>{t("questionProgress", { current: questionCurrent, total: questionTotal })}</span>
               )}
               {effectiveType === "FILL_IN_BLANK" && data.previewData?.blankCount && (
                 <span>{t("blankCount", { count: data.previewData.blankCount })}</span>

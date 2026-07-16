@@ -199,7 +199,7 @@ const QuizEditor: React.FC<{
 
 // ─── Type Picker Dialog ────────────────────────────────────────────
 
-const TypePickerDialog: React.FC<{
+export const TypePickerDialog: React.FC<{
   open: boolean;
   onClose: () => void;
   onSelect: (type: "PR_REVIEW" | "QUIZ" | "FILL_IN_BLANK") => void;
@@ -261,7 +261,7 @@ const TypePickerDialog: React.FC<{
 
 // ─── Full PR Create/Edit Modal (Full DTO fields) ────────────────────
 
-const FullPRCreateModal: React.FC<{
+export const FullPRCreateModal: React.FC<{
   open: boolean;
   onClose: () => void;
   trackId: string;
@@ -546,7 +546,7 @@ const FullPRCreateModal: React.FC<{
 
 type MinigameSubType = "quiz" | "fill";
 
-const MinigameCreateDialog: React.FC<{
+export const MinigameCreateDialog: React.FC<{
   open: boolean;
   onClose: () => void;
   trackId: string;
@@ -707,7 +707,7 @@ const MinigameCreateDialog: React.FC<{
         hint: hint.trim() || undefined,
       };
       if (subType === "quiz") {
-        previewData.questionCount = initData?.previewData?.questionCount || 1;
+        previewData.questionCount = 1;
         previewData.question = question.trim() || undefined;
         previewData.answerType = answerType;
         previewData.answers = answers

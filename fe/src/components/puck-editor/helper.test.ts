@@ -112,6 +112,12 @@ describe('helper', () => {
         type: 'PR_REVIEW',
         isMandatory: false,
         blockIndex: 0,
+        content: {
+          exerciseId: 'ex-1',
+          title: 'Exercise via content',
+          status: 'complete',
+          type: 'PR_REVIEW',
+        },
       });
       expect(result.exercises[1]).toEqual({
         id: 'ex-2',
@@ -121,6 +127,12 @@ describe('helper', () => {
         type: 'QUIZ',
         isMandatory: false,
         blockIndex: 1,
+        content: {
+          exerciseId: 'ex-2',
+          title: 'Exercise via exerciseData',
+          status: 'draft',
+          type: 'QUIZ',
+        },
       });
     });
 

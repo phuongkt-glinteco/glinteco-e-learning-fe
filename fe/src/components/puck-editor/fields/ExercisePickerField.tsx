@@ -28,6 +28,9 @@ export interface ExercisePickerFieldProps {
   value?: ExerciseItem[];
   onChange: (value: ExerciseItem[]) => void;
   readOnly?: boolean;
+  hideList?: boolean;
+  onQuickCreateCreated?: (item: ExerciseItem) => void;
+  renderTrigger?: (actions: { openSelect: () => void; openQuickCreate: () => void; openClone: () => void }) => React.ReactNode;
 }
 
 export const exerciseTitleCache: Record<string, string> = {};
@@ -53,6 +56,9 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
   value = [],
   onChange,
   readOnly = false,
+  hideList = false,
+  onQuickCreateCreated,
+  renderTrigger,
 }) => {
   const t = useTranslations('PuckEditor.Common.ExercisePicker');
 
@@ -238,7 +244,12 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
     }
 
     registerExerciseTitle(newId, title);
-    onChange([{ id: newId, title, status: 'draft' }]);
+    const newItem: ExerciseItem = { id: newId, title, status: 'draft' as const };
+    if (onQuickCreateCreated) {
+      onQuickCreateCreated(newItem);
+    } else {
+      onChange([newItem]);
+    }
     setOpenQuickCreate(false);
   };
 
@@ -263,8 +274,9 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
   return (
     <div className="space-y-2">
       {/* Danh sách bài tập đã chọn */}
-      <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-        {currentItems.length === 0 ? (
+      {!hideList && (
+        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+          {currentItems.length === 0 ? (
           <p className="text-xs text-muted-foreground italic">
             {t('noSelection')}
           </p>
@@ -326,45 +338,52 @@ export const ExercisePickerField: React.FC<ExercisePickerFieldProps> = ({
           })
         )}
       </div>
+      )}
 
       {/* Hành động: Chọn từ hệ thống / Tạo nhanh / Clone */}
       {!readOnly && (
-        <div className="flex flex-col gap-1.5">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleOpenSelect}
-            className="w-full text-xs h-8 flex items-center justify-center gap-1.5 border-dashed border-border hover:border-primary hover:text-primary cursor-pointer"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>{t('selectExistingBtn')}</span>
-          </Button>
-
-          <div className="grid grid-cols-2 gap-1.5">
+        renderTrigger ? renderTrigger({
+          openSelect: handleOpenSelect,
+          openQuickCreate: handleOpenQuickCreate,
+          openClone: handleOpenClone,
+        }) : (
+          <div className="flex flex-col gap-1.5">
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="sm"
-              onClick={handleOpenQuickCreate}
-              className="text-xs h-8 flex items-center justify-center gap-1 cursor-pointer"
+              onClick={handleOpenSelect}
+              className="w-full text-xs h-8 flex items-center justify-center gap-1.5 border-dashed border-border hover:border-primary hover:text-primary cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" />
-              <span>{t('quickCreateBtn')}</span>
+              <span>{t('selectExistingBtn')}</span>
             </Button>
 
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleOpenClone}
-              className="text-xs h-8 flex items-center justify-center gap-1 cursor-pointer"
-            >
-              <Copy className="h-3.5 w-3.5" />
-              <span>{t('cloneTemplateBtn')}</span>
-            </Button>
+            <div className="grid grid-cols-2 gap-1.5">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleOpenQuickCreate}
+                className="text-xs h-8 flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>{t('quickCreateBtn')}</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleOpenClone}
+                className="text-xs h-8 flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                <span>{t('cloneTemplateBtn')}</span>
+              </Button>
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {/* DIALOG 1: Chọn bài tập có sẵn từ hệ thống */}

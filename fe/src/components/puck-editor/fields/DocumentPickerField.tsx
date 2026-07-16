@@ -22,6 +22,7 @@ export interface DocumentItem {
   url?: string;
   kind?: string;
   tags?: Array<{ id: string; name: string }>;
+  description?: string;
 }
 
 export interface DocumentPickerFieldProps {
@@ -29,6 +30,8 @@ export interface DocumentPickerFieldProps {
   onChange: (value: DocumentItem[]) => void;
   readOnly?: boolean;
   maxItems?: number;
+  hideList?: boolean;
+  renderTrigger?: (openDialog: () => void) => React.ReactNode;
 }
 
 export const documentTitleCache: Record<string, string> = {};
@@ -57,6 +60,8 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
   onChange,
   readOnly = false,
   maxItems,
+  hideList = false,
+  renderTrigger,
 }) => {
   const t = useTranslations('PuckEditor.Common.DocumentPicker');
 
@@ -113,6 +118,7 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
   const toggleSelect = (doc: DocumentResponseDto) => {
     const id = doc.id;
     if (!id) return;
+    if (currentItems.some((item) => item.id === id)) return;
     if (selectedIds.includes(id)) {
       setSelectedIds(selectedIds.filter((item) => item !== id));
     } else {
@@ -165,8 +171,9 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
   return (
     <div className="space-y-2">
       {/* Danh sách tài liệu đã chọn */}
-      <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-        {currentItems.length === 0 ? (
+      {!hideList && (
+        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+          {currentItems.length === 0 ? (
           <p className="text-xs text-muted-foreground italic">
             {t('noSelection')}
           </p>
@@ -243,19 +250,22 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
           })
         )}
       </div>
+      )}
 
       {/* Hành động: Chọn từ hệ thống */}
       {!readOnly && (!maxItems || currentItems.length < maxItems) && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleOpenSelect}
-          className="w-full text-xs h-8 flex items-center justify-center gap-1.5 border-dashed border-border hover:border-primary hover:text-primary cursor-pointer"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          <span>{t('selectExistingBtn')}</span>
-        </Button>
+        renderTrigger ? renderTrigger(handleOpenSelect) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleOpenSelect}
+            className="w-full text-xs h-8 flex items-center justify-center gap-1.5 border-dashed border-border hover:border-primary hover:text-primary cursor-pointer"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>{t('selectExistingBtn')}</span>
+          </Button>
+        )
       )}
 
       {/* DIALOG 1: Chọn tài liệu có sẵn từ hệ thống theo 5 loại */}
@@ -305,27 +315,39 @@ export const DocumentPickerField: React.FC<DocumentPickerFieldProps> = ({
                 </div>
               ) : (
                 results.map((doc) => {
-                  const isChecked = Boolean(doc.id && selectedIds.includes(doc.id));
+                  const id = doc.id;
+                  const isAlreadyAdded = Boolean(id && currentItems.some((item) => item.id === id));
+                  const isChecked = isAlreadyAdded || Boolean(id && selectedIds.includes(id));
                   return (
                     <div
-                      key={doc.id}
-                      onClick={() => toggleSelect(doc)}
-                      className={`flex items-start gap-2.5 p-2.5 rounded-md cursor-pointer transition-colors border ${
-                        isChecked
-                          ? 'border-primary bg-primary/10'
-                          : 'border-transparent hover:bg-surface-container-low'
+                      key={id}
+                      onClick={() => !isAlreadyAdded && toggleSelect(doc)}
+                      className={`flex items-start gap-2.5 p-2.5 rounded-md transition-colors border ${
+                        isAlreadyAdded
+                          ? 'border-border bg-surface-container/60 opacity-60 cursor-not-allowed'
+                          : isChecked
+                            ? 'border-primary bg-primary/10 cursor-pointer'
+                            : 'border-transparent hover:bg-surface-container-low cursor-pointer'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
+                        disabled={isAlreadyAdded}
                         onChange={() => {}}
-                        className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary shrink-0"
+                        className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary shrink-0 disabled:opacity-50"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">
-                          {doc.title || t('unnamedDocument')}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-medium text-foreground truncate">
+                            {doc.title || t('unnamedDocument')}
+                          </p>
+                          {isAlreadyAdded && (
+                            <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border">
+                              Đã thêm
+                            </span>
+                          )}
+                        </div>
                         {doc.kind && (
                           <Badge variant="secondary" className="mt-1 text-[10px] px-1.5 py-0">
                             {doc.kind}

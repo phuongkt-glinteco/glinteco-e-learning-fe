@@ -4,7 +4,8 @@ import { ComponentConfig } from "@puckeditor/core";
 import { FileText, ExternalLink } from "lucide-react";
 import { LessonBlockProps } from "../../types";
 import { DocumentPickerField, type DocumentItem } from "../../fields";
-import { useSafePuck } from "../../helper";
+import { useSafePuck, useLessonSSOT } from "../../helper";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/default/dialog";
 
 function DocumentPickerFieldWrapper({
   value,
@@ -104,6 +105,87 @@ function DocumentPickerFieldWrapper({
   );
 }
 
+function DocumentQuickSelectSSOTButton({ readOnly }: { readOnly?: boolean }) {
+  const puck = useSafePuck();
+  const { documents: rootDocs } = useLessonSSOT({ defaultDocTitle: "Tài liệu" });
+  const [open, setOpen] = React.useState(false);
+
+  const handleSelectDoc = (doc: DocumentItem) => {
+    if (readOnly || !puck?.appState || !puck.dispatch) return;
+    const selector = puck.appState.ui.itemSelector;
+    if (selector && typeof selector.index === "number") {
+      const currentData = puck.appState.data;
+      const newContent = [...(currentData.content || [])];
+      const currentBlock = newContent[selector.index];
+      if (currentBlock && currentBlock.type === "ReferenceDocumentBlock") {
+        const updatedBlock = {
+          ...currentBlock,
+          props: {
+            ...currentBlock.props,
+            documentId: doc.id || "",
+            altText: doc.title || "",
+            url: doc.url || "",
+            kind: doc.kind?.toLowerCase() || "reference",
+            tags: doc.tags || [],
+            description: doc.description || "",
+          },
+        };
+        puck.dispatch({
+          type: "replace",
+          destinationIndex: selector.index,
+          destinationZone: selector.zone || "default-zone",
+          data: updatedBlock,
+        });
+      }
+    }
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => !readOnly && setOpen(true)}
+        disabled={readOnly || rootDocs.length === 0}
+        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary/30 bg-primary/10 text-primary font-medium text-xs hover:bg-primary/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+      >
+        <FileText className="w-4 h-4 shrink-0" />
+        <span>⚡ Chọn từ danh sách Root Props ({rootDocs.length})</span>
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-md bg-surface border-border">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              <span>Tài liệu đính kèm trong bài học</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5 max-h-72 overflow-y-auto py-2">
+            {rootDocs.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic text-center py-4">Chưa có tài liệu nào trong Root Props.</p>
+            ) : (
+              rootDocs.map((doc, i) => (
+                <div
+                  key={doc.id || i}
+                  onClick={() => handleSelectDoc(doc)}
+                  className="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-outline-variant/60 bg-surface-container-lowest hover:bg-primary/5 hover:border-primary/40 transition-colors cursor-pointer"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-foreground truncate">{doc.title || `Tài liệu #${i + 1}`}</p>
+                    {doc.kind && <span className="text-[10px] text-muted-foreground uppercase">{doc.kind}</span>}
+                  </div>
+                  <span className="shrink-0 text-xs text-primary font-medium">Chọn</span>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 const HIDDEN_FIELD = {
   type: "custom" as const,
   render: () => <></>,
@@ -113,6 +195,11 @@ export const ReferenceDocumentBlock: ComponentConfig<
   LessonBlockProps["ReferenceDocumentBlock"]
 > = {
   fields: {
+    quickSelectFromSSOT: {
+      type: "custom",
+      label: "Lấy nhanh từ Root Props",
+      render: ({ readOnly }: any) => <DocumentQuickSelectSSOTButton readOnly={readOnly} />,
+    },
     documentId: {
       type: "custom",
       label: "Chọn tài liệu từ hệ thống",

@@ -99,6 +99,7 @@ export interface LessonBlockProps {
     gap: "sm" | "md" | "lg";
   };
   SingleExerciseBlock: {
+    quickSelectFromSSOT?: any;
     title?: string;
     isMandatory?: boolean;
     tag?: string;
@@ -115,10 +116,13 @@ export interface LessonBlockProps {
     instruction?: string;
   };
   GroupExerciseBlock: {
+    quickSelectFromSSOT?: any;
     title?: string;
     description?: string;
+    exerciseData?: Array<{ exerciseId?: string; id?: string; title?: string; type?: string; isMandatory?: boolean }>;
   };
   ReferenceDocumentBlock: {
+    quickSelectFromSSOT?: any;
     documentId?: string;
     url: string;
     altText: string;

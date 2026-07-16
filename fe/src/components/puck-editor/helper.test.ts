@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { serializePuckDataToPayload, parseBodyToPuckData } from './helper';
+import { serializePuckDataToPayload, parseBodyToPuckData, deriveLessonSidebarState } from './helper';
 import type { LessonPuckData } from './types';
 
 describe('helper', () => {
@@ -70,4 +70,55 @@ describe('helper', () => {
       expect(parsed.content?.length).toBe(1);
     });
   });
+
+  describe('deriveLessonSidebarState', () => {
+    it('extracts exercises from both block.props.content and block.props.exerciseData', () => {
+      const content = [
+        {
+          type: 'SingleExerciseBlock',
+          props: {
+            content: {
+              exerciseId: 'ex-1',
+              title: 'Exercise via content',
+              status: 'complete' as const,
+              type: 'PR_REVIEW' as const,
+            },
+          },
+        },
+        {
+          type: 'SingleExerciseBlock',
+          props: {
+            exerciseData: {
+              exerciseId: 'ex-2',
+              title: 'Exercise via exerciseData',
+              status: 'draft' as const,
+              type: 'QUIZ' as const,
+            },
+          },
+        },
+      ];
+
+      const result = deriveLessonSidebarState(content, {
+        defaultExerciseTitle: 'Default Ex',
+        defaultDocTitle: 'Default Doc',
+      });
+
+      expect(result.exercises).toHaveLength(2);
+      expect(result.exercises[0]).toEqual({
+        id: 'ex-1',
+        title: 'Exercise via content',
+        status: 'complete',
+        type: 'PR_REVIEW',
+        blockIndex: 0,
+      });
+      expect(result.exercises[1]).toEqual({
+        id: 'ex-2',
+        title: 'Exercise via exerciseData',
+        status: 'draft',
+        type: 'QUIZ',
+        blockIndex: 1,
+      });
+    });
+  });
 });
+

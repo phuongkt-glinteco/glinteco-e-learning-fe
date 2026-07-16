@@ -256,7 +256,7 @@ export function deriveLessonSidebarState(
 
   content.forEach((block, idx) => {
     if (block.type === "SingleExerciseBlock") {
-      const exData = block.props?.exerciseData as
+      const exData = (block.props?.content || block.props?.exerciseData) as
         | {
             exerciseId?: string;
             title?: string;

@@ -21,7 +21,15 @@
       "aiGenerateFailed": "Tạo nội dung AI thất bại.",
       "aiGenerateSuccess": "Đã pre-fill nội dung AI vào Puck Studio thành công!",
       "errorOccurred": "Có lỗi xảy ra khi giao tiếp với máy chủ.",
-      "closeBtn": "Đóng"
+      "closeBtn": "Đóng",
+      "restoreDraftSuccess": "Đã khôi phục bản nháp",
+      "discardDraftSuccess": "Đã xóa bản nháp",
+      "unsavedDraftDetected": "Phát hiện bản nháp chỉnh sửa chưa lưu",
+      "restoreDraftBtn": "Khôi phục bản nháp này",
+      "discardDraftBtn": "Bỏ qua & Xóa bản nháp",
+      "loadError": "Không thể tải dữ liệu bài học",
+      "saveError": "Có lỗi xảy ra khi lưu bài học",
+      "savedAt": "Lưu lúc {time}"
     },
     "aiModal": {
       "title": "Trợ lý AI Tạo Bài Học Tự Động (Puck Studio)",

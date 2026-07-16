@@ -21,7 +21,15 @@
       "aiGenerateFailed": "AI lesson generation failed.",
       "aiGenerateSuccess": "Successfully pre-filled AI content into Puck Studio!",
       "errorOccurred": "An error occurred while communicating with the server.",
-      "closeBtn": "Close"
+      "closeBtn": "Close",
+      "restoreDraftSuccess": "Draft restored successfully",
+      "discardDraftSuccess": "Draft discarded successfully",
+      "unsavedDraftDetected": "Unsaved modified draft detected",
+      "restoreDraftBtn": "Restore this draft",
+      "discardDraftBtn": "Discard & Delete draft",
+      "loadError": "Failed to load lesson data",
+      "saveError": "An error occurred while saving the lesson",
+      "savedAt": "Saved at {time}"
     },
     "aiModal": {
       "title": "AI Lesson Generator (Puck Studio)",

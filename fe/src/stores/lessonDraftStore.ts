@@ -9,6 +9,7 @@ export interface LessonDraftData {
   order: number;
   body: string;
   updatedAt: number;
+  isDirty?: boolean;
 }
 
 interface LessonDraftState {

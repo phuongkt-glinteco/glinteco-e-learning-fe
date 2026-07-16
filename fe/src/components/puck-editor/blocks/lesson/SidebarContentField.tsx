@@ -1,24 +1,51 @@
 "use client";
 
 import React from "react";
+import { useParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { BookOpen, FileText, AlertTriangle } from "lucide-react";
 import { deriveLessonSidebarState, useSafePuck } from "../../helper";
+import { useLessonDraftStore } from "../../../../stores/lessonDraftStore";
 
 export const SidebarContentField: React.FC = () => {
   const t = useTranslations("PuckEditor.Common.sidebar");
   const puck = useSafePuck();
+  const params = useParams<{ id?: string; lessonId?: string; index?: string }>();
+  const pathname = usePathname();
+
+  const draftKey = React.useMemo(() => {
+    const trackId = params?.id || "track";
+    const lessonId = params?.lessonId;
+    const editIndex = params?.index;
+    const isNew = pathname?.endsWith("/lessons/new");
+    return `${trackId}-${lessonId || editIndex || (isNew ? "new" : "new")}`;
+  }, [params, pathname]);
+
+  const draft = useLessonDraftStore((state) => state.drafts[draftKey]);
 
   const derivedState = React.useMemo(() => {
-    const content = (puck?.appState?.data?.content || []) as Array<{
-      type?: string;
-      props?: Record<string, unknown>;
-    }>;
+    let content: Array<{ type?: string; props?: Record<string, unknown> }> = [];
+    if (draft?.body) {
+      try {
+        const parsed = JSON.parse(draft.body);
+        if (parsed && typeof parsed === "object" && Array.isArray(parsed.content)) {
+          content = parsed.content;
+        }
+      } catch {
+        // Fallback nếu JSON không hợp lệ
+      }
+    }
+    if (content.length === 0) {
+      content = (puck?.appState?.data?.content || []) as Array<{
+        type?: string;
+        props?: Record<string, unknown>;
+      }>;
+    }
     return deriveLessonSidebarState(content, {
       defaultExerciseTitle: t("defaultExerciseTitle"),
       defaultDocTitle: t("defaultDocTitle"),
     });
-  }, [puck?.appState?.data?.content, t]);
+  }, [draft?.body, puck?.appState?.data?.content, t]);
 
   const handleCompleteDraft = React.useCallback(
     (exercise: { id?: string; blockIndex?: number }) => {

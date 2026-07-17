@@ -88,7 +88,15 @@ export function useLessonPuckConfig(): Config<LessonBlockProps, LessonRootProps>
           title: { type: "text", label: "Tiêu đề bài học" },
           description: { type: "textarea", label: "Mô tả bài học" },
           estimatedTime: { type: "text", label: "Thời gian ước tính" },
-          order: { type: "number", label: "Thứ tự bài học" },
+          order: {
+            type: "custom",
+            label: "Thứ tự bài học",
+            render: ({ value }: { value: number | undefined }) => (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container-low border border-outline-variant text-sm text-on-surface-variant select-none cursor-not-allowed">
+                <span className="font-medium">#{value ?? 1}</span>
+              </div>
+            ),
+          },
           type: {
             type: "select",
             label: "Loại bài học",

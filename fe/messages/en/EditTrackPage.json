@@ -52,5 +52,6 @@
   "confirmDeleteLessonTitle": "Delete lesson?",
   "confirmDeleteLessonDesc": "This action will remove the lesson from this track. Are you sure?",
   "deleteLessonConfirmBtn": "Delete lesson",
-  "saveSuccess": "Track updated successfully!"
+  "saveSuccess": "Track updated successfully!",
+  "loading": "Loading..."
 }

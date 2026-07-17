@@ -10,6 +10,7 @@ import type { ExerciseSummaryDto } from '@/services/api-client';
 import { isTrackDirectExercise } from '../utils';
 import { TrackExercisesActionsDropdown } from '../components/TrackExercisesActionsDropdown';
 import { TrackExercisesManagerModal } from '../components/TrackExercisesManagerModal';
+import { ScrollArea } from 'radix-ui';
 
 interface LinkedExercisesCardProps {
   trackId: string;
@@ -51,6 +52,7 @@ export default function LinkedExercisesCard({ trackId, exercises = [], onDeleteE
             {t('noExercises')}
           </div>
         ) : (
+          <ScrollArea>
           <div className="space-y-3 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">
             {filteredExercises.slice(0, 5).map((ex) => (
               <div
@@ -87,6 +89,8 @@ export default function LinkedExercisesCard({ trackId, exercises = [], onDeleteE
               </div>
             ))}
           </div>
+          </ScrollArea>
+
         )}
 
         {filteredExercises.length > 5 && (

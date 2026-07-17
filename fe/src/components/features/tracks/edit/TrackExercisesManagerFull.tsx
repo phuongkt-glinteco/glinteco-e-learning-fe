@@ -9,6 +9,7 @@ import { exercisesControllerRemove } from '@/services/api-client';
 import { UiShowError } from '@/services/errors';
 import type { ExerciseSummaryDto } from '@/services/api-client';
 import { isTrackDirectExercise } from '../utils';
+import { ScrollArea } from '@/components/ui/default/scroll-area';
 import { TrackExercisesActionsDropdown } from '../components/TrackExercisesActionsDropdown';
 
 interface TrackExercisesManagerFullProps {
@@ -122,7 +123,7 @@ export function TrackExercisesManagerFull({
       </div>
 
       {/* Toolbar: Search & Filter */}
-      <div className="p-lg pb-0 pt-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-lg pb-0 pt-3.5 flex flex-wrap items-center justify-between gap-3 mb-3">
         <div className="relative flex-1 min-w-[220px]">
           <Icon
             icon="lucide:search"
@@ -168,7 +169,8 @@ export function TrackExercisesManagerFull({
       </div>
 
       {/* Exercise List */}
-      <div className="p-lg pt-3.5 space-y-3">
+      <ScrollArea className="h-[500px]">
+        <div className="p-lg">
         {filteredExercises.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground font-label-sm border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center bg-surface-container-low/30">
             <Icon
@@ -188,7 +190,8 @@ export function TrackExercisesManagerFull({
             </span>
           </div>
         ) : (
-          filteredExercises.map((ex) => (
+          <div className="space-y-2">
+          {filteredExercises.map((ex) => (
             <div
               key={ex.id}
               className="p-4 border border-border rounded-xl bg-surface hover:border-primary/50 hover:bg-primary-container/[0.01] transition-all flex items-center justify-between gap-4 group"
@@ -241,9 +244,11 @@ export function TrackExercisesManagerFull({
                 />
               </div>
             </div>
-          ))
+          ))}
+          </div>
         )}
-      </div>
+        </div>
+      </ScrollArea>
 
       {/* Delete Confirmation */}
       <Modal

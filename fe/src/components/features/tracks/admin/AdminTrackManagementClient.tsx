@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Icon } from '@iconify/react';
 import {
   CheckCircle2, FileEdit, Archive, Loader2, AlertCircle, RefreshCw,
   BookOpen, Star, Terminal, Save, X,
@@ -23,21 +22,14 @@ import Skeleton from '@/components/ui/loading/Skeleton';
 
 import { TrackLessonsManagerCard } from '../edit/TrackLessonsManagerCard';
 import { TrackExercisesManagerFull } from '../edit/TrackExercisesManagerFull';
+import { TrackIconPicker } from '../edit/TrackIconPicker';
 import { isTrackDirectExercise } from '../utils';
-import { TRACK_ICONS, getTrackIconLucide } from '../utils/icon-mapping';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/default/tabs';
 import { Button } from '@/components/ui/default/button';
 import { Input } from '@/components/ui/default/input';
 import { Textarea } from '@/components/ui/default/textarea';
 import { Badge } from '@/components/ui/default/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/default/select';
 
 type LessonStatus = 'completed' | 'in_progress' | 'locked';
 
@@ -391,83 +383,60 @@ export function AdminTrackManagementClient({ trackId }: AdminTrackManagementClie
                 rows={3}
               />
             </div>
-            <div className="space-y-1.5 flex w-full flex-col md:flex-row gap-lg">
-            <div className="space-y-1.5 md:flex-1">
-              <label className="text-label-md font-label-md text-foreground">
-                Icon
-              </label>
-              <Select
-                value={icon}
-                onValueChange={(val) => setIcon(val)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Chọn icon">
-                    {icon ? (
-                      <>
-                        <Icon
-                          icon={`lucide:${getTrackIconLucide(icon)}`}
-                          className="w-4 h-4 shrink-0"
-                        />
-                        <span>
-                          {TRACK_ICONS.find((i) => i.value === icon)
-                            ?.label ?? icon}
-                        </span>
-                      </>
-                    ) : null}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {TRACK_ICONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <Icon
-                        icon={`lucide:${opt.lucide}`}
-                        className="w-4 h-4 shrink-0"
-                      />
-                      <span>{opt.label}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2 md:flex-4">
-              <label className="text-label-md font-label-md text-foreground">
-                {t('statusLabel')}
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-sm">
-                {statusOptions.map((item) => {
-                  const isActive = publishStatus === item.value;
-                  const IconComp = item.icon;
-                  return (
-                    <button
-                      key={item.value}
-                      type="button"
-                      onClick={() => setPublishStatus(item.value)}
-                      className={`flex items-start gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-primary/5 border-primary shadow-sm'
-                          : 'bg-accent/50 border-border hover:border-border/80'
-                      }`}
-                    >
-                      <div
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                          isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        <IconComp className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>
-                          {item.label}
-                        </div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">
-                          {item.desc}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
+            <div className="space-y-sm">
+              <div className="grid w-full grid-cols-1 md:grid-cols-3 gap-lg">
+                <label className="text-label-md font-label-md text-foreground">
+                  Chọn icon
+                </label>
+                <label className="text-label-md font-label-md text-foreground md:col-span-2">
+                  Trạng thái
+                </label>
               </div>
-            </div>
+
+              <div className="grid w-full grid-cols-1 md:grid-cols-3 gap-lg items-stretch">
+                <div className="md:col-span-1 self-stretch">
+                  <TrackIconPicker
+                    value={icon}
+                    onChange={(val) => setIcon(val)}
+                  />
+                </div>
+                <div className="md:col-span-2 self-stretch">
+                  <div className="grid h-full grid-cols-1 sm:grid-cols-3 gap-sm sm:auto-rows-fr">
+                    {statusOptions.map((item) => {
+                      const isActive = publishStatus === item.value;
+                      const IconComp = item.icon;
+                      return (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => setPublishStatus(item.value)}
+                          className={`flex h-full items-start gap-3 p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-primary/5 border-primary shadow-sm'
+                              : 'bg-accent/50 border-border hover:border-border/80'
+                          }`}
+                        >
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                              isActive ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            <IconComp className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <div className={`text-sm font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>
+                              {item.label}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              {item.desc}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 

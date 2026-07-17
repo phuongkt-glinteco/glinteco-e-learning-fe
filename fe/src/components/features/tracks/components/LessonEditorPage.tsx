@@ -77,6 +77,22 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Auto-fill order when creating a new lesson
+  useEffect(() => {
+    if (lessonId || !trackId) return;
+    lessonsControllerFindLessons({ path: { id: trackId } })
+      .then((res) => {
+        const data = res.data;
+        const items = Array.isArray(data)
+          ? data
+          : data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)
+          ? data.data
+          : [];
+        setOrder(items.length + 1);
+      })
+      .catch(() => {});
+  }, [lessonId, trackId]);
+
   const [currentPuckData, setCurrentPuckData] = useState<LessonPuckData | null>(null);
   const [saving, setSaving] = useState(false);
   const [uiValidationError, setUiValidationError] = useState<string | null>(null);

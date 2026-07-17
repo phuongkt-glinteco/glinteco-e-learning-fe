@@ -5,3 +5,4 @@ export * from './ActivityBreakdown';
 export * from './EditProfileModal';
 export * from './ChangePasswordSection';
 export * from './ProfilePageContainer';
+export * from './OtherUserProfileView';

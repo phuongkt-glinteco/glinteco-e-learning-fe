@@ -52,5 +52,6 @@
   "confirmDeleteLessonTitle": "Xóa bài học?",
   "confirmDeleteLessonDesc": "Hành động này sẽ xóa bài học ra khỏi lộ trình. Bạn có chắc chắn muốn xóa?",
   "deleteLessonConfirmBtn": "Xóa bài học",
-  "saveSuccess": "Đã cập nhật lộ trình thành công!"
+  "saveSuccess": "Đã cập nhật lộ trình thành công!",
+  "loading": "Đang tải..."
 }

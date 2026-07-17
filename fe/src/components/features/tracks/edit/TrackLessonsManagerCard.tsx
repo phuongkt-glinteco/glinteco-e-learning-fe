@@ -9,7 +9,6 @@ import {
   lessonsControllerDeleteLesson,
 } from '@/services/api-client';
 import type { LessonProgressItemDto } from '@/services/api-client';
-import Skeleton from '@/components/ui/loading/Skeleton';
 import {
   Dialog,
   DialogContent,
@@ -96,16 +95,31 @@ export function TrackLessonsManagerCard({ trackId, onDeleteLesson }: TrackLesson
       </div>
 
       {loading ? (
-        <div className="space-y-3">
-          <Skeleton className="h-14 w-full rounded-xl" />
-          <Skeleton className="h-14 w-full rounded-xl" />
+        <div className="flex items-center justify-center min-h-[300px] bg-surface-container/10 rounded-xl border border-dashed border-outline-variant">
+          <div className="flex flex-col items-center gap-3">
+            <Icon icon="lucide:loader-2" className="w-7 h-7 text-primary animate-spin" />
+            <span className="text-xs text-on-surface-variant font-medium">{t('loading')}</span>
+          </div>
         </div>
       ) : lessons.length === 0 ? (
-        <div className="py-10 text-center bg-surface-container/20 rounded-xl border border-dashed border-outline-variant text-xs text-on-surface-variant">
-          {t('noLessonsYet')}
+        <div className="flex flex-col items-center justify-center py-14 gap-4 bg-surface-container/10 rounded-xl border border-dashed border-outline-variant">
+          <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center">
+            <Icon icon="lucide:book-open" className="w-7 h-7 text-on-surface-variant" />
+          </div>
+          <div className="text-center space-y-1">
+            <p className="text-sm font-semibold text-on-surface">{t('noLessonsYet')}</p>
+            <p className="text-xs text-on-surface-variant">Thêm bài học đầu tiên để bắt đầu xây dựng lộ trình học tập.</p>
+          </div>
+          <Link
+            href={`/admin/tracks/${trackId}/lessons/new`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-all shadow-sm"
+          >
+            <Icon icon="lucide:plus" className="w-4 h-4" />
+            <span>{t('addLesson')}</span>
+          </Link>
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 min-h-[300px] overflow-y-auto">
           {lessons.map((lesson, idx) => (
             <div
               key={lesson.id}

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslations } from 'next-intl';
 import { MoreVertical, Ban, Unlock, Trash2, ShieldAlert } from 'lucide-react';
 import type { UserDto } from './types';
@@ -22,25 +23,40 @@ export function UserActionsDropdown({
 }: UserActionsDropdownProps) {
   const t = useTranslations('UsersPage');
   const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const updatePosition = useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node) &&
+          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setOpen(false);
       }
     }
     if (open) {
+      updatePosition();
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [open]);
+  }, [open, updatePosition]);
 
   return (
-    <div className="relative inline-block text-left" ref={menuRef}>
+    <div className="inline-block text-left">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen(!open)}
         className="p-1.5 rounded-lg hover:bg-surface-container-highest dark:hover:bg-surface-container transition-colors text-on-surface-variant active:scale-90 cursor-pointer"
@@ -50,8 +66,12 @@ export function UserActionsDropdown({
         <MoreVertical className="w-4 h-4" />
       </button>
 
-      {open && (
-        <div className="absolute right-0 mt-1 w-48 rounded-xl bg-surface-container-lowest dark:bg-surface-container shadow-lg border border-outline-variant py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+      {open && position && createPortal(
+        <div
+          ref={menuRef}
+          style={{ position: 'fixed', top: position.top, right: position.right, zIndex: 100 }}
+          className="w-48 rounded-xl bg-surface-container-lowest dark:bg-surface-container shadow-lg border border-outline-variant py-1 animate-in fade-in zoom-in-95 duration-150"
+        >
           {user.status === 'banned' ? (
             <>
               <button
@@ -105,7 +125,8 @@ export function UserActionsDropdown({
             <Trash2 className="w-4 h-4" />
             <span>{t('action_delete')}</span>
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

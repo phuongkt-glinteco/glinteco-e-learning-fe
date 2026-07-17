@@ -18,7 +18,6 @@ interface UserListTableProps {
   page: number;
   limit: number;
   onPageChange: (newPage: number) => void;
-  onViewUser: (user: UserDto) => void;
   onBanUser: (user: UserDto) => void;
   onUnbanUser: (user: UserDto) => void;
   onViewBanStatus: (user: UserDto) => void;
@@ -35,7 +34,6 @@ export function UserListTable({
   page,
   limit,
   onPageChange,
-  onViewUser,
   onBanUser,
   onUnbanUser,
   onViewBanStatus,
@@ -124,10 +122,7 @@ export function UserListTable({
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <p
-                              onClick={() => onViewUser(user)}
-                              className="font-semibold text-sm text-on-surface hover:text-primary transition-colors cursor-pointer truncate"
-                            >
+                            <p className="font-semibold text-sm text-on-surface truncate">
                               {user.fullName}
                             </p>
                             {user.status === 'banned' && (

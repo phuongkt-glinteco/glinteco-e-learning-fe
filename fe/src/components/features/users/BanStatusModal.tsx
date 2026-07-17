@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useTranslations } from 'next-intl';
 import { ShieldAlert, X, Unlock } from 'lucide-react';
 import type { UserDto } from './types';

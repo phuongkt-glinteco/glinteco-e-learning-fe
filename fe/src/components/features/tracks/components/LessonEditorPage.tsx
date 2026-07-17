@@ -27,6 +27,7 @@ import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { AILessonGeneratorModal } from './AILessonGeneratorModal';
 import Modal from '@/components/ui/Modal';
 import { AppButton } from '@/components/ui/buttons';
+import { useSidebar } from '@/components/ui/default/sidebar';
 
 type SaveResultModalState = {
   status: 'success' | 'error';
@@ -69,6 +70,13 @@ export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorP
   const router = useRouter();
   const t = useTranslations('PuckEditor.Lesson.messages');
   const format = useFormatter();
+  const { setOpen } = useSidebar();
+
+  useEffect(() => {
+    setOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [currentPuckData, setCurrentPuckData] = useState<LessonPuckData | null>(null);
   const [saving, setSaving] = useState(false);
   const [uiValidationError, setUiValidationError] = useState<string | null>(null);

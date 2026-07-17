@@ -1,23 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import React from 'react';
 import { useTranslations } from 'next-intl';
-import { Unlock, X } from 'lucide-react';
+import { Trash2, X, AlertTriangle } from 'lucide-react';
 import type { UserDto } from './types';
 
-interface UnbanUserModalProps {
+interface DeleteUserModalProps {
   user: UserDto | null;
   onClose: () => void;
   onConfirm: (user: UserDto) => Promise<void>;
 }
 
-export function UnbanUserModal({
+export function DeleteUserModal({
   user,
   onClose,
   onConfirm,
-}: UnbanUserModalProps) {
+}: DeleteUserModalProps) {
   const t = useTranslations('UsersPage');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   if (!user) return null;
 
@@ -41,9 +41,9 @@ export function UnbanUserModal({
       <div className="relative w-full max-w-md bg-surface-container-lowest dark:bg-surface rounded-2xl shadow-2xl p-6 border border-outline-variant z-10 animate-in zoom-in-95 duration-200 space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-outline-variant pb-4">
-          <h3 className="font-bold text-lg text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-            <Unlock className="w-5 h-5" />
-            <span>{t('btn_confirm_unban')}</span>
+          <h3 className="font-bold text-lg text-error flex items-center gap-2">
+            <Trash2 className="w-5 h-5" />
+            <span>{t('modal_delete_title')}</span>
           </h3>
           <button
             type="button"
@@ -54,8 +54,15 @@ export function UnbanUserModal({
           </button>
         </div>
 
+        {/* Warning icon */}
+        <div className="flex justify-center py-2">
+          <div className="w-14 h-14 rounded-full bg-error/10 flex items-center justify-center">
+            <AlertTriangle className="w-7 h-7 text-error" />
+          </div>
+        </div>
+
         {/* User preview */}
-        <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+        <div className="flex items-center gap-3 p-3 bg-error/5 border border-error/20 rounded-xl">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0"
             style={{ backgroundColor: user.avatarColorHsl }}
@@ -72,11 +79,11 @@ export function UnbanUserModal({
           </div>
         </div>
 
-        <p className="text-xs text-on-surface-variant leading-relaxed">
-          {t('confirm_unban_desc')}
+        <p className="text-sm text-on-surface-variant leading-relaxed text-center">
+          {t('modal_delete_desc')}
         </p>
 
-        {/* Buttons */}
+        {/* Actions */}
         <div className="flex items-center justify-end gap-3 pt-2 border-t border-outline-variant/60">
           <button
             type="button"
@@ -90,9 +97,19 @@ export function UnbanUserModal({
             type="button"
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="px-5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 dark:bg-emerald-500 text-white hover:bg-emerald-700 dark:hover:bg-emerald-600 disabled:opacity-50 transition-all shadow-md cursor-pointer"
+            className="px-5 py-2 rounded-xl text-xs font-semibold bg-error text-white hover:bg-error/90 disabled:opacity-50 transition-all shadow-md cursor-pointer flex items-center gap-2"
           >
-            {isSubmitting ? t('btn_saving') : t('btn_confirm_unban')}
+            {isSubmitting ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>{t('btn_deleting')}</span>
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{t('btn_confirm_delete')}</span>
+              </>
+            )}
           </button>
         </div>
       </div>

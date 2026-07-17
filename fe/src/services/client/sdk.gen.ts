@@ -69,22 +69,6 @@ export const usersControllerClaimDailyXp = <ThrowOnError extends boolean = false
     ...options
 });
 
-export const usersControllerGetNotificationSettings = <ThrowOnError extends boolean = false>(options?: Options<UsersControllerGetNotificationSettingsData, ThrowOnError>): RequestResult<UsersControllerGetNotificationSettingsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<UsersControllerGetNotificationSettingsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/users/me/notification-settings',
-    ...options
-});
-
-export const usersControllerUpdateNotificationSettings = <ThrowOnError extends boolean = false>(options: Options<UsersControllerUpdateNotificationSettingsData, ThrowOnError>): RequestResult<UsersControllerUpdateNotificationSettingsResponses, unknown, ThrowOnError> => (options.client ?? client).patch<UsersControllerUpdateNotificationSettingsResponses, unknown, ThrowOnError>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/api/v1/users/me/notification-settings',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
 /**
  * Lấy danh sách người dùng cho Admin (phân trang, tìm kiếm, lọc)
  */
@@ -860,4 +844,26 @@ export const notificationsControllerMarkRead = <ThrowOnError extends boolean = f
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/notifications/{id}/read',
     ...options
+});
+
+/**
+ * Lấy cấu hình thông báo của người dùng hiện tại
+ */
+export const usersControllerGetNotificationSettings = <ThrowOnError extends boolean = false>(options?: Options<UsersControllerGetNotificationSettingsData, ThrowOnError>): RequestResult<UsersControllerGetNotificationSettingsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<UsersControllerGetNotificationSettingsResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/notification-settings',
+    ...options
+});
+
+/**
+ * Cập nhật cấu hình thông báo của người dùng hiện tại
+ */
+export const usersControllerUpdateNotificationSettings = <ThrowOnError extends boolean = false>(options: Options<UsersControllerUpdateNotificationSettingsData, ThrowOnError>): RequestResult<UsersControllerUpdateNotificationSettingsResponses, unknown, ThrowOnError> => (options.client ?? client).patch<UsersControllerUpdateNotificationSettingsResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/v1/users/me/notification-settings',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
 });

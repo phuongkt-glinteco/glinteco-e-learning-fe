@@ -17,10 +17,12 @@ import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/default/card';
 import { Button } from '@/components/ui/default/button';
+import { Switch } from '@/components/ui/default/switch';
 import { Sparkles, Loader2 } from 'lucide-react';
 import ResourceDocumentPickerDialog from './ResourceDocumentPickerDialog';
-import MinigameFormSection from './MinigameFormSection';
 import { mockAiGenerateExercise } from '@/mocks/ai-service';
+import QuizQuestionBuilder from './QuizQuestionBuilder';
+import FillBlankQuestionBuilder from './FillBlankQuestionBuilder';
 
 export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { trackId: string; lessonId?: string; exerciseId?: string }) {
   const t = useTranslations('CreateExercisePage');
@@ -60,22 +62,37 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
       steps: [],
       resourceDocIds: [],
       hint: '',
+      type: 'PR_REVIEW',
+      questionsData: [],
+      targetScore: '100',
+      isMandatory: true,
     },
   });
 
-  const currentTag = watch('tag');
-  const isMinigame = currentTag === 'minigame';
+  const currentType = watch('type');
+  const currentQuestions = watch('questionsData');
+  const isMandatory = watch('isMandatory');
+  const isAutoGraded = currentType === 'QUIZ' || currentType === 'FILL_IN_BLANK';
 
   useEffect(() => {
     if (!exerciseId) return;
     setLoading(true);
     exercisesControllerFindOne({ path: { id: exerciseId }, throwOnError: true })
       .then((res) => {
-        const data = res.data as unknown as ExerciseDetailDto;
+        const data = res.data as ExerciseDetailDto;
         const objectives = Array.isArray(data.objectives) ? data.objectives : [];
         const steps = Array.isArray(data.steps) ? data.steps : [];
         const docs = data.resources ?? [];
         const docIds = docs.map((d) => d.id);
+        const questionsData = Array.isArray(data.questionsData)
+          ? data.questionsData.map((question, index) => ({
+            id: question.id || `${data.type ?? 'question'}-${index + 1}`,
+            prompt: question.prompt ?? '',
+            options: Array.isArray(question.options) ? question.options : [],
+            correctAnswer: question.correctAnswer ?? '',
+            explanation: question.explanation ?? '',
+          }))
+          : [];
         setResourceDocIds(docIds);
         setResourceDocs(docs);
         reset({
@@ -90,6 +107,10 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
           steps,
           resourceDocIds: docIds,
           hint: data.hint ?? '',
+          type: data.type ?? 'PR_REVIEW',
+          questionsData,
+          targetScore: String(data.targetScore ?? 100),
+          isMandatory: data.isMandatory ?? true,
         });
       })
       .catch((e) => {
@@ -110,7 +131,7 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
       ]);
     }
     pushNode({ label: isEditMode ? t('breadcrumbEdit', { defaultValue: 'Edit' }) : t('breadcrumbCreate', { defaultValue: 'Create' }), href: window.location.pathname });
-  }, [isEditMode, trackId, setTree, pushNode, tree.length]);
+  }, [isEditMode, trackId, setTree, pushNode, t, tree.length]);
 
   async function onSubmit(data: CreateExerciseFormInput) {
     setSaving(true);
@@ -130,6 +151,20 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
         steps: data.steps.filter((s) => s.trim()),
         resourceDocIds: resourceDocIds.length > 0 ? resourceDocIds : undefined,
         hint: data.hint?.trim() || undefined,
+        type: data.type,
+        questionsData: isAutoGraded
+          ? data.questionsData.map((question, index) => ({
+            id: question.id || `${data.type}-${index + 1}`,
+            prompt: question.prompt.trim(),
+            options: data.type === 'QUIZ'
+              ? (question.options ?? []).map((option) => option.trim()).filter(Boolean)
+              : undefined,
+            correctAnswer: question.correctAnswer.trim(),
+            explanation: question.explanation.trim(),
+          }))
+          : undefined,
+        targetScore: isAutoGraded ? Number.parseInt(data.targetScore, 10) : undefined,
+        isMandatory: data.isMandatory,
       };
       if (isEditMode) {
         await exercisesControllerUpdate({ path: { id: exerciseId }, body, throwOnError: true });
@@ -207,14 +242,53 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-12 gap-lg">
               {/* Left Column */}
-              <div className={`${isMinigame ? 'col-span-12' : 'col-span-12 lg:col-span-8'} space-y-lg`}>
+              <div className="col-span-12 lg:col-span-8 space-y-lg">
                 <ExerciseBasicInfo register={register} errors={errors} setValue={setValue} getValues={getValues} t={t} />
 
-                {isMinigame ? (
-                  <MinigameFormSection register={register} errors={errors} setValue={setValue} getValues={getValues} t={t} />
-                ) : (
-                  <>
                 <ExerciseDescription register={register} errors={errors} t={t} />
+
+                {currentType === 'QUIZ' ? (
+                  <QuizQuestionBuilder
+                    questions={currentQuestions}
+                    onChange={(questions) => setValue('questionsData', questions, { shouldValidate: true })}
+                    error={errors.questionsData?.message as string | undefined}
+                    t={t}
+                  />
+                ) : currentType === 'FILL_IN_BLANK' ? (
+                  <FillBlankQuestionBuilder
+                    questions={currentQuestions}
+                    onChange={(questions) => setValue('questionsData', questions, { shouldValidate: true })}
+                    error={errors.questionsData?.message as string | undefined}
+                    t={t}
+                  />
+                ) : null}
+
+                {isAutoGraded && (
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg">{t('gradingTitle')}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-on-surface">{t('targetScoreLabel')}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                          value={getValues('targetScore') as string}
+                          onChange={(event) => setValue('targetScore', event.target.value, { shouldValidate: true })}
+                        />
+                      </label>
+                      {errors.targetScore && (
+                        <p className="mt-1 flex items-center gap-1 text-[12px] text-destructive">
+                          <span className="material-symbols-outlined text-[14px] text-destructive">error</span>
+                          {t(errors.targetScore.message as string)}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
                 <ExerciseListEditor
                   fieldName="objectives"
@@ -241,13 +315,26 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
                   control={control}
                   t={t}
                 />
-                  </>
-                )}
               </div>
 
-              {/* Right Column (hidden for minigame) */}
-              {!isMinigame && (
               <div className="col-span-12 lg:col-span-4 space-y-lg">
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">{t('mandatoryTitle')}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-on-surface">{t('mandatoryLabel')}</p>
+                      <p className="mt-1 text-xs text-on-surface-variant">{t('mandatoryDescription')}</p>
+                    </div>
+                    <Switch
+                      checked={isMandatory}
+                      onCheckedChange={(checked) => setValue('isMandatory', checked, { shouldValidate: true })}
+                      aria-label={t('mandatoryLabel')}
+                    />
+                  </CardContent>
+                </Card>
+
                 {/* Resource Documents */}
                 <Card className="shadow-sm">
                   <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -301,7 +388,6 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
 
                 <ExerciseHint register={register} t={t} />
               </div>
-              )}
             </div>
 
             {/* Sticky Footer */}

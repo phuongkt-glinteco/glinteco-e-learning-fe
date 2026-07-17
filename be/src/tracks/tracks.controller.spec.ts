@@ -274,7 +274,8 @@ describe('Tracks and Lessons Controllers', () => {
       );
       expect(mockExercisesService.findAll).toHaveBeenCalledWith(
         { lessonId: 'lesson-1' },
-        req.user,
+        req.user.id,
+        req.user.role,
       );
       expect(result).toEqual({ data: [] });
     });

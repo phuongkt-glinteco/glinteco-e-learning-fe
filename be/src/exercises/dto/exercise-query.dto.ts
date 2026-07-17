@@ -8,6 +8,7 @@ export enum ExerciseFilterStatus {
   SUBMITTED = 'submitted',
   APPROVED = 'approved',
   CHANGES = 'changes',
+  REJECTED = 'rejected',
 }
 
 export class ExerciseQueryDto {

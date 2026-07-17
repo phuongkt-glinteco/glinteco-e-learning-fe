@@ -21,6 +21,11 @@ const UNIT_OPTIONS: { value: TimeUnit; labelKey: string }[] = [
 ];
 
 const EXERCISE_DIFFICULTIES: Array<CreateExerciseFormInput['difficulty']> = ['Beginner', 'Intermediate', 'Advanced'];
+const EXERCISE_TYPES: Array<{ value: CreateExerciseFormInput['type']; labelKey: string }> = [
+  { value: 'PR_REVIEW', labelKey: 'typePrReview' },
+  { value: 'QUIZ', labelKey: 'typeQuiz' },
+  { value: 'FILL_IN_BLANK', labelKey: 'typeFillBlank' },
+];
 
 const FALLBACK_TAGS = [
   { id: 'quiz', name: 'quiz' },
@@ -113,7 +118,7 @@ export default function ExerciseBasicInfo({ register, errors, setValue, getValue
           <Select
             disabled={loadingTags}
             onValueChange={(val) => setValue('tag', val, { shouldValidate: true })}
-            defaultValue={getValues('tag') as string}
+            value={getValues('tag') as string}
           >
             <SelectTrigger id="tag" className={errors.tag ? 'border-destructive focus-visible:ring-destructive' : ''}>
               <SelectValue placeholder={loadingTags ? t('tagsLoading') : t('tagPlaceholder')} />
@@ -135,10 +140,29 @@ export default function ExerciseBasicInfo({ register, errors, setValue, getValue
         </div>
 
         <div>
+          <Label htmlFor="type" className="mb-2 block">{t('typeLabel')}</Label>
+          <Select
+            onValueChange={(val) => setValue('type', val as CreateExerciseFormInput['type'], { shouldValidate: true })}
+            value={getValues('type') as string}
+          >
+            <SelectTrigger id="type">
+              <SelectValue placeholder={t('typePlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {EXERCISE_TYPES.map((exerciseType) => (
+                <SelectItem key={exerciseType.value} value={exerciseType.value}>
+                  {t(exerciseType.labelKey)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
           <Label htmlFor="difficulty" className="mb-2 block">{t('difficultyLabel')}</Label>
           <Select
             onValueChange={(val) => setValue('difficulty', val as CreateExerciseFormInput['difficulty'], { shouldValidate: true })}
-            defaultValue={getValues('difficulty') as string}
+            value={getValues('difficulty') as string}
           >
             <SelectTrigger id="difficulty" className={errors.difficulty ? 'border-destructive focus-visible:ring-destructive' : ''}>
               <SelectValue placeholder={t('difficultyPlaceholder')} />

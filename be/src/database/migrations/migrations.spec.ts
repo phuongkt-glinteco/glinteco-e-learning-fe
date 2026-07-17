@@ -11,6 +11,7 @@ import { AddUserBookmarks1781623541186 } from './1781623541186-AddUserBookmarks'
 import { AddIsActiveToCohorts1781624224625 } from './1781624224625-AddIsActiveToCohorts';
 import { AddLessonsCompletedToTrackProgress1781628751000 } from './1781628751000-AddLessonsCompletedToTrackProgress';
 import { UpdateTracksAndLessonsSchema1784400000000 } from './1784400000000-UpdateTracksAndLessonsSchema';
+import { AddProgressEngineAndAdminTrackFields1784700000000 } from './1784700000000-AddProgressEngineAndAdminTrackFields';
 
 describe('Database Migrations', () => {
   let pgClient: Client;
@@ -70,6 +71,7 @@ describe('Database Migrations', () => {
     const migration7 = new AddIsActiveToCohorts1781624224625();
     const migration8 = new AddLessonsCompletedToTrackProgress1781628751000();
     const migration9 = new UpdateTracksAndLessonsSchema1784400000000();
+    const migration10 = new AddProgressEngineAndAdminTrackFields1784700000000();
 
     // Run UP 1
     await migration1.up(queryRunner);
@@ -141,6 +143,21 @@ describe('Database Migrations', () => {
     expect(await queryRunner.hasColumn('lessons', 'body')).toBe(true);
     expect(await queryRunner.hasColumn('lessons', 'content')).toBe(false);
     expect(await queryRunner.hasColumn('lessons', 'estimatedTime')).toBe(true);
+
+    // Run UP 10
+    await migration10.up(queryRunner);
+    expect(await queryRunner.hasColumn('tracks', 'status')).toBe(true);
+    expect(await queryRunner.hasColumn('exercises', 'type')).toBe(true);
+    expect(await queryRunner.hasColumn('exercises', 'questions_data')).toBe(
+      true,
+    );
+    expect(await queryRunner.hasColumn('exercises', 'target_score')).toBe(true);
+    expect(await queryRunner.hasColumn('exercises', 'is_mandatory')).toBe(true);
+
+    // Run DOWN 10
+    await migration10.down(queryRunner);
+    expect(await queryRunner.hasColumn('tracks', 'status')).toBe(false);
+    expect(await queryRunner.hasColumn('exercises', 'type')).toBe(false);
 
     // Run DOWN 9
     await migration9.down(queryRunner);

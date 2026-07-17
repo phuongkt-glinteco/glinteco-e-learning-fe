@@ -86,6 +86,12 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(date);
 }
 
+function getExerciseTypeLabel(type: LearnerExerciseFeedItem['type']) {
+  if (type === 'QUIZ') return 'Quiz';
+  if (type === 'FILL_IN_BLANK') return 'Fill in the Blank';
+  return 'PR Review';
+}
+
 function getTabCount(exercises: LearnerExerciseFeedItem[], tab: ExerciseFeedTab) {
   const meta = tabMeta.find((item) => item.id === tab);
   if (!meta?.statuses) return exercises.length;
@@ -196,6 +202,9 @@ export function MyExercisesView({
                       {exercise.trackTitle} {exercise.lessonId ? '- Lesson linked' : ''}
                     </p>
                     <div className="mt-4 flex flex-wrap gap-4 text-[14px] font-medium text-on-surface-variant">
+                      <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
+                        {getExerciseTypeLabel(exercise.type)}
+                      </Badge>
                       {exercise.isMandatory !== null && (
                         <Badge
                           variant="outline"

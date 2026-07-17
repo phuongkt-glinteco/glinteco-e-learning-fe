@@ -4,6 +4,24 @@ export function registerUiShowErrors(
   pipeline: ErrorProcessorPipeline,
   createHandler: (params: CreateHandlerParams) => ErrorHandler,
 ) {
+  for (const [messageIncludes, errorCode] of [
+    ['TRACK_INACTIVE', 'TRACK_INACTIVE'],
+    ['EXERCISE_LOCKED', 'EXERCISE_LOCKED'],
+    ['EXERCISE_NOT_FOUND', 'EXERCISE_NOT_FOUND'],
+  ] as const) {
+    pipeline.injectHandler(
+      createHandler({
+        name: `exercise-${errorCode.toLowerCase()}`,
+        stage: 'BACKEND_UI',
+        requestPath: '/exercises',
+        statusCode: errorCode === 'EXERCISE_NOT_FOUND' ? '404' : '403',
+        messageIncludes: [messageIncludes],
+        errorCode,
+        action: 'FINAL_THROW',
+      }),
+    );
+  }
+
   // Register: email already exists or invalid data -> inline
   pipeline.injectHandler(
     createHandler({

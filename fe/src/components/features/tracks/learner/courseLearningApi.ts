@@ -17,6 +17,7 @@ import {
 } from '@/services/api-client';
 import type { AutoAnswerDto, AutoGradeResultDto } from '@/services/api-client';
 import type {
+  LearnerAutoGradeResult,
   LearnerExercise,
   LearnerExerciseFeedItem,
   LearnerExerciseDetail,
@@ -31,6 +32,7 @@ import {
   getSubmissionExerciseId,
   getSubmissionExercise,
   getErrorStatus,
+  normalizeAutoGradeResult,
   normalizeExerciseFeedItem,
   normalizeExerciseDetail,
   normalizeExerciseSummaries,
@@ -437,23 +439,33 @@ export async function fetchExercisePage(
   lessonId: string,
   exerciseId: string
 ): Promise<ExercisePageData> {
-  const [lessonPage, exercise] = await Promise.all([
-    fetchLessonPage(courseId, lessonId),
-    fetchExerciseDetail(exerciseId),
-  ]);
-
+  const exercise = await fetchExerciseDetail(exerciseId);
   if (exercise.trackId && exercise.trackId !== courseId) throw new Error('Exercise not found');
   if (exercise.lessonId && exercise.lessonId !== lessonId) throw new Error('Exercise not found');
 
   const submission = await fetchMySubmissionForExercise(exerciseId);
 
-  return {
-    course: lessonPage.course,
-    lessons: lessonPage.lessons,
-    activeLesson: lessonPage.activeLesson,
-    exercise,
-    submission: normalizeSubmissionState(submission, exercise),
-  };
+  try {
+    const lessonPage = await fetchLessonPage(courseId, lessonId);
+    return {
+      course: lessonPage.course,
+      lessons: lessonPage.lessons,
+      activeLesson: lessonPage.activeLesson,
+      exercise,
+      submission: normalizeSubmissionState(submission, exercise),
+    };
+  } catch (error) {
+    if (!exercise.isReadOnly) throw error;
+    const activeLesson = createFallbackLesson(exercise);
+
+    return {
+      course: createFallbackCourse(exercise),
+      lessons: [activeLesson],
+      activeLesson,
+      exercise,
+      submission: normalizeSubmissionState(submission, exercise),
+    };
+  }
 }
 
 export async function fetchStandaloneExercisePage(exerciseId: string): Promise<ExercisePageData> {
@@ -513,6 +525,20 @@ export async function submitExercise(
   });
 
   return normalizeSubmissionState(extractSubmissionContract(response.data));
+}
+
+export async function submitAutoGradedExercise(
+  exerciseId: string,
+  answers: Array<{ questionId: string; answer: string }>
+): Promise<LearnerAutoGradeResult> {
+  const response = await exercisesControllerSubmitAuto({
+    path: { id: exerciseId },
+    body: { answers },
+    throwOnError: true,
+    ...silentErrorToastOptions,
+  });
+
+  return normalizeAutoGradeResult(response.data);
 }
 
 export async function resubmitExercise(

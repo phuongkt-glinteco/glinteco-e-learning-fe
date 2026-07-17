@@ -1,5 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { ExerciseDifficulty } from '../../database/entities/exercise.entity';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ExerciseDifficulty,
+  ExerciseType,
+} from '../../database/entities/exercise.entity';
 import { DocumentResponseDto } from '../../documents/dto/document-response.dto';
 import { ExerciseFilterStatus } from './exercise-query.dto';
 
@@ -41,21 +44,49 @@ export class ExerciseSummaryDto {
   status: ExerciseFilterStatus;
 
   @ApiProperty({
+    type: String,
     nullable: true,
     description: 'Đường dẫn PR nộp bài tập',
   })
   prUrl: string | null;
 
   @ApiProperty({
+    type: String,
     nullable: true,
     description: 'ID của bài học liên kết với bài tập (nếu có)',
   })
   lessonId: string | null;
+
+  @ApiProperty({ enum: ExerciseType })
+  type: ExerciseType;
+
+  @ApiProperty()
+  isMandatory: boolean;
+
+  @ApiProperty({ description: 'Bài tập chỉ có thể xem, không thể thao tác.' })
+  isReadOnly: boolean;
 }
 
 export class ExerciseListResponseDto {
   @ApiProperty({ type: [ExerciseSummaryDto] })
   data: ExerciseSummaryDto[];
+}
+
+export class ExerciseQuestionResponseDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  prompt: string;
+
+  @ApiPropertyOptional({ type: [String] })
+  options?: string[];
+
+  @ApiPropertyOptional({ description: 'Admin only.' })
+  correctAnswer?: string;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Admin only.' })
+  explanation?: string | null;
 }
 
 export class ExerciseDetailDto {
@@ -90,18 +121,16 @@ export class ExerciseDetailDto {
   overview: string;
 
   @ApiProperty({
-    type: 'object',
-    additionalProperties: true,
+    type: [String],
     description: 'Các mục tiêu cần đạt được',
   })
-  objectives: Record<string, any>;
+  objectives: string[];
 
   @ApiProperty({
-    type: 'object',
-    additionalProperties: true,
+    type: [String],
     description: 'Các bước hướng dẫn thực hiện',
   })
-  steps: Record<string, any>;
+  steps: string[];
 
   @ApiProperty({
     type: [DocumentResponseDto],
@@ -119,14 +148,28 @@ export class ExerciseDetailDto {
   status: ExerciseFilterStatus;
 
   @ApiProperty({
+    type: String,
     nullable: true,
     description: 'Đường dẫn PR nộp bài tập',
   })
   prUrl: string | null;
 
   @ApiProperty({
+    type: String,
     nullable: true,
     description: 'ID của bài học liên kết với bài tập (nếu có)',
   })
   lessonId: string | null;
+
+  @ApiProperty({ enum: ExerciseType })
+  type: ExerciseType;
+
+  @ApiProperty({ type: [ExerciseQuestionResponseDto], nullable: true })
+  questionsData: ExerciseQuestionResponseDto[] | null;
+
+  @ApiProperty({ minimum: 0, maximum: 100 })
+  targetScore: number;
+
+  @ApiProperty()
+  isMandatory: boolean;
 }

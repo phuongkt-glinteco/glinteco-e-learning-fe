@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start -p 6336",
     "lint": "node scripts/run-eslint-legacy.cjs .",
+    "lint:task": "node scripts/run-eslint-legacy.cjs",
+    "test": "node --experimental-strip-types src/schemas/exerciseSchemas.test.mjs && node --experimental-strip-types src/components/puck-editor/helper.test.mjs",
     "verify:task": "node ../scripts/verify-task.mjs",
     "ai:run": "node scripts/ai-workflow/run-current-task.mjs",
     "ai:run:fast": "pnpm ai:run -- --verify fast",

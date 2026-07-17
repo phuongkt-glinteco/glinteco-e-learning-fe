@@ -8,7 +8,7 @@ import { MarkdownRenderer } from '@/lib/md-renderer';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/default/alert-dialog';
 import { Badge } from '@/components/ui/default/badge';
-import { PuckViewer, useLessonPuckConfig, isPuckJsonBody, parseBodyToPuckData } from '@/components/puck-editor';
+import { PuckViewer, readLessonPuckData, useLessonPuckConfig } from '@/components/puck-editor';
 import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 import { getLessonAccessState, type LessonCompletionBlocker } from './utils';
 
@@ -32,6 +32,12 @@ interface LessonDetailViewProps {
   onCloseCompletionBlocker: () => void;
 }
 
+function getExerciseTypeLabel(type: LearnerExercise['type']) {
+  if (type === 'QUIZ') return 'Quiz';
+  if (type === 'FILL_IN_BLANK') return 'Fill in the Blank';
+  return 'PR Review';
+}
+
 export function LessonDetailView({
   track,
   lessons,
@@ -53,10 +59,9 @@ export function LessonDetailView({
 }: LessonDetailViewProps) {
   const t = useTranslations('LessonDetailContainer');
   const lessonConfig = useLessonPuckConfig();
-  const bodyIsPuckJson = isPuckJsonBody(activeLesson.body);
-  const puckContentData = useMemo(() => {
-    if (!bodyIsPuckJson) return null;
-    return parseBodyToPuckData(activeLesson.body, {
+  const lessonBodyResult = useMemo(() => {
+    if (!activeLesson.body.trim()) return null;
+    return readLessonPuckData(activeLesson.body, {
       title: activeLesson.title,
       description: activeLesson.description,
       estimatedTime: activeLesson.estimatedTime,
@@ -65,7 +70,7 @@ export function LessonDetailView({
       documents: [],
       exercises: [],
     });
-  }, [activeLesson.body, activeLesson.title, activeLesson.description, activeLesson.estimatedTime, activeLesson.order, activeLesson.type, bodyIsPuckJson]);
+  }, [activeLesson.body, activeLesson.title, activeLesson.description, activeLesson.estimatedTime, activeLesson.order, activeLesson.type]);
   const progressPercent = track.lessonCount > 0
     ? Math.round((track.lessonsCompleted / track.lessonCount) * 100)
     : 0;
@@ -219,14 +224,23 @@ export function LessonDetailView({
           </div>
 
           {activeLesson.body.trim() ? (
-            bodyIsPuckJson && puckContentData ? (
+            lessonBodyResult?.ok ? (
               <div className="min-w-0">
-                <PuckViewer config={lessonConfig} data={puckContentData} />
+                <PuckViewer config={lessonConfig} data={lessonBodyResult.data} />
               </div>
-            ) : (
+            ) : lessonBodyResult?.reason === 'invalid_json' ? (
               <article className="min-w-0 break-words text-on-surface-variant">
                 <MarkdownRenderer content={activeLesson.body} />
               </article>
+            ) : (
+              <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-6">
+                <h3 className="headline-sm text-on-surface">
+                  {t('contentRenderErrorTitle', { defaultValue: 'Lesson content could not be rendered' })}
+                </h3>
+                <p className="mt-2 body-sm text-on-surface-variant">
+                  {t('contentRenderErrorDesc', { defaultValue: 'This lesson body is malformed or uses unsupported blocks.' })}
+                </p>
+              </div>
             )
           ) : (
             <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-6">
@@ -257,6 +271,9 @@ export function LessonDetailView({
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
+                            {getExerciseTypeLabel(exercise.type)}
+                          </Badge>
                           {exercise.isMandatory !== null && (
                             <Badge
                               variant="outline"

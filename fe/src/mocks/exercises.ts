@@ -2,7 +2,15 @@ import type { ExerciseSummaryDto, ExerciseDetailDto, CreateExerciseDto, UpdateEx
 
 const MOCK_TRACK_ID = '00000000-0000-0000-0000-000000000000';
 
-const INITIAL_MOCK_EXERCISES: ExerciseDetailDto[] = [
+type LegacyExerciseDetail = Omit<
+  ExerciseDetailDto,
+  'objectives' | 'steps' | 'type' | 'questionsData' | 'targetScore' | 'isMandatory'
+> & {
+  objectives: Record<string, string>;
+  steps: Record<string, string>;
+};
+
+const INITIAL_MOCK_EXERCISES: LegacyExerciseDetail[] = [
   {
     id: 'mock-ex-001',
     title: 'Biến và Kiểu dữ liệu trong JavaScript',
@@ -195,7 +203,7 @@ const INITIAL_MOCK_EXERCISES: ExerciseDetailDto[] = [
   },
 ];
 
-let mockExercisesStore = [...INITIAL_MOCK_EXERCISES];
+const mockExercisesStore = [...INITIAL_MOCK_EXERCISES];
 
 export type ExerciseMockQuery = {
   trackId?: string;
@@ -209,6 +217,24 @@ function getObjectiveCount(objectives: unknown): number {
     return Object.keys(objectives).length;
   }
   return 0;
+}
+
+function getExerciseType(tag: string): ExerciseDetailDto['type'] {
+  if (tag === 'quiz') return 'QUIZ';
+  if (tag === 'fill_in_blank') return 'FILL_IN_BLANK';
+  return 'PR_REVIEW';
+}
+
+function normalizeMockExercise(exercise: LegacyExerciseDetail): ExerciseDetailDto {
+  return {
+    ...exercise,
+    objectives: Object.values(exercise.objectives),
+    steps: Object.values(exercise.steps),
+    type: getExerciseType(exercise.tag),
+    questionsData: null,
+    targetScore: 100,
+    isMandatory: true,
+  };
 }
 
 export async function mockFetchExercises(query: ExerciseMockQuery = {}): Promise<{ data: ExerciseSummaryDto[] }> {
@@ -240,6 +266,8 @@ export async function mockFetchExercises(query: ExerciseMockQuery = {}): Promise
     status: ex.status,
     prUrl: null,
     lessonId: null,
+    type: getExerciseType(ex.tag),
+    isMandatory: true,
   }));
 
   const limit = query.limit ?? 50;
@@ -253,14 +281,14 @@ export async function mockFetchExercise(id: string): Promise<ExerciseDetailDto> 
   if (!exercise) {
     throw new Error('Exercise not found');
   }
-  return { ...exercise };
+  return normalizeMockExercise(exercise);
 }
 
 export async function mockCreateExercise(payload: CreateExerciseDto): Promise<{ id: string }> {
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   const newId = `mock-ex-${Date.now()}`;
-  const newExercise: ExerciseDetailDto = {
+  const newExercise: LegacyExerciseDetail = {
     id: newId,
     title: payload.title,
     trackId: payload.trackId,
@@ -277,9 +305,7 @@ export async function mockCreateExercise(payload: CreateExerciseDto): Promise<{ 
     hint: payload.hint ?? null,
     status: 'pending',
     prUrl: null,
-    lessonId: payload.lessonId
-      ? { id: payload.lessonId }
-      : null,
+    lessonId: payload.lessonId ?? null,
   };
   mockExercisesStore.unshift(newExercise);
 
@@ -297,7 +323,7 @@ export async function mockUpdateExercise(id: string, payload: UpdateExerciseDto)
   mockExercisesStore[index] = {
     ...mockExercisesStore[index],
     ...payload,
-  } as ExerciseDetailDto;
+  } as LegacyExerciseDetail;
 }
 
 export async function mockRemoveExercise(id: string): Promise<void> {

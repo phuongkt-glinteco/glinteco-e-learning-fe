@@ -1,6 +1,9 @@
 {
   "missingRouteParam": "Thiếu tham số định tuyến của bài tập.",
   "loadFailed": "Không thể tải chi tiết bài tập.",
+  "TRACK_INACTIVE": "Bài tập này chưa khả dụng vì lộ trình đã ngừng hoạt động.",
+  "EXERCISE_LOCKED": "Bài tập này đang bị khóa cho đến khi bạn hoàn thành bài học bắt buộc.",
+  "EXERCISE_NOT_FOUND": "Bài tập này không còn tồn tại.",
   "submissionSuccess": "Đã lưu bài nộp thành công.",
   "submitFailed": "Gửi bài tập thất bại.",
   "startError": "Chưa thể lưu việc bắt đầu bài tập vì API backend chưa hỗ trợ chức năng này cho học viên.",

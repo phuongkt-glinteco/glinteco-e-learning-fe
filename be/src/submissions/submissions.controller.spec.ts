@@ -4,6 +4,7 @@ import { SubmissionsService } from './submissions.service';
 import { SubmissionStatus } from '../database/entities/submission.entity';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
+import { ExercisesService } from '../exercises/exercises.service';
 
 describe('SubmissionsController', () => {
   let controller: SubmissionsController;
@@ -17,6 +18,8 @@ describe('SubmissionsController', () => {
     review: jest.fn(),
     findHistory: jest.fn(),
   };
+
+  const mockExercisesService = { findAll: jest.fn() };
 
   const mockDate = new Date('2026-06-24T00:00:00.000Z');
 
@@ -49,6 +52,7 @@ describe('SubmissionsController', () => {
       controllers: [SubmissionsController],
       providers: [
         { provide: SubmissionsService, useValue: mockSubmissionsService },
+        { provide: ExercisesService, useValue: mockExercisesService },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -68,12 +72,13 @@ describe('SubmissionsController', () => {
   describe('findExercises', () => {
     it('should delegate findExercises to service', async () => {
       const req = { user: { id: 'user-1', role: 'learner' } };
-      mockSubmissionsService.findExercises.mockResolvedValue({ data: [] });
+      mockExercisesService.findAll.mockResolvedValue({ data: [] });
 
       const result = await controller.findExercises('track-1', req);
-      expect(mockSubmissionsService.findExercises).toHaveBeenCalledWith(
-        'track-1',
-        'user-1',
+      expect(mockExercisesService.findAll).toHaveBeenCalledWith(
+        { trackId: 'track-1' },
+        req.user.id,
+        req.user.role,
       );
       expect(result).toEqual({ data: [] });
     });

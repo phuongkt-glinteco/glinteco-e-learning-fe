@@ -1,6 +1,8 @@
 ﻿# FE Need API Audit
 
-> Cập nhật ngày 30/06/2026. Chỉ giữ các mục còn cần xử lý/verify.
+> Cập nhật ngày 16/07/2026. Chỉ giữ các mục còn cần xử lý/verify.
+
+Exercise catalog, ba loại `PR_REVIEW | QUIZ | FILL_IN_BLANK`, lesson unlock, auto-grading và PR resubmit đã được đồng bộ Admin → Learner. Phần dưới đây vẫn cố ý để ngoài scope: assignment theo learner/cohort và trạng thái `Start Exercise` riêng.
 
 ## Còn cần làm
 - Thiếu backend contract cho learner exercise assignment/progress. API hiện tại chỉ có submission flow, yêu cầu PR URL và chuyển thẳng sang `submitted`, nên không thể persist trạng thái `in_progress` khi learner bấm `Start Exercise`.

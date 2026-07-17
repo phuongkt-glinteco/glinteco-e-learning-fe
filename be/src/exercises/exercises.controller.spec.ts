@@ -83,6 +83,7 @@ describe('ExercisesController', () => {
       expect(mockExercisesService.findAll).toHaveBeenCalledWith(
         query,
         mockUser.id,
+        mockUser.role,
       );
       expect(result).toEqual({ data: [] });
     });
@@ -137,6 +138,21 @@ describe('ExercisesController', () => {
       const result = await controller.update('ex-1', dto);
       expect(mockExercisesService.update).toHaveBeenCalledWith('ex-1', dto);
       expect(result.title).toBe('Updated');
+    });
+  });
+
+  describe('submitAuto', () => {
+    it('passes the learner identity and answers to the service', async () => {
+      const dto = { answers: [{ questionId: 'q1', answer: 'A' }] };
+      mockExercisesService.submitAuto.mockResolvedValue({ passed: true });
+
+      await controller.submitAuto('ex-1', mockUser, dto);
+      expect(mockExercisesService.submitAuto).toHaveBeenCalledWith(
+        'ex-1',
+        mockUser.id,
+        mockUser.role,
+        dto,
+      );
     });
   });
 

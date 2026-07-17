@@ -1,6 +1,9 @@
 {
   "missingRouteParam": "Missing exercise route parameter.",
   "loadFailed": "Failed to load exercise details.",
+  "TRACK_INACTIVE": "This exercise is unavailable because its track is inactive.",
+  "EXERCISE_LOCKED": "This exercise is locked until the required lesson is completed.",
+  "EXERCISE_NOT_FOUND": "This exercise no longer exists.",
   "submissionSuccess": "Submission saved successfully.",
   "submitFailed": "Failed to submit exercise.",
   "startError": "Starting an exercise cannot be saved yet because the backend API does not expose a learner exercise start endpoint.",

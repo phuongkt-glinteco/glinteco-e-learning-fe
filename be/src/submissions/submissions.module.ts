@@ -7,11 +7,13 @@ import { User } from '../database/entities/user.entity';
 import { SubmissionsService } from './submissions.service';
 import { SubmissionsController } from './submissions.controller';
 import { AuthModule } from '../modules/auth/auth.module';
+import { ExercisesModule } from '../exercises/exercises.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Submission, SubmissionHistory, Exercise, User]),
     AuthModule,
+    ExercisesModule,
   ],
   controllers: [SubmissionsController],
   providers: [SubmissionsService],

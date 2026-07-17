@@ -15,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/default/table';
-import Skeleton from '@/components/ui/loading/Skeleton';
 import { CohortProgressSummaryBanner } from './CohortProgressSummaryBanner';
 import { CohortLearnersProgressFilter } from './CohortLearnersProgressFilter';
 import { UserProgressDetailModal } from './UserProgressDetailModal';
@@ -170,24 +169,18 @@ export function CohortLearnersTable({
 
   if (propLoading || isProgressLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-44 w-full rounded-2xl" />
-        <Skeleton className="h-16 w-full rounded-xl" />
-        <div className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm p-6 space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-outline-variant/50 last:border-0">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="space-y-1">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-40" />
-                </div>
-              </div>
-              <Skeleton className="h-6 w-32 rounded-lg" />
-              <Skeleton className="h-6 w-24 rounded-full" />
-              <Skeleton className="h-8 w-28 rounded-lg" />
-            </div>
-          ))}
+      <div className="flex flex-col items-center justify-center py-24 bg-surface rounded-xl border border-outline-variant shadow-sm">
+        <div className="relative flex items-center justify-center mb-6">
+          <div className="w-16 h-16 rounded-full border-4 border-surface-container-highest border-t-primary loading-spinner" />
+          <div className="absolute w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Icon icon="lucide:users" className="w-4 h-4 text-primary" />
+          </div>
+        </div>
+        <p className="text-lg font-bold text-on-surface">{t('loadingLearnersTitle')}</p>
+        <div className="flex gap-1.5 mt-3">
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0s' }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.15s' }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.3s' }} />
         </div>
       </div>
     );

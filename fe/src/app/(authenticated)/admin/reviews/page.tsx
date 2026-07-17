@@ -3,11 +3,21 @@ import { serverFetch } from '@/services/server-fetch';
 import { submissionsControllerFindAll } from '@/services/api-client';
 import type { SubmissionListResponseDto } from '@/services/api-client';
 
-export default async function ReviewsPage() {
+export default async function ReviewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ submissionId?: string }>;
+}) {
+  const { submissionId } = await searchParams;
+
+  const query: Record<string, unknown> = { limit: 20 };
+  if (!submissionId) {
+    query.status = 'submitted';
+  }
   const result = await serverFetch(async (client) => {
     const res = await submissionsControllerFindAll({
       client,
-      query: { status: 'submitted', limit: 20 },
+      query: query as never,
       throwOnError: true,
     });
     return res.data as SubmissionListResponseDto;
@@ -22,6 +32,7 @@ export default async function ReviewsPage() {
       initialData={initialData} 
       initialNextCursor={initialNextCursor} 
       initialHasMore={initialHasMore} 
+      initialSubmissionId={submissionId}
     />
   );
 }

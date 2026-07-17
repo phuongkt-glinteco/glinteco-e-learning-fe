@@ -10,6 +10,7 @@
   "tabTracks": "Track Progress",
   "tabLearners": "Learners",
   "tabSubmissions": "Submissions",
+  "loadingTitle": "Loading data",
   "loadingLearnersTitle": "Loading learners",
   "errorLoadTitle": "Could not load cohort details",
   "errorLoadAction": "Retry",

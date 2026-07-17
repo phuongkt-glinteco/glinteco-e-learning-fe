@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslations, useFormatter } from 'next-intl';
 import { submissionsControllerFindAll, submissionsControllerReview, submissionsControllerFindHistory } from '@/services/api-client';
 import type { SubmissionFeedItemDto, SubmissionHistoryItemDto, SubmissionListResponseDto } from '@/services/api-client';
@@ -15,14 +15,19 @@ interface ReviewQueueClientProps {
   initialData: SubmissionFeedItemDto[];
   initialNextCursor: string | null;
   initialHasMore: boolean;
+  initialSubmissionId?: string;
 }
 
-export default function ReviewQueueClient({ initialData, initialNextCursor, initialHasMore }: ReviewQueueClientProps) {
+export default function ReviewQueueClient({ initialData, initialNextCursor, initialHasMore, initialSubmissionId }: ReviewQueueClientProps) {
   const t = useTranslations('ReviewQueuePage');
   const format = useFormatter();
 
   const [submissions, setSubmissions] = useState<SubmissionFeedItemDto[]>(initialData);
-  const [selected, setSelected] = useState<SubmissionFeedItemDto | null>(null);
+  const [selected, setSelected] = useState<SubmissionFeedItemDto | null>(
+    initialSubmissionId
+      ? initialData.find((s) => s.id === initialSubmissionId) ?? null
+      : null
+  );
   
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -89,6 +94,14 @@ export default function ReviewQueueClient({ initialData, initialNextCursor, init
     } finally {
       setHistoryLoading(false);
     }
+  }, []);
+
+  // Auto-load history when initialized with a submissionId
+  useEffect(() => {
+    if (initialSubmissionId && selected) {
+      fetchHistory(selected.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function selectSubmission(sub: SubmissionFeedItemDto) {

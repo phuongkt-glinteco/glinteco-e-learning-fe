@@ -17,7 +17,6 @@ import {
 import { Button } from '@/components/ui/default/button';
 import { Card, CardContent } from '@/components/ui/default/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/default/tabs';
-import Skeleton from '@/components/ui/loading/Skeleton';
 import { EditCohortModal } from './EditCohortModal';
 import { CohortOverviewCards } from './CohortOverviewCards';
 import { CohortTrackProgressTable } from './CohortTrackProgressTable';
@@ -196,23 +195,18 @@ export function CohortDetailClient({ cohortId }: CohortDetailClientProps) {
 
   if (cohortLoading && !cohort) {
     return (
-      <div className="space-y-6">
-        <Card className="border-outline-variant shadow-sm p-6 space-y-4">
-          <div className="flex justify-between items-start">
-            <div className="space-y-2">
-              <Skeleton className="h-6 w-32 rounded-lg" />
-              <Skeleton className="h-8 w-64" />
-            </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-9 w-24 rounded-lg" />
-              <Skeleton className="h-9 w-32 rounded-lg" />
-            </div>
+      <div className="flex flex-col items-center justify-center py-32 bg-surface rounded-xl border border-outline-variant shadow-sm">
+        <div className="relative flex items-center justify-center mb-6">
+          <div className="w-16 h-16 rounded-full border-4 border-surface-container-highest border-t-primary loading-spinner" />
+          <div className="absolute w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Icon icon="lucide:layers" className="w-4 h-4 text-primary" />
           </div>
-        </Card>
-        <CohortOverviewCards isLoading={true} />
-        <Skeleton className="h-12 w-full rounded-xl" />
-        <div className="bg-surface rounded-xl border border-outline-variant p-6 h-64">
-          <Skeleton className="h-full w-full rounded-lg" />
+        </div>
+        <p className="text-lg font-bold text-on-surface">{t('loadingTitle')}</p>
+        <div className="flex gap-1.5 mt-3">
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0s' }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.15s' }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.3s' }} />
         </div>
       </div>
     );

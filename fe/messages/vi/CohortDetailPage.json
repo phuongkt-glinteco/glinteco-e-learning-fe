@@ -10,6 +10,7 @@
   "tabTracks": "Tiến độ Lộ trình",
   "tabLearners": "Học viên",
   "tabSubmissions": "Bài nộp",
+  "loadingTitle": "Đang tải dữ liệu",
   "loadingLearnersTitle": "Đang tải danh sách học viên",
   "errorLoadTitle": "Không thể tải chi tiết lớp học",
   "errorLoadAction": "Tải lại",

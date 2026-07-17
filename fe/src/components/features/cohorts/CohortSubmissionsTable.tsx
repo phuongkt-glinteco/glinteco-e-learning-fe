@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/default/table';
-import Skeleton from '@/components/ui/loading/Skeleton';
 import type { SubmissionFeedItemDto } from '@/services/api-client';
 
 type SubmissionUser = {
@@ -66,22 +65,18 @@ export function CohortSubmissionsTable({
 
   if (isLoading) {
     return (
-      <div className="bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-outline-variant bg-surface-container/30">
-          <Skeleton className="h-5 w-48" />
+      <div className="flex flex-col items-center justify-center py-24 bg-surface rounded-xl border border-outline-variant shadow-sm">
+        <div className="relative flex items-center justify-center mb-6">
+          <div className="w-16 h-16 rounded-full border-4 border-surface-container-highest border-t-primary loading-spinner" />
+          <div className="absolute w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Icon icon="lucide:file-check" className="w-4 h-4 text-primary" />
+          </div>
         </div>
-        <div className="p-6 space-y-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center justify-between gap-4 py-3 border-b border-outline-variant/50 last:border-0">
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-3 w-28" />
-              </div>
-              <Skeleton className="h-5 w-48" />
-              <Skeleton className="h-6 w-28 rounded-full" />
-              <Skeleton className="h-8 w-24 rounded-lg" />
-            </div>
-          ))}
+        <p className="text-lg font-bold text-on-surface">{t('loadingTitle')}</p>
+        <div className="flex gap-1.5 mt-3">
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0s' }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.15s' }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.3s' }} />
         </div>
       </div>
     );

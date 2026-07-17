@@ -15,24 +15,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/default/table';
-import { CohortProgressSummaryBanner } from './CohortProgressSummaryBanner';
 import { CohortLearnersProgressFilter } from './CohortLearnersProgressFilter';
 import { UserProgressDetailModal } from './UserProgressDetailModal';
 import {
   cohortControllerGetUsersProgress,
-  cohortControllerFindAll,
   type CohortUserProgressItemDto,
   type UserProfileDto,
-  type CohortSummaryDto,
 } from '@/services/api-client';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/default/select';
-import { getLearnerProgressMetrics, getCohortSummaryMetrics } from '@/lib/cohort-progress';
+import { getLearnerProgressMetrics } from '@/lib/cohort-progress';
 
 export type CohortLearnerItem = Partial<UserProfileDto> & {
   id: string;
@@ -66,36 +56,14 @@ export function CohortLearnersTable({
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
-    const [trackFilter, setTrackFilter] = useState('all');
+  const [trackFilter, setTrackFilter] = useState('all');
 
   // Selected Learner for Modal Detail
   const [selectedLearner, setSelectedLearner] = useState<CohortUserProgressItemDto | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Selected Cohort switcher state
-  const [cohorts, setCohorts] = useState<CohortSummaryDto[]>([]);
-  const [selectedCohortId, setSelectedCohortId] = useState(cohortId);
-
-  useEffect(() => {
-    async function loadCohorts() {
-      try {
-        const res = await cohortControllerFindAll();
-        const list = res.data?.data || [];
-        setCohorts(list);
-        const validUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (list.length > 0 && (!selectedCohortId || !validUUID.test(selectedCohortId))) {
-          setSelectedCohortId(list[0].id);
-        }
-      } catch {
-        // ignore
-      }
-    }
-    loadCohorts();
-  }, []);
-
   const fetchProgressData = useCallback(async () => {
-    const validUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!selectedCohortId || !validUUID.test(selectedCohortId)) {
+    if (!cohortId) {
       setIsProgressLoading(false);
       return;
     }
@@ -103,7 +71,7 @@ export function CohortLearnersTable({
     setProgressError(null);
     try {
       const response = await cohortControllerGetUsersProgress({
-        path: { id: selectedCohortId },
+        path: { id: cohortId },
       });
       setProgressLearners(response.data?.data || []);
     } catch {
@@ -111,7 +79,7 @@ export function CohortLearnersTable({
     } finally {
       setIsProgressLoading(false);
     }
-  }, [selectedCohortId, t]);
+  }, [cohortId, t]);
 
   useEffect(() => {
     fetchProgressData();
@@ -128,11 +96,6 @@ export function CohortLearnersTable({
       });
     });
     return Array.from(trackMap.values());
-  }, [progressLearners]);
-
-  // Summary Metrics
-  const summaryMetrics = useMemo(() => {
-    return getCohortSummaryMetrics(progressLearners);
   }, [progressLearners]);
 
   // Filtered Learners
@@ -160,12 +123,6 @@ export function CohortLearnersTable({
     setSelectedLearner(learner);
     setIsModalOpen(true);
   };
-
-  const displayCohortList = cohorts.length > 0
-    ? cohorts.map((c) => ({ id: c.id, name: c.name }))
-    : cohortName && selectedCohortId
-    ? [{ id: selectedCohortId, name: cohortName }]
-    : [];
 
   if (propLoading || isProgressLoading) {
     return (
@@ -205,15 +162,7 @@ export function CohortLearnersTable({
 
   return (
     <div className="space-y-5">
-      {/* 1. Progress Summary Banner with Select Cohort */}
-      <CohortProgressSummaryBanner
-        cohortId={selectedCohortId}
-        cohortName={cohortName}
-        cohortList={displayCohortList}
-        onSelectCohort={(newId) => setSelectedCohortId(newId)}
-        avgProgressPct={summaryMetrics.avgProgressPct}      />
-
-      {/* 2. Filter Toolbar */}
+      {/* 1. Filter Toolbar */}
       <CohortLearnersProgressFilter
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -261,7 +210,7 @@ export function CohortLearnersTable({
                     <TableRow key={learner.userId} className="hover:bg-surface-container-highest/30 transition-colors group">
                       <TableCell className="py-4 pl-6 font-medium">
                         <Link
-                          href={`/admin/progress/${learner.userId}?cohortId=${selectedCohortId}`}
+                          href={`/admin/progress/${learner.userId}?cohortId=${cohortId}`}
                           className="flex items-center gap-3.5 group-hover:text-primary transition-colors"
                         >
                           <Avatar size="lg" className="ring-1 ring-outline-variant">
@@ -318,7 +267,7 @@ export function CohortLearnersTable({
                       </TableCell>
                       <TableCell className="py-4 pr-6 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={`/admin/progress/${learner.userId}?cohortId=${selectedCohortId}`}>
+                          <Link href={`/admin/progress/${learner.userId}?cohortId=${cohortId}`}>
                             <Button
                               variant="outline"
                               size="sm"

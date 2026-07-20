@@ -23,6 +23,28 @@ export class SubmissionNotificationsListener {
     return this.userRepository.find({ where: { role: UserRole.ADMIN } });
   }
 
+  /**
+   * Safely convert an event timestamp to an ISO string.
+   *
+   * `submittedAt` is typed as `Date`, but depending on the driver/DTO round-trip
+   * it can arrive as an ISO string or an epoch number. Calling `.toISOString()`
+   * directly on a non-Date throws (`x.toISOString is not a function`). Because
+   * these listeners are invoked via a fire-and-forget `eventEmitter.emit(...)`,
+   * such a throw becomes an unhandled promise rejection that can crash the
+   * (serverless) request invocation *after* the row is already committed —
+   * producing a 500 to the client while the submission is persisted. Normalising
+   * here removes that failure mode.
+   */
+  private formatDate(value: Date | string | number | null | undefined): string {
+    if (value === null || value === undefined) {
+      return new Date().toISOString();
+    }
+    const date = value instanceof Date ? value : new Date(value);
+    return Number.isNaN(date.getTime())
+      ? new Date().toISOString()
+      : date.toISOString();
+  }
+
   private async sendSlackMessage(webhookUrl: string | undefined, payload: any) {
     if (!webhookUrl) {
       console.log(
@@ -83,83 +105,84 @@ export class SubmissionNotificationsListener {
 
   @OnEvent('submission.created')
   async handleSubmissionCreated(event: SubmissionCreatedEvent) {
-    // 1. In-app notifications for admins
-    const admins = await this.getAdmins();
-    for (const admin of admins) {
-      await this.notificationsService.create(
-        admin.id,
-        'submission_created',
-        'Bài nộp mới cần chấm',
-        `Học viên ${event.userName} đã nộp bài tập '${event.exerciseTitle}'`,
-      );
-    }
+    try {
+      // 1. In-app notifications for admins
+      const admins = await this.getAdmins();
+      for (const admin of admins) {
+        await this.notificationsService.create(
+          admin.id,
+          'submission_created',
+          'Bài nộp mới cần chấm',
+          `Học viên ${event.userName} đã nộp bài tập '${event.exerciseTitle}'`,
+        );
+      }
 
-    // 2. Slack Notification to admins
-    const slackPayload = {
-      attachments: [
-        {
-          color: '#2563EB',
-          blocks: [
-            {
-              type: 'header',
-              text: {
-                type: 'plain_text',
-                text: '🚀 New Exercise Submission Ready for Review',
-                emoji: true,
+      // 2. Slack Notification to admins
+      const slackPayload = {
+        attachments: [
+          {
+            color: '#2563EB',
+            blocks: [
+              {
+                type: 'header',
+                text: {
+                  type: 'plain_text',
+                  text: '🚀 New Exercise Submission Ready for Review',
+                  emoji: true,
+                },
               },
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*Learner:* ${event.userName}\n*Track:* ${event.trackName}\n*Exercise:* ${event.exerciseTitle}\n*PR Link:* <${event.prUrl}|PR Link>`,
-              },
-            },
-            {
-              type: 'context',
-              elements: [
-                {
+              {
+                type: 'section',
+                text: {
                   type: 'mrkdwn',
-                  text: `📅 *Submitted At:* ${event.submittedAt.toISOString()}`,
+                  text: `*Learner:* ${event.userName}\n*Track:* ${event.trackName}\n*Exercise:* ${event.exerciseTitle}\n*PR Link:* <${event.prUrl}|PR Link>`,
                 },
-              ],
-            },
-            {
-              type: 'actions',
-              elements: [
-                {
-                  type: 'button',
-                  text: {
-                    type: 'plain_text',
-                    text: 'Review on Portal',
-                    emoji: true,
+              },
+              {
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn',
+                    text: `📅 *Submitted At:* ${this.formatDate(event.submittedAt)}`,
                   },
-                  style: 'primary',
-                  url: `https://rampup.glinteco.com/admin/submissions/${event.submissionId}`,
-                },
-                {
-                  type: 'button',
-                  text: {
-                    type: 'plain_text',
-                    text: 'Open PR',
-                    emoji: true,
+                ],
+              },
+              {
+                type: 'actions',
+                elements: [
+                  {
+                    type: 'button',
+                    text: {
+                      type: 'plain_text',
+                      text: 'Review on Portal',
+                      emoji: true,
+                    },
+                    style: 'primary',
+                    url: `https://rampup.glinteco.com/admin/submissions/${event.submissionId}`,
                   },
-                  url: event.prUrl,
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    };
+                  {
+                    type: 'button',
+                    text: {
+                      type: 'plain_text',
+                      text: 'Open PR',
+                      emoji: true,
+                    },
+                    url: event.prUrl,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
-    const adminWebhook = this.configService.get<string>(
-      'SLACK_ADMIN_WEBHOOK_URL',
-    );
-    await this.sendSlackMessage(adminWebhook, slackPayload);
+      const adminWebhook = this.configService.get<string>(
+        'SLACK_ADMIN_WEBHOOK_URL',
+      );
+      await this.sendSlackMessage(adminWebhook, slackPayload);
 
-    // 3. Email Notification to admins
-    const emailHtml = `<!DOCTYPE html>
+      // 3. Email Notification to admins
+      const emailHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -271,7 +294,7 @@ export class SubmissionNotificationsListener {
           </tr>
           <tr>
             <td class="label">Submitted</td>
-            <td class="value">${event.submittedAt.toISOString()}</td>
+            <td class="value">${this.formatDate(event.submittedAt)}</td>
           </tr>
         </table>
         
@@ -287,101 +310,108 @@ export class SubmissionNotificationsListener {
 </body>
 </html>`;
 
-    for (const admin of admins) {
-      await this.sendEmail(
-        admin.email,
-        `[RAMP UP] New Submission: ${event.userName} - ${event.exerciseTitle}`,
-        emailHtml,
+      for (const admin of admins) {
+        await this.sendEmail(
+          admin.email,
+          `[RAMP UP] New Submission: ${event.userName} - ${event.exerciseTitle}`,
+          emailHtml,
+        );
+      }
+    } catch (err) {
+      console.error(
+        `[Notification] Failed to process submission.created for submission ${event.submissionId}:`,
+        err,
       );
     }
   }
 
   @OnEvent('submission.resubmitted')
   async handleSubmissionResubmitted(event: SubmissionResubmittedEvent) {
-    // 1. In-app notifications for admins
-    const admins = await this.getAdmins();
-    for (const admin of admins) {
-      await this.notificationsService.create(
-        admin.id,
-        'submission_resubmitted',
-        'Bài nộp cập nhật lại',
-        `Học viên ${event.userName} đã cập nhật lại bài nộp '${event.exerciseTitle}'`,
-      );
-    }
+    try {
+      // 1. In-app notifications for admins
+      const admins = await this.getAdmins();
+      for (const admin of admins) {
+        await this.notificationsService.create(
+          admin.id,
+          'submission_resubmitted',
+          'Bài nộp cập nhật lại',
+          `Học viên ${event.userName} đã cập nhật lại bài nộp '${event.exerciseTitle}'`,
+        );
+      }
 
-    // 2. Slack Notification to admins
-    const slackPayload = {
-      attachments: [
-        {
-          color: '#F59E0B',
-          blocks: [
-            {
-              type: 'header',
-              text: {
-                type: 'plain_text',
-                text: '⚠️ Resubmission Ready for Review',
-                emoji: true,
+      // 2. Slack Notification to admins
+      const slackPayload = {
+        attachments: [
+          {
+            color: '#F59E0B',
+            blocks: [
+              {
+                type: 'header',
+                text: {
+                  type: 'plain_text',
+                  text: '⚠️ Resubmission Ready for Review',
+                  emoji: true,
+                },
               },
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*Learner:* ${event.userName}\n*Track:* ${event.trackName}\n*Exercise:* ${event.exerciseTitle}\n*PR Link:* <${event.prUrl}|PR Link>`,
-              },
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `*Previous Feedback:*\n${event.previousComments.map((c) => `> _"${c}"_`).join('\n') || '> No comments'}`,
-              },
-            },
-            {
-              type: 'context',
-              elements: [
-                {
+              {
+                type: 'section',
+                text: {
                   type: 'mrkdwn',
-                  text: `📅 *Resubmitted At:* ${event.submittedAt.toISOString()}`,
+                  text: `*Learner:* ${event.userName}\n*Track:* ${event.trackName}\n*Exercise:* ${event.exerciseTitle}\n*PR Link:* <${event.prUrl}|PR Link>`,
                 },
-              ],
-            },
-            {
-              type: 'actions',
-              elements: [
-                {
-                  type: 'button',
-                  text: {
-                    type: 'plain_text',
-                    text: 'Review on Portal',
-                    emoji: true,
+              },
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: `*Previous Feedback:*\n${event.previousComments.map((c) => `> _"${c}"_`).join('\n') || '> No comments'}`,
+                },
+              },
+              {
+                type: 'context',
+                elements: [
+                  {
+                    type: 'mrkdwn',
+                    text: `📅 *Resubmitted At:* ${this.formatDate(event.submittedAt)}`,
                   },
-                  style: 'primary',
-                  url: `https://rampup.glinteco.com/admin/submissions/${event.submissionId}`,
-                },
-                {
-                  type: 'button',
-                  text: {
-                    type: 'plain_text',
-                    text: 'Open PR',
-                    emoji: true,
+                ],
+              },
+              {
+                type: 'actions',
+                elements: [
+                  {
+                    type: 'button',
+                    text: {
+                      type: 'plain_text',
+                      text: 'Review on Portal',
+                      emoji: true,
+                    },
+                    style: 'primary',
+                    url: `https://rampup.glinteco.com/admin/submissions/${event.submissionId}`,
                   },
-                  url: event.prUrl,
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    };
+                  {
+                    type: 'button',
+                    text: {
+                      type: 'plain_text',
+                      text: 'Open PR',
+                      emoji: true,
+                    },
+                    url: event.prUrl,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
 
-    const adminWebhook = this.configService.get<string>(
-      'SLACK_ADMIN_WEBHOOK_URL',
-    );
-    await this.sendSlackMessage(adminWebhook, slackPayload);
+      const adminWebhook = this.configService.get<string>(
+        'SLACK_ADMIN_WEBHOOK_URL',
+      );
+      await this.sendSlackMessage(adminWebhook, slackPayload);
 
-    // 3. Email Notification to admins
-    const emailHtml = `<!DOCTYPE html>
+      // 3. Email Notification to admins
+      const emailHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -484,118 +514,125 @@ export class SubmissionNotificationsListener {
 </body>
 </html>`;
 
-    for (const admin of admins) {
-      await this.sendEmail(
-        admin.email,
-        `[RAMP UP] Resubmission: ${event.userName} - ${event.exerciseTitle}`,
-        emailHtml,
+      for (const admin of admins) {
+        await this.sendEmail(
+          admin.email,
+          `[RAMP UP] Resubmission: ${event.userName} - ${event.exerciseTitle}`,
+          emailHtml,
+        );
+      }
+    } catch (err) {
+      console.error(
+        `[Notification] Failed to process submission.resubmitted for submission ${event.submissionId}:`,
+        err,
       );
     }
   }
 
   @OnEvent('submission.reviewed')
   async handleSubmissionReviewed(event: SubmissionReviewedEvent) {
-    // 1. In-app notification for the learner
-    const title =
-      event.status === 'approved'
-        ? 'Bài tập đã được duyệt'
-        : 'Bài tập cần sửa đổi';
-    const body =
-      event.status === 'approved'
-        ? `Bài nộp cho '${event.exerciseTitle}' đã được duyệt bởi ${event.adminName}. Bạn được cộng +${event.xpAwarded} XP!`
-        : `Người duyệt ${event.adminName} yêu cầu sửa đổi bài nộp '${event.exerciseTitle}'. Lý do: ${event.comment || 'Không có nhận xét'}`;
+    try {
+      // 1. In-app notification for the learner
+      const title =
+        event.status === 'approved'
+          ? 'Bài tập đã được duyệt'
+          : 'Bài tập cần sửa đổi';
+      const body =
+        event.status === 'approved'
+          ? `Bài nộp cho '${event.exerciseTitle}' đã được duyệt bởi ${event.adminName}. Bạn được cộng +${event.xpAwarded} XP!`
+          : `Người duyệt ${event.adminName} yêu cầu sửa đổi bài nộp '${event.exerciseTitle}'. Lý do: ${event.comment || 'Không có nhận xét'}`;
 
-    await this.notificationsService.create(
-      event.userId,
-      'submission_reviewed',
-      title,
-      body,
-    );
+      await this.notificationsService.create(
+        event.userId,
+        'submission_reviewed',
+        title,
+        body,
+      );
 
-    // 2. Slack DM to learner (or mock log)
-    const color = event.status === 'approved' ? '#10B981' : '#F59E0B';
-    const headerText =
-      event.status === 'approved'
-        ? '✅ Exercise Approved! Excellent Work'
-        : '⚠️ Changes Requested for Submission';
+      // 2. Slack DM to learner (or mock log)
+      const color = event.status === 'approved' ? '#10B981' : '#F59E0B';
+      const headerText =
+        event.status === 'approved'
+          ? '✅ Exercise Approved! Excellent Work'
+          : '⚠️ Changes Requested for Submission';
 
-    const blocks: any[] = [
-      {
-        type: 'header',
-        text: {
-          type: 'plain_text',
-          text: headerText,
-          emoji: true,
-        },
-      },
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text:
-            event.status === 'approved'
-              ? `Hi *${event.userName}*, your submission for *${event.exerciseTitle}* has been *Approved* by *${event.adminName}*.`
-              : `Hi *${event.userName}*, reviewer *${event.adminName}* has requested changes on your submission for *${event.exerciseTitle}*.`,
-        },
-      },
-    ];
-
-    if (event.comment) {
-      blocks.push({
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*Review Feedback:*\n> _"${event.comment}"_`,
-        },
-      });
-    }
-
-    if (event.status === 'approved') {
-      blocks.push({
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `⭐ *Rewards & Gamification:*\n• *XP Gained:* \`+${event.xpAwarded} XP\`\n• *New Level:* \`Level ${event.newLevel} 🎓\` ${event.levelUpgraded ? '_(Leveled Up!)_' : ''}`,
-        },
-      });
-    }
-
-    blocks.push({
-      type: 'actions',
-      elements: [
+      const blocks: any[] = [
         {
-          type: 'button',
+          type: 'header',
           text: {
             type: 'plain_text',
-            text:
-              event.status === 'approved'
-                ? 'Go to Dashboard'
-                : 'Resubmit PR Link',
+            text: headerText,
             emoji: true,
           },
-          style: 'primary',
-          url:
-            event.status === 'approved'
-              ? 'https://rampup.glinteco.com/dashboard'
-              : `https://rampup.glinteco.com/exercises/${event.exerciseId}`,
         },
-      ],
-    });
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text:
+              event.status === 'approved'
+                ? `Hi *${event.userName}*, your submission for *${event.exerciseTitle}* has been *Approved* by *${event.adminName}*.`
+                : `Hi *${event.userName}*, reviewer *${event.adminName}* has requested changes on your submission for *${event.exerciseTitle}*.`,
+          },
+        },
+      ];
 
-    const slackPayload = { attachments: [{ color, blocks }] };
-    // DM uses bot token + slackUserId. For this spec, we mock/log the DM
-    console.log(
-      `[Slack Direct Message to ${event.userName} (Slack ID: ${event.slackUserId || 'N/A'})]`,
-      JSON.stringify(slackPayload, null, 2),
-    );
+      if (event.comment) {
+        blocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*Review Feedback:*\n> _"${event.comment}"_`,
+          },
+        });
+      }
 
-    // 3. Email Notification to learner
-    let emailHtml = '';
-    let subject = '';
+      if (event.status === 'approved') {
+        blocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `⭐ *Rewards & Gamification:*\n• *XP Gained:* \`+${event.xpAwarded} XP\`\n• *New Level:* \`Level ${event.newLevel} 🎓\` ${event.levelUpgraded ? '_(Leveled Up!)_' : ''}`,
+          },
+        });
+      }
 
-    if (event.status === 'approved') {
-      subject = `[RAMP UP] Review Approved: ${event.exerciseTitle} 🎉`;
-      emailHtml = `<!DOCTYPE html>
+      blocks.push({
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              text:
+                event.status === 'approved'
+                  ? 'Go to Dashboard'
+                  : 'Resubmit PR Link',
+              emoji: true,
+            },
+            style: 'primary',
+            url:
+              event.status === 'approved'
+                ? 'https://rampup.glinteco.com/dashboard'
+                : `https://rampup.glinteco.com/exercises/${event.exerciseId}`,
+          },
+        ],
+      });
+
+      const slackPayload = { attachments: [{ color, blocks }] };
+      // DM uses bot token + slackUserId. For this spec, we mock/log the DM
+      console.log(
+        `[Slack Direct Message to ${event.userName} (Slack ID: ${event.slackUserId || 'N/A'})]`,
+        JSON.stringify(slackPayload, null, 2),
+      );
+
+      // 3. Email Notification to learner
+      let emailHtml = '';
+      let subject = '';
+
+      if (event.status === 'approved') {
+        subject = `[RAMP UP] Review Approved: ${event.exerciseTitle} 🎉`;
+        emailHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -721,9 +758,9 @@ export class SubmissionNotificationsListener {
   </div>
 </body>
 </html>`;
-    } else {
-      subject = `[RAMP UP] Changes Requested: ${event.exerciseTitle}`;
-      emailHtml = `<!DOCTYPE html>
+      } else {
+        subject = `[RAMP UP] Changes Requested: ${event.exerciseTitle}`;
+        emailHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -824,8 +861,14 @@ export class SubmissionNotificationsListener {
   </div>
 </body>
 </html>`;
-    }
+      }
 
-    await this.sendEmail(event.userEmail, subject, emailHtml);
+      await this.sendEmail(event.userEmail, subject, emailHtml);
+    } catch (err) {
+      console.error(
+        `[Notification] Failed to process submission.reviewed for submission ${event.submissionId}:`,
+        err,
+      );
+    }
   }
 }

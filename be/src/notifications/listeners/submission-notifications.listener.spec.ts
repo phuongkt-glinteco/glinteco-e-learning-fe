@@ -112,6 +112,33 @@ describe('SubmissionNotificationsListener', () => {
       );
       expect(global.fetch).toHaveBeenCalled();
     });
+
+    it('should not throw when submittedAt arrives as an ISO string (regression: 500 on submit)', async () => {
+      const event = {
+        submissionId: 'sub-123',
+        userId: 'user-123',
+        userName: 'John Learner',
+        userEmail: 'john@glinteco.com',
+        exerciseId: 'ex-123',
+        exerciseTitle: 'Exercise 1',
+        trackId: 'track-123',
+        trackName: 'Track 1',
+        prUrl: 'https://github.com/pr/1',
+        // Simulate a driver/DTO round-trip returning a string instead of a Date.
+        submittedAt: '2026-07-01T09:57:05.000Z',
+      } as unknown as SubmissionCreatedEvent;
+
+      await expect(
+        listener.handleSubmissionCreated(event),
+      ).resolves.toBeUndefined();
+
+      const slackBody = JSON.parse(
+        (global.fetch as jest.Mock).mock.calls[0][1].body,
+      );
+      const contextText =
+        slackBody.attachments[0].blocks[2].elements[0].text;
+      expect(contextText).toContain('2026-07-01T09:57:05.000Z');
+    });
   });
 
   describe('handleSubmissionResubmitted', () => {

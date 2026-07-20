@@ -44,5 +44,9 @@
   "learnerProgress": "Learner Progress",
   "learnerProgressDesc": "Monitor cohort-wide learning progress, compare pace against class averages, and inspect detailed lesson completions per learner.",
   "faqManager": "FAQ Management",
-  "supportTicketManager": "Support Tickets"
+  "supportTicketManager": "Support Tickets",
+  "searchTracks": "Tracks",
+  "searchDocuments": "Documents",
+  "searchExercises": "Exercises",
+  "searchNoResults": "No results found"
 }

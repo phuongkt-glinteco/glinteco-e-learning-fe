@@ -1,4 +1,4 @@
-import type { TrackSummaryDto, ExerciseQuestionDto } from '@/services/api-client';
+import type { TrackSummaryDto } from '@/services/api-client';
 
 export type TrackStatus = NonNullable<TrackSummaryDto['status']>;
 export type CourseAccessStatus = 'unlocked' | 'locked';
@@ -80,6 +80,28 @@ export interface LearnerExerciseResource {
   url: string | null;
 }
 
+export interface LearnerQuizQuestion {
+  id: string;
+  prompt: string;
+  options: string[];
+}
+
+export interface LearnerAutoGradeQuestionResult {
+  questionId: string;
+  correct: boolean;
+  explanation: string | null;
+}
+
+export interface LearnerAutoGradeResult {
+  score: number;
+  correctCount: number;
+  totalQuestions: number;
+  targetScore: number;
+  passed: boolean;
+  completed: boolean;
+  results: LearnerAutoGradeQuestionResult[];
+}
+
 export interface LearnerSubmissionState {
   id: string | null;
   status: LearnerSubmissionStatus;
@@ -110,12 +132,13 @@ export interface LearnerSubmissionFormValues {
 }
 
 export interface LearnerExerciseDetail extends LearnerExercise {
+  isReadOnly: boolean;
   overview: string;
   objectives: string[];
   steps: string[];
   resources: LearnerExerciseResource[];
   hint: string | null;
-  questionsData: ExerciseQuestionDto[];
+  questionsData: LearnerQuizQuestion[];
 }
 
 export interface LearnerExerciseFeedItem extends LearnerExercise {

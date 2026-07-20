@@ -15,7 +15,6 @@ import {
   lessonsControllerFindOneLesson,
   lessonsControllerCompleteLesson,
 } from '@/services/api-client';
-import type { AutoAnswerDto, AutoGradeResultDto } from '@/services/api-client';
 import type {
   LearnerAutoGradeResult,
   LearnerExercise,
@@ -28,6 +27,7 @@ import type {
   TrackLessonPreview,
 } from './types';
 import {
+  buildAutoAnswerPayload,
   extractDataArray,
   getSubmissionExerciseId,
   getSubmissionExercise,
@@ -557,11 +557,11 @@ export async function resubmitExercise(
 
 export async function submitAutoExercise(
   exerciseId: string,
-  answers: AutoAnswerDto[]
-): Promise<AutoGradeResultDto> {
+  learnerAnswers: Record<string, string>
+): Promise<LearnerAutoGradeResult> {
   const response = await exercisesControllerSubmitAuto({
     path: { id: exerciseId },
-    body: { answers },
+    body: { answers: buildAutoAnswerPayload(learnerAnswers) },
     throwOnError: true,
     ...silentErrorToastOptions,
   });
@@ -569,7 +569,7 @@ export async function submitAutoExercise(
   if (!response.data) {
     throw new Error('Failed to retrieve automated grading results.');
   }
-  return response.data;
+  return normalizeAutoGradeResult(response.data);
 }
 
 export async function fetchSubmissionHistory(

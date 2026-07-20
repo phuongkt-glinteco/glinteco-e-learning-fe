@@ -81,12 +81,6 @@ export class ExerciseQuestionResponseDto {
 
   @ApiPropertyOptional({ type: [String] })
   options?: string[];
-
-  @ApiPropertyOptional({ description: 'Admin only.' })
-  correctAnswer?: string;
-
-  @ApiPropertyOptional({ nullable: true, description: 'Admin only.' })
-  explanation?: string | null;
 }
 
 export class ExerciseDetailDto {

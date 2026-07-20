@@ -27,10 +27,10 @@ import {
   FileText,
   CheckSquare,
 } from 'lucide-react';
-import type { AutoGradeResultDto } from '@/services/api-client';
 import { QuizExercisePanel } from './QuizExercisePanel';
 import { FillBlankExercisePanel } from './FillBlankExercisePanel';
 import type {
+  LearnerAutoGradeResult,
   LearnerExerciseDetail,
   LearnerLesson,
   LearnerSubmissionHistoryItem,
@@ -52,7 +52,7 @@ interface ExerciseDetailViewProps {
   historyLoading: boolean;
   historyError: string | null;
   autoAnswers?: Record<string, string>;
-  autoGradeResult?: AutoGradeResultDto | null;
+  autoGradeResult?: LearnerAutoGradeResult | null;
   onAutoAnswerChange?: (questionId: string, answer: string) => void;
   onAutoSubmit?: () => void;
   onAutoRetry?: () => void;

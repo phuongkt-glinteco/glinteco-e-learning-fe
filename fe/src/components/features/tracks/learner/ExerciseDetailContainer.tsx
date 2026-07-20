@@ -13,8 +13,7 @@ import {
   submitAutoExercise,
   type ExercisePageData,
 } from './courseLearningApi';
-import type { LearnerSubmissionFormValues, LearnerSubmissionHistoryItem } from './types';
-import type { AutoAnswerDto, AutoGradeResultDto } from '@/services/api-client';
+import type { LearnerAutoGradeResult, LearnerSubmissionFormValues, LearnerSubmissionHistoryItem } from './types';
 import { getErrorMessage, getLearnerRouteBase, getRouteParam } from './utils';
 import { isUiShowError } from '@/services/errors';
 import { RefreshCw } from 'lucide-react';
@@ -140,7 +139,7 @@ export default function ExerciseDetailContainer() {
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
   const [autoAnswers, setAutoAnswers] = useState<Record<string, string>>({});
-  const [autoGradeResult, setAutoGradeResult] = useState<AutoGradeResultDto | null>(null);
+  const [autoGradeResult, setAutoGradeResult] = useState<LearnerAutoGradeResult | null>(null);
   const [historyItems, setHistoryItems] = useState<LearnerSubmissionHistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
@@ -282,15 +281,25 @@ export default function ExerciseDetailContainer() {
 
   async function handleAutoSubmit() {
     if (!pageData || !exerciseId) return;
+
+    const questions = pageData.exercise.questionsData;
+    if (
+      questions.length === 0 ||
+      questions.some((question) => !autoAnswers[question.id]?.trim())
+    ) {
+      setSubmitError(
+        t('completeQuizAnswers', {
+          defaultValue: 'Answer every question before submitting the quiz.',
+        }),
+      );
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError(null);
     setSubmitMessage(null);
     try {
-      const answersPayload: AutoAnswerDto[] = Object.entries(autoAnswers).map(([qId, answer]) => ({
-        questionId: qId,
-        answer,
-      }));
-      const result = await submitAutoExercise(exerciseId, answersPayload);
+      const result = await submitAutoExercise(exerciseId, autoAnswers);
       setAutoGradeResult(result);
       if (result.passed) {
         await loadExercise(true);

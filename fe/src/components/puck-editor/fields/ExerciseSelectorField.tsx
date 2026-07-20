@@ -6,7 +6,7 @@ import {
   Plus, Code, Loader2, ListChecks, FileText, Check, Trash2, Pencil,
 } from "lucide-react";
 import { exercisesControllerCreate, exercisesControllerUpdate, exercisesControllerFindOne } from "@/services/api-client";
-import type { ExerciseDetailDto } from "@/services/client";
+import type { ExerciseDetailDto, ExerciseQuestionDto } from "@/services/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/default/dialog";
 import { Button } from "@/components/ui/default/button";
 import { Input } from "@/components/ui/default/input";
@@ -628,12 +628,13 @@ export const MinigameCreateDialog: React.FC<{
       exercisesControllerFindOne({ path: { id: initData.exerciseId } })
         .then((res) => {
           const detail = res.data as ExerciseDetailDto | undefined;
-          if (detail?.questionsData) {
+          const questionsData = detail?.questionsData as ExerciseQuestionDto[] | null | undefined;
+          if (detail && questionsData) {
             if (initType === "fill" || detail.type === "FILL_IN_BLANK") {
               setBlanks((prevBlanks) => {
                 if (prevBlanks.length > 0) {
                   return prevBlanks.map((b) => {
-                    const q = detail.questionsData?.find((qd) => String(qd.id) === String(b.id));
+                    const q = questionsData.find((qd) => String(qd.id) === String(b.id));
                     return { ...b, answer: q?.correctAnswer || b.answer };
                   });
                 } else {
@@ -645,7 +646,7 @@ export const MinigameCreateDialog: React.FC<{
                     const match = part.match(/^\[(\d+)_(\d+)\]$|^\[\[([^\]]+)\]\]$/);
                     if (match) {
                       const bId = (match[1] || match[3]).trim();
-                      const q = detail.questionsData?.find((qd) => String(qd.id) === bId);
+                      const q = questionsData.find((qd) => String(qd.id) === bId);
                       reconstructed.push({
                         id: bId,
                         start: currOffset,
@@ -659,7 +660,7 @@ export const MinigameCreateDialog: React.FC<{
                 }
               });
             } else if (initType === "quiz" || detail.type === "QUIZ") {
-              const q0 = detail.questionsData[0];
+              const q0 = questionsData[0];
               if (q0) {
                 if (q0.prompt) setQuestion(q0.prompt);
                 if (q0.options && q0.options.length > 0) {

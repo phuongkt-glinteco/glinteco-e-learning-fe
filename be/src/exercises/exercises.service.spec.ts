@@ -405,7 +405,6 @@ describe('ExercisesService', () => {
       const result = await service.submitAuto(
         'ex-quiz',
         'user-1',
-        UserRole.LEARNER,
         { answers: [{ questionId: 'q1', answer: '4' }] },
       );
       expect(result.passed).toBe(true);

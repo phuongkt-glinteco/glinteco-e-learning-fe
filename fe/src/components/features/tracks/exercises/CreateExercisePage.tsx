@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { exercisesControllerCreate, exercisesControllerFindOne, exercisesControllerUpdate } from '@/services/api-client';
-import type { DocumentResponseDto, ExerciseDetailDto } from '@/services/api-client';
+import type { DocumentResponseDto, ExerciseDetailDto, ExerciseQuestionDto } from '@/services/api-client';
 import { UiShowError } from '@/services/errors';
 import { createExerciseFormSchema, type CreateExerciseFormInput } from '@/schemas';
 import ExerciseBasicInfo from './ExerciseBasicInfo';
@@ -84,8 +84,9 @@ export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { 
         const steps = Array.isArray(data.steps) ? data.steps : [];
         const docs = data.resources ?? [];
         const docIds = docs.map((d) => d.id);
-        const questionsData = Array.isArray(data.questionsData)
-          ? data.questionsData.map((question, index) => ({
+        const questions = data.questionsData as ExerciseQuestionDto[] | null;
+        const questionsData = Array.isArray(questions)
+          ? questions.map((question, index) => ({
             id: question.id || `${data.type ?? 'question'}-${index + 1}`,
             prompt: question.prompt ?? '',
             options: Array.isArray(question.options) ? question.options : [],

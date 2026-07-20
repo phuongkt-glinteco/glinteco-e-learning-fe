@@ -127,16 +127,21 @@ export class ExercisesService {
   }
 
   /**
-   * GLI-92: remove every `correctAnswer` before questions are serialized to
-   * a learner. Done server-side so answers can never leak via devtools.
+   * GLI-92: remove answer-key fields before questions are serialized to a
+   * learner. Done server-side so they can never leak via devtools.
    */
   private sanitizeQuestionsData(
     questions: ExerciseQuestion[] | null,
-  ): Array<Omit<ExerciseQuestion, 'correctAnswer'>> | null {
+  ): Array<Omit<ExerciseQuestion, 'correctAnswer' | 'explanation'>> | null {
     if (!questions) return null;
     return questions.map((q) => {
-      const { correctAnswer: _stripped, ...safe } = q;
-      void _stripped;
+      const {
+        correctAnswer: _correctAnswer,
+        explanation: _explanation,
+        ...safe
+      } = q as ExerciseQuestion & { explanation?: string | null };
+      void _correctAnswer;
+      void _explanation;
       return safe;
     });
   }
@@ -155,7 +160,7 @@ export class ExercisesService {
       where: { exerciseId: id, userId },
     });
 
-    // GLI-92: only Admins may see correctAnswer inside questionsData.
+    // GLI-92: only Admins may see answer-key fields inside questionsData.
     const questionsData =
       role === UserRole.ADMIN
         ? exercise.questionsData
@@ -231,7 +236,13 @@ export class ExercisesService {
       const given = answerMap.get(q.id);
       const correct =
         given !== undefined && normalize(given) === normalize(q.correctAnswer);
-      return { questionId: q.id, correct };
+      return {
+        questionId: q.id,
+        correct,
+        explanation:
+          (q as ExerciseQuestion & { explanation?: string | null })
+            .explanation ?? null,
+      };
     });
 
     const correctCount = results.filter((r) => r.correct).length;

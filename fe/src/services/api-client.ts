@@ -147,6 +147,51 @@ function dispatchErrorItems(items: UiShowError[], request?: Request) {
   }
 }
 
+client.interceptors.response.use(async (response, request, options) => {
+  if (response.status === 401 && request) {
+    const url = new URL(request.url);
+    if (url.pathname.includes('/notifications')) {
+      return response;
+    }
+    const isAuthEndpoint = url.pathname.includes('/auth/refresh') || url.pathname.includes('/auth/login') || url.pathname.includes('/auth/register');
+
+    if (!isAuthEndpoint) {
+      if (!refreshPromise) {
+        refreshPromise = attemptTokenRefresh().finally(() => { refreshPromise = null; });
+      }
+      const success = await refreshPromise;
+      if (success) {
+        const newToken = getAccessToken();
+        const _fetch = options?.fetch ?? globalThis.fetch;
+        const newHeaders = new Headers(options?.headers ?? request.headers);
+        if (newToken) {
+          newHeaders.set('Authorization', `Bearer ${newToken}`);
+        }
+        // Xoá các header cache conditional để tránh backend/CDN trả về 304 Not Modified không có body khi retry sau 401
+        newHeaders.delete('If-None-Match');
+        newHeaders.delete('If-Modified-Since');
+
+        const newRequestInit: RequestInit = {
+          method: request.method,
+          headers: newHeaders,
+          redirect: request.redirect,
+          cache: 'no-store',
+        };
+
+        const hasBody = options?.body !== undefined && options?.body !== null && options?.body !== '';
+        if (hasBody) {
+          newRequestInit.body = (options?.serializedBody ?? options?.body) as BodyInit;
+        }
+
+        const retriedRequest = new Request(request.url, newRequestInit);
+        return _fetch(retriedRequest);
+      }
+    }
+  }
+
+  return response;
+});
+
 client.interceptors.error.use(async (error, response, request) => {
   if (response && response.ok) {
     return error;
@@ -162,15 +207,6 @@ client.interceptors.error.use(async (error, response, request) => {
     const isAuthEndpoint = url.pathname.includes('/auth/refresh') || url.pathname.includes('/auth/login') || url.pathname.includes('/auth/register');
 
     if (!isAuthEndpoint) {
-      if (!refreshPromise) {
-        refreshPromise = attemptTokenRefresh().finally(() => { refreshPromise = null; });
-      }
-      const success = await refreshPromise;
-      if (success) {
-        const newToken = getAccessToken();
-        if (newToken) request.headers.set('Authorization', `Bearer ${newToken}`);
-        return fetch(request);
-      }
       // Nếu token vẫn còn trong localStorage (nghĩa là refresh thất bại do lỗi mạng/server 5xx chứ không phải do hết hạn thực sự)
       // thì KHÔNG xoá token và KHÔNG biến thành SESSION_EXPIRED
       if (!getRefreshToken()) {

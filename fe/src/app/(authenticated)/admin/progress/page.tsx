@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { CohortLearnersTable } from '@/components/features/cohorts';
+import { AdminLearnerProgressClient } from '@/components/features/cohorts';
 
 export async function generateMetadata() {
   const t = await getTranslations('AppShell');
@@ -14,7 +14,6 @@ export default async function AdminLearnerProgressPage() {
 
   return (
     <div className="p-gutter max-w-7xl mx-auto space-y-xl w-full flex-1">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="headline-lg text-on-surface font-black tracking-tight">
@@ -25,9 +24,7 @@ export default async function AdminLearnerProgressPage() {
           </p>
         </div>
       </div>
-
-      {/* Cohort Learner Progress Interactive Dashboard */}
-      <CohortLearnersTable />
+      <AdminLearnerProgressClient />
     </div>
   );
 }

@@ -587,6 +587,7 @@ describe('AuthService', () => {
         level: 1,
         xp: 0,
         streakDays: 0,
+        cohortId: null,
       });
       expect(userRepository.save).toHaveBeenCalled();
       expect(result.accessToken).toBe('mock-jwt-token');
@@ -628,6 +629,17 @@ describe('AuthService', () => {
       expect(result.user.name).toBe('john.doe');
     });
 
+    it('should assign the default cohort to a new Google account', async () => {
+      userRepository.findOne.mockResolvedValue(null);
+      cohortRepository.findOne.mockResolvedValueOnce({ id: 'default-cohort' } as Cohort);
+
+      await service.loginWithGoogle('valid-token');
+
+      expect(userRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({ cohortId: 'default-cohort' }),
+      );
+    });
+
     it('should link googleId to existing user if user exists without googleId', async () => {
       const existingUser: User = {
         id: 'existing-uuid',
@@ -637,7 +649,7 @@ describe('AuthService', () => {
         level: 5,
         xp: 120,
         streakDays: 3,
-        cohortId: null,
+        cohortId: 'existing-cohort',
         cohort: null,
         trackProgresses: [],
         submissions: [],
@@ -659,7 +671,7 @@ describe('AuthService', () => {
         role: UserRole.LEARNER,
         title: null,
         avatarHue: 0,
-        cohortId: null,
+        cohortId: 'existing-cohort',
         cohort: null,
         level: 5,
         xp: 120,
@@ -693,6 +705,20 @@ describe('AuthService', () => {
       expect(userRepository.create).not.toHaveBeenCalled();
       expect(userRepository.save).not.toHaveBeenCalled();
       expect(result.user.id).toBe('existing-uuid');
+    });
+
+    it('should backfill the default cohort for an existing Google account', async () => {
+      const existingUser = buildUser({
+        googleId: 'google-sub-123',
+        cohortId: null,
+      });
+      userRepository.findOne.mockResolvedValue(existingUser);
+      cohortRepository.findOne.mockResolvedValueOnce({ id: 'default-cohort' } as Cohort);
+
+      await service.loginWithGoogle('valid-token');
+
+      expect(existingUser.cohortId).toBe('default-cohort');
+      expect(userRepository.save).toHaveBeenCalledWith(existingUser);
     });
   });
 

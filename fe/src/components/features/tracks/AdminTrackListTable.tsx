@@ -141,7 +141,6 @@ export function AdminTrackListTable() {
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
                 <th className="px-5 py-3.5">{t('colTrack')}</th>
-                <th className="px-5 py-3.5">{t('colTags')}</th>
                 <th className="px-5 py-3.5">{t('colStatus')}</th>
                 <th className="px-5 py-3.5">{t('colStats')}</th>
                 <th className="px-5 py-3.5">{t('colLearners')}</th>
@@ -151,7 +150,7 @@ export function AdminTrackListTable() {
             <tbody className="divide-y divide-outline-variant/60 text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center">
+                  <td colSpan={5} className="py-16 text-center">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Icon icon="lucide:loader-2" className="w-7 h-7 text-primary animate-spin" />
                       <span className="text-sm font-medium text-on-surface-variant">
@@ -162,13 +161,13 @@ export function AdminTrackListTable() {
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={6} className="p-12 text-center text-xs text-error font-medium">
+                  <td colSpan={5} className="p-12 text-center text-xs text-error font-medium">
                     {t('loadError')}
                   </td>
                 </tr>
               ) : filteredTracks.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-12 text-center text-xs text-on-surface-variant">
+                  <td colSpan={5} className="p-12 text-center text-xs text-on-surface-variant">
                     {t('emptyTitle')}
                   </td>
                 </tr>
@@ -201,18 +200,10 @@ export function AdminTrackListTable() {
                       </div>
                     </td>
 
-                    {/* Column 2: Tags */}
-                    <td className="px-5 py-4">
-                      <div className="flex flex-wrap gap-1.5 max-w-[220px]">
-                        {/* Tags no longer returned by API */}
-                        <span className="text-xs text-on-surface-variant/60 italic">-</span>
-                      </div>
-                    </td>
-
-                    {/* Column 3: Status */}
+                    {/* Column 2: Status */}
                     <td className="px-5 py-4">{getStatusBadge(track.status)}</td>
 
-                    {/* Column 4: Content Stats */}
+                    {/* Column 3: Content Stats */}
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1 text-on-surface-variant">
                         <span className="inline-flex items-center gap-1.5 font-medium text-on-surface">
@@ -226,7 +217,7 @@ export function AdminTrackListTable() {
                       </div>
                     </td>
 
-                    {/* Column 5: Learners */}
+                    {/* Column 4: Learners */}
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1">
                         <span className="inline-flex items-center gap-1.5 font-bold text-on-surface">

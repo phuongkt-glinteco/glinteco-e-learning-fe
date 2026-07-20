@@ -142,7 +142,6 @@ export class SubmissionsController {
     return this.exercisesService.findAll(
       { trackId },
       req.user.id,
-      req.user.role as UserRole,
     );
   }
 

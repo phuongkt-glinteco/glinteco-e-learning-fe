@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -27,6 +27,12 @@ export class AutoGradeQuestionResultDto {
 
   @ApiProperty()
   correct: boolean;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'Explanation revealed after an auto-graded submission.',
+  })
+  explanation?: string | null;
 }
 
 export class AutoGradeResultDto {

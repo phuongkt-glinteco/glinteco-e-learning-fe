@@ -5,13 +5,12 @@ import { Lightbulb, CheckCircle2, XCircle, ArrowRight, RefreshCw, HelpCircle, Ch
 import { Button } from '@/components/ui/default/button';
 import { MarkdownRenderer } from '@/lib/md-renderer';
 import { useTranslations } from 'next-intl';
-import type { AutoGradeResultDto } from '@/services/api-client';
-import type { LearnerExerciseDetail } from './types';
+import type { LearnerAutoGradeResult, LearnerExerciseDetail } from './types';
 
 export interface QuizExercisePanelProps {
   exercise: LearnerExerciseDetail;
   answers: Record<string, string>;
-  gradeResult: AutoGradeResultDto | null;
+  gradeResult: LearnerAutoGradeResult | null;
   submitting: boolean;
   error: string | null;
   onAnswerChange: (questionId: string, answer: string) => void;
@@ -36,13 +35,22 @@ export function QuizExercisePanel({
   const t = useTranslations('QuizExercisePanel');
   const [showHint, setShowHint] = useState(false);
 
-  const question = exercise.questionsData?.[0];
-  const questionId = question?.id || 'q1';
-  const selectedOption = answers[questionId] || '';
-
-  const questionGrade = gradeResult?.results?.find((r) => r.questionId === questionId);
+  const questions = exercise.questionsData;
+  const hasAnsweredAllQuestions =
+    questions.length > 0 && questions.every((question) => Boolean(answers[question.id]?.trim()));
   const isGraded = Boolean(gradeResult);
   const isPassed = gradeResult?.passed ?? false;
+
+  if (questions.length === 0) {
+    return (
+      <section className="rounded-xl border border-dashed border-border bg-surface p-6 text-center shadow-sm">
+        <h2 className="headline-sm text-foreground">{exercise.title}</h2>
+        <p className="body-sm mt-2 text-muted-foreground">
+          {t('noQuestionsAvailable', { defaultValue: 'This quiz is not available because it has no questions.' })}
+        </p>
+      </section>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,97 +93,98 @@ export function QuizExercisePanel({
           </div>
         )}
 
-        <div className="headline-sm mb-4 text-foreground">
-          {question?.prompt || exercise.title}
-        </div>
-
         {exercise.overview && (
           <div className="body-sm mb-6 overflow-x-auto rounded-lg border border-border bg-surface-container-low p-4 font-mono text-foreground">
             <MarkdownRenderer content={exercise.overview} />
           </div>
         )}
 
-        <div className="flex flex-col gap-3">
-          {(question?.options || []).map((optionText, idx) => {
-            const isSelected = selectedOption === optionText;
-            const isCorrectOption = isGraded && isSelected && questionGrade?.correct;
-            const isWrongOption = isGraded && isSelected && !questionGrade?.correct;
-
-            let optionStyle = 'border-border bg-surface hover:border-primary/40 hover:bg-surface-container-low';
-            if (isCorrectOption) {
-              optionStyle = 'border-green-500 bg-green-500/10 font-medium text-green-900 dark:text-green-200';
-            } else if (isWrongOption) {
-              optionStyle = 'border-red-500 bg-red-500/10 text-red-900 dark:text-red-200';
-            } else if (isSelected && !isGraded) {
-              optionStyle = 'border-primary bg-primary/10 font-medium text-primary ring-1 ring-primary';
-            } else if (isGraded) {
-              optionStyle = 'pointer-events-none border-border bg-surface opacity-50';
-            }
+        <div className="flex flex-col gap-6">
+          {questions.map((question) => {
+            const selectedOption = answers[question.id] || '';
+            const questionGrade = gradeResult?.results.find((result) => result.questionId === question.id);
 
             return (
-              <button
-                key={optionText}
-                type="button"
-                disabled={isGraded || submitting}
-                onClick={() => onAnswerChange(questionId, optionText)}
-                className={`group flex cursor-pointer items-center justify-between rounded-lg border p-4 text-left transition-all ${optionStyle}`}
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="label-sm flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-surface-container text-muted-foreground group-hover:border-primary/40">
-                    {String.fromCharCode(65 + idx)}
-                  </span>
-                  <span className="body-md min-w-0 break-words text-foreground">{optionText}</span>
+              <section key={question.id} className="rounded-lg border border-border p-4">
+                <h2 className="headline-sm mb-4 text-foreground">{question.prompt}</h2>
+                <div className="flex flex-col gap-3">
+                  {question.options.map((optionText, idx) => {
+                    const isSelected = selectedOption === optionText;
+                    const isCorrectOption = isGraded && isSelected && questionGrade?.correct;
+                    const isWrongOption = isGraded && isSelected && !questionGrade?.correct;
+
+                    let optionStyle = 'border-border bg-surface hover:border-primary/40 hover:bg-surface-container-low';
+                    if (isCorrectOption) {
+                      optionStyle = 'border-green-500 bg-green-500/10 font-medium text-green-900 dark:text-green-200';
+                    } else if (isWrongOption) {
+                      optionStyle = 'border-red-500 bg-red-500/10 text-red-900 dark:text-red-200';
+                    } else if (isSelected && !isGraded) {
+                      optionStyle = 'border-primary bg-primary/10 font-medium text-primary ring-1 ring-primary';
+                    } else if (isGraded) {
+                      optionStyle = 'pointer-events-none border-border bg-surface opacity-50';
+                    }
+
+                    return (
+                      <button
+                        key={optionText}
+                        type="button"
+                        disabled={isGraded || submitting}
+                        onClick={() => onAnswerChange(question.id, optionText)}
+                        className={`group flex cursor-pointer items-center justify-between rounded-lg border p-4 text-left transition-all ${optionStyle}`}
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="label-sm flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-surface-container text-muted-foreground group-hover:border-primary/40">
+                            {String.fromCharCode(65 + idx)}
+                          </span>
+                          <span className="body-md min-w-0 break-words text-foreground">{optionText}</span>
+                        </div>
+
+                        {isCorrectOption && (
+                          <span className="label-sm inline-flex shrink-0 items-center gap-1.5 font-semibold text-green-600 dark:text-green-400">
+                            <CheckCircle2 className="h-5 w-5" /> {t('correct')}
+                          </span>
+                        )}
+                        {isWrongOption && (
+                          <span className="label-sm inline-flex shrink-0 items-center gap-1.5 font-semibold text-red-600 dark:text-red-400">
+                            <XCircle className="h-5 w-5" /> {t('incorrect')}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {isCorrectOption && (
-                  <span className="label-sm inline-flex shrink-0 items-center gap-1.5 font-semibold text-green-600 dark:text-green-400">
-                    <CheckCircle2 className="h-5 w-5" /> {t('correct')}
-                  </span>
+                {isGraded && (
+                  <div
+                    className={`mt-4 rounded-lg border p-5 ${
+                      isPassed
+                        ? 'border-green-500/30 bg-green-500/10 text-green-950 dark:text-green-100'
+                        : 'border-amber-500/30 bg-amber-500/10 text-amber-950 dark:text-amber-100'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      <div>
+                        <h3 className="label-md mb-1 font-semibold">
+                          {isPassed ? t('whyCorrectTitle') : t('gradingFeedbackTitle')}
+                        </h3>
+                        <div className="body-sm text-muted-foreground">
+                          {questionGrade?.explanation ? (
+                            <MarkdownRenderer content={questionGrade.explanation} />
+                          ) : isPassed ? (
+                            t('defaultPassedExplanation')
+                          ) : (
+                            t('defaultFailedExplanation')
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
-                {isWrongOption && (
-                  <span className="label-sm inline-flex shrink-0 items-center gap-1.5 font-semibold text-red-600 dark:text-red-400">
-                    <XCircle className="h-5 w-5" /> {t('incorrect')}
-                  </span>
-                )}
-              </button>
+              </section>
             );
           })}
         </div>
-
-        {isGraded && (
-          <div
-            className={`mt-6 rounded-lg border p-5 ${
-              isPassed
-                ? 'border-green-500/30 bg-green-500/10 text-green-950 dark:text-green-100'
-                : 'border-amber-500/30 bg-amber-500/10 text-amber-950 dark:text-amber-100'
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-              <div>
-                <h4 className="label-md mb-1 font-semibold">
-                  {isPassed ? t('whyCorrectTitle') : t('gradingFeedbackTitle')}
-                </h4>
-                <div className="body-sm text-muted-foreground">
-                  {((question as unknown as { hint?: string; explanation?: string })?.hint ||
-                  (question as unknown as { hint?: string; explanation?: string })?.explanation) ? (
-                    <MarkdownRenderer
-                      content={
-                        (question as unknown as { hint?: string; explanation?: string }).hint ||
-                        (question as unknown as { hint?: string; explanation?: string }).explanation ||
-                        ''
-                      }
-                    />
-                  ) : isPassed ? (
-                    t('defaultPassedExplanation')
-                  ) : (
-                    t('defaultFailedExplanation')
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {error && (
           <div className="label-sm mt-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-red-600 dark:text-red-400">
@@ -189,7 +198,7 @@ export function QuizExercisePanel({
             <Button
               type="button"
               size="lg"
-              disabled={!selectedOption || submitting}
+              disabled={!hasAnsweredAllQuestions || submitting}
               onClick={onSubmit}
               className="gap-2"
             >

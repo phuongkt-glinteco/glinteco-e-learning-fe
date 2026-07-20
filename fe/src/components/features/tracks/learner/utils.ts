@@ -1,4 +1,5 @@
 import type {
+  AutoGradeResultDto,
   DocumentResponseDto,
   ExerciseDetailDto,
   ExerciseQuestionDto,
@@ -15,12 +16,14 @@ import type {
 import { normalizeTrackIcon } from '@/utils/track-icons';
 import { isUiShowError } from '@/services/errors';
 import type {
+  LearnerAutoGradeResult,
   LearnerLesson,
   LearnerExercise,
   LearnerExerciseFeedItem,
   LearnerExerciseDetail,
   LessonAccessState,
   LearnerExerciseResource,
+  LearnerQuizQuestion,
   LearnerSubmissionHistoryItem,
   LearnerSubmissionState,
   LearnerSubmissionStatus,
@@ -92,7 +95,7 @@ export type ExerciseSummaryContract = Partial<Omit<ExerciseSummaryDto, 'lessonId
   isMandatory?: boolean | unknown;
   type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK' | unknown;
 };
-export type ExerciseDetailContract = Omit<ExerciseDetailDto, 'lessonId' | 'prUrl' | 'objectives' | 'steps' | 'resources' | 'status'> & {
+export type ExerciseDetailContract = Omit<ExerciseDetailDto, 'lessonId' | 'prUrl' | 'objectives' | 'steps' | 'resources' | 'status' | 'questionsData'> & {
   lessonId?: unknown;
   prUrl?: unknown;
   objectives?: string[] | unknown;
@@ -100,6 +103,7 @@ export type ExerciseDetailContract = Omit<ExerciseDetailDto, 'lessonId' | 'prUrl
   resources?: unknown;
   status?: unknown;
   isMandatory?: boolean | unknown;
+  isReadOnly?: boolean | unknown;
   type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK' | unknown;
   questionsData?: ExerciseQuestionDto[] | unknown;
 };
@@ -657,12 +661,54 @@ export function normalizeExerciseSummaries(exercises: ExerciseSummaryContract[])
     .filter((exercise): exercise is LearnerExercise => Boolean(exercise));
 }
 
+function normalizeQuizQuestions(questionsData: unknown): LearnerQuizQuestion[] {
+  if (!Array.isArray(questionsData)) return [];
+
+  return questionsData.flatMap((question) => {
+    if (!question || typeof question !== 'object') return [];
+    const { id, prompt, options } = question as Partial<ExerciseQuestionDto>;
+    if (!id?.trim() || !prompt?.trim() || !Array.isArray(options)) return [];
+
+    const normalizedOptions = options.filter((option): option is string => typeof option === 'string' && Boolean(option.trim()));
+    return normalizedOptions.length ? [{ id: id.trim(), prompt: prompt.trim(), options: normalizedOptions }] : [];
+  });
+}
+
+export function buildAutoAnswerPayload(answers: Record<string, string>) {
+  return Object.entries(answers).flatMap(([questionId, answer]) => {
+    const trimmedQuestionId = questionId.trim();
+    const trimmedAnswer = answer.trim();
+    return trimmedQuestionId && trimmedAnswer ? [{ questionId: trimmedQuestionId, answer: trimmedAnswer }] : [];
+  });
+}
+
+export function normalizeAutoGradeResult(result: AutoGradeResultDto | null | undefined): LearnerAutoGradeResult {
+  const rawResults = Array.isArray(result?.results) ? result.results : [];
+
+  return {
+    score: typeof result?.score === 'number' ? result.score : 0,
+    correctCount: typeof result?.correctCount === 'number' ? result.correctCount : 0,
+    totalQuestions: typeof result?.totalQuestions === 'number' ? result.totalQuestions : 0,
+    targetScore: typeof result?.targetScore === 'number' ? result.targetScore : 0,
+    passed: Boolean(result?.passed),
+    completed: Boolean(result?.completed),
+    results: rawResults.flatMap((questionResult) => {
+      const rawQuestionResult = questionResult as typeof questionResult & { explanation?: unknown };
+      const questionId = normalizeNullableString(rawQuestionResult.questionId);
+      return questionId
+        ? [{ questionId, correct: Boolean(rawQuestionResult.correct), explanation: normalizeNullableString(rawQuestionResult.explanation) }]
+        : [];
+    }),
+  };
+}
+
 export function normalizeExerciseDetail(exercise: ExerciseDetailContract): LearnerExerciseDetail | null {
   const summary = normalizeExerciseSummary(exercise);
   if (!summary) return null;
 
   return {
     ...summary,
+    isReadOnly: Boolean(exercise.isReadOnly),
     trackId: normalizeNullableString(exercise.trackId),
     trackTitle: exercise.track?.trim() || 'Course',
     overview: exercise.overview?.trim() || '',
@@ -670,9 +716,7 @@ export function normalizeExerciseDetail(exercise: ExerciseDetailContract): Learn
     steps: normalizeTextList(exercise.steps),
     resources: normalizeExerciseResources(exercise.resources),
     hint: normalizeNullableString(exercise.hint),
-    questionsData: Array.isArray(exercise.questionsData)
-      ? (exercise.questionsData as ExerciseQuestionDto[])
-      : [],
+    questionsData: normalizeQuizQuestions(exercise.questionsData),
   };
 }
 

@@ -83,7 +83,6 @@ export class LessonsController {
     return this.exercisesService.findAll(
       { lessonId },
       req.user.id,
-      req.user.role as UserRole,
     );
   }
 

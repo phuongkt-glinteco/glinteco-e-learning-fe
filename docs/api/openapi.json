@@ -6545,14 +6545,6 @@
                                                                                                                             "type":  "string"
                                                                                                                         }
                                                                                                           },
-                                                                                              "correctAnswer":  {
-                                                                                                                    "type":  "string",
-                                                                                                                    "nullable":  true
-                                                                                                                },
-                                                                                              "explanation":  {
-                                                                                                                  "type":  "string",
-                                                                                                                  "nullable":  true
-                                                                                                              }
                                                                                           },
                                                                            "required":  [
                                                                                             "id",

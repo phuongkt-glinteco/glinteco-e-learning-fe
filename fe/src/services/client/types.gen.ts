@@ -4,20 +4,6 @@ export type ClientOptions = {
     baseUrl: 'https://be-teal-tau.vercel.app/api/v1' | (string & {});
 };
 
-export type NotificationSettingsDto = {
-    EXERCISE_REVIEWED: boolean;
-    EXERCISE_CHANGES_REQUESTED: boolean;
-    COHORT_ASSIGNED: boolean;
-    NEW_LESSON_PUBLISHED: boolean;
-};
-
-export type UpdateNotificationSettingsDto = {
-    EXERCISE_REVIEWED?: boolean;
-    EXERCISE_CHANGES_REQUESTED?: boolean;
-    COHORT_ASSIGNED?: boolean;
-    NEW_LESSON_PUBLISHED?: boolean;
-};
-
 export type UpdateProfileDto = {
     /**
      * The name of the user
@@ -846,17 +832,15 @@ export type ExerciseSummaryDto = {
     /**
      * Đường dẫn PR nộp bài tập
      */
-    prUrl: string | {
+    prUrl: {
         [key: string]: unknown;
     } | null;
     /**
      * ID của bài học liên kết với bài tập (nếu có)
      */
-    lessonId: string | {
+    lessonId: {
         [key: string]: unknown;
     } | null;
-    type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
-    isMandatory?: boolean;
 };
 
 export type ExerciseListResponseDto = {
@@ -1084,13 +1068,13 @@ export type ExerciseDetailDto = {
     /**
      * Các mục tiêu cần đạt được
      */
-    objectives?: Array<string> | {
+    objectives: {
         [key: string]: unknown;
     };
     /**
      * Các bước hướng dẫn thực hiện
      */
-    steps?: Array<string> | {
+    steps: {
         [key: string]: unknown;
     };
     /**
@@ -1108,19 +1092,15 @@ export type ExerciseDetailDto = {
     /**
      * Đường dẫn PR nộp bài tập
      */
-    prUrl: string | {
+    prUrl: {
         [key: string]: unknown;
     } | null;
     /**
      * ID của bài học liên kết với bài tập (nếu có)
      */
-    lessonId: string | {
+    lessonId: {
         [key: string]: unknown;
     } | null;
-    type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
-    isMandatory?: boolean;
-    targetScore?: number;
-    questionsData?: Array<ExerciseQuestionDto> | null;
 };
 
 export type AutoAnswerDto = {
@@ -2069,38 +2049,6 @@ export type AdminUsersControllerAssignCohortResponses = {
      */
     200: unknown;
 };
-
-export type UsersControllerGetNotificationSettingsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/users/me/notification-settings';
-};
-
-export type UsersControllerGetNotificationSettingsResponses = {
-    /**
-     * L?y c?u h�nh th�ng b�o th�nh c�ng.
-     */
-    200: NotificationSettingsDto;
-};
-
-export type UsersControllerGetNotificationSettingsResponse = UsersControllerGetNotificationSettingsResponses[keyof UsersControllerGetNotificationSettingsResponses];
-
-export type UsersControllerUpdateNotificationSettingsData = {
-    body: UpdateNotificationSettingsDto;
-    path?: never;
-    query?: never;
-    url: '/api/v1/users/me/notification-settings';
-};
-
-export type UsersControllerUpdateNotificationSettingsResponses = {
-    /**
-     * C?p nh?t c?u h�nh th�ng b�o th�nh c�ng.
-     */
-    200: NotificationSettingsDto;
-};
-
-export type UsersControllerUpdateNotificationSettingsResponse = UsersControllerUpdateNotificationSettingsResponses[keyof UsersControllerUpdateNotificationSettingsResponses];
 
 export type AuthControllerGoogleLoginData = {
     body: GoogleLoginDto;

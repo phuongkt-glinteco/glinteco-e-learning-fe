@@ -6,6 +6,6 @@
 
 `docs/api/openapi.json` is the local OpenAPI snapshot for AI/Codex to read when working on FE integration.
 
-The live OpenAPI URL is the source of truth. Sync this snapshot from the live URL whenever the backend contract changes.
+The live OpenAPI URL is the source of truth after deployment. Until then, regenerate the local client from this snapshot, which must match the backend DTO source.
 
 Do not hand-edit generated client files in `fe/src/services/client/*.gen.ts`. Update the backend Swagger/DTO contract and regenerate the client instead.

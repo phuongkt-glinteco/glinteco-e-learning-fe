@@ -48,5 +48,6 @@
   "searchTracks": "Lộ trình",
   "searchDocuments": "Tài liệu",
   "searchExercises": "Bài tập",
-  "searchNoResults": "Không tìm thấy kết quả"
+  "searchNoResults": "Không tìm thấy kết quả",
+  "searchLoading": "Đang tìm kiếm..."
 }

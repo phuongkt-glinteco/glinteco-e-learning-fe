@@ -48,5 +48,6 @@
   "searchTracks": "Tracks",
   "searchDocuments": "Documents",
   "searchExercises": "Exercises",
-  "searchNoResults": "No results found"
+  "searchNoResults": "No results found",
+  "searchLoading": "Searching..."
 }

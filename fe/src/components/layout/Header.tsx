@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useAuth } from '@/providers/AuthProvider';
 import { SidebarTrigger } from '@/components/ui/default/sidebar';
 import { NotificationPopoverContainer } from '@/components/features/notifications/containers/NotificationPopoverContainer';
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/default/command';
 import { searchControllerGlobalSearch, type SearchResponseDto } from '@/services/api-client';
 
 type SearchResult = SearchResponseDto;
@@ -19,11 +20,12 @@ export default function Header() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Search state
+  const [searchActive, setSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchSearch = useCallback(async (q: string) => {
@@ -45,7 +47,6 @@ export default function Header() {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
-    setSearchOpen(true);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!value.trim()) {
       setSearchResults(null);
@@ -55,28 +56,114 @@ export default function Header() {
     debounceRef.current = setTimeout(() => fetchSearch(value), 350);
   }, [fetchSearch]);
 
+  const activateSearch = useCallback(() => {
+    setSearchActive(true);
+  }, []);
+
+  const deactivateSearch = useCallback(() => {
+    setSearchActive(false);
+    setSearchQuery('');
+    setSearchResults(null);
+    setSearchLoading(false);
+  }, []);
+
+  const navigateTo = useCallback((path: string) => {
+    deactivateSearch();
+    router.push(path);
+  }, [router, deactivateSearch]);
+
   const hasResults = searchResults && (
     searchResults.tracks.length > 0 ||
     searchResults.documents.length > 0 ||
     searchResults.exercises.length > 0
   );
 
-  const closeSearch = () => {
-    setSearchOpen(false);
-    setSearchQuery('');
-    setSearchResults(null);
-  };
+  const showDropdown = searchActive && searchQuery.trim().length > 0;
 
-  // Close search dropdown on outside click
+  const renderResults = () => (
+    <>
+      {searchLoading && !hasResults ? (
+        <div className="py-6 text-center text-sm text-muted-foreground">
+          {t('searchLoading')}
+        </div>
+      ) : !hasResults ? (
+        <CommandEmpty>{t('searchNoResults')}</CommandEmpty>
+      ) : (
+        <>
+          {searchResults.tracks.length > 0 && (
+            <CommandGroup heading={t('searchTracks')}>
+              {searchResults.tracks.map((track) => (
+                <CommandItem
+                  key={track.id}
+                  value={`track-${track.id}`}
+                  onSelect={() => navigateTo(`/admin/tracks/${track.id}`)}
+                >
+                  <span className="material-symbols-outlined text-[16px] text-primary">route</span>
+                  <span className="truncate">{track.title}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {searchResults.documents.length > 0 && (
+            <CommandGroup heading={t('searchDocuments')}>
+              {searchResults.documents.map((doc) => (
+                <CommandItem
+                  key={doc.id}
+                  value={`doc-${doc.id}`}
+                  onSelect={() => navigateTo('/documents')}
+                >
+                  <span className="material-symbols-outlined text-[16px] text-amber-600">description</span>
+                  <span className="truncate">{doc.title}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{doc.kind}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {searchResults.exercises.length > 0 && (
+            <CommandGroup heading={t('searchExercises')}>
+              {searchResults.exercises.map((ex) => (
+                <CommandItem
+                  key={ex.id}
+                  value={`exercise-${ex.id}`}
+                  onSelect={() => navigateTo('/admin/tracks')}
+                >
+                  <span className="material-symbols-outlined text-[16px] text-emerald-600">task_alt</span>
+                  <span className="truncate">{ex.title}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{ex.tag}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+        </>
+      )}
+    </>
+  );
+
+  // Auto-focus input when search activates
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
+    if (searchActive) {
+      const timer = setTimeout(() => searchInputRef.current?.focus(), 150);
+      return () => clearTimeout(timer);
+    }
+  }, [searchActive]);
+
+  // Cmd+K / Ctrl+K
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (searchActive) {
+          deactivateSearch();
+        } else {
+          activateSearch();
+        }
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchActive, activateSearch, deactivateSearch]);
 
   // Close user dropdown on outside click
   useEffect(() => {
@@ -101,95 +188,60 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-4 ml-auto">
-        {/* Search Input */}
-        <div className="relative hidden md:block" ref={searchRef}>
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
-          <input
-            suppressHydrationWarning
-            className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-sm focus:outline-none focus:border-primary w-64"
-            placeholder={t('searchPlaceholder')}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            onFocus={() => searchQuery && setSearchOpen(true)}
-          />
+        {/* Search — icon button → animated expand input */}
+        <div className="relative hidden md:block size-10" ref={searchContainerRef}>
+          {/* Collapsed: icon button — fills container */}
+          <button
+            type="button"
+            onClick={activateSearch}
+            className={[
+              'absolute inset-0 flex items-center justify-center rounded-full bg-surface-container-low border border-outline-variant',
+              'hover:bg-surface-container-high transition-all duration-300 ease-in-out cursor-pointer z-10',
+              searchActive ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100',
+            ].join(' ')}
+            aria-label={t('searchPlaceholder')}
+          >
+            <span className="material-symbols-outlined text-lg">search</span>
+          </button>
 
-          {/* Search Results Dropdown */}
-          {searchOpen && (searchQuery.trim() !== '' || searchLoading) && (
-            <div className="absolute right-0 top-full mt-2 w-[380px] bg-surface border border-outline-variant rounded-2xl shadow-lg overflow-hidden z-50 max-h-[420px] overflow-y-auto">
-              {searchLoading && !hasResults ? (
-                <div className="p-6 text-center text-xs text-on-surface-variant">
-                  <span className="material-symbols-outlined text-[20px] animate-spin align-middle mr-1">progress_activity</span>
-                  {t('searchPlaceholder')}
-                </div>
-              ) : !hasResults ? (
-                <div className="p-6 text-center text-xs text-on-surface-variant">
-                  {t('searchNoResults')}
-                </div>
-              ) : (
-                <div className="py-2">
-                  {/* Tracks */}
-                  {searchResults.tracks.length > 0 && (
-                    <div>
-                      <div className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                        {t('searchTracks')}
-                      </div>
-                      {searchResults.tracks.map((track) => (
-                        <button
-                          key={track.id}
-                          type="button"
-                          onClick={() => { closeSearch(); router.push(`/admin/tracks/${track.id}`); }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-container-low transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[16px] text-primary">route</span>
-                          <span className="text-sm text-on-surface truncate">{track.title}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+          {/* Expanded: input field — extends left from right edge */}
+          <div
+            className={[
+              'absolute right-0 top-0 flex items-center h-10 bg-surface-container-low border border-outline-variant rounded-full overflow-hidden transition-all duration-300 ease-in-out',
+              searchActive ? 'w-64 opacity-100 pointer-events-auto' : 'w-0 opacity-0 pointer-events-none',
+            ].join(' ')}
+          >
+            <span className="material-symbols-outlined text-lg pl-3 text-on-surface-variant shrink-0">search</span>
+            <input
+              ref={searchInputRef}
+              className="w-full h-full py-2 pr-3 pl-2 text-sm bg-transparent outline-none text-on-surface placeholder:text-on-surface-variant/70"
+              placeholder={t('searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') deactivateSearch();
+              }}
+            />
+            <button
+              type="button"
+              onClick={deactivateSearch}
+              className="pr-3 text-on-surface-variant hover:text-on-surface transition-colors shrink-0 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[18px]">close</span>
+            </button>
+          </div>
 
-                  {/* Documents */}
-                  {searchResults.documents.length > 0 && (
-                    <div>
-                      <div className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                        {t('searchDocuments')}
-                      </div>
-                      {searchResults.documents.map((doc) => (
-                        <button
-                          key={doc.id}
-                          type="button"
-                          onClick={() => { closeSearch(); router.push(`/documents`); }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-container-low transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[16px] text-amber-600">description</span>
-                          <span className="text-sm text-on-surface truncate">{doc.title}</span>
-                          <span className="text-[10px] text-on-surface-variant ml-auto shrink-0">{doc.kind}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Exercises */}
-                  {searchResults.exercises.length > 0 && (
-                    <div>
-                      <div className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                        {t('searchExercises')}
-                      </div>
-                      {searchResults.exercises.map((ex) => (
-                        <button
-                          key={ex.id}
-                          type="button"
-                          onClick={() => { closeSearch(); router.push(`/admin/tracks`); }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-surface-container-low transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[16px] text-emerald-600">task_alt</span>
-                          <span className="text-sm text-on-surface truncate">{ex.title}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+          {/* Dropdown results */}
+          {showDropdown && (
+            <div
+              className="absolute top-full right-0 mt-2 w-[380px] bg-surface border border-outline-variant rounded-xl shadow-lg overflow-hidden z-50"
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <Command shouldFilter={false}>
+                <CommandList className="max-h-[400px] py-1">
+                  {renderResults()}
+                </CommandList>
+              </Command>
             </div>
           )}
         </div>
@@ -238,6 +290,3 @@ export default function Header() {
     </header>
   );
 }
-
-
-

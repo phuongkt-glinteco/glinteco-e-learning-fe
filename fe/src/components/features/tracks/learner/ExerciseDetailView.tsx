@@ -714,7 +714,19 @@ export function ExerciseDetailView({
         </div>
       ) : isApproved ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <ApprovedState exercise={exercise} submission={submission} track={track} onBackToTrack={onBackToTrack} />
+          <main className="flex min-w-0 flex-col gap-6">
+            <ApprovedState exercise={exercise} submission={submission} track={track} onBackToTrack={onBackToTrack} />
+            <SubmitPanel
+              mode="resubmit"
+              prUrl={prUrl}
+              disabled={false}
+              submitting={submitting}
+              submitError={submitError}
+              submitMessage={submitMessage}
+              onPrUrlChange={onPrUrlChange}
+              onSubmit={onSubmit}
+            />
+          </main>
           <StatusAside track={track} activeLesson={activeLesson} exercise={exercise} submission={submission} />
         </div>
       ) : isSubmitted ? (

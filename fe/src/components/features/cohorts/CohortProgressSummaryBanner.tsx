@@ -17,6 +17,9 @@ interface CohortProgressSummaryBannerProps {
   cohortList?: { id: string; name: string }[];
   onSelectCohort?: (id: string) => void;
   avgProgressPct: number;
+  aheadCount?: number;
+  onTrackCount?: number;
+  behindCount?: number;
   avgRampDays?: number;
   targetRampDays?: number;
 }
@@ -27,6 +30,9 @@ export function CohortProgressSummaryBanner({
   cohortList = [],
   onSelectCohort,
   avgProgressPct,
+  aheadCount = 0,
+  onTrackCount = 0,
+  behindCount = 0,
   avgRampDays = 28,
   targetRampDays = 30,
 }: CohortProgressSummaryBannerProps) {

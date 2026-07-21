@@ -14,3 +14,4 @@ export * from './UserProgressDetailModal';
 export * from './UserProgressDetailPageClient';
 export * from './CohortListClient';
 export * from './CohortDetailClient';
+export * from './AdminLearnerProgressClient';

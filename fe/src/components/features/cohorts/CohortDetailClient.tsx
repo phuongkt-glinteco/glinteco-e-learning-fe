@@ -346,7 +346,7 @@ export function CohortDetailClient({ cohortId }: CohortDetailClientProps) {
 
         <TabsContent value="learners" className="pt-4">
           <CohortLearnersTable
-            learners={learnersData}
+            cohortId={cohortId}
             isLoading={learnersLoading}
             error={learnersError}
             onReload={fetchLearners}

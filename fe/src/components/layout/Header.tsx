@@ -16,6 +16,7 @@ export default function Header() {
   const t = useTranslations('AppShell');
   const router = useRouter();
   const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -27,6 +28,10 @@ export default function Header() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fixed position state for dropdowns
+  const [searchDropdownStyle, setSearchDropdownStyle] = useState<React.CSSProperties>({});
+  const [avatarDropdownStyle, setAvatarDropdownStyle] = useState<React.CSSProperties>({});
 
   const fetchSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -78,7 +83,7 @@ export default function Header() {
     searchResults.exercises.length > 0
   );
 
-  const showDropdown = searchActive && searchQuery.trim().length > 0;
+  const showSearchDropdown = searchActive && searchQuery.trim().length > 0;
 
   const renderResults = () => (
     <>
@@ -96,7 +101,7 @@ export default function Header() {
                 <CommandItem
                   key={track.id}
                   value={`track-${track.id}`}
-                  onSelect={() => navigateTo(`/admin/tracks/${track.id}`)}
+                  onSelect={() => navigateTo(isAdmin ? `/admin/tracks/${track.id}` : `/tracks/${track.id}`)}
                 >
                   <span className="material-symbols-outlined text-[16px] text-primary">route</span>
                   <span className="truncate">{track.title}</span>
@@ -111,7 +116,7 @@ export default function Header() {
                 <CommandItem
                   key={doc.id}
                   value={`doc-${doc.id}`}
-                  onSelect={() => navigateTo('/documents')}
+                  onSelect={() => navigateTo(`/documents/${doc.id}`)}
                 >
                   <span className="material-symbols-outlined text-[16px] text-amber-600">description</span>
                   <span className="truncate">{doc.title}</span>
@@ -127,7 +132,7 @@ export default function Header() {
                 <CommandItem
                   key={ex.id}
                   value={`exercise-${ex.id}`}
-                  onSelect={() => navigateTo('/admin/tracks')}
+                  onSelect={() => navigateTo(`/exercises/${ex.id}`)}
                 >
                   <span className="material-symbols-outlined text-[16px] text-emerald-600">task_alt</span>
                   <span className="truncate">{ex.title}</span>
@@ -164,6 +169,64 @@ export default function Header() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [searchActive, activateSearch, deactivateSearch]);
+
+  // Calculate fixed position for search dropdown
+  const updateSearchDropdownPos = useCallback(() => {
+    if (searchContainerRef.current) {
+      const rect = searchContainerRef.current.getBoundingClientRect();
+      setSearchDropdownStyle({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showSearchDropdown) return;
+    updateSearchDropdownPos();
+    window.addEventListener('resize', updateSearchDropdownPos);
+    return () => window.removeEventListener('resize', updateSearchDropdownPos);
+  }, [showSearchDropdown, updateSearchDropdownPos]);
+
+  // Calculate fixed position for avatar dropdown
+  const updateAvatarDropdownPos = useCallback(() => {
+    if (dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      setAvatarDropdownStyle({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    updateAvatarDropdownPos();
+    window.addEventListener('resize', updateAvatarDropdownPos);
+    return () => window.removeEventListener('resize', updateAvatarDropdownPos);
+  }, [dropdownOpen, updateAvatarDropdownPos]);
+
+  // Close search dropdown on outside click
+  useEffect(() => {
+    if (!showSearchDropdown) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(e.target as Node) &&
+        // Check if click is inside the fixed dropdown
+        !(e.target as HTMLElement).closest('[data-search-dropdown]')
+      ) {
+        deactivateSearch();
+      }
+    }
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSearchDropdown, deactivateSearch]);
 
   // Close user dropdown on outside click
   useEffect(() => {
@@ -230,20 +293,6 @@ export default function Header() {
               <span className="material-symbols-outlined text-[18px]">close</span>
             </button>
           </div>
-
-          {/* Dropdown results */}
-          {showDropdown && (
-            <div
-              className="absolute top-full right-0 mt-2 w-[380px] bg-surface border border-outline-variant rounded-xl shadow-lg overflow-hidden z-50"
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              <Command shouldFilter={false}>
-                <CommandList className="max-h-[400px] py-1">
-                  {renderResults()}
-                </CommandList>
-              </Command>
-            </div>
-          )}
         </div>
 
         <NotificationPopoverContainer />
@@ -252,41 +301,62 @@ export default function Header() {
           <div onClick={() => setDropdownOpen(!dropdownOpen)} className="cursor-pointer">
             <UserProfileAvatar size="sm" />
           </div>
-
-          {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-surface border border-outline-variant rounded-lg shadow-card py-1 z-50">
-              <div className="px-4 py-2 border-b border-outline-variant">
-                <p className="text-label-sm font-bold text-on-surface truncate">
-                  {user?.name ?? 'User'}
-                </p>
-                <p className="text-[11px] text-on-surface-variant truncate">
-                  {user?.email ?? ''}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setDropdownOpen(false);
-                  router.push('/profile');
-                }}
-                className="w-full flex items-center gap-2 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors"
-              >
-                <span className="material-symbols-outlined text-lg flex-shrink-0">person</span>
-                <span className="truncate">{t('profile')}</span>
-              </button>
-              <button
-                onClick={() => {
-                  setDropdownOpen(false);
-                  router.push('/logout');
-                }}
-                className="w-full flex items-center gap-2 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors"
-              >
-                <span className="material-symbols-outlined text-lg flex-shrink-0">logout</span>
-                <span className="truncate">{t('logout')}</span>
-              </button>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Search dropdown — fixed to avoid overflow clipping */}
+      {showSearchDropdown && (
+        <div
+          data-search-dropdown
+          style={searchDropdownStyle}
+          className="fixed z-[100] w-[380px] bg-surface border border-outline-variant rounded-xl shadow-lg overflow-hidden"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <Command shouldFilter={false}>
+            <CommandList className="max-h-[400px] py-1">
+              {renderResults()}
+            </CommandList>
+          </Command>
+        </div>
+      )}
+
+      {/* User dropdown — fixed to avoid overflow clipping */}
+      {dropdownOpen && (
+        <div
+          style={avatarDropdownStyle}
+          className="fixed z-[100] w-48 bg-surface border border-outline-variant rounded-lg shadow-card py-1"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <div className="px-4 py-2 border-b border-outline-variant">
+            <p className="text-label-sm font-bold text-on-surface truncate">
+              {user?.name ?? 'User'}
+            </p>
+            <p className="text-[11px] text-on-surface-variant truncate">
+              {user?.email ?? ''}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setDropdownOpen(false);
+              router.push('/profile');
+            }}
+            className="w-full flex items-center gap-2 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg flex-shrink-0">person</span>
+            <span className="truncate">{t('profile')}</span>
+          </button>
+          <button
+            onClick={() => {
+              setDropdownOpen(false);
+              router.push('/logout');
+            }}
+            className="w-full flex items-center gap-2 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg flex-shrink-0">logout</span>
+            <span className="truncate">{t('logout')}</span>
+          </button>
+        </div>
+      )}
     </header>
   );
 }

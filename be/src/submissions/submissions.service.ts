@@ -58,8 +58,8 @@ export class SubmissionsService {
       return {
         id: ex.id,
         title: ex.title,
-        objectives: ex.objectives || {},
-        steps: ex.steps || {},
+        objectives: ex.content?.objectives || {},
+        steps: ex.content?.steps || {},
         submission: sub
           ? {
               id: sub.id,

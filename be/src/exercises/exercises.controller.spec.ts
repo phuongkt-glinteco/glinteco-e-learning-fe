@@ -141,21 +141,6 @@ describe('ExercisesController', () => {
     });
   });
 
-  describe('submitAuto', () => {
-    it('passes the learner identity and answers to the service', async () => {
-      const dto = { answers: [{ questionId: 'q1', answer: 'A' }] };
-      mockExercisesService.submitAuto.mockResolvedValue({ passed: true });
-
-      await controller.submitAuto('ex-1', mockUser, dto);
-      expect(mockExercisesService.submitAuto).toHaveBeenCalledWith(
-        'ex-1',
-        mockUser.id,
-        mockUser.role,
-        dto,
-      );
-    });
-  });
-
   describe('remove', () => {
     it('should call service.remove', async () => {
       mockExercisesService.remove.mockResolvedValue(undefined);

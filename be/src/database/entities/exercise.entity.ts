@@ -14,6 +14,8 @@ import { Track } from './track.entity';
 import { Lesson } from './lesson.entity';
 import { Submission } from './submission.entity';
 import { Document } from './document.entity';
+import { Tag } from './tag.entity';
+import { AutoGrade } from './auto-grade.entity';
 
 export enum ExerciseDifficulty {
   BEGINNER = 'Beginner',
@@ -28,9 +30,7 @@ export enum ExerciseType {
 }
 
 /**
- * One auto-gradable question stored inside `questionsData`.
- * `correctAnswer` must NEVER be serialized to learners — see
- * ExercisesService.sanitizeQuestionsData.
+ * Legacy interface kept for compatibility during transitions/tests.
  */
 export interface ExerciseQuestion {
   id: string;
@@ -61,8 +61,15 @@ export class Exercise {
   @Column()
   title: string;
 
-  @Column({ type: 'varchar' })
-  tag: string;
+  @Column({ type: 'uuid', nullable: true, name: 'tag_id' })
+  tagId: string | null;
+
+  @ManyToOne(() => Tag, (tag) => tag.exercises, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'tag_id' })
+  tagEntity: Tag | null;
 
   @Column({ type: 'enum', enum: ExerciseDifficulty })
   difficulty: ExerciseDifficulty;
@@ -74,12 +81,8 @@ export class Exercise {
   })
   type: ExerciseType;
 
-  @Column({ type: 'jsonb', nullable: true, name: 'questions_data' })
-  questionsData: ExerciseQuestion[] | null;
-
-  // Minimum score (percent) required to pass an auto-graded exercise.
-  @Column({ type: 'integer', default: 100, name: 'target_score' })
-  targetScore: number;
+  @Column({ type: 'jsonb', name: 'content', default: {} })
+  content: Record<string, any>;
 
   @Column({ type: 'boolean', default: true, name: 'is_mandatory' })
   isMandatory: boolean;
@@ -92,15 +95,6 @@ export class Exercise {
 
   @Column({ type: 'text' })
   brief: string;
-
-  @Column({ type: 'text' })
-  overview: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  objectives: Record<string, any>;
-
-  @Column({ type: 'jsonb', nullable: true })
-  steps: Record<string, any>;
 
   @Column({ type: 'text', nullable: true })
   hint?: string;
@@ -115,6 +109,9 @@ export class Exercise {
 
   @OneToMany(() => Submission, (submission) => submission.exercise)
   submissions: Submission[];
+
+  @OneToMany(() => AutoGrade, (autoGrade) => autoGrade.exercise)
+  autoGrades: AutoGrade[];
 
   @CreateDateColumn()
   createdAt: Date;

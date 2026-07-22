@@ -40,6 +40,7 @@ const exerciseStatusBySubmissionStatus: Record<
   ExerciseFilterStatus
 > = {
   [SubmissionStatus.PENDING]: ExerciseFilterStatus.PENDING,
+  [SubmissionStatus.IN_PROGRESS]: ExerciseFilterStatus.IN_PROGRESS,
   [SubmissionStatus.SUBMITTED]: ExerciseFilterStatus.SUBMITTED,
   [SubmissionStatus.CHANGES]: ExerciseFilterStatus.CHANGES,
   [SubmissionStatus.APPROVED]: ExerciseFilterStatus.APPROVED,
@@ -74,7 +75,7 @@ export class SubmissionsController {
         id: s.user?.id || '',
         name: s.user?.name || '',
       },
-      prUrl: s.prUrl || '',
+      prUrl: s.prUrl || null,
       status: s.status,
       reviewerId: lastHistory?.adminId || null,
       reviewNote: lastHistory?.comment || null,
@@ -103,32 +104,35 @@ export class SubmissionsController {
           title: s.exercise?.title || '',
           trackId: s.exercise?.trackId || '',
           track: s.exercise?.track?.title || '',
-          tag: s.exercise?.tag || '',
-          difficulty: s.exercise?.difficulty || 'Intermediate',
+          tag: s.exercise?.tagEntity?.name || '',
+          tagId: s.exercise?.tagId || null,
+          tagData: s.exercise?.tagEntity || null,
+          difficulty: s.exercise?.difficulty || ('Intermediate' as any),
           estimatedTime: s.exercise?.estimatedTime || '',
           xp: s.exercise?.xp || 0,
           brief: s.exercise?.brief || '',
-          overview: s.exercise?.overview || '',
-          objectives: Array.isArray(s.exercise?.objectives)
-            ? s.exercise.objectives
-            : [],
-          steps: Array.isArray(s.exercise?.steps) ? s.exercise.steps : [],
+          content: s.exercise?.content || {},
+          overview: s.exercise?.content?.overview || '',
+          objectives: s.exercise?.content?.objectives || [],
+          steps: s.exercise?.content?.steps || [],
           resources: [],
           hint: s.exercise?.hint ?? undefined,
           status: exerciseStatusBySubmissionStatus[s.status],
           prUrl: s.prUrl || null,
           lessonId: s.exercise?.lessonId || null,
-          type: s.exercise?.type || 'PR_REVIEW',
+          type: s.exercise?.type || ('PR_REVIEW' as any),
           questionsData: null,
-          targetScore: s.exercise?.targetScore ?? 100,
+          targetScore: s.exercise?.content?.targetScore ?? 100,
           isMandatory: s.exercise?.isMandatory ?? true,
+          isReadOnly: false,
         },
-        prUrl: s.prUrl || '',
+        prUrl: s.prUrl || null,
         status: s.status,
         submittedAt: s.submittedAt ?? s.createdAt,
       })),
     };
   }
+
 
   @ApiOperation({
     summary: 'Lấy danh sách bài tập thuộc track kèm theo bài nộp',
@@ -142,6 +146,7 @@ export class SubmissionsController {
     return this.exercisesService.findAll(
       { trackId },
       req.user.id,
+      req.user.role,
     );
   }
 

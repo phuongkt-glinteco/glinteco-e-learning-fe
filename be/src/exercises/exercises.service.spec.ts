@@ -14,8 +14,10 @@ import {
   Submission,
   SubmissionStatus,
 } from '../database/entities/submission.entity';
+import { AutoGrade } from '../database/entities/auto-grade.entity';
+import { Tag } from '../database/entities/tag.entity';
+import { User, UserRole } from '../database/entities/user.entity';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { UserRole } from '../database/entities/user.entity';
 
 describe('ExercisesService', () => {
   let service: ExercisesService;
@@ -43,6 +45,22 @@ describe('ExercisesService', () => {
     save: jest.fn(),
   };
 
+  const mockAutoGradeRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockTagRepository = {
+    findOne: jest.fn(),
+  };
+
+  const mockUserRepository = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+  };
+
   const mockLessonRepository = { find: jest.fn() };
   const mockLessonProgressRepository = { find: jest.fn() };
 
@@ -66,6 +84,18 @@ describe('ExercisesService', () => {
         {
           provide: getRepositoryToken(Submission),
           useValue: mockSubmissionRepository,
+        },
+        {
+          provide: getRepositoryToken(AutoGrade),
+          useValue: mockAutoGradeRepository,
+        },
+        {
+          provide: getRepositoryToken(Tag),
+          useValue: mockTagRepository,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: mockUserRepository,
         },
         {
           provide: getRepositoryToken(Lesson),

@@ -1,10 +1,15 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, ApiExtraModels } from '@nestjs/swagger';
 import {
   ExerciseDifficulty,
   ExerciseType,
 } from '../../database/entities/exercise.entity';
-import { DocumentResponseDto } from '../../documents/dto/document-response.dto';
+import { DocumentResponseDto, TagResponseDto } from '../../documents/dto/document-response.dto';
 import { ExerciseFilterStatus } from './exercise-query.dto';
+import {
+  PrReviewExerciseContentDto,
+  QuizExerciseContentDto,
+  FillInBlankExerciseContentDto,
+} from './exercise-content.dto';
 
 export class ExerciseSummaryDto {
   @ApiProperty({ description: 'ID của bài tập' })
@@ -19,8 +24,11 @@ export class ExerciseSummaryDto {
   @ApiProperty({ description: 'Tiêu đề Track chứa bài tập' })
   track: string;
 
-  @ApiProperty({ description: 'Nhãn chuyên môn' })
+  @ApiProperty({ description: 'Nhãn chuyên môn (Tên tag)' })
   tag: string;
+
+  @ApiPropertyOptional({ type: String, nullable: true, description: 'ID của thực thể Tag' })
+  tagId?: string | null;
 
   @ApiProperty({ enum: ExerciseDifficulty, description: 'Cấp độ khó' })
   difficulty: ExerciseDifficulty;
@@ -83,6 +91,11 @@ export class ExerciseQuestionResponseDto {
   options?: string[];
 }
 
+@ApiExtraModels(
+  PrReviewExerciseContentDto,
+  QuizExerciseContentDto,
+  FillInBlankExerciseContentDto,
+)
 export class ExerciseDetailDto {
   @ApiProperty({ description: 'ID của bài tập' })
   id: string;
@@ -96,8 +109,14 @@ export class ExerciseDetailDto {
   @ApiProperty({ description: 'Tiêu đề Track chứa bài tập' })
   track: string;
 
-  @ApiProperty({ description: 'Nhãn chuyên môn' })
+  @ApiProperty({ description: 'Nhãn chuyên môn (Tên tag)' })
   tag: string;
+
+  @ApiPropertyOptional({ type: String, nullable: true, description: 'ID của thực thể Tag' })
+  tagId?: string | null;
+
+  @ApiPropertyOptional({ type: () => TagResponseDto, nullable: true, description: 'Dữ liệu thẻ phân loại' })
+  tagData?: TagResponseDto | null;
 
   @ApiProperty({ enum: ExerciseDifficulty, description: 'Cấp độ khó' })
   difficulty: ExerciseDifficulty;
@@ -111,20 +130,27 @@ export class ExerciseDetailDto {
   @ApiProperty({ description: 'Tóm tắt yêu cầu bài tập' })
   brief: string;
 
-  @ApiProperty({ description: 'Mô tả tổng quan chi tiết bài tập' })
-  overview: string;
+  @ApiPropertyOptional({
+    description: 'Nội dung riêng theo từng loại (PR_REVIEW, QUIZ, FILL_IN_BLANK)',
+    type: Object,
+  })
+  content?: Record<string, any>;
 
-  @ApiProperty({
+  // Legacy fields derived from content for backward compatibility
+  @ApiPropertyOptional({ description: 'Mô tả tổng quan chi tiết bài tập' })
+  overview?: string;
+
+  @ApiPropertyOptional({
     type: [String],
     description: 'Các mục tiêu cần đạt được',
   })
-  objectives: string[];
+  objectives?: any;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: [String],
     description: 'Các bước hướng dẫn thực hiện',
   })
-  steps: string[];
+  steps?: any;
 
   @ApiProperty({
     type: [DocumentResponseDto],
@@ -158,12 +184,15 @@ export class ExerciseDetailDto {
   @ApiProperty({ enum: ExerciseType })
   type: ExerciseType;
 
-  @ApiProperty({ type: [ExerciseQuestionResponseDto], nullable: true })
-  questionsData: ExerciseQuestionResponseDto[] | null;
+  @ApiPropertyOptional({ type: [ExerciseQuestionResponseDto], nullable: true })
+  questionsData?: ExerciseQuestionResponseDto[] | null;
 
-  @ApiProperty({ minimum: 0, maximum: 100 })
-  targetScore: number;
+  @ApiPropertyOptional({ minimum: 0, maximum: 100 })
+  targetScore?: number;
 
   @ApiProperty()
   isMandatory: boolean;
+
+  @ApiProperty({ description: 'Bài tập chỉ có thể xem, không thể thao tác.', default: false })
+  isReadOnly: boolean;
 }

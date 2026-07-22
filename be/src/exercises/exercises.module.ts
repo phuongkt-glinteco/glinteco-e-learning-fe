@@ -6,6 +6,9 @@ import { Document } from '../database/entities/document.entity';
 import { Submission } from '../database/entities/submission.entity';
 import { Lesson } from '../database/entities/lesson.entity';
 import { LessonProgress } from '../database/entities/lesson-progress.entity';
+import { AutoGrade } from '../database/entities/auto-grade.entity';
+import { Tag } from '../database/entities/tag.entity';
+import { User } from '../database/entities/user.entity';
 import { ExercisesService } from './exercises.service';
 import { ExercisesController } from './exercises.controller';
 import { AuthModule } from '../modules/auth/auth.module';
@@ -19,6 +22,9 @@ import { AuthModule } from '../modules/auth/auth.module';
       Submission,
       Lesson,
       LessonProgress,
+      AutoGrade,
+      Tag,
+      User,
     ]),
     AuthModule,
   ],

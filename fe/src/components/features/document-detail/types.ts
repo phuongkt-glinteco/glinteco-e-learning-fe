@@ -1,0 +1,91 @@
+export interface ResourceRef {
+  id: string;
+  name?: string;
+  title?: string;
+  kind?: string;
+}
+
+export type ResourceRefLike = string | ResourceRef;
+export interface TutorialStep {
+  title: string;
+  body: string;
+}
+
+export interface GuideContent {
+  description?: string;
+  objective?: string;
+  prerequisites?: ResourceRefLike[];
+  steps?: string;
+  expectedResult?: string;
+  relatedDocs?: ResourceRef[];
+  // Legacy fallback
+  body?: string;
+}
+
+export interface TutorialContent {
+  description?: string;
+  learningObjectives?: string[];
+  prerequisites?: ResourceRef[];
+  duration?: number;
+  difficulty?: 'Beginner' | 'Intermediate' | 'Advanced' | string;
+  steps?: string;
+  exercises?: string[];
+  summary?: string;
+  // Legacy fallback
+  explanation?: string;
+  legacySteps?: TutorialStep[];
+}
+
+export interface RunbookContent {
+  description?: string;
+  trigger?: string;
+  impact?: string;
+  prerequisites?: string[] | ResourceRef[];
+  procedure?: string;
+  validation?: string;
+  rollback?: string;
+  escalation?: string;
+  relatedDocs?: ResourceRef[];
+  // Legacy fallback
+  background?: string;
+  severity?: string;
+  incidentId?: string;
+  estimatedTime?: string;
+  symptoms?: string[];
+  status?: string;
+  phases?: Array<{
+    name: string;
+    steps: TutorialStep[];
+  }>;
+}
+
+export interface ReferenceProperty {
+  name: string;
+  type?: string;
+  required?: boolean;
+  description?: string;
+  defaultValue?: string;
+}
+
+export interface ReferenceContent {
+  description?: string;
+  category?: string;
+  version?: string;
+  properties?: ReferenceProperty[];
+  examples?: string;
+  notes?: string;
+  // Legacy fallback
+  sections?: Array<{ heading: string; body: string }>;
+}
+
+export interface LinkContent {
+  url?: string;
+  provider?: string;
+  type?: string;
+  openInNewTab?: boolean;
+  description?: string;
+  // Legacy fallback
+  overview?: string;
+}
+
+export type DocumentContent = GuideContent | TutorialContent | RunbookContent | ReferenceContent | LinkContent;

@@ -46,6 +46,72 @@ export type UserDashboardStatsDto = {
     savedDocs: SavedDocsStatsDto;
 };
 
+export type CreateUserDto = {
+    /**
+     * Địa chỉ email.
+     */
+    email: string;
+    /**
+     * Họ tên người dùng.
+     */
+    name: string;
+    /**
+     * Mật khẩu khởi tạo.
+     */
+    password: string;
+    /**
+     * Vai trò người dùng.
+     */
+    role?: 'learner' | 'admin';
+};
+
+export type UpdateUserAdminDto = {
+    /**
+     * Vai trò mới của người dùng.
+     */
+    role?: 'learner' | 'admin';
+    /**
+     * ID của cohort gán cho người dùng (UUID, gửi null để hủy gán).
+     */
+    cohortId?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+export type UpdateUserRoleDto = {
+    /**
+     * Vai trò mới của người dùng.
+     */
+    role: 'learner' | 'admin';
+};
+
+export type UpdateUserStatusDto = {
+    /**
+     * Trạng thái hoạt động của người dùng.
+     */
+    isActive: boolean;
+};
+
+export type BanUserDto = {
+    /**
+     * Lý do khóa tài khoản.
+     */
+    reason: string;
+    /**
+     * Thời hạn khóa tài khoản (nếu để trống hoặc null tức là khóa vĩnh viễn).
+     */
+    expiresAt?: {
+        [key: string]: unknown;
+    };
+};
+
+export type AssignCohortDto = {
+    /**
+     * ID của cohort (UUID) cần gán cho người dùng.
+     */
+    cohortId: string;
+};
+
 export type GoogleLoginDto = {
     /**
      * ID Token nhận được từ Google OAuth Client phía frontend.
@@ -61,6 +127,10 @@ export type UserProfileDto = {
     title: string | null;
     avatarHue: number;
     cohortId: string | null;
+    cohort: {
+        id?: string;
+        name?: string;
+    } | null;
     level: number;
     xp: number;
     /**
@@ -111,6 +181,25 @@ export type ForgotPasswordDto = {
     email: string;
 };
 
+export type ForgotPasswordResponseDto = {
+    /**
+     * Trạng thái thành công
+     */
+    success: boolean;
+    /**
+     * Thông điệp phản hồi
+     */
+    message: string;
+    /**
+     * Token khôi phục mật khẩu (chỉ trả về ở dev/test hoặc cấu hình)
+     */
+    resetToken?: string;
+    /**
+     * Đường dẫn đặt lại mật khẩu
+     */
+    resetUrl?: string;
+};
+
 export type ResetPasswordDto = {
     /**
      * Mã token khôi phục mật khẩu nhận được từ email.
@@ -120,6 +209,17 @@ export type ResetPasswordDto = {
      * Mật khẩu mới.
      */
     password: string;
+};
+
+export type ChangePasswordDto = {
+    /**
+     * Mật khẩu hiện tại.
+     */
+    currentPassword: string;
+    /**
+     * Mật khẩu mới.
+     */
+    newPassword: string;
 };
 
 export type CreateCohortDto = {
@@ -228,6 +328,41 @@ export type CohortDashboardStatsDto = {
      * Mục tiêu hoàn thành của Cohort (ramp days)
      */
     targetRampDays: number;
+};
+
+export type CohortUserTrackProgressDto = {
+    trackId: string;
+    title: string;
+    /**
+     * Tỷ lệ hoàn thành track (%)
+     */
+    progressPct: number;
+    completedLessons: number;
+    totalLessons: number;
+    status: 'not_started' | 'in_progress' | 'completed';
+};
+
+export type CohortUserProgressItemDto = {
+    userId: string;
+    name: string;
+    email: string;
+    avatarHue: {
+        [key: string]: unknown;
+    } | null;
+    level: number;
+    xp: number;
+    tracks: Array<CohortUserTrackProgressDto>;
+};
+
+export type CohortUsersProgressResponseDto = {
+    cohortId: string;
+    /**
+     * Tổng số học viên khớp bộ lọc
+     */
+    totalUsers: number;
+    page: number;
+    limit: number;
+    data: Array<CohortUserProgressItemDto>;
 };
 
 export type CohortTrackCompletionItemDto = {
@@ -489,6 +624,10 @@ export type CreateTrackDto = {
      * Chèn sau Track có ID này (để tự động tính toán order). Nếu bỏ trống sẽ chèn cuối cùng.
      */
     afterTrackId?: string;
+    /**
+     * Trạng thái lộ trình (GLI-94). Mặc định: Active.
+     */
+    status?: 'Developing' | 'Active' | 'Archived';
 };
 
 export type UpdateTrackDto = {
@@ -508,6 +647,10 @@ export type UpdateTrackDto = {
      * Icon đại diện
      */
     icon?: string;
+    /**
+     * Trạng thái lộ trình (GLI-94)
+     */
+    status?: 'Developing' | 'Active' | 'Archived';
 };
 
 export type UpdateTrackProgressDto = {
@@ -515,6 +658,37 @@ export type UpdateTrackProgressDto = {
      * Trạng thái tiến độ học của Track
      */
     status: 'not_started' | 'in_progress' | 'completed';
+};
+
+export type AdminTrackItemDto = {
+    id: string;
+    title: string;
+    order: number;
+    status: 'Developing' | 'Active' | 'Archived';
+    level: string;
+    estimatedTime: string;
+    /**
+     * Tổng số bài học trong track
+     */
+    totalLessons: number;
+    /**
+     * Số học viên đang tham gia track
+     */
+    enrolledCount: number;
+    /**
+     * Số học viên đã hoàn thành track
+     */
+    completedCount: number;
+    /**
+     * Tỷ lệ hoàn thành trung bình của học viên (%)
+     */
+    avgCompletion: number;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type AdminTrackListResponseDto = {
+    data: Array<AdminTrackItemDto>;
 };
 
 export type LessonListResponseDto = {
@@ -654,19 +828,11 @@ export type ExerciseSummaryDto = {
     /**
      * Trạng thái bài nộp cá nhân của user
      */
-    status: 'pending' | 'submitted' | 'approved' | 'changes';
-    /**
-     * Đường dẫn PR nộp bài tập
-     */
-    prUrl: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * ID của bài học liên kết với bài tập (nếu có)
-     */
-    lessonId: {
-        [key: string]: unknown;
-    } | null;
+    status: 'pending' | 'submitted' | 'approved' | 'changes' | 'rejected';
+    prUrl: string | null;
+    lessonId: string | null;
+    type: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
+    isMandatory: boolean;
 };
 
 export type ExerciseListResponseDto = {
@@ -760,6 +926,29 @@ export type CompleteLessonResponseDto = {
     message: string;
 };
 
+export type ExerciseQuestionDto = {
+    /**
+     * ID câu hỏi (duy nhất trong bài tập)
+     */
+    id: string;
+    /**
+     * Nội dung câu hỏi
+     */
+    prompt: string;
+    /**
+     * Các lựa chọn (bắt buộc với QUIZ)
+     */
+    options?: Array<string>;
+    /**
+     * Đáp án đúng. KHÔNG bao giờ trả về cho học viên (bị strip khi GET).
+     */
+    correctAnswer: string;
+    /**
+     * Lời giải thích, chỉ trả cho learner sau khi chấm.
+     */
+    explanation: string;
+};
+
 export type CreateExerciseDto = {
     /**
      * Tiêu đề bài tập thực hành.
@@ -813,6 +1002,22 @@ export type CreateExerciseDto = {
      * Gợi ý hoặc lưu ý đặc biệt cho bài tập.
      */
     hint?: string;
+    /**
+     * Thể loại bài tập (GLI-92). Mặc định: PR_REVIEW.
+     */
+    type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
+    /**
+     * Cấu trúc câu hỏi + đáp án cho QUIZ/FILL_IN_BLANK (GLI-92). Chỉ Admin thấy correctAnswer.
+     */
+    questionsData?: Array<ExerciseQuestionDto>;
+    /**
+     * Điểm (%) tối thiểu để đạt khi tự động chấm (GLI-92). Mặc định: 100.
+     */
+    targetScore?: number;
+    /**
+     * Bài tập bắt buộc để hoàn thành bài học (GLI-90). Mặc định: true.
+     */
+    isMandatory?: boolean;
 };
 
 export type ExerciseDetailDto = {
@@ -856,18 +1061,8 @@ export type ExerciseDetailDto = {
      * Mô tả tổng quan chi tiết bài tập
      */
     overview: string;
-    /**
-     * Các mục tiêu cần đạt được
-     */
-    objectives: {
-        [key: string]: unknown;
-    };
-    /**
-     * Các bước hướng dẫn thực hiện
-     */
-    steps: {
-        [key: string]: unknown;
-    };
+    objectives: Array<string>;
+    steps: Array<string>;
     /**
      * Tài liệu hướng dẫn liên kết
      */
@@ -879,19 +1074,56 @@ export type ExerciseDetailDto = {
     /**
      * Trạng thái bài nộp cá nhân của user
      */
-    status: 'pending' | 'submitted' | 'approved' | 'changes';
+    status: 'pending' | 'submitted' | 'approved' | 'changes' | 'rejected';
+    prUrl: string | null;
+    lessonId: string | null;
+    type: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
+    questionsData: Array<ExerciseQuestionResponseDto> | null;
+    targetScore: number;
+    isMandatory: boolean;
+};
+
+export type AutoAnswerDto = {
     /**
-     * Đường dẫn PR nộp bài tập
+     * ID câu hỏi trong questionsData
      */
-    prUrl: {
-        [key: string]: unknown;
-    } | null;
+    questionId: string;
     /**
-     * ID của bài học liên kết với bài tập (nếu có)
+     * Câu trả lời của học viên
      */
-    lessonId: {
-        [key: string]: unknown;
-    } | null;
+    answer: string;
+};
+
+export type SubmitAutoDto = {
+    answers: Array<AutoAnswerDto>;
+};
+
+export type AutoGradeQuestionResultDto = {
+    questionId: string;
+    correct: boolean;
+    explanation: string | null;
+};
+
+export type AutoGradeResultDto = {
+    /**
+     * Điểm (%) của lần làm này
+     */
+    score: number;
+    correctCount: number;
+    totalQuestions: number;
+    /**
+     * Điểm (%) tối thiểu để đạt
+     */
+    targetScore: number;
+    /**
+     * Lần làm này đạt hay không
+     */
+    passed: boolean;
+    /**
+     * Trạng thái hoàn thành bài tập trong DB (không đổi khi làm lại sau khi đã đạt)
+     */
+    completed: boolean;
+    results: Array<AutoGradeQuestionResultDto>;
 };
 
 export type UpdateExerciseDto = {
@@ -947,6 +1179,22 @@ export type UpdateExerciseDto = {
      * Gợi ý hoặc lưu ý đặc biệt cho bài tập.
      */
     hint?: string;
+    /**
+     * Thể loại bài tập (GLI-92). Mặc định: PR_REVIEW.
+     */
+    type?: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
+    /**
+     * Cấu trúc câu hỏi + đáp án cho QUIZ/FILL_IN_BLANK (GLI-92). Chỉ Admin thấy correctAnswer.
+     */
+    questionsData?: Array<ExerciseQuestionDto>;
+    /**
+     * Điểm (%) tối thiểu để đạt khi tự động chấm (GLI-92). Mặc định: 100.
+     */
+    targetScore?: number;
+    /**
+     * Bài tập bắt buộc để hoàn thành bài học (GLI-90). Mặc định: true.
+     */
+    isMandatory?: boolean;
 };
 
 export type DocumentListResponseDto = {
@@ -1029,6 +1277,10 @@ export type CreateTagDto = {
      * Tên thẻ phân loại
      */
     name: string;
+    /**
+     * Phân loại bể tag (GLI-94). Mặc định: GENERAL.
+     */
+    category?: 'TRACK' | 'EXERCISE' | 'DOCUMENT' | 'GENERAL';
 };
 
 export type SearchTrackResultDto = {
@@ -1305,11 +1557,80 @@ export type SubmissionHistoryResponseDto = {
     history: Array<SubmissionHistoryItemDto>;
 };
 
+export type NotificationItemDto = {
+    /**
+     * ID của thông báo
+     */
+    id: string;
+    /**
+     * Loại thông báo (ví dụ: submission, general)
+     */
+    type: string;
+    /**
+     * Tiêu đề thông báo
+     */
+    title: string;
+    /**
+     * Nội dung thông báo
+     */
+    body: string;
+    /**
+     * Trạng thái đã đọc hay chưa
+     */
+    read: boolean;
+    /**
+     * Thời gian tạo thông báo
+     */
+    createdAt: string;
+};
+
+export type NotificationListResponseDto = {
+    /**
+     * Danh sách thông báo
+     */
+    data: Array<NotificationItemDto>;
+    /**
+     * Số lượng thông báo chưa đọc
+     */
+    unreadCount: number;
+};
+
+export type MarkReadResponseDto = {
+    /**
+     * ID của thông báo
+     */
+    id: string;
+    /**
+     * Trạng thái đã đọc
+     */
+    read: boolean;
+};
+
+export type NotificationSettingsDto = {
+    EXERCISE_REVIEWED: boolean;
+    EXERCISE_CHANGES_REQUESTED: boolean;
+    COHORT_ASSIGNED: boolean;
+    NEW_LESSON_PUBLISHED: boolean;
+};
+
+export type UpdateNotificationSettingsDto = {
+    EXERCISE_REVIEWED?: boolean;
+    EXERCISE_CHANGES_REQUESTED?: boolean;
+    COHORT_ASSIGNED?: boolean;
+    NEW_LESSON_PUBLISHED?: boolean;
+};
+
+export type ExerciseQuestionResponseDto = {
+    id: string;
+    prompt: string;
+    options?: Array<string>;
+};
+
 export type AppControllerGetHelloData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1';
+    url: '/';
 };
 
 export type AppControllerGetHelloResponses = {
@@ -1341,7 +1662,7 @@ export type UsersControllerFindAllData = {
          */
         limit?: number;
     };
-    url: '/api/v1/users';
+    url: '/users';
 };
 
 export type UsersControllerFindAllErrors = {
@@ -1364,7 +1685,7 @@ export type UsersControllerFindOneData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/users/{id}';
+    url: '/users/{id}';
 };
 
 export type UsersControllerFindOneErrors = {
@@ -1389,7 +1710,7 @@ export type UsersControllerUpdateProfileData = {
     body: UpdateProfileDto;
     path?: never;
     query?: never;
-    url: '/api/v1/users/me';
+    url: '/users/me';
 };
 
 export type UsersControllerUpdateProfileResponses = {
@@ -1403,7 +1724,7 @@ export type UsersControllerGetStatsData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/users/me/stats';
+    url: '/users/me/stats';
 };
 
 export type UsersControllerGetStatsResponses = {
@@ -1419,7 +1740,7 @@ export type UsersControllerClaimDailyXpData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/users/me/claim-xp';
+    url: '/users/me/claim-xp';
 };
 
 export type UsersControllerClaimDailyXpErrors = {
@@ -1436,11 +1757,305 @@ export type UsersControllerClaimDailyXpResponses = {
     200: unknown;
 };
 
+export type AdminUsersControllerFindAllData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Tìm kiếm theo tên hoặc email.
+         */
+        q?: string;
+        /**
+         * Lọc theo vai trò.
+         */
+        role?: 'learner' | 'admin';
+        /**
+         * Lọc theo trạng thái hoạt động.
+         */
+        isActive?: string;
+        /**
+         * Số trang.
+         */
+        page?: number;
+        /**
+         * Số lượng phần tử mỗi trang.
+         */
+        limit?: number;
+    };
+    url: '/admin/users';
+};
+
+export type AdminUsersControllerFindAllErrors = {
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+};
+
+export type AdminUsersControllerFindAllResponses = {
+    /**
+     * Lấy danh sách thành công.
+     */
+    200: unknown;
+};
+
+export type AdminUsersControllerCreateData = {
+    body: CreateUserDto;
+    path?: never;
+    query?: never;
+    url: '/admin/users';
+};
+
+export type AdminUsersControllerCreateErrors = {
+    /**
+     * Dữ liệu đầu vào không hợp lệ.
+     */
+    400: unknown;
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Email đã tồn tại.
+     */
+    409: unknown;
+};
+
+export type AdminUsersControllerCreateResponses = {
+    /**
+     * Tạo tài khoản thành công.
+     */
+    201: unknown;
+};
+
+export type AdminUsersControllerDeleteData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/admin/users/{id}';
+};
+
+export type AdminUsersControllerDeleteErrors = {
+    /**
+     * Không thể tự xóa tài khoản của chính mình.
+     */
+    400: unknown;
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Không tìm thấy người dùng.
+     */
+    404: unknown;
+};
+
+export type AdminUsersControllerDeleteResponses = {
+    /**
+     * Xóa tài khoản thành công.
+     */
+    204: void;
+};
+
+export type AdminUsersControllerDeleteResponse = AdminUsersControllerDeleteResponses[keyof AdminUsersControllerDeleteResponses];
+
+export type AdminUsersControllerUpdateData = {
+    body: UpdateUserAdminDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/admin/users/{id}';
+};
+
+export type AdminUsersControllerUpdateErrors = {
+    /**
+     * Yêu cầu không hợp lệ hoặc tự sửa vai trò của chính mình.
+     */
+    400: unknown;
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Không tìm thấy người dùng.
+     */
+    404: unknown;
+};
+
+export type AdminUsersControllerUpdateResponses = {
+    /**
+     * Cập nhật thành công.
+     */
+    200: unknown;
+};
+
+export type AdminUsersControllerChangeRoleData = {
+    body: UpdateUserRoleDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/admin/users/{id}/role';
+};
+
+export type AdminUsersControllerChangeRoleErrors = {
+    /**
+     * Không thể tự đổi vai trò của chính mình.
+     */
+    400: unknown;
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Không tìm thấy người dùng.
+     */
+    404: unknown;
+};
+
+export type AdminUsersControllerChangeRoleResponses = {
+    /**
+     * Thay đổi vai trò thành công.
+     */
+    200: unknown;
+};
+
+export type AdminUsersControllerChangeStatusData = {
+    body: UpdateUserStatusDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/admin/users/{id}/status';
+};
+
+export type AdminUsersControllerChangeStatusErrors = {
+    /**
+     * Không thể tự khóa tài khoản của chính mình.
+     */
+    400: unknown;
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Không tìm thấy người dùng.
+     */
+    404: unknown;
+};
+
+export type AdminUsersControllerChangeStatusResponses = {
+    /**
+     * Cập nhật trạng thái thành công.
+     */
+    200: unknown;
+};
+
+export type AdminUsersControllerBanUserData = {
+    body: BanUserDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/admin/users/{id}/ban';
+};
+
+export type AdminUsersControllerBanUserErrors = {
+    /**
+     * Không thể tự khóa tài khoản của chính mình.
+     */
+    400: unknown;
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Không tìm thấy người dùng.
+     */
+    404: unknown;
+};
+
+export type AdminUsersControllerBanUserResponses = {
+    /**
+     * Khóa tài khoản thành công.
+     */
+    200: unknown;
+};
+
+export type AdminUsersControllerUnbanUserData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/admin/users/{id}/unban';
+};
+
+export type AdminUsersControllerUnbanUserErrors = {
+    /**
+     * Không thể tự mở khóa chính mình.
+     */
+    400: unknown;
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Không tìm thấy người dùng.
+     */
+    404: unknown;
+};
+
+export type AdminUsersControllerUnbanUserResponses = {
+    /**
+     * Mở khóa tài khoản thành công.
+     */
+    200: unknown;
+};
+
+export type AdminUsersControllerAssignCohortData = {
+    body: AssignCohortDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/admin/users/{id}/cohort';
+};
+
+export type AdminUsersControllerAssignCohortErrors = {
+    /**
+     * Yêu cầu không hợp lệ.
+     */
+    400: unknown;
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Không tìm thấy người dùng hoặc cohort.
+     */
+    404: unknown;
+    /**
+     * Người dùng đã ở trong cohort này.
+     */
+    409: unknown;
+};
+
+export type AdminUsersControllerAssignCohortResponses = {
+    /**
+     * Gán cohort thành công.
+     */
+    200: unknown;
+};
+
 export type AuthControllerGoogleLoginData = {
     body: GoogleLoginDto;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/google';
+    url: '/auth/google';
 };
 
 export type AuthControllerGoogleLoginErrors = {
@@ -1464,7 +2079,7 @@ export type AuthControllerRegisterData = {
     body: RegisterDto;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/register';
+    url: '/auth/register';
 };
 
 export type AuthControllerRegisterErrors = {
@@ -1485,7 +2100,7 @@ export type AuthControllerLoginData = {
     body: LoginDto;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/login';
+    url: '/auth/login';
 };
 
 export type AuthControllerLoginErrors = {
@@ -1505,7 +2120,7 @@ export type AuthControllerRefreshData = {
     body: RefreshTokenDto;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/refresh';
+    url: '/auth/refresh';
 };
 
 export type AuthControllerRefreshErrors = {
@@ -1525,7 +2140,7 @@ export type AuthControllerLogoutData = {
     body: RefreshTokenDto;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/logout';
+    url: '/auth/logout';
 };
 
 export type AuthControllerLogoutErrors = {
@@ -1546,7 +2161,7 @@ export type AuthControllerMeData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/me';
+    url: '/auth/me';
 };
 
 export type AuthControllerMeErrors = {
@@ -1569,28 +2184,23 @@ export type AuthControllerForgotPasswordData = {
     body: ForgotPasswordDto;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/forgot-password';
-};
-
-export type AuthControllerForgotPasswordErrors = {
-    /**
-     * Email không tồn tại.
-     */
-    400: unknown;
+    url: '/auth/forgot-password';
 };
 
 export type AuthControllerForgotPasswordResponses = {
     /**
-     * Đường dẫn khôi phục mật khẩu đã được gửi.
+     * Yêu cầu khôi phục mật khẩu thành công.
      */
-    200: unknown;
+    200: ForgotPasswordResponseDto;
 };
+
+export type AuthControllerForgotPasswordResponse = AuthControllerForgotPasswordResponses[keyof AuthControllerForgotPasswordResponses];
 
 export type AuthControllerResetPasswordData = {
     body: ResetPasswordDto;
     path?: never;
     query?: never;
-    url: '/api/v1/auth/reset-password';
+    url: '/auth/reset-password';
 };
 
 export type AuthControllerResetPasswordErrors = {
@@ -1607,6 +2217,31 @@ export type AuthControllerResetPasswordResponses = {
     200: unknown;
 };
 
+export type AuthControllerChangePasswordData = {
+    body: ChangePasswordDto;
+    path?: never;
+    query?: never;
+    url: '/auth/change-password';
+};
+
+export type AuthControllerChangePasswordErrors = {
+    /**
+     * Mật khẩu cũ không chính xác hoặc dữ liệu không hợp lệ.
+     */
+    400: unknown;
+    /**
+     * Thiếu hoặc sai access token.
+     */
+    401: unknown;
+};
+
+export type AuthControllerChangePasswordResponses = {
+    /**
+     * Mật khẩu đã được thay đổi thành công.
+     */
+    200: unknown;
+};
+
 export type CohortControllerFindAllData = {
     body?: never;
     path?: never;
@@ -1614,7 +2249,7 @@ export type CohortControllerFindAllData = {
         page?: number;
         limit?: number;
     };
-    url: '/api/v1/cohorts';
+    url: '/cohorts';
 };
 
 export type CohortControllerFindAllErrors = {
@@ -1637,7 +2272,7 @@ export type CohortControllerCreateData = {
     body: CreateCohortDto;
     path?: never;
     query?: never;
-    url: '/api/v1/cohorts';
+    url: '/cohorts';
 };
 
 export type CohortControllerCreateErrors = {
@@ -1666,7 +2301,7 @@ export type CohortControllerGetOverviewData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/cohorts/{id}/overview';
+    url: '/cohorts/{id}/overview';
 };
 
 export type CohortControllerGetOverviewErrors = {
@@ -1689,13 +2324,53 @@ export type CohortControllerGetOverviewResponses = {
 
 export type CohortControllerGetOverviewResponse = CohortControllerGetOverviewResponses[keyof CohortControllerGetOverviewResponses];
 
+export type CohortControllerGetUsersProgressData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        page?: number;
+        limit?: number;
+        /**
+         * Tìm kiếm theo tên hoặc email học viên
+         */
+        search?: string;
+        /**
+         * Lọc theo một track cụ thể
+         */
+        trackId?: string;
+    };
+    url: '/cohorts/{id}/users-progress';
+};
+
+export type CohortControllerGetUsersProgressErrors = {
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+    /**
+     * Không tìm thấy Cohort.
+     */
+    404: unknown;
+};
+
+export type CohortControllerGetUsersProgressResponses = {
+    /**
+     * Lấy tiến độ thành công.
+     */
+    200: CohortUsersProgressResponseDto;
+};
+
+export type CohortControllerGetUsersProgressResponse = CohortControllerGetUsersProgressResponses[keyof CohortControllerGetUsersProgressResponses];
+
 export type CohortControllerGetTrackCompletionData = {
     body?: never;
     path: {
         id: string;
     };
     query?: never;
-    url: '/api/v1/cohorts/{id}/track-completion';
+    url: '/cohorts/{id}/track-completion';
 };
 
 export type CohortControllerGetTrackCompletionErrors = {
@@ -1724,7 +2399,7 @@ export type CohortControllerExportReportData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/cohorts/{id}/export';
+    url: '/cohorts/{id}/export';
 };
 
 export type CohortControllerExportReportErrors = {
@@ -1751,7 +2426,7 @@ export type CohortControllerRemoveData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/cohorts/{id}';
+    url: '/cohorts/{id}';
 };
 
 export type CohortControllerRemoveErrors = {
@@ -1782,7 +2457,7 @@ export type CohortControllerFindOneData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/cohorts/{id}';
+    url: '/cohorts/{id}';
 };
 
 export type CohortControllerFindOneErrors = {
@@ -1811,7 +2486,7 @@ export type CohortControllerUpdateData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/cohorts/{id}';
+    url: '/cohorts/{id}';
 };
 
 export type CohortControllerUpdateErrors = {
@@ -1851,7 +2526,7 @@ export type TracksControllerFindAllData = {
          */
         status?: 'completed' | 'in_progress' | 'locked';
     };
-    url: '/api/v1/tracks';
+    url: '/tracks';
 };
 
 export type TracksControllerFindAllResponses = {
@@ -1867,7 +2542,7 @@ export type TracksControllerCreateData = {
     body: CreateTrackDto;
     path?: never;
     query?: never;
-    url: '/api/v1/tracks';
+    url: '/tracks';
 };
 
 export type TracksControllerCreateResponses = {
@@ -1881,7 +2556,7 @@ export type TracksControllerReorderData = {
     body: ReorderTracksDto;
     path?: never;
     query?: never;
-    url: '/api/v1/tracks/reorder';
+    url: '/tracks/reorder';
 };
 
 export type TracksControllerReorderResponses = {
@@ -1897,7 +2572,7 @@ export type TracksControllerDeleteData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/tracks/{id}';
+    url: '/tracks/{id}';
 };
 
 export type TracksControllerDeleteResponses = {
@@ -1915,7 +2590,7 @@ export type TracksControllerFindOneData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/tracks/{id}';
+    url: '/tracks/{id}';
 };
 
 export type TracksControllerFindOneResponses = {
@@ -1933,7 +2608,7 @@ export type TracksControllerUpdateData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/tracks/{id}';
+    url: '/tracks/{id}';
 };
 
 export type TracksControllerUpdateResponses = {
@@ -1949,7 +2624,7 @@ export type TracksControllerUpdateProgressData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/tracks/{id}/progress';
+    url: '/tracks/{id}/progress';
 };
 
 export type TracksControllerUpdateProgressResponses = {
@@ -1959,13 +2634,36 @@ export type TracksControllerUpdateProgressResponses = {
     200: unknown;
 };
 
+export type AdminTracksControllerAdminListData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/tracks';
+};
+
+export type AdminTracksControllerAdminListErrors = {
+    /**
+     * Không có quyền truy cập.
+     */
+    403: unknown;
+};
+
+export type AdminTracksControllerAdminListResponses = {
+    /**
+     * Lấy danh sách thành công.
+     */
+    200: AdminTrackListResponseDto;
+};
+
+export type AdminTracksControllerAdminListResponse = AdminTracksControllerAdminListResponses[keyof AdminTracksControllerAdminListResponses];
+
 export type LessonsControllerFindLessonsData = {
     body?: never;
     path: {
         id: string;
     };
     query?: never;
-    url: '/api/v1/tracks/{id}/lessons';
+    url: '/tracks/{id}/lessons';
 };
 
 export type LessonsControllerFindLessonsResponses = {
@@ -1983,7 +2681,7 @@ export type LessonsControllerCreateLessonData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/tracks/{id}/lessons';
+    url: '/tracks/{id}/lessons';
 };
 
 export type LessonsControllerCreateLessonResponses = {
@@ -1999,7 +2697,7 @@ export type LessonsControllerDeleteLessonData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/lessons/{id}';
+    url: '/lessons/{id}';
 };
 
 export type LessonsControllerDeleteLessonResponses = {
@@ -2017,7 +2715,7 @@ export type LessonsControllerFindOneLessonData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/lessons/{id}';
+    url: '/lessons/{id}';
 };
 
 export type LessonsControllerFindOneLessonResponses = {
@@ -2035,7 +2733,7 @@ export type LessonsControllerUpdateLessonData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/lessons/{id}';
+    url: '/lessons/{id}';
 };
 
 export type LessonsControllerUpdateLessonResponses = {
@@ -2051,7 +2749,7 @@ export type LessonsControllerFindExercisesByLessonData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/lessons/{id}/exercises';
+    url: '/lessons/{id}/exercises';
 };
 
 export type LessonsControllerFindExercisesByLessonResponses = {
@@ -2069,7 +2767,7 @@ export type LessonsControllerCompleteLessonData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/lessons/{id}/complete';
+    url: '/lessons/{id}/complete';
 };
 
 export type LessonsControllerCompleteLessonResponses = {
@@ -2114,7 +2812,7 @@ export type ExercisesControllerFindAllData = {
          */
         cursor?: string;
     };
-    url: '/api/v1/exercises';
+    url: '/exercises';
 };
 
 export type ExercisesControllerFindAllResponses = {
@@ -2130,7 +2828,7 @@ export type ExercisesControllerCreateData = {
     body: CreateExerciseDto;
     path?: never;
     query?: never;
-    url: '/api/v1/exercises';
+    url: '/exercises';
 };
 
 export type ExercisesControllerCreateErrors = {
@@ -2157,7 +2855,7 @@ export type ExercisesControllerRemoveData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/exercises/{id}';
+    url: '/exercises/{id}';
 };
 
 export type ExercisesControllerRemoveErrors = {
@@ -2184,7 +2882,7 @@ export type ExercisesControllerFindOneData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/exercises/{id}';
+    url: '/exercises/{id}';
 };
 
 export type ExercisesControllerFindOneErrors = {
@@ -2209,7 +2907,7 @@ export type ExercisesControllerUpdateData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/exercises/{id}';
+    url: '/exercises/{id}';
 };
 
 export type ExercisesControllerUpdateErrors = {
@@ -2229,6 +2927,35 @@ export type ExercisesControllerUpdateResponses = {
      */
     200: unknown;
 };
+
+export type ExercisesControllerSubmitAutoData = {
+    body: SubmitAutoDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/exercises/{id}/submit-auto';
+};
+
+export type ExercisesControllerSubmitAutoErrors = {
+    /**
+     * Bài tập không hỗ trợ tự chấm hoặc chưa cấu hình câu hỏi.
+     */
+    400: unknown;
+    /**
+     * Không tìm thấy bài tập.
+     */
+    404: unknown;
+};
+
+export type ExercisesControllerSubmitAutoResponses = {
+    /**
+     * Chấm điểm thành công.
+     */
+    200: AutoGradeResultDto;
+};
+
+export type ExercisesControllerSubmitAutoResponse = ExercisesControllerSubmitAutoResponses[keyof ExercisesControllerSubmitAutoResponses];
 
 export type DocumentsControllerFindAllData = {
     body?: never;
@@ -2255,7 +2982,7 @@ export type DocumentsControllerFindAllData = {
          */
         cursor?: string;
     };
-    url: '/api/v1/documents';
+    url: '/documents';
 };
 
 export type DocumentsControllerFindAllResponses = {
@@ -2271,7 +2998,7 @@ export type DocumentsControllerCreateData = {
     body: CreateDocumentDto;
     path?: never;
     query?: never;
-    url: '/api/v1/documents';
+    url: '/documents';
 };
 
 export type DocumentsControllerCreateResponses = {
@@ -2285,7 +3012,7 @@ export type DocumentsControllerFindRecentData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/documents/recent';
+    url: '/documents/recent';
 };
 
 export type DocumentsControllerFindRecentResponses = {
@@ -2303,7 +3030,7 @@ export type DocumentsControllerDeleteData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}';
+    url: '/documents/{id}';
 };
 
 export type DocumentsControllerDeleteResponses = {
@@ -2321,7 +3048,7 @@ export type DocumentsControllerFindOneData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}';
+    url: '/documents/{id}';
 };
 
 export type DocumentsControllerFindOneResponses = {
@@ -2339,7 +3066,7 @@ export type DocumentsControllerUpdateData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}';
+    url: '/documents/{id}';
 };
 
 export type DocumentsControllerUpdateResponses = {
@@ -2355,7 +3082,7 @@ export type DocumentsControllerUnbookmarkData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}/bookmark';
+    url: '/documents/{id}/bookmark';
 };
 
 export type DocumentsControllerUnbookmarkResponses = {
@@ -2373,7 +3100,7 @@ export type DocumentsControllerBookmarkData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/documents/{id}/bookmark';
+    url: '/documents/{id}/bookmark';
 };
 
 export type DocumentsControllerBookmarkResponses = {
@@ -2388,8 +3115,13 @@ export type DocumentsControllerBookmarkResponse = DocumentsControllerBookmarkRes
 export type DocumentsControllerFindAllTagsData = {
     body?: never;
     path?: never;
-    query?: never;
-    url: '/api/v1/tags';
+    query?: {
+        /**
+         * Lọc tag theo phân loại (GLI-94)
+         */
+        category?: 'TRACK' | 'EXERCISE' | 'DOCUMENT' | 'GENERAL';
+    };
+    url: '/tags';
 };
 
 export type DocumentsControllerFindAllTagsResponses = {
@@ -2403,7 +3135,7 @@ export type DocumentsControllerCreateTagData = {
     body: CreateTagDto;
     path?: never;
     query?: never;
-    url: '/api/v1/tags';
+    url: '/tags';
 };
 
 export type DocumentsControllerCreateTagResponses = {
@@ -2419,7 +3151,7 @@ export type DocumentsControllerDeleteTagData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/tags/{id}';
+    url: '/tags/{id}';
 };
 
 export type DocumentsControllerDeleteTagResponses = {
@@ -2440,7 +3172,7 @@ export type SearchControllerGlobalSearchData = {
          */
         q: string;
     };
-    url: '/api/v1/search';
+    url: '/search';
 };
 
 export type SearchControllerGlobalSearchResponses = {
@@ -2473,7 +3205,7 @@ export type LeaderboardControllerGetLeaderboardData = {
          */
         cursor?: string;
     };
-    url: '/api/v1/leaderboard';
+    url: '/leaderboard';
 };
 
 export type LeaderboardControllerGetLeaderboardResponses = {
@@ -2491,7 +3223,7 @@ export type SubmissionsControllerFindExercisesData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/tracks/{id}/exercises';
+    url: '/tracks/{id}/exercises';
 };
 
 export type SubmissionsControllerFindExercisesResponses = {
@@ -2507,7 +3239,7 @@ export type SubmissionsControllerSubmitData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/exercises/{id}/submissions';
+    url: '/exercises/{id}/submissions';
 };
 
 export type SubmissionsControllerSubmitResponses = {
@@ -2525,7 +3257,7 @@ export type SubmissionsControllerResubmitData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/exercises/{id}/submissions';
+    url: '/exercises/{id}/submissions';
 };
 
 export type SubmissionsControllerResubmitResponses = {
@@ -2566,7 +3298,7 @@ export type SubmissionsControllerFindAllData = {
          */
         cursor?: string;
     };
-    url: '/api/v1/submissions';
+    url: '/submissions';
 };
 
 export type SubmissionsControllerFindAllResponses = {
@@ -2582,7 +3314,7 @@ export type SubmissionsControllerFindMineData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/submissions/mine';
+    url: '/submissions/mine';
 };
 
 export type SubmissionsControllerFindMineResponses = {
@@ -2600,7 +3332,7 @@ export type SubmissionsControllerFindOneData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/submissions/{id}';
+    url: '/submissions/{id}';
 };
 
 export type SubmissionsControllerFindOneResponses = {
@@ -2618,7 +3350,7 @@ export type SubmissionsControllerReviewData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/submissions/{id}/review';
+    url: '/submissions/{id}/review';
 };
 
 export type SubmissionsControllerReviewResponses = {
@@ -2636,7 +3368,7 @@ export type SubmissionsControllerApproveData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/submissions/{id}/approve';
+    url: '/submissions/{id}/approve';
 };
 
 export type SubmissionsControllerApproveResponses = {
@@ -2654,7 +3386,7 @@ export type SubmissionsControllerRequestChangesData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/submissions/{id}/request-changes';
+    url: '/submissions/{id}/request-changes';
 };
 
 export type SubmissionsControllerRequestChangesResponses = {
@@ -2672,7 +3404,7 @@ export type SubmissionsControllerFindHistoryData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/submissions/{id}/history';
+    url: '/submissions/{id}/history';
 };
 
 export type SubmissionsControllerFindHistoryResponses = {
@@ -2688,15 +3420,17 @@ export type NotificationsControllerFindAllData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/v1/notifications';
+    url: '/notifications';
 };
 
 export type NotificationsControllerFindAllResponses = {
     /**
      * Lấy danh sách thành công.
      */
-    200: unknown;
+    200: NotificationListResponseDto;
 };
+
+export type NotificationsControllerFindAllResponse = NotificationsControllerFindAllResponses[keyof NotificationsControllerFindAllResponses];
 
 export type NotificationsControllerMarkReadData = {
     body?: never;
@@ -2704,7 +3438,7 @@ export type NotificationsControllerMarkReadData = {
         id: string;
     };
     query?: never;
-    url: '/api/v1/notifications/{id}/read';
+    url: '/notifications/{id}/read';
 };
 
 export type NotificationsControllerMarkReadErrors = {
@@ -2722,5 +3456,39 @@ export type NotificationsControllerMarkReadResponses = {
     /**
      * Đánh dấu thành công.
      */
-    200: unknown;
+    200: MarkReadResponseDto;
 };
+
+export type NotificationsControllerMarkReadResponse = NotificationsControllerMarkReadResponses[keyof NotificationsControllerMarkReadResponses];
+
+export type UsersControllerGetNotificationSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/notification-settings';
+};
+
+export type UsersControllerGetNotificationSettingsResponses = {
+    /**
+     * Lấy cấu hình thông báo thành công.
+     */
+    200: NotificationSettingsDto;
+};
+
+export type UsersControllerGetNotificationSettingsResponse = UsersControllerGetNotificationSettingsResponses[keyof UsersControllerGetNotificationSettingsResponses];
+
+export type UsersControllerUpdateNotificationSettingsData = {
+    body: UpdateNotificationSettingsDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/notification-settings';
+};
+
+export type UsersControllerUpdateNotificationSettingsResponses = {
+    /**
+     * Cập nhật cấu hình thông báo thành công.
+     */
+    200: NotificationSettingsDto;
+};
+
+export type UsersControllerUpdateNotificationSettingsResponse = UsersControllerUpdateNotificationSettingsResponses[keyof UsersControllerUpdateNotificationSettingsResponses];

@@ -59,3 +59,27 @@ desktop.ini
 
 mini-task/
 /mini-task
+
+.ai-local/
+/fe/.ai/
+/.ai/
+/ai/
+/exclude
+/tools/
+
+.opencode/
+
+# Local tooling and generated indexes
+.claude/
+.codegraph/
+.pnpm-store/
+.specify/
+.ua/
+fe/.claude/
+fe/.ua/
+
+# Local agent configs & issue tracker
+AGENTS.md
+CLAUDE.md
+docs/agents/
+.scratch/

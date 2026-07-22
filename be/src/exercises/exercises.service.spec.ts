@@ -4,14 +4,20 @@ import { ExercisesService } from './exercises.service';
 import {
   Exercise,
   ExerciseDifficulty,
+  ExerciseType,
 } from '../database/entities/exercise.entity';
-import { Track } from '../database/entities/track.entity';
+import { Track, TrackStatus } from '../database/entities/track.entity';
+import { Lesson } from '../database/entities/lesson.entity';
+import { LessonProgress } from '../database/entities/lesson-progress.entity';
 import { Document } from '../database/entities/document.entity';
 import {
   Submission,
   SubmissionStatus,
 } from '../database/entities/submission.entity';
-import { NotFoundException } from '@nestjs/common';
+import { AutoGrade } from '../database/entities/auto-grade.entity';
+import { Tag } from '../database/entities/tag.entity';
+import { User, UserRole } from '../database/entities/user.entity';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('ExercisesService', () => {
   let service: ExercisesService;
@@ -35,7 +41,28 @@ describe('ExercisesService', () => {
   const mockSubmissionRepository = {
     find: jest.fn(),
     findOne: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
   };
+
+  const mockAutoGradeRepository = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockTagRepository = {
+    findOne: jest.fn(),
+  };
+
+  const mockUserRepository = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+  };
+
+  const mockLessonRepository = { find: jest.fn() };
+  const mockLessonProgressRepository = { find: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -57,6 +84,26 @@ describe('ExercisesService', () => {
         {
           provide: getRepositoryToken(Submission),
           useValue: mockSubmissionRepository,
+        },
+        {
+          provide: getRepositoryToken(AutoGrade),
+          useValue: mockAutoGradeRepository,
+        },
+        {
+          provide: getRepositoryToken(Tag),
+          useValue: mockTagRepository,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: mockUserRepository,
+        },
+        {
+          provide: getRepositoryToken(Lesson),
+          useValue: mockLessonRepository,
+        },
+        {
+          provide: getRepositoryToken(LessonProgress),
+          useValue: mockLessonProgressRepository,
         },
       ],
     }).compile();
@@ -118,6 +165,34 @@ describe('ExercisesService', () => {
         }),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('rejects invalid Quiz configuration', async () => {
+      mockTrackRepository.findOne.mockResolvedValue({ id: 'track-1' });
+      await expect(
+        service.create({
+          title: 'Quiz',
+          trackId: 'track-1',
+          tag: 'quiz',
+          difficulty: ExerciseDifficulty.BEGINNER,
+          estimatedTime: '10m',
+          xp: 10,
+          brief: 'Brief',
+          overview: 'Overview',
+          objectives: ['Objective'],
+          steps: ['Step'],
+          type: ExerciseType.QUIZ,
+          questionsData: [
+            {
+              id: 'q1',
+              prompt: 'Question',
+              options: ['A', 'A', 'B', 'C'],
+              correctAnswer: 'A',
+              explanation: 'Explanation',
+            },
+          ],
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('findAll', () => {
@@ -133,7 +208,9 @@ describe('ExercisesService', () => {
           xp: 100,
           brief: 'Brief',
           objectives: ['Obj 1'],
-          track: { name: 'Track 1' },
+          track: { title: 'Track 1', status: TrackStatus.ACTIVE },
+          type: ExerciseType.PR_REVIEW,
+          isMandatory: true,
         },
       ]);
       mockSubmissionRepository.find.mockResolvedValue([
@@ -145,11 +222,81 @@ describe('ExercisesService', () => {
         },
       ]);
 
-      const result = await service.findAll({ limit: 20 }, 'user-1');
+      const result = await service.findAll(
+        { limit: 20 },
+        'user-1',
+        UserRole.ADMIN,
+      );
       expect(result.data).toHaveLength(1);
       expect(result.data[0].status).toBe('submitted');
       expect(result.data[0].prUrl).toBe('github.com/pr');
       expect(result.data[0].objectiveCount).toBe(1);
+    });
+
+    it('shows track-level and unlocked lesson exercises to learners', async () => {
+      const baseExercise = {
+        trackId: 'track-1',
+        track: { title: 'Track 1', status: TrackStatus.ACTIVE },
+        tag: 'NestJS',
+        difficulty: ExerciseDifficulty.BEGINNER,
+        estimatedTime: '10m',
+        xp: 10,
+        brief: 'Brief',
+        objectives: [],
+        type: ExerciseType.QUIZ,
+        isMandatory: true,
+      };
+      mockExerciseRepository.find.mockResolvedValue([
+        {
+          ...baseExercise,
+          id: 'track-exercise',
+          title: 'Track',
+          lessonId: null,
+        },
+        {
+          ...baseExercise,
+          id: 'lesson-1-exercise',
+          title: 'First',
+          lessonId: 'lesson-1',
+        },
+        {
+          ...baseExercise,
+          id: 'lesson-2-exercise',
+          title: 'Second',
+          lessonId: 'lesson-2',
+        },
+        {
+          ...baseExercise,
+          id: 'lesson-3-exercise',
+          title: 'Locked',
+          lessonId: 'lesson-3',
+        },
+      ]);
+      mockLessonRepository.find.mockResolvedValue([
+        { id: 'lesson-1', trackId: 'track-1', order: 1 },
+        { id: 'lesson-2', trackId: 'track-1', order: 2 },
+        { id: 'lesson-3', trackId: 'track-1', order: 3 },
+      ]);
+      mockLessonProgressRepository.find.mockResolvedValue([
+        {
+          userId: 'user-1',
+          lessonId: 'lesson-1',
+          completedAt: new Date(),
+        },
+      ]);
+      mockSubmissionRepository.find.mockResolvedValue([]);
+
+      const result = await service.findAll(
+        { limit: 20 },
+        'user-1',
+        UserRole.LEARNER,
+      );
+
+      expect(result.data.map((exercise) => exercise.id)).toEqual([
+        'track-exercise',
+        'lesson-1-exercise',
+        'lesson-2-exercise',
+      ]);
     });
   });
 
@@ -169,20 +316,134 @@ describe('ExercisesService', () => {
         steps: ['Step 1'],
         hint: 'Hint',
         resources: [],
-        track: { name: 'Track 1' },
+        track: { title: 'Track 1', status: TrackStatus.ACTIVE },
+        type: ExerciseType.PR_REVIEW,
+        questionsData: null,
+        targetScore: 100,
+        isMandatory: true,
       });
       mockSubmissionRepository.findOne.mockResolvedValue(null);
 
-      const result = await service.findOne('ex-1', 'user-1');
+      const result = await service.findOne('ex-1', 'user-1', UserRole.ADMIN);
       expect(result).toBeDefined();
       expect(result.status).toBe('pending');
     });
 
     it('should throw NotFoundException if exercise not found', async () => {
       mockExerciseRepository.findOne.mockResolvedValue(null);
-      await expect(service.findOne('ex-1', 'user-1')).rejects.toThrow(
-        NotFoundException,
+      await expect(service.findOne('ex-1', 'user-1')).rejects.toMatchObject({
+        response: { code: 'EXERCISE_NOT_FOUND' },
+      });
+    });
+
+    it('blocks learner detail for an inactive track', async () => {
+      mockExerciseRepository.findOne.mockResolvedValue({
+        id: 'ex-1',
+        trackId: 'track-1',
+        lessonId: null,
+        track: { status: TrackStatus.ARCHIVED },
+      });
+      await expect(
+        service.findOne('ex-1', 'user-1', UserRole.LEARNER),
+      ).rejects.toMatchObject({ response: { code: 'TRACK_INACTIVE' } });
+    });
+
+    it('returns EXERCISE_LOCKED for an unsubmitted locked lesson exercise', async () => {
+      mockExerciseRepository.findOne.mockResolvedValue({
+        id: 'ex-1',
+        trackId: 'track-1',
+        lessonId: 'lesson-2',
+        track: { status: TrackStatus.ACTIVE },
+      });
+      mockSubmissionRepository.findOne.mockResolvedValue(null);
+      mockLessonRepository.find.mockResolvedValue([
+        { id: 'lesson-1', trackId: 'track-1', order: 1 },
+        { id: 'lesson-2', trackId: 'track-1', order: 2 },
+      ]);
+      mockLessonProgressRepository.find.mockResolvedValue([]);
+
+      await expect(
+        service.findOne('ex-1', 'user-1', UserRole.LEARNER),
+      ).rejects.toMatchObject({ response: { code: 'EXERCISE_LOCKED' } });
+    });
+
+    it('allows a learner to view a submitted exercise from an inactive track', async () => {
+      mockExerciseRepository.findOne.mockResolvedValue({
+        id: 'ex-1',
+        trackId: 'track-1',
+        lessonId: null,
+        track: { title: 'Track 1', status: TrackStatus.ARCHIVED },
+        resources: [],
+        questionsData: null,
+      });
+      mockSubmissionRepository.findOne.mockResolvedValue({
+        id: 'submission-1',
+        status: SubmissionStatus.SUBMITTED,
+        prUrl: 'https://github.com/acme/api/pull/119',
+      });
+
+      const result = await service.findOne(
+        'ex-1',
+        'user-1',
+        UserRole.LEARNER,
       );
+
+      expect(result.status).toBe(SubmissionStatus.SUBMITTED);
+      expect(result.isReadOnly).toBe(true);
+      expect(mockLessonRepository.find).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('auto grading', () => {
+    it('strips answers from learner detail and returns explanation only after grading', async () => {
+      const exercise = {
+        id: 'ex-quiz',
+        trackId: 'track-1',
+        lessonId: null,
+        track: { title: 'Track 1', status: TrackStatus.ACTIVE },
+        type: ExerciseType.QUIZ,
+        targetScore: 100,
+        questionsData: [
+          {
+            id: 'q1',
+            prompt: '2 + 2?',
+            options: ['1', '2', '3', '4'],
+            correctAnswer: '4',
+            explanation: 'Two plus two equals four.',
+          },
+        ],
+        resources: [],
+      };
+      mockExerciseRepository.findOne.mockResolvedValue(exercise);
+      mockSubmissionRepository.findOne.mockResolvedValue(null);
+      mockSubmissionRepository.create.mockImplementation((value) => value);
+      mockSubmissionRepository.save.mockImplementation((value) => value);
+
+      const detail = await service.findOne(
+        'ex-quiz',
+        'user-1',
+        UserRole.LEARNER,
+      );
+      expect(detail.questionsData).toEqual([
+        {
+          id: 'q1',
+          prompt: '2 + 2?',
+          options: ['1', '2', '3', '4'],
+        },
+      ]);
+
+      const result = await service.submitAuto(
+        'ex-quiz',
+        'user-1',
+        { answers: [{ questionId: 'q1', answer: '4' }] },
+      );
+      expect(result.passed).toBe(true);
+      expect(result.results[0]).toEqual({
+        questionId: 'q1',
+        correct: true,
+        explanation: 'Two plus two equals four.',
+      });
+      expect(mockSubmissionRepository.save).toHaveBeenCalledTimes(1);
     });
   });
 

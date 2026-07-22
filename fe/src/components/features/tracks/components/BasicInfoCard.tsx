@@ -7,10 +7,11 @@ interface BasicInfoCardProps {
   description: string;
   onTitleChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
+  ns?: string;
 }
 
-export function BasicInfoCard({ title, description, onTitleChange, onDescriptionChange }: BasicInfoCardProps) {
-  const t = useTranslations('CreateTrackPage');
+export function BasicInfoCard({ title, description, onTitleChange, onDescriptionChange, ns = 'CreateTrackPage' }: BasicInfoCardProps) {
+  const t = useTranslations(ns);
 
   return (
     <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6">

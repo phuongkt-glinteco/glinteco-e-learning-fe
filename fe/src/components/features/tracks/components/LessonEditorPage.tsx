@@ -1,511 +1,765 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { MarkdownRenderer, parseFrontmatter } from '@/lib/md-renderer';
-import { SyntaxGuide } from './SyntaxGuide';
-import { LessonMetadata } from './LessonMetadata';
-import { buildTimeString, type TimeUnit } from '@/lib/time-utils';
-import { lessonsControllerCreateLesson, lessonsControllerUpdateLesson, lessonsControllerFindOneLesson, lessonsControllerFindLessons } from '@/services/api-client';
+import { toast } from 'sonner';
+import { useTranslations, useFormatter } from 'next-intl';
+import { Icon } from '@iconify/react';
+import {
+  lessonsControllerCreateLesson,
+  lessonsControllerUpdateLesson,
+  lessonsControllerFindOneLesson,
+  lessonsControllerFindLessons,
+} from '@/services/api-client';
 import type { LessonDetailDto, LessonProgressItemDto } from '@/services/api-client';
 import { queryCache } from '@/lib/queryCache';
+import {
+  useLessonPuckConfig,
+  PuckStudio,
+  parseBodyToPuckData,
+  serializePuckDataToPayload,
+  type LessonPuckData,
+} from '@/components/puck-editor';
+import { FeatureBarPortal } from '@/components/layout/FeatureBarPortal';
+import { LessonEditorBottomBar } from './LessonEditorBottomBar';
+import { useLessonDraftStore, type LessonDraftData } from '@/stores/lessonDraftStore';
+import { useTrackDraftStore } from '@/stores/trackDraftStore';
+import { AILessonGeneratorModal } from './AILessonGeneratorModal';
+import Modal from '@/components/ui/Modal';
+import { AppButton } from '@/components/ui/buttons';
+import { useSidebar } from '@/components/ui/default/sidebar';
 
-interface LessonEditorPageProps {
+type SaveResultModalState = {
+  status: 'success' | 'error';
+  mode: 'create' | 'update' | 'draft';
+  savedLessonId?: string;
+  errorMessage?: string;
+} | null;
+
+type LessonEditorPageProps = {
   trackId?: string;
   lessonId?: string;
-}
-
-type ToolbarAction =
-  | 'h1' | 'h2' | 'h3'
-  | 'bold' | 'italic'
-  | 'list' | 'olist'
-  | 'quote' | 'code'
-  | 'link' | 'image'
-  | 'table'
-  | 'info' | 'objective' | 'challenge'
-  | 'tabs' | 'details';
-
-interface ToolbarButton {
-  action: ToolbarAction;
-  icon: string;
-  labelKey: string;
-}
-
-function useToolbarConfig(): ToolbarButton[] {
-  return [
-    { action: 'h1', icon: 'format_h1', labelKey: 'heading1' },
-    { action: 'h2', icon: 'format_h2', labelKey: 'heading2' },
-    { action: 'h3', icon: 'format_h3', labelKey: 'heading3' },
-    { action: 'bold', icon: 'format_bold', labelKey: 'bold' },
-    { action: 'italic', icon: 'format_italic', labelKey: 'italic' },
-    { action: 'list', icon: 'format_list_bulleted', labelKey: 'bulletList' },
-    { action: 'olist', icon: 'format_list_numbered', labelKey: 'numberedList' },
-    { action: 'quote', icon: 'format_quote', labelKey: 'quote' },
-    { action: 'code', icon: 'code', labelKey: 'codeBlock' },
-    { action: 'link', icon: 'link', labelKey: 'link' },
-    { action: 'image', icon: 'image', labelKey: 'image' },
-    { action: 'table', icon: 'table', labelKey: 'table' },
-    { action: 'info', icon: 'info', labelKey: 'calloutInfo' },
-    { action: 'objective', icon: 'flag', labelKey: 'calloutObjective' },
-    { action: 'challenge', icon: 'warning', labelKey: 'calloutChallenge' },
-    { action: 'tabs', icon: 'tab', labelKey: 'tabs' },
-    { action: 'details', icon: 'menu_open', labelKey: 'details' },
-  ];
-}
-
-const SNIPPETS: Record<ToolbarAction, string> = {
-  h1: '# ',
-  h2: '## ',
-  h3: '### ',
-  bold: '****',
-  italic: '**',
-  list: '- ',
-  olist: '1. ',
-  quote: '> ',
-  code: '```\n\n```',
-  link: '[](url)',
-  image: '![](url)',
-  table: '| Header | Header |\n|--------|--------|\n| Cell | Cell |\n',
-  info: ':::info\n\n:::',
-  objective: ':::objective\n- \n:::',
-  challenge: ':::challenge\n\n:::',
-  tabs: ':::tabs\n\n@tab Title\n\n:::',
-  details: ':::details Title\n\n:::',
+  editIndex?: number | string;
 };
 
-const CURSOR_OFFSET: Record<ToolbarAction, number> = {
-  h1: 2,
-  h2: 3,
-  h3: 4,
-  bold: 2,
-  italic: 1,
-  list: 2,
-  olist: 3,
-  quote: 2,
-  code: 4,
-  link: 1,
-  image: 2,
-  table: 16,
-  info: 11,
-  objective: 16,
-  challenge: 15,
-  tabs: 20,
-  details: 18,
+type CachedLesson = LessonProgressItemDto & {
+  description?: string | null;
+  estimatedTime?: string;
+  body?: string;
 };
 
-const UNIT_OPTIONS: { value: TimeUnit; labelKey: string }[] = [
-  { value: 'm', labelKey: 'minutes' },
-  { value: 'h', labelKey: 'hours' },
-  { value: 'd', labelKey: 'days_label' },
-  { value: 'w', labelKey: 'weeks_label' },
-  { value: 'M', labelKey: 'months_label' },
-];
+type CachedTrackDetail = {
+  id: string;
+  title: string;
+  lessons?: CachedLesson[];
+};
 
-const LESSON_TYPE_OPTIONS: { value: LessonProgressItemDto['type']; labelKey: string }[] = [
-  { value: 'reading', labelKey: 'typeReading' },
-  { value: 'video', labelKey: 'typeVideo' },
-  { value: 'quiz', labelKey: 'typeQuiz' },
-  { value: 'coding', labelKey: 'typeCoding' },
-  { value: 'assignment', labelKey: 'typeAssignment' },
-];
+type CachedTrackEntry = {
+  track: CachedTrackDetail;
+  exercises: unknown[];
+};
 
-export function LessonEditorPage({ trackId, lessonId }: LessonEditorPageProps) {
-  const t = useTranslations('CreateTrackPage');
-  const tu = useTranslations('TimeUnit');
+function normalizeLessonType(type?: string | null): 'video' | 'reading' | 'quiz' | 'coding' | 'assignment' {
+  if (type && ['video', 'reading', 'quiz', 'coding', 'assignment'].includes(type)) {
+    return type as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment';
+  }
+  return 'reading';
+}
+
+export function LessonEditorPage({ trackId, lessonId, editIndex }: LessonEditorPageProps) {
   const router = useRouter();
+  const t = useTranslations('PuckEditor.Lesson.messages');
+  const format = useFormatter();
+  const { setOpen } = useSidebar();
+
+  useEffect(() => {
+    setOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-fill order when creating a new lesson
+  useEffect(() => {
+    if (lessonId || !trackId) return;
+    lessonsControllerFindLessons({ path: { id: trackId } })
+      .then((res) => {
+        const data = res.data;
+        const items = Array.isArray(data)
+          ? data
+          : data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)
+          ? data.data
+          : [];
+        setOrder(items.length + 1);
+      })
+      .catch(() => {});
+  }, [lessonId, trackId]);
+
+  const [currentPuckData, setCurrentPuckData] = useState<LessonPuckData | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uiValidationError, setUiValidationError] = useState<string | null>(null);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [saveResultModal, setSaveResultModal] = useState<SaveResultModalState>(null);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [lessonType, setLessonType] = useState<LessonProgressItemDto['type']>('reading');
+  const [estimatedTime, setEstimatedTime] = useState('15 min');
+  const [lessonType, setLessonType] = useState<'video' | 'reading' | 'quiz' | 'coding' | 'assignment'>('reading');
   const [order, setOrder] = useState(1);
-  const [numValue, setNumValue] = useState('');
-  const [unit, setUnit] = useState<TimeUnit>('m');
   const [body, setBody] = useState('');
-  const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [aiVersion, setAiVersion] = useState(0);
+
+  const lessonConfig = useLessonPuckConfig();
+  const [loadedLesson, setLoadedLesson] = useState<LessonDetailDto | null>(null);
+  const [isLoadingLesson, setIsLoadingLesson] = useState<boolean>(Boolean(lessonId || editIndex !== undefined));
+
+  const baselinePayloadRef = useRef<string | null>(null);
+  const isPuckReadyRef = useRef<boolean>(false);
+  const [dirtyDraftToRestore, setDirtyDraftToRestore] = useState<LessonDraftData | null>(null);
+
+  const draftKey = `${trackId || 'track'}-${lessonId || editIndex || 'new'}`;
+
+  const applyLessonDataToState = useCallback((raw: {
+    title?: string | null;
+    description?: string | null;
+    estimatedTime?: string | null;
+    type?: string | null;
+    order?: number | null;
+    body?: string | null;
+    relatedDocs?: unknown[];
+  }) => {
+    const nTitle = raw.title ?? '';
+    const nDesc = raw.description ?? '';
+    const nTime = raw.estimatedTime ?? '15 min';
+    const nType = normalizeLessonType(raw.type);
+    const nOrder = raw.order ?? 1;
+    const nBody = raw.body ?? '';
+
+    setTitle(nTitle);
+    setDescription(nDesc);
+    setEstimatedTime(nTime);
+    setLessonType(nType);
+    setOrder(nOrder);
+    setBody(nBody);
+
+    const parsed = parseBodyToPuckData(nBody, {
+      title: nTitle,
+      description: nDesc,
+      estimatedTime: nTime,
+      order: nOrder,
+      type: nType,
+      documents: (raw.relatedDocs as any[]) || [],
+      exercises: [],
+    });
+    setCurrentPuckData(parsed);
+    setAiVersion((v) => v + 1);
+
+    const canonicalPayload = serializePuckDataToPayload(parsed, {
+      title: nTitle,
+      description: nDesc,
+      estimatedTime: nTime,
+      order: nOrder,
+      type: nType,
+    });
+
+    return {
+      title: nTitle,
+      description: nDesc,
+      estimatedTime: nTime,
+      type: nType,
+      order: nOrder,
+      body: nBody,
+      parsed,
+      canonicalPayload,
+    };
+  }, []);
+
+  useEffect(() => {
+    // Only auto-load draft on mount if creating a brand new standalone lesson
+    if (lessonId || editIndex !== undefined) return;
+
+    const draft = useLessonDraftStore.getState().getDraft(draftKey);
+    if (draft && draft.body && draft.body.trim() && draft.body !== '{"content":[]}') {
+      const result = applyLessonDataToState(draft);
+      baselinePayloadRef.current = JSON.stringify(result.canonicalPayload);
+      isPuckReadyRef.current = false;
+    } else if (baselinePayloadRef.current === null) {
+      const emptyParsed = parseBodyToPuckData('', {
+        title: '',
+        description: '',
+        estimatedTime: '15 min',
+        order: 1,
+        type: 'reading',
+        documents: [],
+        exercises: [],
+      });
+      const payload = serializePuckDataToPayload(emptyParsed, {
+        title: '',
+        description: '',
+        estimatedTime: '15 min',
+        order: 1,
+        type: 'reading',
+      });
+      baselinePayloadRef.current = JSON.stringify(payload);
+      isPuckReadyRef.current = false;
+    }
+  }, [draftKey, lessonId, editIndex, applyLessonDataToState]);
+
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
 
   useEffect(() => {
     if (!lessonId) return;
     async function fetchLesson() {
-      if (!trackId || !lessonId) return;
+      if (!lessonId) return;
+      setIsLoadingLesson(true);
       try {
         const res = await lessonsControllerFindOneLesson({ path: { id: lessonId }, throwOnError: true });
         const found = res.data as LessonDetailDto;
         if (found) {
-          setTitle(found.title ?? '');
-          setDescription(found.description ?? '');
-          setLessonType(found.type ?? 'reading');
-          setOrder(found.order ?? 1);
-          setBody(found.body ?? '');
-          if (found.estimatedTime) {
-            const match = found.estimatedTime.match(/^(\d+(?:\.\d+)?)\s*(m|h|d|w|M)$/);
-            if (match) {
-              setNumValue(match[1]);
-              setUnit(match[2] as TimeUnit);
-            }
+          setLoadedLesson(found);
+          const result = applyLessonDataToState({
+            title: found.title,
+            description: found.description,
+            estimatedTime: found.estimatedTime,
+            type: found.type,
+            order: found.order,
+            body: found.body,
+            relatedDocs: found.relatedDocs || [],
+          });
+          baselinePayloadRef.current = JSON.stringify(result.canonicalPayload);
+          isPuckReadyRef.current = false;
+
+          const draft = useLessonDraftStore.getState().getDraft(draftKey);
+          if (draft && draft.isDirty === true && draft.body !== result.canonicalPayload.body && draft.body !== result.body) {
+            setDirtyDraftToRestore(draft);
+          } else {
+            setDirtyDraftToRestore(null);
+            if (draft) useLessonDraftStore.getState().clearDraft(draftKey);
           }
         }
-      } catch {
-        // silent
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : tRef.current('loadError');
+        toast.error(msg);
+      } finally {
+        setIsLoadingLesson(false);
       }
     }
     fetchLesson();
-  }, [trackId, lessonId]);
+  }, [lessonId, trackId, draftKey, applyLessonDataToState]);
 
   useEffect(() => {
-    if (!trackId || lessonId) return;
-    async function fetchNextOrder() {
-      try {
-        const res = await lessonsControllerFindLessons({ path: { id: trackId! }, throwOnError: true });
-        const lessons = res.data?.data ?? [];
-        const maxOrder = lessons.reduce((max, lesson) => Math.max(max, lesson.order ?? 0), 0);
-        setOrder(maxOrder + 1);
-      } catch {
-        setOrder(1);
-      }
-    }
-    fetchNextOrder();
-  }, [trackId, lessonId]);
+    if (lessonId) return;
+    if (editIndex === undefined) return;
+    const idx = Number(editIndex);
 
-  const insertMarkdown = useCallback((action: ToolbarAction) => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const selected = body.substring(start, end);
-    const snippet = SNIPPETS[action];
-    const offset = CURSOR_OFFSET[action];
-
-    let inserted: string;
-    let cursorPos: number;
-
-    if (selected) {
-      if (action === 'bold') {
-        inserted = `**${selected}**`;
-        cursorPos = start + inserted.length;
-      } else if (action === 'italic') {
-        inserted = `*${selected}*`;
-        cursorPos = start + inserted.length;
-      } else if (action === 'link') {
-        inserted = `[${selected}](url)`;
-        cursorPos = start + inserted.length;
-      } else if (action === 'image') {
-        inserted = `![${selected}](url)`;
-        cursorPos = start + inserted.length;
-      } else {
-        const before = body.substring(0, start);
-        const newLine = before.endsWith('\n') || before === '' ? '' : '\n';
-        inserted = `${newLine}${snippet}${selected}`;
-        cursorPos = start + inserted.length;
-      }
-    } else {
-      inserted = snippet;
-      cursorPos = start + offset;
-    }
-
-    const newBody = body.substring(0, start) + inserted + body.substring(end);
-    setBody(newBody);
-
-    requestAnimationFrame(() => {
-      ta.focus();
-      ta.setSelectionRange(cursorPos, cursorPos);
-    });
-  }, [body]);
-
-  const estimatedTime = numValue && !isNaN(Number(numValue))
-    ? buildTimeString(Number(numValue), unit)
-    : '';
-
-  const parsedFrontmatter = parseFrontmatter(body);
-  const bodyMeta = parsedFrontmatter.metadata;
-  const strippedBody = parsedFrontmatter.body;
-
-  function handleTextareaKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const ta = e.currentTarget;
-      const start = ta.selectionStart;
-      const end = ta.selectionEnd;
-      const indent = '  ';
-      const newBody = body.substring(0, start) + indent + body.substring(end);
-      setBody(newBody);
-      requestAnimationFrame(() => {
-        ta.selectionStart = ta.selectionEnd = start + indent.length;
+    const trackDraftLessons = useTrackDraftStore.getState().lessons;
+    const storeLesson = trackDraftLessons?.[idx];
+    if (storeLesson) {
+      const result = applyLessonDataToState({
+        title: storeLesson.title,
+        description: '',
+        estimatedTime: storeLesson.estimatedTime,
+        type: 'reading',
+        order: idx + 1,
+        body: storeLesson.body,
       });
+      baselinePayloadRef.current = JSON.stringify(result.canonicalPayload);
+      isPuckReadyRef.current = false;
+
+      const draft = useLessonDraftStore.getState().getDraft(draftKey);
+      if (draft && draft.isDirty === true && draft.body !== result.canonicalPayload.body && draft.body !== result.body) {
+        setDirtyDraftToRestore(draft);
+      } else {
+        setDirtyDraftToRestore(null);
+        if (draft) useLessonDraftStore.getState().clearDraft(draftKey);
+      }
+      setIsLoadingLesson(false);
+      return;
+    }
+
+    if (trackId) {
+      const entry = queryCache.get<CachedTrackEntry>(`/tracks/${trackId}`);
+      if (entry?.track?.lessons?.[idx]) {
+        const lesson = entry.track.lessons[idx];
+        const result = applyLessonDataToState({
+          title: lesson.title,
+          description: lesson.description,
+          estimatedTime: lesson.estimatedTime,
+          type: lesson.type,
+          order: lesson.order || idx + 1,
+          body: lesson.body,
+        });
+        baselinePayloadRef.current = JSON.stringify(result.canonicalPayload);
+        isPuckReadyRef.current = false;
+
+        const draft = useLessonDraftStore.getState().getDraft(draftKey);
+        if (draft && draft.isDirty === true && draft.body !== result.canonicalPayload.body && draft.body !== result.body) {
+          setDirtyDraftToRestore(draft);
+        } else {
+          setDirtyDraftToRestore(null);
+          if (draft) useLessonDraftStore.getState().clearDraft(draftKey);
+        }
+      }
+    }
+    setIsLoadingLesson(false);
+  }, [trackId, editIndex, lessonId, draftKey, applyLessonDataToState]);
+
+  // Auto-save draft whenever currentPuckData or metadata changes (debounced by 800ms)
+  useEffect(() => {
+    if (!currentPuckData) return;
+    const timer = setTimeout(() => {
+      const payload = serializePuckDataToPayload(currentPuckData, {
+        title,
+        description,
+        estimatedTime,
+        order,
+        type: lessonType,
+      });
+      const payloadStr = JSON.stringify(payload);
+
+      // Do not mark as dirty if we haven't established baseline yet on existing lesson/track item
+      if (baselinePayloadRef.current === null && (lessonId || editIndex !== undefined)) {
+        return;
+      }
+
+      // Guard 1: If currently displaying a dirty draft recovery banner, do NOT auto-save or touch storage!
+      // The draft in storage must remain frozen until the user explicitly clicks Restore or Discard.
+      if (dirtyDraftToRestore !== null) {
+        return;
+      }
+
+      // Guard 2: If PuckStudio has not yet mounted and run its initial normalization onChange,
+      // wait until it stabilizes before starting auto-save comparisons.
+      if (!isPuckReadyRef.current) {
+        return;
+      }
+
+      const hasRealChanges = baselinePayloadRef.current !== null && payloadStr !== baselinePayloadRef.current;
+
+      // If there are no real changes and storage already doesn't have a dirty draft for this key, no need to save clean data to storage
+      const existingDraft = useLessonDraftStore.getState().getDraft(draftKey);
+      if (!hasRealChanges && (!existingDraft || existingDraft.isDirty !== true)) {
+        return;
+      }
+
+      useLessonDraftStore.getState().saveDraft(draftKey, {
+        title: payload.title,
+        description: payload.description,
+        estimatedTime: payload.estimatedTime,
+        type: normalizeLessonType(payload.type),
+        order: payload.order,
+        body: payload.body,
+        isDirty: hasRealChanges,
+      });
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [currentPuckData, title, description, estimatedTime, lessonType, order, draftKey, lessonId, editIndex, dirtyDraftToRestore]);
+
+  const puckData: LessonPuckData = useMemo(() => parseBodyToPuckData(body, {
+    title,
+    description,
+    estimatedTime,
+    order,
+    type: lessonType,
+    documents: loadedLesson?.relatedDocs || [],
+    exercises: [],
+  }), [body, title, description, estimatedTime, order, lessonType, loadedLesson]);
+
+  async function refreshTrackCache(tId: string) {
+    try {
+      const refreshRes = await lessonsControllerFindLessons({
+        path: { id: tId },
+        throwOnError: true,
+      });
+      const fullTrack = queryCache.get<CachedTrackEntry>(`/tracks/${tId}`);
+      if (fullTrack) {
+        queryCache.set(`/tracks/${tId}`, {
+          ...fullTrack,
+          track: {
+            ...fullTrack.track,
+            lessons: (refreshRes.data as { items?: CachedLesson[] })?.items || [],
+          },
+        });
+      }
+    } catch (err: unknown) {
+      console.error('Failed to refresh track lessons cache:', err);
     }
   }
 
-  async function handleSave() {
-    if (!title.trim() || !trackId) return;
+  async function handlePublishPuck(data: LessonPuckData) {
+    const payload = serializePuckDataToPayload(data, {
+      title,
+      description,
+      estimatedTime,
+      order,
+      type: lessonType,
+    });
+    const {
+      title: updatedTitle,
+      description: updatedDescription,
+      estimatedTime: updatedTime,
+      order: updatedOrder,
+      type: updatedType,
+      body: jsonBody,
+    } = payload;
+
+    if (!updatedTitle.trim()) {
+      setUiValidationError(t('titleRequired'));
+      return;
+    }
+    setUiValidationError(null);
+
+    // Auto save draft before attempting API call
+    useLessonDraftStore.getState().saveDraft(draftKey, {
+      title: updatedTitle,
+      description: updatedDescription,
+      estimatedTime: updatedTime,
+      type: normalizeLessonType(updatedType || lessonType),
+      order: updatedOrder,
+      body: jsonBody,
+    });
+
+    if (saving) return;
     setSaving(true);
     try {
-      if (lessonId) {
+      if (lessonId && trackId) {
         await lessonsControllerUpdateLesson({
           path: { id: lessonId },
-          body: { title: title.trim(), description: description.trim() || null, estimatedTime: estimatedTime || '0m', body: body.trim() },
+          body: {
+            title: updatedTitle,
+            description: updatedDescription || null,
+            order: updatedOrder,
+            estimatedTime: updatedTime,
+            body: jsonBody,
+          },
           throwOnError: true,
         });
 
-        // Update query cache optimistically for editing lesson
-        const cached = queryCache.get<{ track: any; exercises: any[] }>(`track-detail-${trackId}`);
-        if (cached && cached.track) {
-          const updatedLessons = cached.track.lessons?.map((l: any) => {
-            if (l.id === lessonId) {
-              return {
-                ...l,
-                title: title.trim(),
-                description: description.trim() || null,
-                estimatedTime: estimatedTime || '0m',
-                body: body.trim(),
-              };
-            }
-            return l;
-          }) ?? [];
-          queryCache.set(`track-detail-${trackId}`, {
-            ...cached,
-            track: {
-              ...cached.track,
-              lessons: updatedLessons,
-            },
-          });
-        }
-      } else {
-        await lessonsControllerCreateLesson({
+        useLessonDraftStore.getState().clearDraft(draftKey);
+        toast.success(t('updateSuccess'));
+        await refreshTrackCache(trackId);
+        setSaveResultModal({
+          status: 'success',
+          mode: 'update',
+          savedLessonId: lessonId,
+        });
+      } else if (trackId) {
+        const createRes = await lessonsControllerCreateLesson({
           path: { id: trackId },
-          body: { title: title.trim(), description: description.trim() || null, order, estimatedTime: estimatedTime || '0m', body: body.trim() },
+          body: {
+            title: updatedTitle,
+            description: updatedDescription || null,
+            order: updatedOrder,
+            estimatedTime: updatedTime,
+            body: jsonBody,
+          },
           throwOnError: true,
         });
+
+        useLessonDraftStore.getState().clearDraft(draftKey);
+        toast.success(t('createSuccess'));
+
+        const createdLesson = createRes.data as { id?: string } | undefined;
+        const newLessonId = createdLesson?.id;
+
+        await refreshTrackCache(trackId);
+
+        setSaveResultModal({
+          status: 'success',
+          mode: 'create',
+          savedLessonId: newLessonId,
+        });
+      } else if (editIndex !== undefined) {
+        const store = useTrackDraftStore.getState();
+        const idx = Number(editIndex);
+        const draftLessonObj = {
+          title: updatedTitle,
+          estimatedTime: updatedTime,
+          body: jsonBody,
+        };
+        if (!isNaN(idx) && idx >= 0 && idx < store.lessons.length) {
+          store.updateLesson(idx, draftLessonObj);
+        } else {
+          store.addLesson(draftLessonObj);
+        }
+        useLessonDraftStore.getState().clearDraft(draftKey);
+        toast.success(t('createSuccess'));
+        setSaveResultModal({
+          status: 'success',
+          mode: 'draft',
+        });
       }
-    } catch {
+    } catch (err: unknown) {
       setSaving(false);
+      const msg = err instanceof Error ? err.message : t('saveError');
+      toast.error(msg);
+      setSaveResultModal({
+        status: 'error',
+        mode: lessonId ? 'update' : editIndex !== undefined ? 'draft' : 'create',
+        errorMessage: msg,
+      });
       return;
     }
     setSaving(false);
-    router.back();
   }
 
-  const toolbarButtons = useToolbarConfig();
+  function handleRestoreDirtyDraft() {
+    if (!dirtyDraftToRestore) return;
+    applyLessonDataToState({
+      title: dirtyDraftToRestore.title,
+      description: dirtyDraftToRestore.description,
+      estimatedTime: dirtyDraftToRestore.estimatedTime,
+      type: dirtyDraftToRestore.type,
+      order: dirtyDraftToRestore.order,
+      body: dirtyDraftToRestore.body,
+      relatedDocs: loadedLesson?.relatedDocs || [],
+    });
+    isPuckReadyRef.current = false;
+    setDirtyDraftToRestore(null);
+  }
+
+  function handleDiscardDirtyDraft() {
+    setDirtyDraftToRestore(null);
+    useLessonDraftStore.getState().clearDraft(draftKey);
+  }
+
+  function handleAiGenerate() {
+    setAiModalOpen(true);
+  }
+
+  function handleConfirmAiGenerate(generatedData: LessonPuckData) {
+    setCurrentPuckData(generatedData);
+    if (generatedData.root?.props) {
+      if (generatedData.root.props.title) setTitle(String(generatedData.root.props.title));
+      if (generatedData.root.props.description) setDescription(String(generatedData.root.props.description));
+      if (generatedData.root.props.estimatedTime) setEstimatedTime(String(generatedData.root.props.estimatedTime));
+      if (generatedData.root.props.type) {
+        const typeStr = String(generatedData.root.props.type);
+        if (['video', 'reading', 'quiz', 'coding', 'assignment'].includes(typeStr)) {
+          setLessonType(typeStr as 'video' | 'reading' | 'quiz' | 'coding' | 'assignment');
+        }
+      }
+    }
+    setBody(JSON.stringify(generatedData));
+    setAiVersion((v) => v + 1);
+    toast.success(t('aiGenerateSuccess'));
+  }
+
+  if (isLoadingLesson) {
+    return (
+      <main className="w-full flex-1 flex flex-col items-center justify-center bg-surface-container-lowest min-h-screen">
+        <div className="flex flex-col items-center justify-center gap-3 p-8 rounded-2xl bg-surface border border-outline-variant shadow-sm max-w-xs w-full text-center animate-in fade-in duration-200">
+          <Icon icon="lucide:loader-2" className="w-8 h-8 text-primary animate-spin" />
+          <span className="text-sm font-medium text-on-surface-variant">
+            {t('loadingLesson', { defaultValue: 'Đang tải dữ liệu bài học...' })}
+          </span>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="flex-1 flex flex-col bg-background px-0 xl:p-14 md:p-4 gap-6">
-      <header className="bg-surface-container-lowest border-b border-outline-variant max-w-[1600px] w-full mx-auto px-8 py-5">
-        <div className="flex flex-col sm:flex-row sm:justify-between gap-5">
-          <div className="flex-1 min-w-0 md:max-w-[500px]">
-            <label className="block label-sm text-secondary mb-1.5">
-              {t('lessonTitle')}
-            </label>
-            <input
-              className="text-xl font-bold w-full text-h1 font-h1 border-none hover:bg-surface-container-high p-2 focus:ring-0 placeholder-surface-dim bg-transparent"
-              placeholder={t('untitledLesson')}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-          <div className="w-full sm:w-52 shrink-0">
-            <label className="block label-sm text-secondary mb-1.5">
-              {t('estimatedTime')}
-            </label>
-            <div className="flex items-center gap-2 border border-outline-variant rounded-lg px-3 py-2 bg-surface-container-lowest focus-within:border-primary transition-colors">
-              <span className="material-symbols-outlined text-secondary text-[20px] shrink-0">schedule</span>
-              <input
-                type="number"
-                min={0}
-                step="0.5"
-                className="w-[60px] border-none p-0 focus:ring-0 bg-transparent text-body-base font-medium outline-none"
-                placeholder="0"
-                value={numValue}
-                onChange={(e) => setNumValue(e.target.value)}
-              />
-              <select
-                className="flex-1 border-none bg-transparent text-body-sm text-secondary outline-none cursor-pointer appearance-none pr-4 bg-no-repeat bg-[right_0_center]"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value as TimeUnit)}
-              >
-                {UNIT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {tu(opt.labelKey)}
-                  </option>
-                ))}
-              </select>
+    <main className="w-full flex-1 flex flex-col bg-surface-container-lowest">
+      <FeatureBarPortal
+        bottomBar={
+          <LessonEditorBottomBar
+            onHandleAiGenerate={handleAiGenerate}
+            onSave={() => handlePublishPuck(currentPuckData || puckData)}
+            saving={saving}
+            canSave={true}
+            onCancel={() => router.back()}
+            onReset={() => {
+              useLessonDraftStore.getState().clearDraft(draftKey);
+              setBody('');
+            }}
+          />
+        }
+      />
+
+      {dirtyDraftToRestore && (
+        <div className="mx-4 mt-4 p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/60 rounded-xl text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-2.5 text-amber-900 dark:text-amber-200">
+            <span className="text-base">⚠️</span>
+            <div>
+              <span className="font-semibold">{t('unsavedDraftDetected')}</span>
+              <span className="text-xs text-amber-700 dark:text-amber-300/80 block sm:inline sm:ml-1">
+                ({t('savedAt', { time: format.dateTime(new Date(dirtyDraftToRestore.updatedAt), { dateStyle: 'short', timeStyle: 'short' }) })})
+              </span>
             </div>
           </div>
-        </div>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-[1fr_160px_180px] gap-3">
-          <div>
-            <label className="block label-sm text-secondary mb-1.5">
-              {t('lessonDescription')}
-            </label>
-            <input
-              className="w-full border border-outline-variant rounded-lg p-2 text-body-base focus:border-primary focus:ring-0 transition-colors outline-none bg-surface-container-low"
-              placeholder={t('lessonDescriptionPlaceholder')}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block label-sm text-secondary mb-1.5">
-              {t('lessonOrder')}
-            </label>
-            <input
-              type="number"
-              min={1}
-              className="w-full border border-outline-variant rounded-lg p-2 text-body-base focus:border-primary focus:ring-0 transition-colors outline-none bg-surface-container-low"
-              value={order}
-              onChange={(e) => setOrder(Math.max(1, Number(e.target.value) || 1))}
-            />
-          </div>
-          <div>
-            <label className="block label-sm text-secondary mb-1.5">
-              {t('lessonType')}
-            </label>
-            <select
-              className="w-full border border-outline-variant rounded-lg p-2 text-body-base focus:border-primary focus:ring-0 transition-colors outline-none bg-surface-container-low"
-              value={lessonType}
-              onChange={(e) => setLessonType(e.target.value as LessonProgressItemDto['type'])}
-              title={t('lessonTypeReadonlyHint')}
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={handleRestoreDirtyDraft}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs cursor-pointer"
             >
-              {LESSON_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {t(opt.labelKey)}
-                </option>
-              ))}
-            </select>
+              {t('restoreDraftBtn')}
+            </button>
+            <button
+              type="button"
+              onClick={handleDiscardDirtyDraft}
+              className="px-3 py-1.5 bg-amber-100/80 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+            >
+              {t('discardDraftBtn')}
+            </button>
           </div>
         </div>
-      </header>
+      )}
 
-      <div className="md:hidden flex border-b border-outline-variant bg-surface">
-        <button
-          onClick={() => setMobileTab('editor')}
-          className={`flex-1 py-3 text-center label-md transition-colors cursor-pointer ${
-            mobileTab === 'editor'
-              ? 'text-primary border-b-2 border-primary'
-              : 'text-secondary'
-          }`}
-        >
-          {t('editor')}
-        </button>
-        <button
-          onClick={() => setMobileTab('preview')}
-          className={`flex-1 py-3 text-center label-md transition-colors cursor-pointer ${
-            mobileTab === 'preview'
-              ? 'text-primary border-b-2 border-primary'
-              : 'text-secondary'
-          }`}
-        >
-          {t('preview')}
-        </button>
+      {uiValidationError && (
+        <div className="mx-4 mt-4 p-3 bg-error/10 border border-error/30 rounded-lg text-sm text-error font-medium flex items-center justify-between">
+          <span>⚠️ {uiValidationError}</span>
+          <button
+            type="button"
+            onClick={() => setUiValidationError(null)}
+            className="text-xs font-semibold hover:underline cursor-pointer"
+          >
+            {t('closeBtn')}
+          </button>
+        </div>
+      )}
+
+      <div className="flex-1 w-full h-full flex flex-col overflow-hidden min-h-0">
+        <PuckStudio
+          key={`${lessonId || "new"}-${aiVersion}`}
+          config={lessonConfig}
+          initialData={currentPuckData || puckData}
+          onChange={(newData) => {
+            setCurrentPuckData(newData);
+            if (!isPuckReadyRef.current) {
+              isPuckReadyRef.current = true;
+              const existingDraft = useLessonDraftStore.getState().getDraft(draftKey);
+              if (dirtyDraftToRestore === null && (!existingDraft || existingDraft.isDirty !== true)) {
+                const initialPayload = serializePuckDataToPayload(newData, {
+                  title,
+                  description,
+                  estimatedTime,
+                  order,
+                  type: lessonType,
+                });
+                baselinePayloadRef.current = JSON.stringify(initialPayload);
+              }
+            }
+          }}
+          onPublish={handlePublishPuck}
+          overrides={{ headerActions: () => null }}
+        />
       </div>
 
-      <section className="flex-1 flex bg-surface-container-lowest w-full max-w-[1600px] mx-auto md:rounded-sm border border-outline-variant h-full min-h-[70vh] max-h-[calc(100vh-4rem)]">
-        <div
-          className={`flex-1 flex flex-col border-r border-outline-variant ${
-            mobileTab === 'preview' ? 'hidden md:flex' : 'flex'
-          }`}
-        >
-          <div className="sticky top-0 z-10 flex items-center gap-0.5 px-3 py-2 bg-surface border-b border-outline-variant flex-wrap">
-            {toolbarButtons.map((btn, i) => (
-              <span key={btn.action}>
-                {[3, 5, 9, 11].includes(i) && (
-                  <div className="w-px h-6 bg-outline-variant mx-1.5 inline-block align-middle" />
-                )}
-                <button
-                  onClick={() => insertMarkdown(btn.action)}
-                  title={t(btn.labelKey)}
-                  className="p-1.5 hover:bg-surface-container-high rounded transition-colors cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[20px] text-secondary block">
-                    {btn.icon}
-                  </span>
-                </button>
-              </span>
-            ))}
-          </div>
+      <AILessonGeneratorModal
+        open={aiModalOpen}
+        onOpenChange={setAiModalOpen}
+        initialTitle={title}
+        initialDescription={description}
+        initialEstimatedTime={estimatedTime}
+        onConfirmGenerate={handleConfirmAiGenerate}
+      />
 
-          <div className="flex-1">
-            <textarea
-              ref={textareaRef}
-              className="w-full min-h-full p-6 font-mono text-body-sm outline-none resize-none bg-transparent leading-relaxed"
-              placeholder={t('markdownPlaceholder')}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              onKeyDown={handleTextareaKeyDown}
-            />
-          </div>
-        </div>
-
-        <div
-          className={`flex-1 flex flex-col bg-surface-container-lowest overflow-hidden ${
-            mobileTab === 'editor' ? 'hidden md:flex' : 'flex'
-          }`}
-        >
-          <div className="flex items-center justify-between px-6 py-3 bg-surface-container-low border-b border-outline-variant">
-            <span className="label-sm text-secondary uppercase tracking-wider flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">visibility</span>
-              {t('livePreview')}
-            </span>
-          </div>
-
-          <div className="flex-1 overflow-y-scroll px-8 sm:px-12 py-8 sm:py-10">
-            <div className="max-w-[720px] mx-auto">
-              {title || body ? (
-                <article>
-                  <LessonMetadata
-                    title={title}
-                    estimatedTime={estimatedTime}
-                    bodyMeta={bodyMeta}
-                    tu={tu}
-                  />
-                  {strippedBody ? (
-                    <div className="text-on-surface-variant">
-                      <MarkdownRenderer content={strippedBody} />
-                    </div>
-                  ) : (
-                    <p className="text-body-sm text-secondary italic">
-                      {t('noPreviewContent')}
-                    </p>
-                  )}
-                </article>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                  <div className="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center mb-4">
-                    <span className="material-symbols-outlined text-secondary text-3xl">visibility</span>
-                  </div>
-                  <p className="text-body-sm text-secondary italic">
-                    {t('noPreviewContent')}
-                  </p>
-                </div>
-              )}
+      <Modal
+        open={!!saveResultModal}
+        onClose={() => setSaveResultModal(null)}
+        width={540}
+        title={
+          saveResultModal?.status === 'success'
+            ? t('saveResultSuccessTitle', { defaultValue: 'Lưu bài học thành công!' })
+            : t('saveResultErrorTitle', { defaultValue: 'Lưu bài học thất bại' })
+        }
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center ${
+                saveResultModal?.status === 'success'
+                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400'
+                  : 'bg-error/10 text-error'
+              }`}
+            >
+              <Icon
+                icon={saveResultModal?.status === 'success' ? 'lucide:check-circle-2' : 'lucide:alert-circle'}
+                className="w-6 h-6"
+              />
+            </div>
+            <div className="space-y-1 flex-1 pt-0.5">
+              <p className="text-sm text-on-surface-variant leading-relaxed">
+                {saveResultModal?.status === 'success'
+                  ? t('saveResultSuccessDesc', {
+                      defaultValue:
+                        'Dữ liệu bài học đã được lưu vào hệ thống. Bạn muốn tiếp tục thực hiện thao tác nào dưới đây?',
+                    })
+                  : saveResultModal?.errorMessage || t('errorOccurred')}
+              </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      <footer className="justify-center items-center fixed bottom-0 left-0 md:left-[256px] right-0 z-40 bg-surface border-t border-outline-variant transition-all duration-200">
-        <div className="flex mx-2 justify-center items-center gap-2">
-          <SyntaxGuide />
-          <div className="w-px h-6 bg-outline-variant mx-1" />
-          <div className="flex-1" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-4 border-t border-outline-variant/60 w-full">
+            {saveResultModal?.status === 'success' ? (
+              <>
+                <AppButton
+                  variant="outline"
+                  className="px-2 py-2 text-xs sm:text-sm font-medium justify-center w-full whitespace-nowrap"
+                  onClick={() => {
+                    const modalState = saveResultModal;
+                    setSaveResultModal(null);
+                    if (modalState.mode === 'create' && modalState.savedLessonId && trackId) {
+                      window.history.replaceState(
+                        null,
+                        '',
+                        `/admin/tracks/${trackId}/lessons/${modalState.savedLessonId}/edit`
+                      );
+                    }
+                  }}
+                >
+                  {t('stayAndEditBtn', { defaultValue: 'Tiếp tục sửa' })}
+                </AppButton>
 
-          <div className="flex-2 flex justify-center items-center gap-8">
-            <button
-              onClick={() => router.back()}
-              className="px-4 py-1.5 border border-outline-variant rounded-lg label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
-            >
-              {t('cancel')}
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={!title.trim() || saving}
-              className="px-5 py-1.5 bg-primary text-on-primary rounded-lg label-md hover:opacity-95 disabled:opacity-50 transition-all cursor-pointer"
-            >
-              {saving ? t('saving') : t('saveLesson')}
-            </button>
+                <AppButton
+                  variant="outline"
+                  className="px-2 py-2 text-xs sm:text-sm font-medium justify-center w-full whitespace-nowrap"
+                  onClick={() => {
+                    setSaveResultModal(null);
+                    if (trackId) {
+                      router.push(`/admin/tracks/${trackId}`);
+                    } else if (editIndex !== undefined) {
+                      router.push('/admin/tracks/create');
+                    } else {
+                      router.back();
+                    }
+                  }}
+                >
+                  {t('backToTrackBtn', { defaultValue: 'Về lộ trình' })}
+                </AppButton>
+
+                <AppButton
+                  variant="primary"
+                  className="px-2 py-2 text-xs sm:text-sm font-medium justify-center w-full whitespace-nowrap"
+                  onClick={() => {
+                    const savedId = saveResultModal.savedLessonId || lessonId;
+                    setSaveResultModal(null);
+                    if (trackId && savedId) {
+                      router.push(`/tracks/${trackId}/lessons/${savedId}`);
+                    } else if (trackId) {
+                      router.push(`/admin/tracks/${trackId}`);
+                    } else {
+                      router.push('/admin/tracks/create');
+                    }
+                  }}
+                >
+                  {t('goToLessonDetailBtn', { defaultValue: 'Xem bài học' })}
+                </AppButton>
+              </>
+            ) : (
+              <div className="sm:col-span-3 flex justify-end">
+                <AppButton
+                  variant="primary"
+                  className="px-6 py-2 text-xs sm:text-sm font-medium justify-center"
+                  onClick={() => setSaveResultModal(null)}
+                >
+                  {t('closeBtn', { defaultValue: 'Đóng' })}
+                </AppButton>
+              </div>
+            )}
           </div>
         </div>
-      </footer>
+      </Modal>
     </main>
   );
 }

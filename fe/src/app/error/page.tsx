@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 
-export default function ErrorPage() {
+function ErrorPageContent() {
   const t = useTranslations('ErrorPage');
   const searchParams = useSearchParams();
   const code = searchParams.get('code') || 'UNKNOWN_ERROR';
@@ -62,5 +63,13 @@ export default function ErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ErrorPage() {
+  return (
+    <Suspense fallback={null}>
+      <ErrorPageContent />
+    </Suspense>
   );
 }

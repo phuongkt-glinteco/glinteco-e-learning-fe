@@ -1,25 +1,35 @@
 'use client';
 
-import React from 'react';
+import React, { forwardRef } from 'react';
 
-interface NotificationIconProps {
+interface NotificationIconProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   badgeCount?: number;
   className?: string;
-  onClick?: () => void;
 }
 
-export default function NotificationIcon({ badgeCount, className = '', onClick }: NotificationIconProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={`relative hover:bg-surface-container-low transition-colors p-2 rounded-full text-on-surface-variant ${className}`}
-    >
-      <span className="material-symbols-outlined">notifications</span>
-      {badgeCount !== undefined && badgeCount > 0 && (
-        <span className="absolute top-1 right-1 bg-error text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
-          {badgeCount}
-        </span>
-      )}
-    </button>
-  );
-}
+const NotificationIcon = forwardRef<HTMLButtonElement, NotificationIconProps>(
+  ({ badgeCount, className = '', ...buttonProps }, ref) => {
+    const visibleBadge = badgeCount !== undefined && badgeCount > 0;
+    const badgeLabel = badgeCount && badgeCount > 99 ? '99+' : String(badgeCount);
+
+    return (
+      <button
+        {...buttonProps}
+        ref={ref}
+        type="button"
+        className={`relative hover:bg-surface-container-low focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-colors p-2 rounded-full text-on-surface-variant ${className}`}
+      >
+        <span className="material-symbols-outlined">notifications</span>
+        {visibleBadge ? (
+          <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 bg-error text-white text-[10px] rounded-full flex items-center justify-center font-bold leading-none">
+            {badgeLabel}
+          </span>
+        ) : null}
+      </button>
+    );
+  }
+);
+
+NotificationIcon.displayName = 'NotificationIcon';
+
+export default NotificationIcon;

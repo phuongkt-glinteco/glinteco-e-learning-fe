@@ -1,0 +1,23 @@
+{
+  "configTitle": "Cấu Hình Game",
+  "gameTypeLabel": "Loại Minigame",
+  "puzzle": "🧩 Xếp Hình",
+  "matching": "🔗 Ghép Cặp",
+  "quizBattle": "⚔️ Đấu Trắc Nghiệm",
+  "codeOrder": "📋 Sắp Xếp Code",
+  "timeLimitLabel": "Giới Hạn Thời Gian",
+  "timeLimitHint": "phút mỗi lượt",
+  "maxAttemptsLabel": "Số Lần Tối Đa",
+  "maxAttemptsHint": "số lần thử lại",
+  "scoringLabel": "Tính Điểm",
+  "scoringPoints": "Điểm Số",
+  "scoringStar": "Xếp Hạng Sao",
+  "scoringTime": "Theo Thời Gian",
+  "scoringHint": "Phương pháp tính điểm",
+  "contentTitle": "Nội Dung Game",
+  "instructionsLabel": "Hướng Dẫn",
+  "instructionsPlaceholder": "Mô tả cách chơi minigame...",
+  "rulesLabel": "Luật Chơi & Mẹo",
+  "rulesPlaceholder": "Luật chơi, mẹo hoặc gợi ý cho người chơi...",
+  "rulesHint": "Không bắt buộc: giải thích điều kiện thắng, cách tính điểm"
+}

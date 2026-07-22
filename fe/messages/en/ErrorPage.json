@@ -1,0 +1,10 @@
+{
+  "title": "Something went wrong",
+  "defaultMessage": "An unexpected error occurred. Please try again.",
+  "errorCode": "Error code",
+  "goHome": "Go to Home",
+  "goToLogin": "Go to Sign In",
+  "UNKNOWN_ERROR": "An unexpected error occurred. Please try again.",
+  "MISSING_MESSAGE": "Missing localization key error. Please try again or contact support.",
+  "NEXT_INTL_MISSING_MESSAGE": "Missing localization key error."
+}

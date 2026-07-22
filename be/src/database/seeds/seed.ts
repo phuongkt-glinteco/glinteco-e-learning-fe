@@ -374,32 +374,48 @@ async function seed(): Promise<void> {
       (l) => l.title === 'Order Flow Sequence',
     );
 
+    // Seed Tags first for Exercise & Document linking
+    const tagRepo = dataSource.getRepository(Tag);
+    const [nestjsTag, dbTag, gitTag, feTag, archTag, testingTag] =
+      await tagRepo.save([
+        tagRepo.create({ name: 'NestJS' }),
+        tagRepo.create({ name: 'Database' }),
+        tagRepo.create({ name: 'Git' }),
+        tagRepo.create({ name: 'Frontend' }),
+        tagRepo.create({ name: 'Architecture' }),
+        tagRepo.create({ name: 'Testing' }),
+      ]);
+
     // Seed Exercises
     const e1 = await exerciseRepo.save(
       exerciseRepo.create({
         trackId: t2.id,
         lessonId: lessonForE1?.id || null,
         title: 'Build a Profile Card Component',
-        tag: 'Frontend',
+        tagId: feTag.id,
         difficulty: ExerciseDifficulty.BEGINNER,
         estimatedTime: '2 hours',
         xp: 120,
         brief:
           'Create a reusable <ProfileCard/> using our component library tokens. Must be responsive and pass a11y lint.',
-        overview:
-          'Engineers reach for shared primitives constantly. This task gets you fluent with our design tokens, the component library API, and the a11y lint gate.',
-        objectives: [
-          'Render avatar, name, role and a status dot from props',
-          'Use only design tokens — no hard-coded colors or spacing',
-          'Responsive from 320px up; no horizontal scroll',
-          'Passes pnpm lint:a11y with zero violations',
-        ],
-        steps: [
-          'Scaffold the component under packages/ui/src/ProfileCard',
-          'Wire props + Storybook story with 3 states',
-          'Add a unit test for the status-dot color mapping',
-          'Open a PR and paste the link below',
-        ],
+        content: {
+          overview:
+            'Engineers reach for shared primitives constantly. This task gets you fluent with our design tokens, the component library API, and the a11y lint gate.',
+          objectives: [
+            'Render avatar, name, role and a status dot from props',
+            'Use only design tokens — no hard-coded colors or spacing',
+            'Responsive from 320px up; no horizontal scroll',
+            'Passes pnpm lint:a11y with zero violations',
+          ],
+          steps: [
+            'Scaffold the component under packages/ui/src/ProfileCard',
+            'Wire props + Storybook story with 3 states',
+            'Add a unit test for the status-dot color mapping',
+            'Open a PR and paste the link below',
+          ],
+          targetScore: 100,
+          questions: [],
+        },
       }),
     );
 
@@ -408,26 +424,30 @@ async function seed(): Promise<void> {
         trackId: t3.id,
         lessonId: lessonForE2?.id || null,
         title: 'Add a Paginated Users Endpoint',
-        tag: 'NestJS',
+        tagId: nestjsTag.id,
         difficulty: ExerciseDifficulty.INTERMEDIATE,
         estimatedTime: '3 hours',
         xp: 200,
         brief:
           'Implement GET /users with cursor pagination, DTO validation, and a unit test for the service.',
-        overview:
-          'Cursor pagination is our standard for every list endpoint. You will build one end-to-end: controller, service, DTO validation, and a unit test.',
-        objectives: [
-          'GET /users accepts ?cursor and ?limit (max 50)',
-          'Response includes nextCursor and hasMore',
-          'Invalid params return 400 via class-validator DTO',
-          'Service unit test covers empty, partial and full pages',
-        ],
-        steps: [
-          'Add the PaginationQueryDto with validation decorators',
-          'Implement keyset pagination in UsersService.list()',
-          'Write the Jest spec for the service',
-          'Open a PR and paste the link below',
-        ],
+        content: {
+          overview:
+            'Cursor pagination is our standard for every list endpoint. You will build one end-to-end: controller, service, DTO validation, and a unit test.',
+          objectives: [
+            'GET /users accepts ?cursor and ?limit (max 50)',
+            'Response includes nextCursor and hasMore',
+            'Invalid params return 400 via class-validator DTO',
+            'Service unit test covers empty, partial and full pages',
+          ],
+          steps: [
+            'Add the PaginationQueryDto with validation decorators',
+            'Implement keyset pagination in UsersService.list()',
+            'Write the Jest spec for the service',
+            'Open a PR and paste the link below',
+          ],
+          targetScore: 100,
+          questions: [],
+        },
       }),
     );
 
@@ -436,26 +456,30 @@ async function seed(): Promise<void> {
         trackId: t4.id,
         lessonId: lessonForE3?.id || null,
         title: 'Diagram the Order Flow',
-        tag: 'Architecture',
+        tagId: archTag.id,
         difficulty: ExerciseDifficulty.ADVANCED,
         estimatedTime: '2 hours',
         xp: 160,
         brief:
           'Document the event flow from checkout to fulfillment. Submit a branch with the .md + mermaid diagram.',
-        overview:
-          'Before touching the order domain, every engineer maps it. You will trace the events and capture the contract boundaries.',
-        objectives: [
-          'Sequence diagram from checkout -> payment -> fulfillment',
-          'Every arrow names the event on the bus',
-          'Call out at least one failure / retry path',
-          'Committed as Markdown + mermaid under /docs/architecture',
-        ],
-        steps: [
-          'Skim the event bus contract registry',
-          'Draft the mermaid sequence diagram',
-          'Annotate failure handling + idempotency keys',
-          'Open a branch PR and paste the link below',
-        ],
+        content: {
+          overview:
+            'Before touching the order domain, every engineer maps it. You will trace the events and capture the contract boundaries.',
+          objectives: [
+            'Sequence diagram from checkout -> payment -> fulfillment',
+            'Every arrow names the event on the bus',
+            'Call out at least one failure / retry path',
+            'Committed as Markdown + mermaid under /docs/architecture',
+          ],
+          steps: [
+            'Skim the event bus contract registry',
+            'Draft the mermaid sequence diagram',
+            'Annotate failure handling + idempotency keys',
+            'Open a branch PR and paste the link below',
+          ],
+          targetScore: 100,
+          questions: [],
+        },
       }),
     );
 
@@ -541,18 +565,7 @@ async function seed(): Promise<void> {
     ]);
 
     // --- Documents + Tags (many-to-many) --------------------------------
-    const tagRepo = dataSource.getRepository(Tag);
     const documentRepo = dataSource.getRepository(Document);
-
-    const [nestjsTag, dbTag, gitTag, feTag, archTag, testingTag] =
-      await tagRepo.save([
-        tagRepo.create({ name: 'NestJS' }),
-        tagRepo.create({ name: 'Database' }),
-        tagRepo.create({ name: 'Git' }),
-        tagRepo.create({ name: 'Frontend' }),
-        tagRepo.create({ name: 'Architecture' }),
-        tagRepo.create({ name: 'Testing' }),
-      ]);
 
     await documentRepo.save([
       documentRepo.create({

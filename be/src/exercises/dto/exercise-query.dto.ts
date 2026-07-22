@@ -5,9 +5,11 @@ import { ExerciseDifficulty } from '../../database/entities/exercise.entity';
 
 export enum ExerciseFilterStatus {
   PENDING = 'pending',
+  IN_PROGRESS = 'in_progress',
   SUBMITTED = 'submitted',
   APPROVED = 'approved',
   CHANGES = 'changes',
+  REJECTED = 'rejected',
 }
 
 export class ExerciseQueryDto {

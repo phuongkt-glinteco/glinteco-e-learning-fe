@@ -1,9 +1,9 @@
 import { auth } from '@/lib/auth';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const publicRoutes = ['/', '/login', '/register'];
+const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
 const learnerOnlyPaths = ['/dashboard/learner'];
-const adminOnlyPaths = ['/admin', '/dashboard/admin'];
+const adminOnlyPaths = ['/admin', '/dashboard/admin', '/reorder'];
 const apiAuthPath = '/api/auth';
 
 type AuthMiddlewareRequest = NextRequest & {
@@ -14,9 +14,20 @@ type AuthMiddlewareRequest = NextRequest & {
   } | null;
 };
 
+function getDashboardUrl(role: string | undefined, req: NextRequest) {
+  return new URL(role?.toLowerCase() === 'admin' ? '/dashboard/admin' : '/dashboard/learner', req.url);
+}
+
 export default auth((req: AuthMiddlewareRequest) => {
   const { auth: session, nextUrl } = req;
   const { pathname } = nextUrl;
+
+  const authCookie = req.cookies.get('auth_verified');
+  const isAuthenticated = Boolean(session?.user) || Boolean(authCookie?.value);
+  const rawRole =
+    (session?.user as { role?: string } | undefined)?.role ??
+    authCookie?.value;
+  const role = rawRole?.toLowerCase();
 
   // Allow public routes, next-auth API, static assets
   if (publicRoutes.includes(pathname) || pathname.startsWith(apiAuthPath)) {
@@ -32,25 +43,14 @@ export default auth((req: AuthMiddlewareRequest) => {
   }
 
   // Check both next-auth session AND custom auth cookie (email/password)
-  const authCookie = req.cookies.get('auth_verified');
-  const isAuthenticated = Boolean(session?.user) || Boolean(authCookie?.value);
-
   if (!isAuthenticated) {
     const loginUrl = new URL('/login', req.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  const role =
-    (session?.user as { role?: string } | undefined)?.role ??
-    authCookie?.value;
-
   if (pathname === '/dashboard') {
-    if (role === 'admin') {
-      return NextResponse.redirect(new URL('/dashboard/admin', req.url));
-    }
-
-    return NextResponse.redirect(new URL('/dashboard/learner', req.url));
+    return NextResponse.redirect(getDashboardUrl(role, req));
   }
 
   // Role check for admin-only paths

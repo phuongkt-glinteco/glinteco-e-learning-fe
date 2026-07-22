@@ -20,17 +20,32 @@ import { SubmissionQueryDto } from './dto/submission-query.dto';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { ReviewSubmissionDto } from './dto/review-submission.dto';
 import {
-  SubmissionFeedItemDto,
   SubmissionListResponseDto,
   SubmissionDetailDto,
   SubmissionHistoryResponseDto,
 } from './dto/submission-response.dto';
-import { ExerciseDetailDto } from '../exercises/dto/exercise-response.dto';
 import { JwtAuthGuard } from '../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../modules/auth/guards/roles.guard';
 import { Roles } from '../modules/auth/decorators/roles.decorator';
 import { UserRole } from '../database/entities/user.entity';
-import { SubmissionStatus } from '../database/entities/submission.entity';
+import {
+  Submission,
+  SubmissionStatus,
+} from '../database/entities/submission.entity';
+import { ExercisesService } from '../exercises/exercises.service';
+import { ExerciseFilterStatus } from '../exercises/dto/exercise-query.dto';
+
+const exerciseStatusBySubmissionStatus: Record<
+  SubmissionStatus,
+  ExerciseFilterStatus
+> = {
+  [SubmissionStatus.PENDING]: ExerciseFilterStatus.PENDING,
+  [SubmissionStatus.IN_PROGRESS]: ExerciseFilterStatus.IN_PROGRESS,
+  [SubmissionStatus.SUBMITTED]: ExerciseFilterStatus.SUBMITTED,
+  [SubmissionStatus.CHANGES]: ExerciseFilterStatus.CHANGES,
+  [SubmissionStatus.APPROVED]: ExerciseFilterStatus.APPROVED,
+  [SubmissionStatus.REJECTED]: ExerciseFilterStatus.REJECTED,
+};
 
 interface RequestWithUser {
   user: {
@@ -44,9 +59,12 @@ interface RequestWithUser {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller()
 export class SubmissionsController {
-  constructor(private readonly submissionsService: SubmissionsService) {}
+  constructor(
+    private readonly submissionsService: SubmissionsService,
+    private readonly exercisesService: ExercisesService,
+  ) {}
 
-  private mapToDetailDto(s: any): SubmissionDetailDto {
+  private mapToDetailDto(s: Submission): SubmissionDetailDto {
     const lastHistory =
       s.histories && s.histories.length > 0 ? s.histories[0] : null;
     return {
@@ -57,17 +75,17 @@ export class SubmissionsController {
         id: s.user?.id || '',
         name: s.user?.name || '',
       },
-      prUrl: s.prUrl || '',
+      prUrl: s.prUrl || null,
       status: s.status,
       reviewerId: lastHistory?.adminId || null,
       reviewNote: lastHistory?.comment || null,
-      submittedAt: s.submittedAt,
+      submittedAt: s.submittedAt ?? s.createdAt,
       reviewedAt: lastHistory?.createdAt || null,
     };
   }
 
   private mapToListDto(result: {
-    data: any[];
+    data: Submission[];
     nextCursor: string | null;
     hasMore: boolean;
   }): SubmissionListResponseDto {
@@ -86,25 +104,35 @@ export class SubmissionsController {
           title: s.exercise?.title || '',
           trackId: s.exercise?.trackId || '',
           track: s.exercise?.track?.title || '',
-          tag: s.exercise?.tag || '',
-          difficulty: s.exercise?.difficulty || 'Intermediate',
+          tag: s.exercise?.tagEntity?.name || '',
+          tagId: s.exercise?.tagId || null,
+          tagData: s.exercise?.tagEntity || null,
+          difficulty: s.exercise?.difficulty || ('Intermediate' as any),
           estimatedTime: s.exercise?.estimatedTime || '',
           xp: s.exercise?.xp || 0,
           brief: s.exercise?.brief || '',
-          overview: s.exercise?.overview || '',
-          objectives: s.exercise?.objectives || {},
-          steps: s.exercise?.steps || {},
+          content: s.exercise?.content || {},
+          overview: s.exercise?.content?.overview || '',
+          objectives: s.exercise?.content?.objectives || [],
+          steps: s.exercise?.content?.steps || [],
           resources: [],
-          status: s.status,
+          hint: s.exercise?.hint ?? undefined,
+          status: exerciseStatusBySubmissionStatus[s.status],
           prUrl: s.prUrl || null,
           lessonId: s.exercise?.lessonId || null,
+          type: s.exercise?.type || ('PR_REVIEW' as any),
+          questionsData: null,
+          targetScore: s.exercise?.content?.targetScore ?? 100,
+          isMandatory: s.exercise?.isMandatory ?? true,
+          isReadOnly: false,
         },
-        prUrl: s.prUrl || '',
+        prUrl: s.prUrl || null,
         status: s.status,
-        submittedAt: s.submittedAt,
+        submittedAt: s.submittedAt ?? s.createdAt,
       })),
     };
   }
+
 
   @ApiOperation({
     summary: 'Lấy danh sách bài tập thuộc track kèm theo bài nộp',
@@ -115,7 +143,11 @@ export class SubmissionsController {
     @Param('id') trackId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.submissionsService.findExercises(trackId, req.user.id);
+    return this.exercisesService.findAll(
+      { trackId },
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @ApiOperation({ summary: 'Nộp bài tập lần đầu (PR GitHub)' })

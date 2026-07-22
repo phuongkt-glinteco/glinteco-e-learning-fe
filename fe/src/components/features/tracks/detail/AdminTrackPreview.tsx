@@ -2,10 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 import { sumEstimatedTimes } from '@/lib/time-utils';
-import type { ExerciseSummaryDto, TrackDetailDto } from '@/services/api-client';
+import type { ExerciseSummaryDto, LessonProgressItemDto, TrackDetailDto } from '@/services/api-client';
 import { TrackHero } from './TrackHero';
 import { CourseRoadmap } from './CourseRoadmap';
 import { TrackExercisesCard } from './TrackExercisesCard';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { PrerequisitesCard } from './PrerequisitesCard';
 import { PotentialRewardsCard } from './PotentialRewardsCard';
 
@@ -15,24 +16,33 @@ interface AdminTrackPreviewProps {
   onBack: () => void;
 }
 
+type PreviewLesson = LessonProgressItemDto & { estimatedTime?: string };
+
+function getAdjacentTrackTitle(track: TrackDetailDto['prevTrack'] | TrackDetailDto['nextTrack']) {
+  if (track && typeof track === 'object' && 'title' in track && typeof track.title === 'string') {
+    return track.title;
+  }
+  return '';
+}
+
 export default function AdminTrackPreview({ track, exercises, onBack }: AdminTrackPreviewProps) {
   const t = useTranslations('TrackPreview');
   const td = useTranslations('TrackDetailPage');
-  const lessons = [...(track.lessons ?? [])].sort((a, b) => a.order - b.order);
+  const lessons = ([...(track.lessons ?? [])] as PreviewLesson[]).sort((a, b) => a.order - b.order);
 
   const estimatedTime = track.estimatedTime || sumEstimatedTimes(lessons.map((l) => l.estimatedTime || '0m'));
   const totalXP = lessons.length * 800;
 
   const prevTrackMapped = track.prevTrack
     ? {
-        title: (track.prevTrack as any).title || '',
+        title: getAdjacentTrackTitle(track.prevTrack),
         status: 'completed' as const,
       }
     : undefined;
 
   const nextTrackMapped = track.nextTrack
     ? {
-        title: (track.nextTrack as any).title || '',
+        title: getAdjacentTrackTitle(track.nextTrack),
         status: 'locked' as const,
       }
     : undefined;
@@ -60,11 +70,9 @@ export default function AdminTrackPreview({ track, exercises, onBack }: AdminTra
       {/* Main Content Area */}
       <main className="flex-1 p-margin-mobile md:p-gutter max-w-[1200px] mx-auto w-full pb-32">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 mb-6 font-label-md text-label-md text-on-surface-variant">
-          <span className="hover:text-primary transition-colors cursor-pointer">{t('breadcrumbsTracks') || 'Tracks'}</span>
-          <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-          <span className="text-primary font-bold">{track.title || t('untitledTrack')}</span>
-        </nav>
+        <div className="mb-6">
+          <DynamicBreadcrumbs />
+        </div>
 
         {/* 2-Column Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl">

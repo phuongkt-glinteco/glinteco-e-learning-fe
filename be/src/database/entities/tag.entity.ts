@@ -5,8 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  OneToMany,
 } from 'typeorm';
 import { Document } from './document.entity';
+import { Exercise } from './exercise.entity';
 
 export enum TagCategory {
   TRACK = 'TRACK',
@@ -28,6 +30,9 @@ export class Tag {
 
   @ManyToMany(() => Document, (document) => document.tags)
   documents: Document[];
+
+  @OneToMany(() => Exercise, (exercise) => exercise.tagEntity)
+  exercises: Exercise[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -11,6 +11,7 @@ import {
   Max,
   ValidateNested,
   IsBoolean,
+  IsObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
@@ -64,22 +65,29 @@ export class CreateExerciseDto {
   @IsUUID('4', { message: 'trackId phải là một UUID hợp lệ' })
   trackId: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'ID của Lesson (UUID) chứa bài tập này (nếu có).',
-    required: false,
     example: 'd3b07384-d113-495f-9f75-e11500e3cfd0',
   })
   @IsOptional()
   @IsUUID('4', { message: 'lessonId phải là một UUID hợp lệ' })
   lessonId?: string;
 
-  @ApiProperty({
-    description: 'Nhãn phân loại chuyên môn.',
+  @ApiPropertyOptional({
+    description: 'ID của thực thể Tag (foreign key tới tags table).',
+    example: 'd3b07384-d113-495f-9f75-e11500e3cfd0',
+  })
+  @IsOptional()
+  @IsUUID('4', { message: 'tagId phải là một UUID hợp lệ' })
+  tagId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Nhãn phân loại chuyên môn (hoặc fallback tên tag).',
     example: 'NestJS',
   })
-  @IsNotEmpty({ message: 'Tag chuyên môn không được để trống' })
+  @IsOptional()
   @IsString({ message: 'Tag phải là một chuỗi ký tự' })
-  tag: string;
+  tag?: string;
 
   @ApiProperty({
     description: 'Cấp độ khó của bài tập.',
@@ -118,42 +126,42 @@ export class CreateExerciseDto {
   @IsString({ message: 'Brief phải là một chuỗi ký tự' })
   brief: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
+    description: 'Nội dung chi tiết theo dạng bài tập (content).',
+    type: Object,
+  })
+  @IsOptional()
+  @IsObject()
+  content?: Record<string, any>;
+
+  // Legacy compatibility fields
+  @ApiPropertyOptional({
     description: 'Tổng quan chi tiết về bối cảnh và hướng đi.',
     example: 'Every protected route runs through this guard...',
   })
-  @IsNotEmpty({ message: 'Overview không được để trống' })
-  @IsString({ message: 'Overview phải là một chuỗi ký tự' })
-  overview: string;
+  @IsOptional()
+  @IsString()
+  overview?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Danh sách tiêu chí nghiệm thu (Acceptance Criteria).',
     type: [String],
-    example: [
-      'Verify JWT signature',
-      'Attach user to request',
-      '401 on invalid token',
-    ],
   })
-  @IsNotEmpty({ message: 'Objectives không được để trống' })
-  @IsArray({ message: 'Objectives phải là một mảng chuỗi' })
-  @IsString({ each: true, message: 'Mỗi objective phải là một chuỗi ký tự' })
-  objectives: string[];
+  @IsOptional()
+  @IsArray()
+  objectives?: string[];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Các bước gợi ý để thực hiện bài tập.',
     type: [String],
-    example: ['Create the guard', 'Register it globally', 'Write the spec'],
   })
-  @IsNotEmpty({ message: 'Steps không được để trống' })
-  @IsArray({ message: 'Steps phải là một mảng chuỗi' })
-  @IsString({ each: true, message: 'Mỗi step phải là một chuỗi ký tự' })
-  steps: string[];
+  @IsOptional()
+  @IsArray()
+  steps?: string[];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Danh sách ID tài liệu tham khảo (Document UUIDs).',
     type: [String],
-    required: false,
     example: ['d5'],
   })
   @IsOptional()
@@ -164,9 +172,8 @@ export class CreateExerciseDto {
   })
   resourceDocIds?: string[];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Gợi ý hoặc lưu ý đặc biệt cho bài tập.',
-    required: false,
     example: 'Reuse the shared JwtService config.',
   })
   @IsOptional()
@@ -174,7 +181,7 @@ export class CreateExerciseDto {
   hint?: string;
 
   @ApiPropertyOptional({
-    description: 'Thể loại bài tập (GLI-92). Mặc định: PR_REVIEW.',
+    description: 'Thể loại bài tập. Mặc định: PR_REVIEW.',
     enum: ExerciseType,
     example: ExerciseType.QUIZ,
   })
@@ -186,34 +193,32 @@ export class CreateExerciseDto {
 
   @ApiPropertyOptional({
     description:
-      'Cấu trúc câu hỏi + đáp án cho QUIZ/FILL_IN_BLANK (GLI-92). Chỉ Admin thấy correctAnswer.',
+      'Cấu trúc câu hỏi + đáp án cho QUIZ/FILL_IN_BLANK (legacy). Chỉ Admin thấy correctAnswer.',
     type: [ExerciseQuestionDto],
   })
   @IsOptional()
-  @IsArray({ message: 'questionsData phải là một mảng' })
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ExerciseQuestionDto)
   questionsData?: ExerciseQuestionDto[];
 
   @ApiPropertyOptional({
-    description:
-      'Điểm (%) tối thiểu để đạt khi tự động chấm (GLI-92). Mặc định: 100.',
+    description: 'Điểm (%) tối thiểu để đạt khi tự động chấm. Mặc định: 100.',
     example: 80,
     minimum: 0,
     maximum: 100,
   })
   @IsOptional()
-  @IsInt({ message: 'targetScore phải là số nguyên' })
+  @IsInt()
   @Min(0)
   @Max(100)
   targetScore?: number;
 
   @ApiPropertyOptional({
-    description:
-      'Bài tập bắt buộc để hoàn thành bài học (GLI-90). Mặc định: true.',
+    description: 'Bài tập bắt buộc để hoàn thành bài học. Mặc định: true.',
     example: true,
   })
   @IsOptional()
-  @IsBoolean({ message: 'isMandatory phải là boolean' })
+  @IsBoolean()
   isMandatory?: boolean;
 }

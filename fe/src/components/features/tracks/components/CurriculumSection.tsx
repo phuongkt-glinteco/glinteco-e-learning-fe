@@ -6,8 +6,16 @@ import { useTranslations } from 'next-intl';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { formatEstimatedTime } from '@/lib/time-utils';
 
-export function CurriculumSection() {
-  const t = useTranslations('CreateTrackPage');
+export function CurriculumSection({
+  ns = 'CreateTrackPage',
+  trackId,
+  existingLessons,
+}: {
+  ns?: string;
+  trackId?: string;
+  existingLessons?: any[];
+}) {
+  const t = useTranslations(ns);
   const tu = useTranslations('TimeUnit');
   const router = useRouter();
   const { lessons, removeLesson, reorderLessons } = useTrackDraftStore();
@@ -34,7 +42,13 @@ export function CurriculumSection() {
   }
 
   function handleEdit(index: number) {
-    router.push(`/admin/tracks/create/lessons/${index}`);
+    if (trackId && existingLessons && existingLessons[index]?._id) {
+      router.push(`/admin/tracks/${trackId}/lessons/${existingLessons[index]._id}/edit`);
+    } else if (trackId) {
+      router.push(`/admin/tracks/${trackId}/lessons/edit?editIndex=${index}`);
+    } else {
+      router.push(`/admin/tracks/create/lessons/${index}`);
+    }
   }
 
   return (
@@ -47,7 +61,13 @@ export function CurriculumSection() {
           </span>
         </div>
         <button
-          onClick={() => router.push('/admin/tracks/create/lessons/new')}
+          onClick={() => {
+            if (trackId) {
+              router.push(`/admin/tracks/${trackId}/lessons/new`);
+            } else {
+              router.push('/admin/tracks/create/lessons/new');
+            }
+          }}
           className="flex items-center gap-2 text-primary hover:bg-surface-container-low px-4 py-2 rounded-lg transition-colors label-md border border-primary cursor-pointer"
         >
           <span className="material-symbols-outlined text-[20px]">add</span>

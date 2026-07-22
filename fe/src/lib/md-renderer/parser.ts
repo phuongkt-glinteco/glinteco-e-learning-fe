@@ -347,7 +347,7 @@ export function parseMarkdown(md: string): Block[] {
         const indent = rawLine.search(/\S/);
         const relativeIndent = indent - baseIndent;
 
-        let item: NestedListItem = { checked: null, children: parseContent(info.content) };
+        const item: NestedListItem = { checked: null, children: parseContent(info.content) };
         const taskMatch = info.content.match(/^\[( |x|X)?\]\s+(.+)$/);
         if (taskMatch) {
           item.checked = taskMatch[1] === 'x' || taskMatch[1] === 'X' ? true : false;

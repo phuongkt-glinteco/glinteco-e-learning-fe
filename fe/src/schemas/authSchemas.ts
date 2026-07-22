@@ -35,13 +35,28 @@ export const authRefreshRequestSchema = z.object({
 });
 
 export const authForgotPasswordRequestSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address' }),
+  email: z
+    .string()
+    .min(1, { message: 'emailRequired' })
+    .email({ message: 'emailInvalid' }),
 });
 
 export const authResetPasswordRequestSchema = z.object({
-  token: z.string().min(1, { message: 'Reset token is required' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
+  token: z.string().min(1, { message: 'resetTokenRequired' }),
+  password: z
+    .string()
+    .min(1, { message: 'passwordRequired' })
+    .min(6, { message: 'passwordMinLength' }),
 });
+
+export const authResetPasswordFormSchema = authResetPasswordRequestSchema
+  .extend({
+    confirmPassword: z.string().min(1, { message: 'confirmPasswordRequired' }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'confirmPasswordMismatch',
+    path: ['confirmPassword'],
+  });
 
 export type AuthLoginInput = z.infer<typeof authLoginRequestSchema>;
 export type AuthRegisterInput = z.infer<typeof authRegisterRequestSchema>;
@@ -49,3 +64,4 @@ export type AuthGoogleInput = z.infer<typeof authGoogleRequestSchema>;
 export type AuthRefreshInput = z.infer<typeof authRefreshRequestSchema>;
 export type AuthForgotPasswordInput = z.infer<typeof authForgotPasswordRequestSchema>;
 export type AuthResetPasswordInput = z.infer<typeof authResetPasswordRequestSchema>;
+export type AuthResetPasswordFormInput = z.infer<typeof authResetPasswordFormSchema>;

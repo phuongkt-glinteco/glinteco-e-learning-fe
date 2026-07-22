@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 import {
@@ -13,6 +13,9 @@ import {
   saveTokens,
   clearTokens,
   attemptTokenRefresh,
+  setTokenCookie,
+  setAuthCookie,
+  clearAuthCookie,
   type UserProfileDto,
 } from '@/services/api-client';
 
@@ -20,33 +23,25 @@ interface AuthContextValue {
   user: UserProfileDto | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => void;
+  login: (email: string, password: string) => Promise<UserProfileDto | null>;
+  loginWithGoogle: (callbackUrl?: string) => Promise<void>;
   logout: () => void;
+  updateUser: (updatedFields: Partial<UserProfileDto>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const AUTH_COOKIE = 'auth_verified';
-
-function setAuthCookie(role: string) {
-  document.cookie = `${AUTH_COOKIE}=${role};path=/;max-age=86400;samesite=lax`;
-}
-
-function clearAuthCookie() {
-  document.cookie = `${AUTH_COOKIE}=;path=/;max-age=0`;
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { data: nextAuthSession, status: nextAuthStatus } = useSession();
+  const isLoggingOutRef = useRef(false);
   const [user, setUser] = useState<UserProfileDto | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Sync next-auth session (Google login) into our auth state
   useEffect(() => {
-    if (nextAuthStatus === 'loading') return;
+    if (nextAuthStatus === 'loading' || isLoggingOutRef.current) return;
 
     if (nextAuthStatus === 'authenticated' && nextAuthSession?.accessToken) {
       const sessionToken = nextAuthSession.accessToken;
@@ -67,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             saveTokens(sessionToken, sessionRefreshToken);
           } else {
             localStorage.setItem('accessToken', sessionToken);
+            setTokenCookie(sessionToken);
           }
           setAuthCookie(profile.role ?? 'learner');
           setToken(sessionToken);
@@ -75,7 +71,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .catch(async (err) => {
           console.error('Failed to fetch user profile after Google login:', err);
           clearTokens();
-          clearAuthCookie();
           setToken(null);
           setUser(null);
           await nextAuthSignOut({ redirect: false });
@@ -125,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
+      isLoggingOutRef.current = false;
       const res = await authControllerLogin({
         body: { email, password },
         throwOnError: true,
@@ -138,43 +134,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const profileRes = await authControllerMe({ throwOnError: true });
         const profile = profileRes.data as UserProfileDto | undefined;
 
+        if (!profile) {
+          throw new Error('Failed to retrieve user profile');
+        }
+
         if (refreshToken) {
           saveTokens(accessToken, refreshToken);
         } else {
           localStorage.setItem('accessToken', accessToken);
+          setTokenCookie(accessToken);
         }
-        setAuthCookie(profile?.role ?? 'learner');
+        setAuthCookie(profile.role ?? 'learner');
         setToken(accessToken);
-        setUser(profile ?? null);
+        setUser(profile);
+        return profile;
       } catch (err) {
+        clearTokens();
         setClientToken('');
+        setToken(null);
+        setUser(null);
         throw err;
       }
     },
     [],
   );
 
-  const loginWithGoogle = useCallback(() => {
-    nextAuthSignIn('google', { callbackUrl: '/login' });
+  const loginWithGoogle = useCallback(async (callbackUrl = '/dashboard') => {
+    isLoggingOutRef.current = false;
+    await nextAuthSignIn('google', { callbackUrl });
   }, []);
 
   const logout = useCallback(async () => {
+    isLoggingOutRef.current = true;
     // Revoke the refresh token on the server (best-effort, needs auth header)
     try {
       await authControllerLogout({ body: { refreshToken: getRefreshToken() ?? '' } });
     } catch {
       // server revocation is best-effort during logout
     }
+    await nextAuthSignOut({ redirect: false });
     clearTokens();
-    clearAuthCookie();
     setToken(null);
     setUser(null);
-    await nextAuthSignOut({ redirect: false });
-    router.push('/login');
+    router.replace('/login');
+    router.refresh();
   }, [router]);
 
+  const updateUser = useCallback((updatedFields: Partial<UserProfileDto>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,0 +1,13 @@
+{
+  "title": "Learning Tracks",
+  "description": "Follow each milestone in order, continue active lessons, and unlock the next track as you progress.",
+  "progressTitle": "Track Path Progress",
+  "milestonesCleared": "{completed}/{total} milestones cleared",
+  "percentComplete": "{progress}% complete",
+  "noTracksTitle": "No learning tracks found",
+  "noTracksDesc": "Your learning path has not been published yet.",
+  "start": "Start",
+  "startDesc": "Begin with the first available milestone and keep moving through the track sequence.",
+  "readyTitle": "Production Ready",
+  "readyDesc": "Complete all milestones to finish this onboarding path."
+}

@@ -6,12 +6,13 @@ import { useTranslations } from 'next-intl';
 
 interface AppLogoProps {
   className?: string;
+  showText?: boolean;
 }
 
-export default function AppLogo({ className = '' }: AppLogoProps) {
+export default function AppLogo({ className = '', showText = true }: AppLogoProps) {
   const t = useTranslations('AppShell');
   return (
-    <div className={`flex items-center justify-start gap-sm ${className}`}>
+    <div className={`flex items-center justify-start gap-sm overflow-hidden ${className}`}>
       <div className="w-10 h-10 bg-primary rounded flex items-center justify-center shrink-0 text-on-primary">
         {/* <span className="material-symbols-outlined">rocket_launch</span> */}
         <Image
@@ -21,10 +22,12 @@ export default function AppLogo({ className = '' }: AppLogoProps) {
           height={40}
         />
       </div>
-      <div>
-        <h1 className="text-xl font-black text-secondary">RAMP UP</h1>
-        <p className="text-xs font-semibold text-on-surface-variant font-label-sm">{t('subLogoTitle')}</p>
-      </div>
+      {showText && (
+        <div className="whitespace-nowrap transition-all duration-200 opacity-100">
+          <h1 className="text-xl font-black text-secondary">RAMP UP</h1>
+          <p className="text-xs font-semibold text-on-surface-variant font-label-sm">{t('subLogoTitle')}</p>
+        </div>
+      )}
     </div>
   );
 }

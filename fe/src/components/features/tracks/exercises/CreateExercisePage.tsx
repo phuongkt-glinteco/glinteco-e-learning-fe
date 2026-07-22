@@ -1,28 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { exercisesControllerCreate } from '@/services/api-client';
-import type { DocumentResponseDto } from '@/services/api-client';
+import { exercisesControllerCreate, exercisesControllerFindOne, exercisesControllerUpdate } from '@/services/api-client';
+import type { DocumentResponseDto, ExerciseDetailDto, ExerciseQuestionDto } from '@/services/api-client';
 import { UiShowError } from '@/services/errors';
 import { createExerciseFormSchema, type CreateExerciseFormInput } from '@/schemas';
 import ExerciseBasicInfo from './ExerciseBasicInfo';
 import ExerciseDescription from './ExerciseDescription';
 import ExerciseListEditor from './ExerciseListEditor';
 import ExerciseHint from './ExerciseHint';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/default/card';
+import { Button } from '@/components/ui/default/button';
+import { Switch } from '@/components/ui/default/switch';
+import { Sparkles, Loader2 } from 'lucide-react';
 import ResourceDocumentPickerDialog from './ResourceDocumentPickerDialog';
+import { mockAiGenerateExercise } from '@/mocks/ai-service';
+import QuizQuestionBuilder from './QuizQuestionBuilder';
+import FillBlankQuestionBuilder from './FillBlankQuestionBuilder';
 
-export default function CreateExercisePage({ trackId, lessonId }: { trackId: string; lessonId?: string }) {
+export default function CreateExercisePage({ trackId, lessonId, exerciseId }: { trackId: string; lessonId?: string; exerciseId?: string }) {
   const t = useTranslations('CreateExercisePage');
   const router = useRouter();
+  const isEditMode = !!exerciseId;
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
   const [resourceDocIds, setResourceDocIds] = useState<string[]>([]);
   const [resourceDocs, setResourceDocs] = useState<DocumentResponseDto[]>([]);
   const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   const {
     register,
@@ -30,6 +44,9 @@ export default function CreateExercisePage({ trackId, lessonId }: { trackId: str
     formState: { errors },
     setValue,
     getValues,
+    control,
+    reset,
+    watch,
   } = useForm<CreateExerciseFormInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createExerciseFormSchema) as any,
@@ -45,31 +62,116 @@ export default function CreateExercisePage({ trackId, lessonId }: { trackId: str
       steps: [],
       resourceDocIds: [],
       hint: '',
+      type: 'PR_REVIEW',
+      questionsData: [],
+      targetScore: '100',
+      isMandatory: true,
     },
   });
+
+  const currentType = watch('type');
+  const currentQuestions = watch('questionsData');
+  const isMandatory = watch('isMandatory');
+  const isAutoGraded = currentType === 'QUIZ' || currentType === 'FILL_IN_BLANK';
+
+  useEffect(() => {
+    if (!exerciseId) return;
+    setLoading(true);
+    exercisesControllerFindOne({ path: { id: exerciseId }, throwOnError: true })
+      .then((res) => {
+        const data = res.data as ExerciseDetailDto;
+        const objectives = Array.isArray(data.objectives) ? data.objectives : [];
+        const steps = Array.isArray(data.steps) ? data.steps : [];
+        const docs = data.resources ?? [];
+        const docIds = docs.map((d) => d.id);
+        const questions = data.questionsData as ExerciseQuestionDto[] | null;
+        const questionsData = Array.isArray(questions)
+          ? questions.map((question, index) => ({
+            id: question.id || `${data.type ?? 'question'}-${index + 1}`,
+            prompt: question.prompt ?? '',
+            options: Array.isArray(question.options) ? question.options : [],
+            correctAnswer: question.correctAnswer ?? '',
+            explanation: question.explanation ?? '',
+          }))
+          : [];
+        setResourceDocIds(docIds);
+        setResourceDocs(docs);
+        reset({
+          title: data.title,
+          tag: data.tag,
+          difficulty: data.difficulty,
+          estimatedTime: data.estimatedTime,
+          xp: String(data.xp),
+          brief: data.brief,
+          overview: data.overview,
+          objectives,
+          steps,
+          resourceDocIds: docIds,
+          hint: data.hint ?? '',
+          type: data.type ?? 'PR_REVIEW',
+          questionsData,
+          targetScore: String(data.targetScore ?? 100),
+          isMandatory: data.isMandatory ?? true,
+        });
+      })
+      .catch((e) => {
+        if (e instanceof UiShowError) {
+          setServerError(e.errorCode);
+        } else {
+          setServerError('UNKNOWN_ERROR');
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [exerciseId, reset]);
+
+  useEffect(() => {
+    if (tree.length === 0) {
+      setTree([
+        { label: t('breadcrumbTracks', { defaultValue: 'Tracks' }), href: '/admin/tracks' },
+        { label: t('breadcrumbDetail', { defaultValue: 'Detail' }), href: `/admin/tracks/${trackId}` }
+      ]);
+    }
+    pushNode({ label: isEditMode ? t('breadcrumbEdit', { defaultValue: 'Edit' }) : t('breadcrumbCreate', { defaultValue: 'Create' }), href: window.location.pathname });
+  }, [isEditMode, trackId, setTree, pushNode, t, tree.length]);
 
   async function onSubmit(data: CreateExerciseFormInput) {
     setSaving(true);
     setServerError(null);
     try {
-      await exercisesControllerCreate({
-        body: {
-          title: data.title.trim(),
-          trackId,
-          lessonId,
-          tag: data.tag.trim(),
-          difficulty: data.difficulty,
-          estimatedTime: data.estimatedTime.trim(),
-          xp: parseInt(data.xp, 10),
-          brief: data.brief.trim(),
-          overview: data.overview.trim(),
-          objectives: data.objectives.filter((o) => o.trim()),
-          steps: data.steps.filter((s) => s.trim()),
-          resourceDocIds: resourceDocIds.length > 0 ? resourceDocIds : undefined,
-          hint: data.hint?.trim() || undefined,
-        },
-        throwOnError: true,
-      });
+      const body = {
+        title: data.title.trim(),
+        trackId,
+        lessonId,
+        tag: data.tag.trim(),
+        difficulty: data.difficulty,
+        estimatedTime: data.estimatedTime.trim(),
+        xp: parseInt(data.xp, 10),
+        brief: data.brief.trim(),
+        overview: data.overview.trim(),
+        objectives: data.objectives.filter((o) => o.trim()),
+        steps: data.steps.filter((s) => s.trim()),
+        resourceDocIds: resourceDocIds.length > 0 ? resourceDocIds : undefined,
+        hint: data.hint?.trim() || undefined,
+        type: data.type,
+        questionsData: isAutoGraded
+          ? data.questionsData.map((question, index) => ({
+            id: question.id || `${data.type}-${index + 1}`,
+            prompt: question.prompt.trim(),
+            options: data.type === 'QUIZ'
+              ? (question.options ?? []).map((option) => option.trim()).filter(Boolean)
+              : undefined,
+            correctAnswer: question.correctAnswer.trim(),
+            explanation: question.explanation.trim(),
+          }))
+          : undefined,
+        targetScore: isAutoGraded ? Number.parseInt(data.targetScore, 10) : undefined,
+        isMandatory: data.isMandatory,
+      };
+      if (isEditMode) {
+        await exercisesControllerUpdate({ path: { id: exerciseId }, body, throwOnError: true });
+      } else {
+        await exercisesControllerCreate({ body, throwOnError: true });
+      }
       router.push(lessonId ? `/admin/tracks/${trackId}/lessons/${lessonId}` : `/admin/tracks/${trackId}`);
     } catch (e) {
       if (e instanceof UiShowError) {
@@ -81,30 +183,44 @@ export default function CreateExercisePage({ trackId, lessonId }: { trackId: str
     }
   }
 
+  async function handleAiGenerate() {
+    if (aiGenerating) return;
+    const title = getValues('title');
+    if (!title.trim()) {
+      setServerError('titleRequired');
+      return;
+    }
+    setAiGenerating(true);
+    try {
+      const data = await mockAiGenerateExercise({
+        title,
+        tag: getValues('tag') || 'quiz',
+        difficulty: getValues('difficulty') || 'Beginner',
+        brief: getValues('brief'),
+      });
+      setValue('brief', data.brief);
+      setValue('overview', data.overview);
+      setValue('objectives', data.objectives);
+      setValue('steps', data.steps);
+      setValue('hint', data.hint);
+      setValue('estimatedTime', data.estimatedTime);
+      setValue('xp', String(data.xp));
+      setServerError(null);
+    } catch {
+      setServerError('aiGenerateFailed');
+    } finally {
+      setAiGenerating(false);
+    }
+  }
+
   return (
     <div className="px-gutter py-6 max-w-[1200px] mx-auto w-full pb-32">
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-outline font-label-sm mb-6">
-        <button
-          type="button"
-          onClick={() => router.push('/admin/tracks')}
-          className="hover:text-primary transition-colors cursor-pointer"
-        >
-          {t('breadcrumbTracks')}
-        </button>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <button
-          type="button"
-          onClick={() => router.push(`/admin/tracks/${trackId}`)}
-          className="hover:text-primary transition-colors cursor-pointer"
-        >
-          {t('breadcrumbDetail')}
-        </button>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <span className="text-primary">{t('breadcrumbCreate')}</span>
-      </nav>
+      <div className="mb-4">
+        <DynamicBreadcrumbs />
+      </div>
 
-      <h1 className="font-headline-lg text-headline-lg text-on-surface mb-8">{t('title')}</h1>
+      <h1 className="font-headline-lg text-headline-lg text-on-surface mb-8">{isEditMode ? t('editTitle') : t('title')}</h1>
       {lessonId && (
         <div className="mb-6 flex items-center gap-2 rounded-lg border border-primary/20 bg-primary-container/30 px-4 py-3 text-primary font-label-sm">
           <span className="material-symbols-outlined text-[18px]">link</span>
@@ -119,113 +235,200 @@ export default function CreateExercisePage({ trackId, lessonId }: { trackId: str
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-12 gap-lg">
-          {/* Left Column */}
-          <div className="col-span-12 lg:col-span-8 space-y-lg">
-            <ExerciseBasicInfo register={register} errors={errors} t={t} />
+      {loading ? (
+        <div className="flex items-center justify-center py-20 w-full">
+          <span className="material-symbols-outlined animate-spin text-primary text-[32px]">sync</span>
+        </div>
+      ) : (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-12 gap-lg">
+              {/* Left Column */}
+              <div className="col-span-12 lg:col-span-8 space-y-lg">
+                <ExerciseBasicInfo register={register} errors={errors} setValue={setValue} getValues={getValues} t={t} />
 
-            <ExerciseDescription register={register} errors={errors} t={t} />
+                <ExerciseDescription register={register} errors={errors} t={t} />
 
-            <ExerciseListEditor
-              fieldName="objectives"
-              label={t('objectivesTitle')}
-              icon="flag"
-              placeholder={t('objectivesPlaceholder')}
-              emptyText={t('objectivesEmpty')}
-              addLabel={t('objectivesAdd')}
-              errors={errors}
-              setValue={setValue}
-              getValues={getValues}
-              t={t}
-            />
+                {currentType === 'QUIZ' ? (
+                  <QuizQuestionBuilder
+                    questions={currentQuestions}
+                    onChange={(questions) => setValue('questionsData', questions, { shouldValidate: true })}
+                    error={errors.questionsData?.message as string | undefined}
+                    t={t}
+                  />
+                ) : currentType === 'FILL_IN_BLANK' ? (
+                  <FillBlankQuestionBuilder
+                    questions={currentQuestions}
+                    onChange={(questions) => setValue('questionsData', questions, { shouldValidate: true })}
+                    error={errors.questionsData?.message as string | undefined}
+                    t={t}
+                  />
+                ) : null}
 
-            <ExerciseListEditor
-              fieldName="steps"
-              label={t('stepsTitle')}
-              icon="format_list_numbered"
-              placeholder={t('stepsPlaceholder')}
-              emptyText={t('stepsEmpty')}
-              addLabel={t('stepsAdd')}
-              errors={errors}
-              setValue={setValue}
-              getValues={getValues}
-              t={t}
-            />
-          </div>
+                {isAutoGraded && (
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg">{t('gradingTitle')}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-on-surface">{t('targetScoreLabel')}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+                          value={getValues('targetScore') as string}
+                          onChange={(event) => setValue('targetScore', event.target.value, { shouldValidate: true })}
+                        />
+                      </label>
+                      {errors.targetScore && (
+                        <p className="mt-1 flex items-center gap-1 text-[12px] text-destructive">
+                          <span className="material-symbols-outlined text-[14px] text-destructive">error</span>
+                          {t(errors.targetScore.message as string)}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
-          {/* Right Column */}
-          <div className="col-span-12 lg:col-span-4 space-y-lg">
-            {/* Resource Documents */}
-            <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">folder</span>
-                  <h3 className="font-headline-sm text-on-surface">{t('resourcesTitle')}</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowResourcePicker(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 border border-primary/20 text-primary font-label-sm rounded-lg hover:bg-primary/5 transition-colors cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-[16px]">add</span>
-                  {t('resourcesAdd')}
-                </button>
+                <ExerciseListEditor
+                  fieldName="objectives"
+                  label={t('objectivesTitle')}
+                  icon="flag"
+                  placeholder={t('objectivesPlaceholder')}
+                  emptyText={t('objectivesEmpty')}
+                  addLabel={t('objectivesAdd')}
+                  errors={errors}
+                  setValue={setValue}
+                  control={control}
+                  t={t}
+                />
+
+                <ExerciseListEditor
+                  fieldName="steps"
+                  label={t('stepsTitle')}
+                  icon="format_list_numbered"
+                  placeholder={t('stepsPlaceholder')}
+                  emptyText={t('stepsEmpty')}
+                  addLabel={t('stepsAdd')}
+                  errors={errors}
+                  setValue={setValue}
+                  control={control}
+                  t={t}
+                />
               </div>
 
-              {resourceDocIds.length === 0 ? (
-                <p className="text-label-sm text-outline">{t('resourcesEmpty')}</p>
-              ) : (
-                <div className="space-y-2">
-                  {resourceDocIds.map((id) => (
-                    <div
-                      key={id}
-                      className="flex items-center gap-2 px-3 py-2 bg-surface-container-low rounded-lg border border-outline-variant"
-                    >
-                      <span className="material-symbols-outlined text-primary text-[18px]">description</span>
-                      <span className="text-label-sm text-on-surface flex-1 truncate">
-                        {resourceDocs.find((doc) => doc.id === id)?.title ?? t('selectedDocument')}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setResourceDocIds((prev) => prev.filter((i) => i !== id));
-                          setResourceDocs((prev) => prev.filter((doc) => doc.id !== id));
-                        }}
-                        className="material-symbols-outlined text-[16px] text-outline hover:text-error cursor-pointer"
-                      >
-                        close
-                      </button>
+              <div className="col-span-12 lg:col-span-4 space-y-lg">
+                <Card className="shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">{t('mandatoryTitle')}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-on-surface">{t('mandatoryLabel')}</p>
+                      <p className="mt-1 text-xs text-on-surface-variant">{t('mandatoryDescription')}</p>
                     </div>
-                  ))}
+                    <Switch
+                      checked={isMandatory}
+                      onCheckedChange={(checked) => setValue('isMandatory', checked, { shouldValidate: true })}
+                      aria-label={t('mandatoryLabel')}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Resource Documents */}
+                <Card className="shadow-sm">
+                  <CardHeader className="flex flex-row items-center justify-between pb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary">folder</span>
+                      <CardTitle className="text-lg">{t('resourcesTitle')}</CardTitle>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowResourcePicker(true)}
+                      className="text-primary border-primary/20 hover:bg-primary/5"
+                    >
+                      <span className="material-symbols-outlined text-[16px] mr-1">add</span>
+                      {t('resourcesAdd')}
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {resourceDocIds.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">{t('resourcesEmpty')}</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {resourceDocIds.map((id) => (
+                          <div
+                            key={id}
+                            className="flex items-center gap-2 px-3 py-2 bg-secondary/10 rounded-lg border border-border"
+                          >
+                            <span className="material-symbols-outlined text-primary text-[18px]">description</span>
+                            <span className="text-sm text-foreground flex-1 truncate">
+                              {resourceDocs.find((doc) => doc.id === id)?.title ?? t('selectedDocument')}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setResourceDocIds((prev) => prev.filter((i) => i !== id));
+                                setResourceDocs((prev) => prev.filter((doc) => doc.id !== id));
+                              }}
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">close</span>
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <ExerciseHint register={register} t={t} />
+              </div>
+            </div>
+
+            {/* Sticky Footer */}
+            <footer className="fixed bottom-0 left-0 md:left-[256px] right-0 z-40 bg-surface-container-lowest border-t border-outline-variant px-gutter py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+              <div className="max-w-[1200px] mx-auto flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.back()}
+                    className="px-6"
+                  >
+                    {t('cancel')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleAiGenerate}
+                    disabled={aiGenerating}
+                    className="inline-flex items-center gap-1.5 px-4 bg-gradient-to-r from-violet-500 to-purple-600 text-white border-none hover:opacity-90"
+                  >
+                    {aiGenerating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    {aiGenerating ? t('generating') : t('aiGenerate')}
+                  </Button>
                 </div>
-              )}
-            </section>
-
-            <ExerciseHint register={register} t={t} />
-          </div>
-        </div>
-
-        {/* Sticky Footer */}
-        <footer className="fixed bottom-0 left-0 md:left-[256px] right-0 z-40 bg-surface-container-lowest border-t border-outline-variant px-gutter py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-          <div className="max-w-[1200px] mx-auto flex justify-between items-center">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-2 border border-outline-variant rounded-lg font-label-md text-secondary hover:bg-surface-variant transition-colors cursor-pointer"
-            >
-              {t('cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-8 py-2 bg-primary text-on-primary rounded-lg font-label-md hover:opacity-95 shadow-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-            >
-              {saving ? t('saving') : t('submit')}
-            </button>
-          </div>
-        </footer>
-      </form>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="px-8"
+                >
+                  {saving ? t('saving') : isEditMode ? t('update') : t('submit')}
+                </Button>
+              </div>
+            </footer>
+          </form>
+      )}
 
       <ResourceDocumentPickerDialog
         open={showResourcePicker}

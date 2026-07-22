@@ -1,0 +1,15 @@
+{
+  "mandatory": "Bắt buộc",
+  "hint": "Gợi ý",
+  "hideHint": "Ẩn gợi ý",
+  "correct": "Chính xác",
+  "incorrect": "Chưa chính xác",
+  "whyCorrectTitle": "Vì sao đáp án này đúng?",
+  "gradingFeedbackTitle": "Phản hồi chấm điểm",
+  "defaultPassedExplanation": "Lựa chọn của bạn hoàn toàn chính xác với yêu cầu và lý thuyết của bài học.",
+  "defaultFailedExplanation": "Vui lòng xem lại kiến thức trong phần tổng quan bài học và thử lại.",
+  "checkAnswer": "Kiểm tra đáp án",
+  "checking": "Đang kiểm tra...",
+  "continueToNext": "Tiếp tục bài sau",
+  "tryAgain": "Thử lại"
+}

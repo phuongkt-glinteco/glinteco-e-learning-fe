@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { Block, Inline, ListItem, NestedListItem, CalloutVariant } from './types';
+import type { Inline, ListItem, NestedListItem, CalloutVariant } from './types';
 import { parseInline } from './parser';
 
 /* ───────── Inline Renderer ───────── */
@@ -82,7 +82,6 @@ const HIGHLIGHT_PATTERNS: { regex: RegExp; className: string }[] = [
 
 function HighlightedLine({ line }: { line: string }) {
   const tokens: ({ text: string; className?: string })[] = [];
-  let remaining = line;
   let cursor = 0;
 
   const allMatches: { start: number; end: number; className: string; text: string }[] = [];
@@ -90,7 +89,7 @@ function HighlightedLine({ line }: { line: string }) {
   for (const p of HIGHLIGHT_PATTERNS) {
     const regex = new RegExp(p.regex.source, 'g');
     let match: RegExpExecArray | null;
-    while ((match = regex.exec(remaining)) !== null) {
+    while ((match = regex.exec(line)) !== null) {
       allMatches.push({ start: match.index, end: match.index + match[0].length, className: p.className, text: match[0] });
     }
   }
@@ -100,13 +99,13 @@ function HighlightedLine({ line }: { line: string }) {
   for (const m of allMatches) {
     if (m.start < cursor) continue;
     if (m.start > cursor) {
-      tokens.push({ text: remaining.slice(cursor, m.start) });
+      tokens.push({ text: line.slice(cursor, m.start) });
     }
     tokens.push({ text: m.text, className: m.className });
     cursor = m.end;
   }
-  if (cursor < remaining.length) {
-    tokens.push({ text: remaining.slice(cursor) });
+  if (cursor < line.length) {
+    tokens.push({ text: line.slice(cursor) });
   }
 
   return (
@@ -516,15 +515,15 @@ export function MarkdownRenderer({ content }: { content: string }) {
       {blocks.map((block, i) => {
         switch (block.type) {
           case 'heading':
-            return <HeadingBlock key={i} level={block.level} children={block.children} />;
+            return <HeadingBlock key={i} level={block.level}>{block.children}</HeadingBlock>;
           case 'paragraph':
-            return <ParagraphBlock key={i} children={block.children} />;
+            return <ParagraphBlock key={i}>{block.children}</ParagraphBlock>;
           case 'list':
             return <ListBlock key={i} ordered={block.ordered} items={block.items} />;
           case 'table':
             return <TableBlock key={i} headers={block.headers} rows={block.rows} />;
           case 'blockquote':
-            return <BlockquoteBlock key={i} children={block.children} />;
+            return <BlockquoteBlock key={i}>{block.children}</BlockquoteBlock>;
           case 'code':
             return <CodeBlock key={i} language={block.language} code={block.code} filename={block.filename} />;
           case 'terminal':
@@ -536,11 +535,11 @@ export function MarkdownRenderer({ content }: { content: string }) {
           case 'hr':
             return <hr key={i} className="border-outline-variant my-8" />;
           case 'callout':
-            return <CalloutBlock key={i} variant={block.variant} children={block.children} listItems={block.listItems} />;
+            return <CalloutBlock key={i} variant={block.variant} listItems={block.listItems}>{block.children}</CalloutBlock>;
           case 'tabs':
             return <TabsBlock key={i} tabs={block.tabs} />;
           case 'details':
-            return <DetailsBlock key={i} summary={block.summary} children={block.children} />;
+            return <DetailsBlock key={i} summary={block.summary}>{block.children}</DetailsBlock>;
           default:
             return <p key={i} className="text-body-sm text-on-surface-variant italic">Unsupported block</p>;
         }

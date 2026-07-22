@@ -87,14 +87,21 @@ export class CohortSummaryDto {
   @ApiProperty({ description: 'Tên của Cohort', example: 'Cohort 2026' })
   name: string;
 
-  @ApiProperty({ description: 'Số lượng học viên trong Cohort', example: 15 })
-  learnerCount: number;
+  @ApiProperty({ description: 'Mục tiêu số ngày hoàn thành', example: 14, required: false })
+  targetRampDays?: number;
+
+  @ApiProperty({ description: 'Thời gian khởi tạo Cohort', required: false })
+  createdAt?: Date;
+
+  @ApiProperty({ description: 'Số lượng học viên trong Cohort', example: 15, required: false })
+  learnerCount?: number;
 
   @ApiProperty({
     description: 'Tỷ lệ hoàn thành trung bình của Cohort',
     example: 65,
+    required: false,
   })
-  avgCompletion: number;
+  avgCompletion?: number;
 }
 
 export class CohortMetaDto {

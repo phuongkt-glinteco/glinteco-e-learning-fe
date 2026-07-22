@@ -1,0 +1,104 @@
+import { useTranslations } from 'next-intl';
+import { TimeBadge } from '@/components/ui';
+import type { LearnerTrack } from '@/components/features/tracks/learner/types';
+import { getProgressPercent } from './types';
+import { Card, CardContent, CardFooter } from '@/components/ui/default/card';
+import { Badge } from '@/components/ui/default/badge';
+import { Button } from '@/components/ui/default/button';
+
+interface MyCourseCardProps {
+  track: LearnerTrack;
+  onOpen: (trackId: string, currentLessonId: string | null) => void;
+}
+
+export function MyCourseCard({ track, onOpen }: MyCourseCardProps) {
+  const t = useTranslations('MyCoursesPage');
+  const isCompleted = track.status === 'completed';
+  const progress = getProgressPercent(track);
+
+  return (
+    <Card
+      className={`flex min-w-0 flex-col overflow-hidden transition-all duration-200 hover:-translate-y-0.5 shadow-sm hover:shadow-md ${
+        isCompleted
+          ? 'border-green-200/80 hover:border-green-400/80'
+          : 'border-primary/60 ring-1 ring-primary/15 hover:border-primary/60'
+      }`}
+    >
+      <CardContent className="p-5 flex-1 flex flex-col gap-4">
+        <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border ${
+                isCompleted
+                  ? 'border-green-200 bg-green-50 text-green-700'
+                  : 'border-primary/20 bg-primary-container/10 text-primary'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[24px]">
+                {track.icon || (isCompleted ? 'check_circle' : 'play_circle')}
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="text-[12px] font-medium uppercase text-on-surface-variant">
+                {t('milestone', { order: String(track.order).padStart(2, '0') })}
+              </span>
+              <h3 className="text-[20px] font-semibold line-clamp-2 break-words text-on-surface">{track.title}</h3>
+            </div>
+          </div>
+
+          <Badge
+            variant="outline"
+            className={`gap-1 px-2.5 py-1 ${
+              isCompleted
+                ? 'bg-green-50 text-green-700 border-green-200'
+                : 'bg-primary/10 text-primary border-primary/20'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[15px]">
+              {isCompleted ? 'check_circle' : 'play_circle'}
+            </span>
+            <span className="min-w-0 truncate">
+              {isCompleted ? t('status_completed') : t('status_in_progress')}
+            </span>
+          </Badge>
+        </div>
+
+        <p className="text-[14px] min-w-0 line-clamp-3 break-words text-on-surface-variant">
+          {track.description || t('noDescription')}
+        </p>
+
+        <div className="flex min-w-0 flex-wrap gap-3 text-[14px] font-medium text-on-surface-variant">
+          <TimeBadge time={track.estimatedTime} />
+          <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+            <span className="material-symbols-outlined text-[15px]">menu_book</span>
+            <span className="min-w-0 truncate">{t('lessonCount', { count: track.lessonCount })}</span>
+          </span>
+        </div>
+
+        <div>
+          <div className="mb-1.5 flex items-center justify-between text-[14px] font-medium text-on-surface-variant">
+            <span>{t('progress')}</span>
+            <span className="text-on-surface">{progress}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-surface-container">
+            <div
+              className={`h-full rounded-full ${isCompleted ? 'bg-green-500' : 'bg-primary'}`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      </CardContent>
+
+      <CardFooter className="mt-auto flex min-h-16 items-center justify-center px-5 py-4">
+        <Button
+          variant={isCompleted ? 'outline' : 'default'}
+          onClick={() => onOpen(track.id, track.currentLessonId)}
+          className="h-10 w-full justify-center gap-1.5"
+        >
+          {isCompleted ? t('review') : t('continue')}
+          <span className="material-symbols-outlined text-[16px] transition-transform group-hover/button:translate-x-1">arrow_forward</span>
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}

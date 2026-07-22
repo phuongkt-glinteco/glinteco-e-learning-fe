@@ -14,6 +14,7 @@ import { SubmissionHistory } from './submission-history.entity';
 
 export enum SubmissionStatus {
   PENDING = 'pending',
+  IN_PROGRESS = 'in_progress',
   SUBMITTED = 'submitted',
   CHANGES = 'changes',
   APPROVED = 'approved',
@@ -39,8 +40,8 @@ export class Submission {
   @JoinColumn({ name: 'exerciseId' })
   exercise: Exercise;
 
-  @Column()
-  prUrl: string;
+  @Column({ nullable: true, type: 'text' })
+  prUrl: string | null;
 
   @Column({
     type: 'enum',

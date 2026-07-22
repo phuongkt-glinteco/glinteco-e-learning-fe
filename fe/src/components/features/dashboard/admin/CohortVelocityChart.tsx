@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/default/card';
 
 interface BarItem {
   label: string;
@@ -50,28 +51,32 @@ export default function CohortVelocityChart({ data }: CohortVelocityChartProps) 
   const below50 = data.filter((d) => d.value < 50).length;
 
   return (
-    <div className="bg-surface border border-outline-variant rounded-lg p-md">
-      <div className="flex justify-between items-center mb-4">
-        <h4 className="font-label-md text-label-md text-primary">{t('trackCompletion')}</h4>
-        <span className="material-symbols-outlined text-sm text-on-surface-variant">donut_small</span>
-      </div>
-      <div className="flex items-center gap-lg">
-        <DonutChart completed={completed} above50={above50} below50={below50} />
-        <div className="flex flex-col gap-2 text-[11px]">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
-            <span>{t('chartCompleted', { count: completed, total })}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0" />
-            <span>{t('chartAbove50', { count: above50, total })}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-surface-container-highest flex-shrink-0" />
-            <span>{t('chartBelow50', { count: below50, total })}</span>
+    <Card className="border-outline-variant shadow-sm h-full">
+      <CardHeader className="pb-2 px-5">
+        <CardTitle className="flex justify-between items-center text-primary text-base">
+          {t('trackCompletion')}
+          <span className="material-symbols-outlined text-sm text-on-surface-variant">donut_small</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-5 pb-5 pt-2">
+        <div className="flex items-center gap-6">
+          <DonutChart completed={completed} above50={above50} below50={below50} />
+          <div className="flex flex-col gap-2 text-[11px] font-medium">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
+              <span className="text-on-surface">{t('chartCompleted', { count: completed, total })}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0" />
+              <span className="text-on-surface">{t('chartAbove50', { count: above50, total })}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-surface-container-highest flex-shrink-0" />
+              <span className="text-on-surface">{t('chartBelow50', { count: below50, total })}</span>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

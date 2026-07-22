@@ -58,7 +58,11 @@ export class ExercisesController {
     description: 'Lấy danh sách thành công.',
   })
   findAll(@Query() query: ExerciseQueryDto, @CurrentUser() currentUser: User) {
-    return this.exercisesService.findAll(query, currentUser.id);
+    return this.exercisesService.findAll(
+      query,
+      currentUser?.id,
+      currentUser?.role,
+    );
   }
 
   @Get(':id')
@@ -76,6 +80,17 @@ export class ExercisesController {
     @CurrentUser() currentUser: User,
   ) {
     return this.exercisesService.findOne(id, currentUser.id, currentUser.role);
+  }
+
+  @Post(':id/start')
+  @ApiOperation({ summary: 'Bắt đầu làm bài tập, chuyển trạng thái sang in_progress (User Story 7)' })
+  @ApiResponse({ status: 200, description: 'Bắt đầu làm bài thành công.' })
+  @ApiResponse({ status: 404, description: 'Không tìm thấy bài tập.' })
+  startExercise(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.exercisesService.startExercise(id, currentUser.id);
   }
 
   @Post(':id/submit-auto')

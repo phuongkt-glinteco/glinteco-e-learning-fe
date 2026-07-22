@@ -83,6 +83,7 @@ describe('ExercisesController', () => {
       expect(mockExercisesService.findAll).toHaveBeenCalledWith(
         query,
         mockUser.id,
+        mockUser.role,
       );
       expect(result).toEqual({ data: [] });
     });

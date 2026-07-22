@@ -1,0 +1,20 @@
+{
+  "m": "p",
+  "min": "phút",
+  "h": "g",
+  "hr": "g",
+  "d": "n",
+  "day": "ngày",
+  "days": "ngày",
+  "w": "t",
+  "week": "tuần",
+  "weeks": "tuần",
+  "M": "th",
+  "month": "tháng",
+  "months": "tháng",
+  "minutes": "Phút",
+  "hours": "Giờ",
+  "days_label": "Ngày",
+  "weeks_label": "Tuần",
+  "months_label": "Tháng"
+}

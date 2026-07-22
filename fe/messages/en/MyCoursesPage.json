@@ -1,0 +1,22 @@
+{
+  "title": "My Courses",
+  "subtitle": "Continue active courses and review the tracks you have completed.",
+  "tab_in_progress": "In progress",
+  "tab_completed": "Completed",
+  "emptyTitle": "No active courses yet",
+  "emptyDescription": "Open the learning path to start your first available course.",
+  "emptyInProgressTitle": "No courses in progress",
+  "emptyInProgressDescription": "Pick an unlocked course from the learning path to begin.",
+  "emptyCompletedTitle": "No completed courses yet",
+  "emptyCompletedDescription": "Completed courses will appear here for quick review.",
+  "exploreTracks": "Explore tracks",
+  "resultCount": "{count, plural, =0 {No courses} =1 {1 course} other {# courses}}",
+  "milestone": "Milestone {order}",
+  "status_in_progress": "In progress",
+  "status_completed": "Completed",
+  "noDescription": "Track details are being prepared.",
+  "lessonCount": "{count, plural, =0 {0 lessons} =1 {1 lesson} other {# lessons}}",
+  "progress": "Progress",
+  "continue": "Continue",
+  "review": "Review"
+}

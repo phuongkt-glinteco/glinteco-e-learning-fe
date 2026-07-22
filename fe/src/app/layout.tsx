@@ -1,11 +1,19 @@
 import './globals.css';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getMessages } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
 import { LanguageProvider } from '@/providers/LanguageProvider';
 import { ApiErrorProvider } from '@/providers/ApiErrorProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 import SessionProvider from '@/providers/SessionProvider';
 import { ApiErrorContainer } from '@/components/ui/containers/ApiErrorContainer';
+import { TooltipProvider } from '@/components/ui/default/tooltip';
+import { Toaster } from '@/components/ui/default/sonner';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import type { ReactNode } from 'react';
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata = {
   title: 'RAMP UP',
@@ -14,9 +22,10 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning className={cn("font-sans", geist.variable)}>
       <head>
         <link rel="icon" href="/logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,16 +37,23 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
 
       <body>
-        <SessionProvider>
-          <LanguageProvider initialLocale={locale}>
-            <ApiErrorProvider>
-              <AuthProvider>
-                {children}
-                <ApiErrorContainer />
-              </AuthProvider>
-            </ApiErrorProvider>
-          </LanguageProvider>
-        </SessionProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <SessionProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+              <LanguageProvider initialLocale={locale}>
+                <TooltipProvider>
+                  <ApiErrorProvider>
+                    <AuthProvider>
+                      {children}
+                      <ApiErrorContainer />
+                      <Toaster position="bottom-right" richColors closeButton expand />
+                    </AuthProvider>
+                  </ApiErrorProvider>
+                </TooltipProvider>
+              </LanguageProvider>
+            </ThemeProvider>
+          </SessionProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

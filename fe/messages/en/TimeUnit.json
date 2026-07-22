@@ -1,0 +1,20 @@
+{
+  "m": "m",
+  "min": "min",
+  "h": "h",
+  "hr": "h",
+  "d": "d",
+  "day": "day",
+  "days": "days",
+  "w": "w",
+  "week": "week",
+  "weeks": "weeks",
+  "M": "mo",
+  "month": "month",
+  "months": "months",
+  "minutes": "Minutes",
+  "hours": "Hours",
+  "days_label": "Days",
+  "weeks_label": "Weeks",
+  "months_label": "Months"
+}

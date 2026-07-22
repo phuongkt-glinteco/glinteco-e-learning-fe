@@ -58,8 +58,8 @@ export class SubmissionsService {
       return {
         id: ex.id,
         title: ex.title,
-        objectives: ex.objectives || {},
-        steps: ex.steps || {},
+        objectives: ex.content?.objectives || {},
+        steps: ex.content?.steps || {},
         submission: sub
           ? {
               id: sub.id,
@@ -137,7 +137,7 @@ export class SubmissionsService {
     event.trackId = exercise.trackId;
     event.trackName = exercise.track?.title || '';
     event.prUrl = prUrl;
-    event.submittedAt = savedSubmission.submittedAt || new Date();
+    event.submittedAt = savedSubmission.submittedAt ?? new Date();
     this.eventEmitter.emit('submission.created', event);
 
     // Trigger notification stub
@@ -211,7 +211,7 @@ export class SubmissionsService {
       event.trackId = exercise.trackId;
       event.trackName = exercise.track?.title || '';
       event.prUrl = prUrl;
-      event.submittedAt = savedSubmission.submittedAt || new Date();
+      event.submittedAt = savedSubmission.submittedAt ?? new Date();
       event.previousComments = previousComments;
       this.eventEmitter.emit('submission.resubmitted', event);
     }

@@ -1,6 +1,6 @@
 import { LessonEditorPage } from '@/components/features/tracks/components/LessonEditorPage';
 
-export default async function Page({
+export default async function NewTrackLessonPage({
   params,
 }: {
   params: Promise<{ id: string }>;

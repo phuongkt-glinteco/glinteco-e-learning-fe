@@ -72,17 +72,7 @@ export class AuthService {
       throw new BadRequestException('Email đã được sử dụng');
     }
 
-    let defaultCohort = await this.cohortRepository.findOne({
-      where: { isActive: true, isDefault: true },
-      order: { createdAt: 'DESC' },
-    });
-
-    if (!defaultCohort) {
-      defaultCohort = await this.cohortRepository.findOne({
-        where: { isActive: true },
-        order: { createdAt: 'DESC' },
-      });
-    }
+    const defaultCohort = await this.findDefaultCohort();
 
     const passwordHash = await bcrypt.hash(dto.password, SALT_ROUNDS);
     const user = await this.usersService.create({
@@ -353,6 +343,7 @@ export class AuthService {
     let user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
+      const defaultCohort = await this.findDefaultCohort();
       user = this.userRepository.create({
         email,
         name: payload.name ?? email.split('@')[0],
@@ -361,16 +352,39 @@ export class AuthService {
         level: 1,
         xp: 0,
         streakDays: 0,
+        cohortId: defaultCohort?.id ?? null,
       });
       return this.userRepository.save(user);
     }
 
+    let changed = false;
     if (!user.googleId) {
       user.googleId = googleId;
-      return this.userRepository.save(user);
+      changed = true;
     }
 
-    return user;
+    if (!user.cohortId) {
+      const defaultCohort = await this.findDefaultCohort();
+      if (defaultCohort) {
+        user.cohortId = defaultCohort.id;
+        changed = true;
+      }
+    }
+
+    return changed ? this.userRepository.save(user) : user;
+  }
+
+  private async findDefaultCohort(): Promise<Cohort | null> {
+    return (
+      (await this.cohortRepository.findOne({
+        where: { isActive: true, isDefault: true },
+        order: { createdAt: 'DESC' },
+      })) ??
+      this.cohortRepository.findOne({
+        where: { isActive: true },
+        order: { createdAt: 'DESC' },
+      })
+    );
   }
 
   private async buildAuthResponse(user: User): Promise<AuthResponseDto> {

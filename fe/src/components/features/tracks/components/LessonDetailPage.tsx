@@ -7,6 +7,9 @@ import { MarkdownRenderer } from '@/lib/md-renderer';
 import { lessonsControllerFindOneLesson, lessonsControllerFindExercisesByLesson, documentsControllerCreate } from '@/services/api-client';
 import type { LessonDetailDto, ExerciseSummaryDto, DocumentResponseDto } from '@/services/api-client';
 import ResourceDocumentPickerDialog from '@/components/features/tracks/exercises/ResourceDocumentPickerDialog';
+import { useBreadcrumbStore } from '@/stores/breadcrumbStore';
+import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
+import { useLessonPuckConfig, PuckViewer, isPuckJsonBody, parseBodyToPuckData } from '@/components/puck-editor';
 
 const TYPE_ICON: Record<string, string> = {
   video: 'play_circle',
@@ -18,10 +21,12 @@ const TYPE_ICON: Record<string, string> = {
 
 export default function LessonDetailPage({ trackId, lessonId }: { trackId: string; lessonId: string }) {
   const t = useTranslations('TrackDetailPage');
+  const lessonConfig = useLessonPuckConfig();
   const [lesson, setLesson] = useState<LessonDetailDto | null>(null);
   const [exercises, setExercises] = useState<ExerciseSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { pushNode, setTree, tree } = useBreadcrumbStore();
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [addingDoc, setAddingDoc] = useState(false);
@@ -48,12 +53,24 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    if (lesson) {
+      if (tree.length === 0) {
+        setTree([
+          { label: t('breadcrumbTracks', { defaultValue: 'Tracks' }), href: '/admin/tracks' },
+          { label: t('breadcrumbDetail', { defaultValue: 'Detail' }), href: `/admin/tracks/${trackId}` }
+        ]);
+      }
+      pushNode({ label: lesson.title, href: window.location.pathname });
+    }
+  }, [lesson?.id, trackId, setTree, pushNode, tree.length]);
+
   const handleAddDocuments = useCallback(async (docIds: string[]) => {
     if (!lesson || docIds.length === 0) return;
     setAddingDoc(true);
     setDocError(t('lessonDocumentLinkUnsupported'));
     setAddingDoc(false);
-  }, [lesson, t]);
+  }, [lesson]);
 
   const handleCreateDocument = useCallback(async () => {
     setAddingDoc(true);
@@ -79,11 +96,11 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
     } finally {
       setAddingDoc(false);
     }
-  }, [handleAddDocuments, t]);
+  }, [handleAddDocuments]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] w-full">
         <div className="flex flex-col items-center gap-3">
           <span className="material-symbols-outlined text-[32px] text-outline animate-spin">refresh</span>
           <p className="text-outline font-label-md">{t('loading')}</p>
@@ -94,7 +111,7 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
 
   if (error || !lesson) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[400px] w-full">
         <div className="flex flex-col items-center gap-4 text-center">
           <span className="material-symbols-outlined text-[48px] text-error">error</span>
           <p className="text-on-surface font-label-lg">{t('failedToLoad')}</p>
@@ -111,13 +128,9 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
 
   return (
     <div className="px-gutter py-6 max-w-[1200px] mx-auto w-full">
-      <nav className="flex items-center gap-2 text-outline font-label-sm mb-6">
-        <Link href="/admin/tracks" className="hover:text-primary transition-colors">{t('breadcrumbTracks')}</Link>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <Link href={`/admin/tracks/${trackId}`} className="hover:text-primary transition-colors">{lesson.title}</Link>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <span className="text-primary">{lesson.title}</span>
-      </nav>
+      <div className="mb-4">
+        <DynamicBreadcrumbs />
+      </div>
 
       <div className="grid grid-cols-12 gap-lg">
         <div className="col-span-12 lg:col-span-8 space-y-lg">
@@ -140,9 +153,18 @@ export default function LessonDetailPage({ trackId, lessonId }: { trackId: strin
             </div>
             <div className="border-t border-outline-variant pt-6">
               {lesson.body ? (
-                <div className="text-on-surface-variant">
-                  <MarkdownRenderer content={lesson.body} />
-                </div>
+                isPuckJsonBody(lesson.body) ? (
+                  <div className="puck-viewer-container w-full">
+                    <PuckViewer
+                      config={lessonConfig}
+                      data={parseBodyToPuckData(lesson.body, lesson)}
+                    />
+                  </div>
+                ) : (
+                  <div className="text-on-surface-variant">
+                    <MarkdownRenderer content={lesson.body} />
+                  </div>
+                )
               ) : (
                 <p className="text-body-sm text-secondary italic">No content yet.</p>
               )}

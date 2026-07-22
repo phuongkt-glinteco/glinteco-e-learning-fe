@@ -29,9 +29,10 @@ export class SubmissionFeedItemDto {
 
   @ApiProperty({
     description: 'Đường dẫn Pull Request',
+    nullable: true,
     example: 'https://github.com/org/repo/pull/1',
   })
-  prUrl: string;
+  prUrl: string | null;
 
   @ApiProperty({ enum: SubmissionStatus, description: 'Trạng thái bài nộp' })
   status: SubmissionStatus;
@@ -81,9 +82,10 @@ export class SubmissionDetailDto {
 
   @ApiProperty({
     description: 'Đường dẫn Pull Request',
+    nullable: true,
     example: 'https://github.com/org/repo/pull/1',
   })
-  prUrl: string;
+  prUrl: string | null;
 
   @ApiProperty({ enum: SubmissionStatus, description: 'Trạng thái bài nộp' })
   status: SubmissionStatus;
@@ -115,9 +117,10 @@ export class SubmissionHistoryItemDto {
 
   @ApiProperty({
     description: 'Đường dẫn Pull Request tại thời điểm nộp',
+    nullable: true,
     example: 'https://github.com/org/repo/pull/1',
   })
-  prUrl: string;
+  prUrl: string | null;
 
   @ApiProperty({
     enum: SubmissionStatus,

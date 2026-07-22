@@ -1,6 +1,9 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { Card, CardContent } from '@/components/ui/default/card';
+import { Button } from '@/components/ui/default/button';
+import { Badge } from '@/components/ui/default/badge';
 
 interface TrackHeroProps {
   title: string;
@@ -18,21 +21,21 @@ export function TrackHero({
   const t = useTranslations('TrackPreview');
 
   return (
-    <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-gutter relative overflow-hidden group shadow-sm flex flex-col md:flex-row gap-gutter">
+    <Card className="relative overflow-hidden group flex flex-col md:flex-row gap-gutter border-outline-variant shadow-sm">
       <div className="absolute top-0 right-0 w-64 h-64 bg-surface-container-low rounded-bl-full -mr-16 -mt-16 opacity-50 pointer-events-none transition-transform group-hover:scale-105"></div>
-      <div className="relative z-10 flex-1">
-        <div className="inline-flex items-center px-2 py-1 rounded bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant mb-4 uppercase tracking-wider">
+      <CardContent className="relative z-10 flex-1 p-gutter border-none">
+        <Badge variant="secondary" className="mb-4 uppercase tracking-wider text-[12px] font-medium text-on-surface-variant bg-surface-container-low hover:bg-surface-container-low">
           {t('coreCurriculum')}
-        </div>
-        <h1 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-4">
+        </Badge>
+        <h1 className="text-[32px] md:text-[40px] font-bold text-primary mb-4">
           {title || t('untitledTrack')}
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl mb-8 whitespace-pre-line">
+        <p className="text-[16px] text-on-surface-variant max-w-2xl mb-8 whitespace-pre-line">
           {description || t('noDescription')}
         </p>
         <div className="flex flex-col gap-6 mb-8">
           <div className="max-w-md">
-            <div className="flex justify-between items-center mb-2 font-label-sm text-label-sm">
+            <div className="flex justify-between items-center mb-2 text-[14px] font-medium">
               <span className="text-on-surface">{t('trackProgress')}</span>
               <span className="text-on-surface-variant">0%</span>
             </div>
@@ -40,19 +43,19 @@ export function TrackHero({
               <div className="h-full bg-primary rounded-full w-[0%]"></div>
             </div>
           </div>
-          <div className="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+          <div className="flex items-center gap-2 text-[14px] font-medium text-on-surface-variant">
             <span className="material-symbols-outlined text-[18px]">schedule</span>
             <span>{t('estTotalContent', { time: estimatedTime })}</span>
           </div>
         </div>
-        <button
+        <Button
           onClick={onStartTrack}
-          className="bg-primary text-on-primary px-6 py-3 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:opacity-90 transition-opacity w-full md:w-auto justify-center cursor-pointer"
+          className="w-full md:w-auto gap-2"
         >
           {t('startTrack')}
           <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-        </button>
-      </div>
-    </section>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { formatMinutes, parseTimeToMinutes } from '@/lib/time-utils';
 
-export function SummaryCard() {
-  const t = useTranslations('CreateTrackPage');
+export function SummaryCard({ ns = 'CreateTrackPage', exerciseCount = 0 }: { ns?: string; exerciseCount?: number }) {
+  const t = useTranslations(ns);
   const tu = useTranslations('TimeUnit');
   const { title, lessons } = useTrackDraftStore();
   const totalMin = lessons.reduce((sum, l) => sum + parseTimeToMinutes(l.estimatedTime), 0);
@@ -14,7 +14,7 @@ export function SummaryCard() {
     <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
       <div className="h-24 bg-gradient-to-br from-primary to-secondary relative flex items-end p-6">
         <span className="relative z-10 px-2 py-0.5 bg-white/20 backdrop-blur-md text-white border border-white/30 rounded text-[10px] uppercase font-bold tracking-widest">
-          {t('livePreview')}
+          {t('liveSummary')}
         </span>
       </div>
       <div className="p-6">
@@ -54,12 +54,14 @@ export function SummaryCard() {
             </div>
           </div>
           <div className="flex items-start gap-4 relative z-10">
-            <div className="w-6 h-6 rounded-full bg-surface-container text-secondary flex items-center justify-center mt-1">
-              <span className="material-symbols-outlined text-[14px]">lock</span>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center mt-1 ${lessons.length > 0 || exerciseCount > 0 ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'}`}>
+              <span className="material-symbols-outlined text-[14px]">list_alt</span>
             </div>
             <div>
-              <p className="label-md text-label-md text-secondary">{t('exercises')}</p>
-              <p className="text-body-sm text-secondary/60 italic">{t('availableAfterCreation')}</p>
+              <p className={`label-md text-label-md ${lessons.length === 0 && exerciseCount === 0 ? 'text-secondary' : ''}`}>{t('exercises')}</p>
+              <p className="text-body-sm text-secondary/60">
+                {lessons.length} {t(lessons.length === 1 ? 'lesson_one' : 'lesson_other')} & {exerciseCount} {t(exerciseCount === 1 ? 'exercise_one' : 'exercise_other')}
+              </p>
             </div>
           </div>
         </div>

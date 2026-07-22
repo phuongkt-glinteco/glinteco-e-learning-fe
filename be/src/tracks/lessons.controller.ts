@@ -80,7 +80,11 @@ export class LessonsController {
     @Param('id') lessonId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.exercisesService.findAll({ lessonId }, req.user as any);
+    return this.exercisesService.findAll(
+      { lessonId },
+      req.user.id,
+      req.user.role,
+    );
   }
 
   @ApiOperation({ summary: 'Tạo bài học mới trong track (Admin only)' })

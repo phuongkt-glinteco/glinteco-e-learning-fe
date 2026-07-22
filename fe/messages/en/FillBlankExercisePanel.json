@@ -1,0 +1,13 @@
+{
+  "title": "Interactive Code Completion",
+  "defaultBrief": "Fill in the blanks below to complete the correct syntax and logic.",
+  "verifiedSuccessTitle": "Code Successfully Verified!",
+  "verifiedFailedTitle": "Verification Issues Detected",
+  "verifiedSuccessDesc": "All {count} blanks matched the expected syntax and logic.",
+  "verifiedFailedDesc": "Please check your answers. Some syntax elements or keywords are incorrect.",
+  "checkCode": "Check Code",
+  "checkingCode": "Verifying...",
+  "continueToNext": "Continue to Next",
+  "tryAgain": "Try Again",
+  "blankLabel": "Blank #{index}"
+}

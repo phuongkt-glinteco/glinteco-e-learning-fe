@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/default/select';
 
 interface CohortOption {
   id: string;
@@ -19,22 +20,18 @@ export default function CohortSelector({ cohorts, selectedId, onChange }: Cohort
   return (
     <div className="relative w-full max-w-xs">
       <label className="sr-only">{t('selectCohort')}</label>
-      <div className="relative">
-        <select
-          value={selectedId}
-          onChange={(e) => onChange(e.target.value)}
-          className="appearance-none w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 pr-8 text-body-sm font-medium text-on-surface-variant focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all hover:bg-surface-container-low"
-        >
+      <Select value={selectedId} onValueChange={onChange}>
+        <SelectTrigger className="w-full bg-surface border-outline-variant hover:bg-surface-container-low transition-colors text-body-sm font-medium h-10">
+          <SelectValue placeholder={t('selectCohort')} />
+        </SelectTrigger>
+        <SelectContent>
           {cohorts.map((c) => (
-            <option key={c.id} value={c.id}>
+            <SelectItem key={c.id} value={c.id}>
               {c.name}
-            </option>
+            </SelectItem>
           ))}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-on-surface-variant">
-          <span className="material-symbols-outlined text-sm">expand_more</span>
-        </div>
-      </div>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

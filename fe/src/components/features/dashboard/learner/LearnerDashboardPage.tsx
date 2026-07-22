@@ -1,6 +1,5 @@
 'use client';
 
-import Skeleton from '@/components/ui/loading/Skeleton';
 import WelcomeSection from './WelcomeSection';
 import StatsGrid from './StatsGrid';
 import ContinueLearningSection from './ContinueLearningSection';
@@ -9,7 +8,7 @@ import RecentDocumentsSection from './RecentDocumentsSection';
 
 export default function LearnerDashboardPage() {
   return (
-    <div className="max-w-container-max mx-auto flex flex-col gap-lg p-16">
+    <div className="max-w-container-max mx-auto flex flex-col gap-lg p-16 w-full">
       <WelcomeSection />
       <StatsGrid />
       <div className="flex flex-col gap-lg">

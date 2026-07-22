@@ -828,19 +828,11 @@ export type ExerciseSummaryDto = {
     /**
      * Trạng thái bài nộp cá nhân của user
      */
-    status: 'pending' | 'submitted' | 'approved' | 'changes';
-    /**
-     * Đường dẫn PR nộp bài tập
-     */
-    prUrl: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * ID của bài học liên kết với bài tập (nếu có)
-     */
-    lessonId: {
-        [key: string]: unknown;
-    } | null;
+    status: 'pending' | 'submitted' | 'approved' | 'changes' | 'rejected';
+    prUrl: string | null;
+    lessonId: string | null;
+    type: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
+    isMandatory: boolean;
 };
 
 export type ExerciseListResponseDto = {
@@ -951,6 +943,10 @@ export type ExerciseQuestionDto = {
      * Đáp án đúng. KHÔNG bao giờ trả về cho học viên (bị strip khi GET).
      */
     correctAnswer: string;
+    /**
+     * Lời giải thích, chỉ trả cho learner sau khi chấm.
+     */
+    explanation: string;
 };
 
 export type CreateExerciseDto = {
@@ -1065,18 +1061,8 @@ export type ExerciseDetailDto = {
      * Mô tả tổng quan chi tiết bài tập
      */
     overview: string;
-    /**
-     * Các mục tiêu cần đạt được
-     */
-    objectives: {
-        [key: string]: unknown;
-    };
-    /**
-     * Các bước hướng dẫn thực hiện
-     */
-    steps: {
-        [key: string]: unknown;
-    };
+    objectives: Array<string>;
+    steps: Array<string>;
     /**
      * Tài liệu hướng dẫn liên kết
      */
@@ -1088,19 +1074,13 @@ export type ExerciseDetailDto = {
     /**
      * Trạng thái bài nộp cá nhân của user
      */
-    status: 'pending' | 'submitted' | 'approved' | 'changes';
-    /**
-     * Đường dẫn PR nộp bài tập
-     */
-    prUrl: {
-        [key: string]: unknown;
-    } | null;
-    /**
-     * ID của bài học liên kết với bài tập (nếu có)
-     */
-    lessonId: {
-        [key: string]: unknown;
-    } | null;
+    status: 'pending' | 'submitted' | 'approved' | 'changes' | 'rejected';
+    prUrl: string | null;
+    lessonId: string | null;
+    type: 'PR_REVIEW' | 'QUIZ' | 'FILL_IN_BLANK';
+    questionsData: Array<ExerciseQuestionResponseDto> | null;
+    targetScore: number;
+    isMandatory: boolean;
 };
 
 export type AutoAnswerDto = {
@@ -1121,6 +1101,7 @@ export type SubmitAutoDto = {
 export type AutoGradeQuestionResultDto = {
     questionId: string;
     correct: boolean;
+    explanation: string | null;
 };
 
 export type AutoGradeResultDto = {
@@ -1623,6 +1604,26 @@ export type MarkReadResponseDto = {
      * Trạng thái đã đọc
      */
     read: boolean;
+};
+
+export type NotificationSettingsDto = {
+    EXERCISE_REVIEWED: boolean;
+    EXERCISE_CHANGES_REQUESTED: boolean;
+    COHORT_ASSIGNED: boolean;
+    NEW_LESSON_PUBLISHED: boolean;
+};
+
+export type UpdateNotificationSettingsDto = {
+    EXERCISE_REVIEWED?: boolean;
+    EXERCISE_CHANGES_REQUESTED?: boolean;
+    COHORT_ASSIGNED?: boolean;
+    NEW_LESSON_PUBLISHED?: boolean;
+};
+
+export type ExerciseQuestionResponseDto = {
+    id: string;
+    prompt: string;
+    options?: Array<string>;
 };
 
 export type AppControllerGetHelloData = {
@@ -3459,3 +3460,35 @@ export type NotificationsControllerMarkReadResponses = {
 };
 
 export type NotificationsControllerMarkReadResponse = NotificationsControllerMarkReadResponses[keyof NotificationsControllerMarkReadResponses];
+
+export type UsersControllerGetNotificationSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/notification-settings';
+};
+
+export type UsersControllerGetNotificationSettingsResponses = {
+    /**
+     * Lấy cấu hình thông báo thành công.
+     */
+    200: NotificationSettingsDto;
+};
+
+export type UsersControllerGetNotificationSettingsResponse = UsersControllerGetNotificationSettingsResponses[keyof UsersControllerGetNotificationSettingsResponses];
+
+export type UsersControllerUpdateNotificationSettingsData = {
+    body: UpdateNotificationSettingsDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/notification-settings';
+};
+
+export type UsersControllerUpdateNotificationSettingsResponses = {
+    /**
+     * Cập nhật cấu hình thông báo thành công.
+     */
+    200: NotificationSettingsDto;
+};
+
+export type UsersControllerUpdateNotificationSettingsResponse = UsersControllerUpdateNotificationSettingsResponses[keyof UsersControllerUpdateNotificationSettingsResponses];

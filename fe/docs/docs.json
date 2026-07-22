@@ -5256,14 +5256,14 @@
                                                                                                         },
                                                                                       "explanation":  {
                                                                                                           "type":  "string",
-                                                                                                          "nullable":  true,
                                                                                                           "description":  "Lời giải thích, chỉ trả cho learner sau khi chấm."
                                                                                                       }
                                                                                   },
                                                                    "required":  [
                                                                                     "id",
                                                                                     "prompt",
-                                                                                    "correctAnswer"
+                                                                                    "correctAnswer",
+                                                                                    "explanation"
                                                                                 ]
                                                                },
                                        "CreateExerciseDto":  {

@@ -745,7 +745,7 @@ export function normalizeSubmissionState(
       ['date', 'at', 'reviewedAt']
     ),
     canSubmit: !prUrl && (status === 'pending' || status === 'in_progress'),
-    canResubmit: status === 'changes',
+    canResubmit: status === 'changes' || status === 'approved',
   };
 }
 

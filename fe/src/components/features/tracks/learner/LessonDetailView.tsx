@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { Component, useMemo, type ErrorInfo, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 import { StatusBadge, TimeBadge } from '@/components/ui';
 import CircleMeter from '@/components/ui/CircleMeter';
@@ -8,7 +8,8 @@ import { MarkdownRenderer } from '@/lib/md-renderer';
 import { DynamicBreadcrumbs } from '@/components/ui/containers/DynamicBreadcrumbs';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/default/alert-dialog';
 import { Badge } from '@/components/ui/default/badge';
-import { PuckViewer, readLessonPuckData, useLessonPuckConfig } from '@/components/puck-editor';
+import { PuckViewer, useLessonPuckConfig } from '@/components/puck-editor';
+import { readLessonPuckData } from '@/components/puck-editor/reader';
 import type { LearnerExercise, LearnerLesson, LearnerTrack } from './types';
 import { getLessonAccessState, type LessonCompletionBlocker } from './utils';
 
@@ -36,6 +37,36 @@ function getExerciseTypeLabel(type: LearnerExercise['type']) {
   if (type === 'QUIZ') return 'Quiz';
   if (type === 'FILL_IN_BLANK') return 'Fill in the Blank';
   return 'PR Review';
+}
+
+class LessonContentErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Lesson content render failed', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-lowest p-6">
+          <h3 className="headline-sm text-on-surface">Lesson content could not be rendered</h3>
+          <p className="mt-2 body-sm text-on-surface-variant">
+            This lesson body is malformed or contains an unsupported block.
+          </p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
 }
 
 export function LessonDetailView({
@@ -225,9 +256,11 @@ export function LessonDetailView({
 
           {activeLesson.body.trim() ? (
             lessonBodyResult?.ok ? (
-              <div className="min-w-0">
-                <PuckViewer config={lessonConfig} data={lessonBodyResult.data} />
-              </div>
+              <LessonContentErrorBoundary>
+                <div className="min-w-0">
+                  <PuckViewer config={lessonConfig} data={lessonBodyResult.data} />
+                </div>
+              </LessonContentErrorBoundary>
             ) : lessonBodyResult?.reason === 'invalid_json' ? (
               <article className="min-w-0 break-words text-on-surface-variant">
                 <MarkdownRenderer content={activeLesson.body} />

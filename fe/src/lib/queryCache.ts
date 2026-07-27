@@ -4,7 +4,7 @@ interface CacheEntry<T> {
 }
 
 class QueryCache {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
 
   set<T>(key: string, data: T) {
     this.cache.set(key, { data, updatedAt: Date.now() });

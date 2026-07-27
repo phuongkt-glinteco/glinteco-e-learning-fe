@@ -13,6 +13,7 @@ import {
   saveTokens,
   clearTokens,
   attemptTokenRefresh,
+  setTokenCookie,
   type UserProfileDto,
 } from '@/services/api-client';
 
@@ -21,7 +22,7 @@ interface AuthContextValue {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => void;
+  loginWithGoogle: (callbackUrl?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             saveTokens(sessionToken, sessionRefreshToken);
           } else {
             localStorage.setItem('accessToken', sessionToken);
+            setTokenCookie(sessionToken);
           }
           setAuthCookie(profile.role ?? 'learner');
           setToken(sessionToken);
@@ -142,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           saveTokens(accessToken, refreshToken);
         } else {
           localStorage.setItem('accessToken', accessToken);
+          setTokenCookie(accessToken);
         }
         setAuthCookie(profile?.role ?? 'learner');
         setToken(accessToken);
@@ -154,8 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const loginWithGoogle = useCallback(() => {
-    nextAuthSignIn('google', { callbackUrl: '/login' });
+  const loginWithGoogle = useCallback(async (callbackUrl = '/dashboard') => {
+    await nextAuthSignIn('google', { callbackUrl });
   }, []);
 
   const logout = useCallback(async () => {

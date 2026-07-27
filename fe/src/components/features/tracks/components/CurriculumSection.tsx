@@ -6,8 +6,8 @@ import { useTranslations } from 'next-intl';
 import { useTrackDraftStore } from '@/stores/trackDraftStore';
 import { formatEstimatedTime } from '@/lib/time-utils';
 
-export function CurriculumSection() {
-  const t = useTranslations('CreateTrackPage');
+export function CurriculumSection({ ns = 'CreateTrackPage' }: { ns?: string }) {
+  const t = useTranslations(ns);
   const tu = useTranslations('TimeUnit');
   const router = useRouter();
   const { lessons, removeLesson, reorderLessons } = useTrackDraftStore();

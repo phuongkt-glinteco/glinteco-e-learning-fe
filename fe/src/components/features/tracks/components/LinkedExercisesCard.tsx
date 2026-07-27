@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Icon } from '@iconify/react';
 import type { ExerciseSummaryDto } from '@/services/api-client';
 
 interface LinkedExercisesCardProps {
+  trackId: string;
   exercises?: ExerciseSummaryDto[];
   onRemove?: (id: string) => void;
   onAdd?: () => void;
@@ -25,6 +27,7 @@ function exerciseIcon(tag?: string): string {
 }
 
 export function LinkedExercisesCard({
+  trackId,
   exercises = [],
   onRemove,
   onAdd,
@@ -72,14 +75,22 @@ export function LinkedExercisesCard({
                 <Icon icon={exerciseIcon(ex.tag)} className="text-secondary text-[20px] shrink-0" />
                 <span className="body-sm text-on-surface truncate">{ex.title}</span>
               </div>
-              {onRemove && (
-                <button
-                  onClick={() => onRemove(ex.id ?? '')}
-                  className="p-1 rounded text-secondary hover:text-error opacity-0 group-hover:opacity-100 transition-all shrink-0 cursor-pointer"
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+                <Link
+                  href={`/admin/tracks/${trackId}/exercises/${ex.id}/edit`}
+                  className="p-1 rounded text-secondary hover:text-primary transition-all cursor-pointer block"
                 >
-                  <Icon icon="lucide:x" className="text-[18px]" />
-                </button>
-              )}
+                  <Icon icon="lucide:pencil" className="text-[18px]" />
+                </Link>
+                {onRemove && (
+                  <button
+                    onClick={() => onRemove(ex.id ?? '')}
+                    className="p-1 rounded text-secondary hover:text-error transition-all cursor-pointer"
+                  >
+                    <Icon icon="lucide:x" className="text-[18px]" />
+                  </button>
+                )}
+              </div>
             </div>
           ))}
 

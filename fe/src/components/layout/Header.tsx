@@ -36,6 +36,7 @@ export default function Header() {
         <div className="relative hidden md:block">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
           <input
+            suppressHydrationWarning
             className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-sm focus:outline-none focus:border-primary w-64"
             placeholder={t('searchPlaceholder')}
             type="text"

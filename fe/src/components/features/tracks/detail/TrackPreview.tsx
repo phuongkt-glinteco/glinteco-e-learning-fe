@@ -18,7 +18,7 @@ interface TrackTrackStatusItem {
 interface TrackPreviewProps {
   title: string;
   description: string;
-  lessons: LessonProgressItemDto[];
+  lessons: Array<LessonProgressItemDto & { estimatedTime?: string; body?: string | null }>;
   exercises?: ExerciseSummaryDto[];
   onBackToEdit: () => void;
   onSaveTrack?: () => void;

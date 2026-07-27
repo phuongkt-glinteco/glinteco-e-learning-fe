@@ -9,6 +9,7 @@ export function registerUiShowErrors(
     createHandler({
       name: 'register-email-exists',
       priority: 1,
+      requestPath: '/auth/register',
       statusCode: '409',
       messageIncludes: ['email'],
       errorCode: 'REGISTER_EMAIL_EXISTS',

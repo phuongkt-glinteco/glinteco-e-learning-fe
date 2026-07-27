@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { Icon } from '@iconify/react';
 
 interface ActionButton {

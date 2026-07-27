@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, type ReactNode } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
-import { useLanguage } from '@/providers/LanguageProvider';
+import { useState, useEffect, type ReactNode, Suspense } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import MobileHeader from './MobileHeader';
 import MobileSideBar from './MobileSideBar';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import LoadingPage from '../ui/loading/LoadingPage';
 
 interface AppShellProps {
   children: ReactNode;
@@ -17,10 +16,6 @@ export default function AppShell({ children }: AppShellProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   
-  // 3 hooks as requested: useLanguage, useTranslations, useLocale
-  const { locale, changeLanguage } = useLanguage();
-  const currentLocale = useLocale();
-  const t = useTranslations('AppShell');
 
   const isMobile = useMediaQuery('(max-width: 768px)');
 
@@ -48,7 +43,9 @@ export default function AppShell({ children }: AppShellProps) {
           <Header />
         )}
         <main className="flex-1 overflow-y-auto">
-          {children}
+          <Suspense fallback={<LoadingPage />}>
+            {children}
+          </Suspense>
         </main>
       </div>
     </div>

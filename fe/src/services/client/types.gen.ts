@@ -385,10 +385,6 @@ export type LessonProgressItemDto = {
      * Mô tả ngắn của bài học
      */
     description: string | null;
-    /**
-     * Thời gian ước tính hoàn thành
-     */
-    estimatedTime: string;
 };
 
 export type TrackDetailDto = {

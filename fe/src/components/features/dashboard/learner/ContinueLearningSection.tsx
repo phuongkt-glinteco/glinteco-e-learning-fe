@@ -1,25 +1,31 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { tracksControllerFindAll } from '@/services/api-client';
-import type { TrackSummaryDto } from '@/services/api-client';
 import Skeleton from '@/components/ui/loading/Skeleton';
 import SectionHead from '@/components/ui/head/SectionHead';
 import { ProgressBar } from '@/components/ui/HPBar';
+import type { LearnerTrack } from '@/components/features/tracks/learner/types';
+import { fetchCourses } from '@/components/features/tracks/learner/courseLearningApi';
+import { getErrorMessage } from '@/components/features/tracks/learner/utils';
 
 export default function ContinueLearningSection() {
   const t = useTranslations('LearnerDashboard');
-  const [tracks, setTracks] = useState<TrackSummaryDto[]>([]);
+  const router = useRouter();
+  const [tracks, setTracks] = useState<LearnerTrack[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    tracksControllerFindAll({ throwOnError: true })
-      .then((res) => {
-        if (!cancelled) setTracks((res.data as { data?: TrackSummaryDto[] })?.data ?? []);
+    fetchCourses()
+      .then((courses) => {
+        if (!cancelled) setTracks(courses);
       })
-      .catch(() => {})
+      .catch((loadError: unknown) => {
+        if (!cancelled) setError(getErrorMessage(loadError, 'Failed to load current course.'));
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -28,8 +34,39 @@ export default function ContinueLearningSection() {
 
   if (loading) return <Skeleton height={160} />;
 
-  const currentTrack = tracks.find((t) => t.status === 'in_progress');
-  if (!currentTrack) return null;
+  const currentTrack = tracks.find((track) => track.status === 'in_progress')
+    ?? tracks.find((track) => track.status !== 'locked');
+
+  function getCourseHref(track: LearnerTrack) {
+    return track.currentLessonId
+      ? `/courses/${track.id}/lessons/${track.currentLessonId}`
+      : `/courses/${track.id}`;
+  }
+
+  if (error || !currentTrack) {
+    return (
+      <section>
+        <SectionHead title={t('continueLearning')}>
+          <button
+            type="button"
+            onClick={() => router.push('/courses')}
+            className="font-label-sm text-label-sm text-primary hover:opacity-80 transition-opacity flex items-center cursor-pointer"
+          >
+            {t('viewPath')}
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+          </button>
+        </SectionHead>
+        <div className="rounded-lg border border-dashed border-outline-variant bg-white p-lg">
+          <h4 className="font-headline-sm text-headline-sm text-on-surface">
+            {error ? 'Unable to load current course' : 'No active course yet'}
+          </h4>
+          <p className="mt-2 font-body-md text-body-md text-on-surface-variant">
+            {error ?? 'Open the course path to choose a course and begin learning.'}
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   const moduleLabel = `Module ${currentTrack.order ?? '?'}`;
   const timeLeft = currentTrack.estimatedTime ?? '';
@@ -39,11 +76,16 @@ export default function ContinueLearningSection() {
     ? Math.round(((currentTrack.lessonsCompleted ?? 0) / currentTrack.lessonCount) * 100)
     : 0;
   const icon = currentTrack.icon ?? 'data_object';
+  const continueHref = getCourseHref(currentTrack);
 
   return (
     <section>
       <SectionHead title={t('continueLearning')}>
-        <button className="font-label-sm text-label-sm text-primary hover:opacity-80 transition-opacity flex items-center cursor-pointer">
+        <button
+          type="button"
+          onClick={() => router.push('/courses')}
+          className="font-label-sm text-label-sm text-primary hover:opacity-80 transition-opacity flex items-center cursor-pointer"
+        >
           {t('viewPath')}
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         </button>
@@ -76,7 +118,11 @@ export default function ContinueLearningSection() {
           </div>
         </div>
         <div className="mt-4 md:mt-0 z-10">
-          <button className="w-full md:w-auto bg-primary text-white font-label-md text-label-md px-8 py-4 rounded-lg hover:opacity-90 transition-all whitespace-nowrap shadow-md active:scale-95 cursor-pointer">
+          <button
+            type="button"
+            onClick={() => router.push(continueHref)}
+            className="w-full md:w-auto bg-primary text-white font-label-md text-label-md px-8 py-4 rounded-lg hover:opacity-90 transition-all whitespace-nowrap shadow-md active:scale-95 cursor-pointer"
+          >
             {t('continueLesson')}
           </button>
         </div>

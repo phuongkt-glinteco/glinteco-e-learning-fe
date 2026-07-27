@@ -3,8 +3,14 @@
 import { useTranslations } from 'next-intl';
 import type { LessonProgressItemDto } from '@/services/api-client';
 
+type RoadmapLesson = LessonProgressItemDto & {
+  description?: string | null;
+  body?: string | null;
+  estimatedTime?: string;
+};
+
 interface CourseRoadmapProps {
-  lessons: LessonProgressItemDto[];
+  lessons: RoadmapLesson[];
 }
 
 export function CourseRoadmap({ lessons = [] }: CourseRoadmapProps) {
@@ -65,7 +71,7 @@ export function CourseRoadmap({ lessons = [] }: CourseRoadmapProps) {
                         </span>
                       </div>
                       <p className="font-body-sm text-body-sm text-on-surface-variant mb-4 whitespace-pre-line">
-                        {lesson.description || (lesson as any).body || 'No content description.'}
+                        {lesson.description || lesson.body || 'No content description.'}
                       </p>
                       <div className="flex items-center gap-4 text-label-sm text-outline">
                         <div className="flex items-center gap-1">
@@ -90,7 +96,7 @@ export function CourseRoadmap({ lessons = [] }: CourseRoadmapProps) {
                         </h3>
                       </div>
                       <p className="font-body-sm text-body-sm text-secondary mb-3 whitespace-pre-line">
-                        {lesson.description || (lesson as any).body || 'No content description.'}
+                        {lesson.description || lesson.body || 'No content description.'}
                       </p>
                       <div className="flex items-center gap-4 text-label-sm text-outline opacity-80">
                         <div className="flex items-center gap-1">
